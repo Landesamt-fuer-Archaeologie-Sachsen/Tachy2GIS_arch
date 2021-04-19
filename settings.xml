@@ -1,0 +1,10 @@
+<data>
+  <objectName name="txtAutoSave">
+    <txt>10</txt>
+    <toolTip>Automatische speicherung Intervall</txt>
+  </objectName>
+  <objectName name="txtAkt">
+    <txt>aaa</txt>
+    <toolTip>Aktivitätscode</txt>
+  </objectName>
+</data>

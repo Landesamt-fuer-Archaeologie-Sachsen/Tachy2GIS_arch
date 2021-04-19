@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/plugins/t2g_arch" >
+        <file>icon.png</file>
+    </qresource>
+</RCC>
