@@ -5,9 +5,10 @@ Tachy2GIS_arch (T2G_arch) is a QGIS plugin that serves as application module for
 T2g_arch aims to provide functions for an effective workflow with a focus on on-site documentation of geometries using a total station.  
 The plugin is designed to use a specified data structure to allow a high degree of automation within the functions. This implies given folders and files (shapefiles). A QGIS project-file (leer.qgz), which serves as a templet can be found in the folder .\Projekt. Nevertheless, the used thesauri can be adapted to allow compatibility with different documentation standards.  
 
+For more details, see the manual. 
+
 Note: Some functions wil not work properly with QGIS Versions 3.10 and higher! Please use QGIS 3.8 instead. 
 
-For more details, see the manual. 
 
 Tachy2GIS_arch (T2G_arch) ist ein QGIS-Plugin als archäologische Fachschale für die tachymetrische  Grabungsdokumentation. Dazu wird ein weiteres Plugin -  Tachy2GIS - benötigt. 
 Es soll einen effektiven Arbeitsablauf bei der Dokumentation archäologischer Befunde ermöglichen.
