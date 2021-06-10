@@ -1,9 +1,0 @@
- if self.pluginIsActive:
-            self.actions[1].setEnabled(True)
-            for action in self.myactions:
-                action.setEnabled(True)
-
-        if not self.pluginIsActive:
-            self.pluginIsActive = True
-        for action in self.actions:
-            action.setEnabled(True)
