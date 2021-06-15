@@ -50,6 +50,7 @@ from .ExtDialoge.myDwgFeatureToCompare import FeatureToCompareDockWidget
 
 from .transformation.transformation_gui import TransformationGui
 from .geoEdit.geo_edit import GeoEdit
+from .profile.profile import Profile
 
 
 VERSION = 'LfA Dresden, Sachsen ' + 'V 0.4.0'
@@ -582,7 +583,14 @@ class T2G_Arch:
 
             self.geoEdit = GeoEdit(self, self.iface)
             self.geoEdit.setup()
+            ####################################################################
 
+            ####################################################################
+            ############################# Profile #################
+            ####################################################################
+
+            self.profile = Profile(self, self.iface)
+            self.profile.setup()
             ####################################################################
 
             self.setup()
