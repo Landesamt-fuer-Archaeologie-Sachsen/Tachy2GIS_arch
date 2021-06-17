@@ -11,6 +11,7 @@ from .profile_gcp_canvas import ProfileGcpCanvas
 from .profile_georef_table import GeorefTable
 from .image_parambar import ImageParambar
 from .gcp_parambar import GcpParambar
+from .image_georef import ImageGeoref
 
 from .profileAAR.profileAAR import profileAAR
 
@@ -100,6 +101,9 @@ class GeoreferencingDialog(QMainWindow):
         #profileAAR
         self.profileAAR = profileAAR()
 
+        #Bildgeoreferenzierung
+        self.imageGeoref = ImageGeoref(self)
+
     ## \brief Event connections
     #
 
@@ -111,6 +115,8 @@ class GeoreferencingDialog(QMainWindow):
         self.canvasImage.pup.register('imagePointCoordinates', self.georefTable.updateImageCoordinates)
 
         self.georefTable.pup.register('dataChanged', self.profileAAR.run)
+        
+        self.startGeorefBtn.clicked.connect(self.imageGeoref.runGeoref)
 
     ## \brief create actions
     #
@@ -133,6 +139,7 @@ class GeoreferencingDialog(QMainWindow):
         self.toolbarMap = self.addToolBar("Kartennavigation")
 
         self.startGeorefBtn = QPushButton("Profil entzerren", self)
+
         self.toolbarMap.addWidget(self.startGeorefBtn)
         #self.toolbarMap.addAction(self.canvasTransform.actionPan)
         #self.toolbarMap.addAction(self.canvasTransform.actionZoomIn)
@@ -172,9 +179,13 @@ class GeoreferencingDialog(QMainWindow):
 
         self.georefTable.cleanGeorefTable()
         self.georefTable.updateGeorefTable(refData)
+        self.georefTable.pointUsageChanged()
 
         self.canvasImage.updateCanvas(refData['imagePath'])
         self.canvasGcp.updateCanvas(refData)
+
+        self.imageGeoref.updateMetadata(refData)
+
         self.adjustSize()
         self.show()
         self.resize(1000, 700)

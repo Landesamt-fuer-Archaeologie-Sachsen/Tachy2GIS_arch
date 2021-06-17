@@ -49,7 +49,7 @@ class GeorefTable(QTableWidget):
         self.verticalHeader().sectionClicked.connect(self.georefTableRowClick)
 
 
-    def getTableData(self):
+    def __getTableData(self):
 
         tableData = []
 
@@ -83,7 +83,7 @@ class GeorefTable(QTableWidget):
                 if head == 'Error':
                     pointObj['error'] = float(self.item(i, j).text())
                 if head == 'Punkt verwenden':
-                    pointObj['usage'] = self.item(i, j)
+                    pointObj['usage'] = self.cellWidget(i, j).isChecked()
 
             pointObj['sourcePoints'] = pointArraySource
             pointObj['targetPoints'] = pointArrayTarget
@@ -176,6 +176,8 @@ class GeorefTable(QTableWidget):
             self.setCellWidget(rowPosition, 9, usageCheck)
             georefTableHeader.setSectionResizeMode(9, QHeaderView.ResizeToContents)
 
+            usageCheck.stateChanged.connect(self.pointUsageChanged)
+
             # Punkt setzen
             setPointRadio = QRadioButton()
             setPointRadio.pointUUID = pointObj['uuid']
@@ -250,7 +252,7 @@ class GeorefTable(QTableWidget):
         for tblObj in tableData:
 
             points.append([
-                tblObj['targetPoints'][0], tblObj['targetPoints'][1], tblObj['targetPoints'][2], self.viewDirection, self.profileNumber, 1
+                tblObj['targetPoints'][0], tblObj['targetPoints'][1], tblObj['targetPoints'][2], self.viewDirection, self.profileNumber, int(tblObj['usage'])
             ])
 
         metaInfos = {
@@ -293,86 +295,15 @@ class GeorefTable(QTableWidget):
 
         self.show()
 
-        tableData = self.getTableData()
+
+    def pointUsageChanged(self):
+
+        tableData = self.__getTableData()
 
         print('tableData', tableData)
 
         data = self.prepareData(tableData)
 
         print('dataaaaaa', data)
-
-        input_data = {
-            'transformation' : {
-                'method': 'projected',
-                'direction': 'original'
-            },
-            'profiles' :
-            [
-                {
-                    'profile_nr' : '65',
-                    'view_direction' : 'E',
-                    'points' : [
-
-                         {
-                            'point_nr' : 'AZB-15_1',
-                            'x': 4577323.717,
-                            'y': 5709834.986,
-                            'z': 85.156,
-                            'used_points': 1
-                        },
-                        {
-                            'point_nr' : 'AZB-15_2',
-                            'x': 4577324.677,
-                            'y': 5709836.283,
-                            'z': 85.161,
-                            'used_points': 1
-                        },
-                        {
-                            'point_nr' : 'AZB-15_3',
-                            'x': 4577325.64,
-                            'y': 5709837.479,
-                            'z': 85.154,
-                            'used_points': 1
-                        },
-                        {
-                            'point_nr' : 'AZB-15_4',
-                            'x': 4577325.762,
-                            'y': 5709837.307,
-                            'z': 84.157,
-                            'used_points': 1
-                        },
-                        {
-                            'point_nr' : 'AZB-15_5',
-                            'x': 4577325.203,
-                            'y': 5709836.573,
-                            'z': 84.203,
-                            'used_points': 1
-                        },
-                        {
-                            'point_nr' : 'AZB-15_6',
-                            'x': 4577324.658,
-                            'y': 5709835.968,
-                            'z': 84.276,
-                            'used_points': 1
-                        },
-                        {
-                            'point_nr' : 'AZB-15_7',
-                            'x': 4577324.517,
-                            'y': 5709835.918,
-                            'z': 84.796,
-                            'used_points': 1
-                        },
-                        {
-                            'point_nr' : 'AZB-15_8',
-                            'x': 4577323.818,
-                            'y': 5709834.986,
-                            'z': 84.836,
-                            'used_points': 1
-                        }
-
-                    ]
-                }
-            ]
-        }
 
         self.pup.publish('dataChanged', data)
