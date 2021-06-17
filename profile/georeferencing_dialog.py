@@ -12,6 +12,8 @@ from .profile_georef_table import GeorefTable
 from .image_parambar import ImageParambar
 from .gcp_parambar import GcpParambar
 
+from .profileAAR.profileAAR import profileAAR
+
 ## @brief With the GeoreferencingDialog class a dialog window for the georeferencing of profiles is realized
 #
 # The class inherits form QMainWindow
@@ -95,8 +97,8 @@ class GeoreferencingDialog(QMainWindow):
         #GcpTable
         self.georefTable = GeorefTable(self)
 
-        #paramCalc
-        #self.paramCalc = TransformationCalculations(self)
+        #profileAAR
+        self.profileAAR = profileAAR()
 
     ## \brief Event connections
     #
@@ -105,7 +107,10 @@ class GeoreferencingDialog(QMainWindow):
 
         self.georefTable.pup.register('activatePoint', self.canvasGcp.setActivePoint)
         self.georefTable.pup.register('activatePoint', self.canvasImage.setActivePoint)
+        self.georefTable.pup.register('activatePoint', self.imageParambar.activateMapToolMove)
         self.canvasImage.pup.register('imagePointCoordinates', self.georefTable.updateImageCoordinates)
+
+        self.georefTable.pup.register('dataChanged', self.profileAAR.run)
 
     ## \brief create actions
     #
@@ -166,7 +171,7 @@ class GeoreferencingDialog(QMainWindow):
     def restore(self, refData):
 
         self.georefTable.cleanGeorefTable()
-        self.georefTable.updateGeorefTable(refData['targetGCP'])
+        self.georefTable.updateGeorefTable(refData)
 
         self.canvasImage.updateCanvas(refData['imagePath'])
         self.canvasGcp.updateCanvas(refData)

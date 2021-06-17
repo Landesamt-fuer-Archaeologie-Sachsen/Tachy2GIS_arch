@@ -150,7 +150,8 @@ class ImageParambar(QWidget):
 
         self.actionExtent.triggered.connect(self.canvasImage.setExtentByImageLayer)
 
-
+    def activateMapToolMove(self, linkObj):
+        self.actionMove.activate(0)
 
 
     ## \brief Create a splitter (vertical line to separate labels in the parambar)

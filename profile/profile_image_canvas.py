@@ -46,7 +46,7 @@ class ProfileImageCanvas(QgsMapCanvas):
         self.createMapToolMoveMarker()
 
         self.createConnects()
-        
+
 
     def __delete_marker(self, uuid):
 
@@ -128,7 +128,7 @@ class ProfileImageCanvas(QgsMapCanvas):
 
             self.markerPoints.append({"uuid": self.activePoint, "marker": m})
 
-            self.pup.publish('imagePointCoordinates', {'uuid': self.activePoint, 'x': pointData[0], 'z': pointData[1]})
+            #self.pup.publish('imagePointCoordinates', {'uuid': self.activePoint, 'x': pointData[0], 'z': pointData[1]})
 
     def setActivePoint(self, linkObj):
         print('setActivePoint image')

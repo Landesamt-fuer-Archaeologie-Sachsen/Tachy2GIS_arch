@@ -32,6 +32,9 @@ class GeorefTable(QTableWidget):
         #allows selection of image coordinates in canvasImage
         self.activePoint = ''
 
+        self.viewDirection = None
+        self.profileNumber = None
+
         self.colHeaders = ['UUID', 'PTNR', 'ID', 'Quelle X', 'Quelle Z', 'Ziel X', 'Ziel Y', 'Ziel Z', 'Error', 'Punkt verwenden', 'Punkt setzen']
 
         self.setObjectName("georefTable")
@@ -45,12 +48,58 @@ class GeorefTable(QTableWidget):
         #click auf row
         self.verticalHeader().sectionClicked.connect(self.georefTableRowClick)
 
+
+    def getTableData(self):
+
+        tableData = []
+
+        rowCount = self.rowCount()
+        columnCount = self.columnCount()
+
+        for i in range(0, rowCount):
+            pointObj = {}
+            pointArraySource = [0] * 2
+            pointArrayTarget = [0] * 3
+            for j in range(0, columnCount):
+
+                head = self.horizontalHeaderItem(j).text()
+                if head == 'UUID':
+                    pointObj['uuid'] = self.item(i, j).text()
+                if head == 'PTNR':
+                    pointObj['ptnr'] = self.item(i, j).text()
+                if head == 'ID':
+                    pointObj['id'] = int(self.item(i, j).text())
+                if head == 'Quelle X':
+                    pointArraySource [0] = float(self.item(i, j).text())
+                if head == 'Quelle Z':
+                    pointArraySource [1] = float(self.item(i, j).text())
+
+                if head == 'Ziel X':
+                    pointArrayTarget [0] = float(self.item(i, j).text())
+                if head == 'Ziel Y':
+                    pointArrayTarget [1] = float(self.item(i, j).text())
+                if head == 'Ziel Z':
+                    pointArrayTarget [2] = float(self.item(i, j).text())
+                if head == 'Error':
+                    pointObj['error'] = float(self.item(i, j).text())
+                if head == 'Punkt verwenden':
+                    pointObj['usage'] = self.item(i, j)
+
+            pointObj['sourcePoints'] = pointArraySource
+            pointObj['targetPoints'] = pointArrayTarget
+            tableData.append(pointObj)
+
+        return tableData
+
     ## \brief Update der GCP-Tabelle
     #
     # \param gcpTarget
     # @returns
     def updateGeorefTable(self, gcpTarget):
 
+        self.viewDirection = gcpTarget['viewDirection']
+        self.profileNumber = gcpTarget['profileNumber']
+        print('gcpTarget', gcpTarget)
         #self.colHeaders = ['UUID', 'PTNR', 'ID', 'Quelle X', 'Quelle Z', 'Ziel X', 'Ziel Y', 'Ziel Z', 'Error', 'Punkt verwenden', 'Punkt setzen']
         targetX = []
         targetY = []
@@ -58,7 +107,7 @@ class GeorefTable(QTableWidget):
 
         georefTableHeader = self.horizontalHeader()
 
-        for pointObj in gcpTarget['points']:
+        for pointObj in gcpTarget['targetGCP']['points']:
 
             rowPosition = self.rowCount()
             self.insertRow(rowPosition)
@@ -75,7 +124,7 @@ class GeorefTable(QTableWidget):
             self.setItem(rowPosition, 2, idItem)
             georefTableHeader.setSectionResizeMode(2, QHeaderView.ResizeToContents)
             # Quelle X
-            qxItem = QTableWidgetItem()
+            qxItem = QTableWidgetItem(str(-99999))
             qxItem.setFlags(Qt.ItemIsEnabled)
             self.setItem(rowPosition, 3, qxItem)
             georefTableHeader.setSectionResizeMode(3, QHeaderView.ResizeToContents)
@@ -85,7 +134,7 @@ class GeorefTable(QTableWidget):
             #self.setItem(rowPosition, 4, qyItem)
             #georefTableHeader.setSectionResizeMode(4, QHeaderView.ResizeToContents)
             # Quelle Z
-            qzItem = QTableWidgetItem()
+            qzItem = QTableWidgetItem(str(-99999))
             qzItem.setFlags(Qt.ItemIsEnabled)
             self.setItem(rowPosition, 4, qzItem)
             georefTableHeader.setSectionResizeMode(4, QHeaderView.ResizeToContents)
@@ -110,10 +159,10 @@ class GeorefTable(QTableWidget):
             georefTableHeader.setSectionResizeMode(7, QHeaderView.ResizeToContents)
 
             #Error XY
-            #errorXyItem = QTableWidgetItem(str(-99999))
-            #errorXyItem.setFlags(Qt.ItemIsEnabled)
-            #self.setItem(rowPosition, 9, errorXyItem)
-            #georefTableHeader.setSectionResizeMode(9, QHeaderView.ResizeToContents)
+            errorXyItem = QTableWidgetItem(str(-99999))
+            errorXyItem.setFlags(Qt.ItemIsEnabled)
+            self.setItem(rowPosition, 8, errorXyItem)
+            georefTableHeader.setSectionResizeMode(8, QHeaderView.ResizeToContents)
             #Error Z
             #errorZItem = QTableWidgetItem(str(-99999))
             #errorZItem.setFlags(Qt.ItemIsEnabled)
@@ -194,7 +243,22 @@ class GeorefTable(QTableWidget):
 
         self.dialogInstance.canvasGcp.highlightSourceLayer(uuidValue)
 
+    def prepareData(self, tableData):
+        """Prepare table data for transformation"""
 
+        points = []
+        for tblObj in tableData:
+
+            points.append([
+                tblObj['targetPoints'][0], tblObj['targetPoints'][1], tblObj['targetPoints'][2], self.viewDirection, self.profileNumber, 1
+            ])
+
+        metaInfos = {
+        	'method': 'projected',
+        	'direction': 'original'
+        }
+
+        return points, metaInfos
 
     ## \brief Update image coordinates for a specific point (uuid)
     #
@@ -228,3 +292,87 @@ class GeorefTable(QTableWidget):
                         self.item(i, j).setText(str(round(linkObj['z'], 3)))
 
         self.show()
+
+        tableData = self.getTableData()
+
+        print('tableData', tableData)
+
+        data = self.prepareData(tableData)
+
+        print('dataaaaaa', data)
+
+        input_data = {
+            'transformation' : {
+                'method': 'projected',
+                'direction': 'original'
+            },
+            'profiles' :
+            [
+                {
+                    'profile_nr' : '65',
+                    'view_direction' : 'E',
+                    'points' : [
+
+                         {
+                            'point_nr' : 'AZB-15_1',
+                            'x': 4577323.717,
+                            'y': 5709834.986,
+                            'z': 85.156,
+                            'used_points': 1
+                        },
+                        {
+                            'point_nr' : 'AZB-15_2',
+                            'x': 4577324.677,
+                            'y': 5709836.283,
+                            'z': 85.161,
+                            'used_points': 1
+                        },
+                        {
+                            'point_nr' : 'AZB-15_3',
+                            'x': 4577325.64,
+                            'y': 5709837.479,
+                            'z': 85.154,
+                            'used_points': 1
+                        },
+                        {
+                            'point_nr' : 'AZB-15_4',
+                            'x': 4577325.762,
+                            'y': 5709837.307,
+                            'z': 84.157,
+                            'used_points': 1
+                        },
+                        {
+                            'point_nr' : 'AZB-15_5',
+                            'x': 4577325.203,
+                            'y': 5709836.573,
+                            'z': 84.203,
+                            'used_points': 1
+                        },
+                        {
+                            'point_nr' : 'AZB-15_6',
+                            'x': 4577324.658,
+                            'y': 5709835.968,
+                            'z': 84.276,
+                            'used_points': 1
+                        },
+                        {
+                            'point_nr' : 'AZB-15_7',
+                            'x': 4577324.517,
+                            'y': 5709835.918,
+                            'z': 84.796,
+                            'used_points': 1
+                        },
+                        {
+                            'point_nr' : 'AZB-15_8',
+                            'x': 4577323.818,
+                            'y': 5709834.986,
+                            'z': 84.836,
+                            'used_points': 1
+                        }
+
+                    ]
+                }
+            ]
+        }
+
+        self.pup.publish('dataChanged', data)
