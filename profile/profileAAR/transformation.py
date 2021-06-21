@@ -359,7 +359,7 @@ class Magic_Box():
 
     def transformation(self, coord_proc, method, direction):
         #initialize the Errorhandler
-
+        print('coord_proc_transformation',coord_proc)
         errorhandler = ErrorHandler()
 
         profilnr_proc = listToList(coord_proc, 4)
@@ -387,15 +387,23 @@ class Magic_Box():
         # write the x and v values in the corresponding lists
         # instantiate an empty list for the transformed coordinates and other values
 
+        print('coord_proc',coord_proc)
         # instantiate lists for the x and y values
         #coordList = listToList(coord_proc, 0)
         x_coord_proc = listToList(coord_proc, 0)
+        print('x_coord_proc',x_coord_proc)
 
         y_coord_proc = listToList(coord_proc, 1)
+        print('y_coord_proc',y_coord_proc)
 
         selection_proc = listToList(coord_proc, 5)
+        print('selection_proc',selection_proc)
 
         id_proc = listToList(coord_proc, 6)
+        print('id_proc',id_proc)
+
+        uuid_proc = listToList(coord_proc, 7)
+        print('uuid_proc',uuid_proc)
 
         rangcheck_orginal = []
 
@@ -679,7 +687,7 @@ class Magic_Box():
             for i in range(len(coord_proc)):
 
                 coord_trans.append([x_trans[i], y_trans[i], z_trans[i], coord_proc[i][4], coord_proc[i][2],
-                                    distance[i], selection_proc[i],id_proc[i]])
+                                    distance[i], selection_proc[i],id_proc[i], uuid_proc[i]])
 
                 rangcheck_trans.append([x_trans[i], z_trans[i], y_trans[i]])
 
@@ -731,7 +739,7 @@ class Magic_Box():
                 # CHANGE
 
                 coord_trans.append([x_trans[i], y_trans[i], z_trans[i], coord_proc[i][4],
-                                    coord_proc[i][2], distance[i], selection_proc[i], id_proc[i]])
+                                    coord_proc[i][2], distance[i], selection_proc[i], id_proc[i], uuid_proc[i]])
 
                 rangcheck_trans.append([x_trans[i], z_trans[i], y_trans[i]])
 

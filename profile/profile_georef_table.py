@@ -250,9 +250,8 @@ class GeorefTable(QTableWidget):
 
         points = []
         for tblObj in tableData:
-
             points.append([
-                tblObj['targetPoints'][0], tblObj['targetPoints'][1], tblObj['targetPoints'][2], self.viewDirection, self.profileNumber, int(tblObj['usage'])
+                tblObj['targetPoints'][0], tblObj['targetPoints'][1], tblObj['targetPoints'][2], self.viewDirection, self.profileNumber, int(tblObj['usage']), tblObj['uuid']
             ])
 
         metaInfos = {

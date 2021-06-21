@@ -12,6 +12,7 @@ from .profile_georef_table import GeorefTable
 from .image_parambar import ImageParambar
 from .gcp_parambar import GcpParambar
 from .image_georef import ImageGeoref
+from .data_store import DataStore
 
 from .profileAAR.profileAAR import profileAAR
 
@@ -104,6 +105,9 @@ class GeoreferencingDialog(QMainWindow):
         #Bildgeoreferenzierung
         self.imageGeoref = ImageGeoref(self)
 
+        #DataStore
+        self.dataStore = DataStore()
+
     ## \brief Event connections
     #
 
@@ -113,9 +117,12 @@ class GeoreferencingDialog(QMainWindow):
         self.georefTable.pup.register('activatePoint', self.canvasImage.setActivePoint)
         self.georefTable.pup.register('activatePoint', self.imageParambar.activateMapToolMove)
         self.canvasImage.pup.register('imagePointCoordinates', self.georefTable.updateImageCoordinates)
+        self.canvasImage.pup.register('imagePointCoordinates', self.dataStore.addImagePoint)
 
         self.georefTable.pup.register('dataChanged', self.profileAAR.run)
-        
+
+        self.profileAAR.pup.register('aarPointsChanged', self.dataStore.addAarPoints)
+
         self.startGeorefBtn.clicked.connect(self.imageGeoref.runGeoref)
 
     ## \brief create actions
@@ -183,6 +190,8 @@ class GeoreferencingDialog(QMainWindow):
 
         self.canvasImage.updateCanvas(refData['imagePath'])
         self.canvasGcp.updateCanvas(refData)
+
+        self.dataStore.addTargetPoints(refData)
 
         self.imageGeoref.updateMetadata(refData)
 

@@ -63,6 +63,8 @@ from .transformation import Magic_Box
 #the export to a shapefile happens here
 from .export import Export
 
+from ..publisher import Publisher
+
 class profileAAR(object):
 
     """QGIS Plugin Implementation."""
@@ -72,6 +74,8 @@ class profileAAR(object):
         """
         Constructor
         """
+
+        self.pup = Publisher()
 
     def run(self, data):
         """Run method that performs all the real work"""
@@ -86,7 +90,6 @@ class profileAAR(object):
 
         result = data[0]
         transform_param = data[1]
-
         if result:
 
             '''GET INPUT FROM GUI TO VARIABLES/PREPARE LIST OF DATA'''
@@ -116,7 +119,7 @@ class profileAAR(object):
 
             for feature in iter:
                 print('-----')
-                print(feature)
+                print('feature', feature)
 
                 # retrieve every feature with its geometry and attributes
                 view = feature[3]
@@ -129,13 +132,14 @@ class profileAAR(object):
                 y = round(feature[1], 3)
                 z = round(feature[2], 3)
                 use = feature[5]
+                uuid = feature[6]
 
                 # write coordinates and attributes (view, profile and z) in a list
                 # add an ID to each point
 
                 point_id += 1
 
-                coord.append([x,y,z,view, profileName, use, point_id])
+                coord.append([x,y,z,view, profileName, use, point_id, uuid])
 
 
                 # write a list of profilenames (unique entries)
@@ -162,7 +166,7 @@ class profileAAR(object):
 
                 # iterate through the features in coord, if the profilename matches store the features
                 # datalist in templist
-                print('coord_run', coord)
+
                 for x in range(len(coord)):
                     print(coord[x])
                     coord_proc.append(coord[x])
@@ -175,7 +179,7 @@ class profileAAR(object):
                     if coord[x][4] not in selection_check:
                         selection_check.append(coord[x][3])
 
-                print('coord_proc_run', coord_proc)
+
 
                 # Handle Errors depending on the attributes in the fields
 
@@ -219,7 +223,9 @@ class profileAAR(object):
                     print('cutting_line:')
                     print('cutting_line', cutting_line)
 
-                    return transform_return
+                    #return transform_return
+
+                    self.pup.publish('aarPointsChanged', transform_return)
 
 
 
