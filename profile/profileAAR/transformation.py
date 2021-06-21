@@ -74,6 +74,7 @@ from .errorhandling import ErrorHandler
 
 
 def rotation (self, coord_proc, slope_deg, zAdaption):
+    print('rotation_coord_proc', coord_proc)
     #coord_proc = listToList(coord_proc, 0)
     x_coord_proc = listToList(coord_proc, 0)
 
@@ -376,7 +377,10 @@ class Magic_Box():
 
             fehler_check = True
 
-            for i in range(len(coord_proc[0])):
+            print('coord_proc[0]', coord_proc[0])
+            print('rotationresult',  rotationresult['x_trans'])
+
+            for i in range(len(coord_proc)):
 
                 coord_proc[i][0] = rotationresult['x_trans'][i]
 

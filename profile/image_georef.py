@@ -17,16 +17,13 @@ class ImageGeoref():
 
         self.imageFileOut = ''
 
-        self.gcpPoints = [
-            [100, 200, 5674562, 5463215],
-            [200, 200, 5674562, 5463215],
-            [300, 200, 5674562, 5463215],
-            [400, 200, 5674562, 5463215]
-        ]
+        self.gcpPoints = ''
 
 
-    def runGeoref(self):
+    def runGeoref(self, georefData):
         print('run ImageGeoref')
+
+        self.gcpPoints = georefData
         self.startTranslate()
         self.startWarp()
 
@@ -35,23 +32,22 @@ class ImageGeoref():
         fileInfo = QFileInfo(self.imageFileIn)
         baseName = fileInfo.baseName()
 
-        command = ['gdal_translate', '-of', 'GTiff']
+        command = 'gdal_translate -of GTiff'
 
         for point in self.gcpPoints:
-            command.append("-gcp")
-            command.append(str(round(float(point[0]))))
-            command.append(str(round(float(point[1]))))
-            command.append(str(round(float(point[2]))))
-            command.append(str(round(float(point[3]))))
+            command += ' -gcp '+str(float(point['input_x']))+' '+str(float(point['input_z']))+' '+str(float(point['aar_x']))+' '+str(float(point['aar_y']))
 
-        command.append(self.imageFileIn)
-        command.append(self.imageFileOut)
+        command += ' '+self.imageFileIn+' '+self.imageFileOut
 
         print('command', command)
         proc = subprocess.Popen(command)
 
     def startWarp(self):
         pass
+
+        #gdal_translate -of GTiff -gcp 310.316 1329.26 4.57733e+06 5.7099e+06 -gcp 2320.42 1278.32 4.57733e+06 5.7099e+06 -gcp 4409.26 1306.11 4.57733e+06 5.7099e+06 -gcp 4154.53 2876.21 4.57733e+06 5.7099e+06 -gcp 2292.63 2853.05 4.57733e+06 5.7099e+06 "Y:/Projekte/2021/lfa_profil/beispieldaten/AZB-16/AZB-16/Entzerrungen/AZB-16_Pr50.JPG" "C:/Users/Mario/AppData/Local/Temp/AZB-16_Pr50.JPG"
+        #gdalwarp -r near -order 1 -co COMPRESS=NONE  "C:/Users/Mario/AppData/Local/Temp/AZB-16_Pr50.JPG" "Y:/Projekte/2021/lfa_profil/tests/AZB-16_Pr50_modifiziert.tif"
+
 
     def updateMetadata(self, refData):
 

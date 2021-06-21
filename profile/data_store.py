@@ -48,16 +48,22 @@ class DataStore():
                 'z': pointObj['z']
             })
         else:
+            checker = False
             for statePoint in self.imagePoints:
+                print('statePoint', statePoint['uuid'])
+                print('pointObj', pointObj['uuid'])
                 if statePoint['uuid'] == pointObj['uuid']:
+                    print('jetzt')
                     statePoint['x'] = pointObj['x']
                     statePoint['z'] = pointObj['z']
-                else:
-                    self.imagePoints.append({
-                    	'uuid': pointObj['uuid'],
-                    	'x': pointObj['x'],
-                        'z': pointObj['z']
-                    })
+                    checker = True
+
+            if checker == False:
+                self.imagePoints.append({
+                	'uuid': pointObj['uuid'],
+                	'x': pointObj['x'],
+                    'z': pointObj['z']
+                })
 
         print('self.imagePoints', self.imagePoints)
 
@@ -78,5 +84,37 @@ class DataStore():
         print('self.targetPoints', self.targetPoints)
 
 
-    def addAarPoints(self, pointList):
-        print('add_aar_points')
+    def addAarPoints(self, aarList):
+        print('add_aar_points', aarList)
+        self.aarPoints = []
+
+        for pointObj in aarList['coord_trans']:
+
+            self.aarPoints.append({
+            	'uuid': pointObj[8],
+            	'x': pointObj[0],
+                'y': pointObj[1],
+                'z': pointObj[2],
+                'usage': pointObj[6]
+            })
+
+        print('self.aarPoints', self.aarPoints)
+
+
+    def getGeorefData(self):
+
+        georefData = []
+
+        for aarObj in self.aarPoints:
+            if(aarObj['usage'] == 1):
+                for imageObj in self.imagePoints:
+                    if aarObj['uuid'] == imageObj['uuid']:
+                        georefData.append({
+                                        'uuid': aarObj['uuid'],
+                                        'input_x': imageObj['x'],
+                                        'input_z': imageObj['z'],
+                                        'aar_x': aarObj['x'],
+                                        'aar_y': aarObj['y'],
+                                        'aar_z': aarObj['z']
+                                    })
+        return georefData

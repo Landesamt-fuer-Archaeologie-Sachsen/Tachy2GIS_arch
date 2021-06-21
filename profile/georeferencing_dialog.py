@@ -123,7 +123,7 @@ class GeoreferencingDialog(QMainWindow):
 
         self.profileAAR.pup.register('aarPointsChanged', self.dataStore.addAarPoints)
 
-        self.startGeorefBtn.clicked.connect(self.imageGeoref.runGeoref)
+        self.startGeorefBtn.clicked.connect(self.startGeoreferencing)
 
     ## \brief create actions
     #
@@ -208,3 +208,8 @@ class GeoreferencingDialog(QMainWindow):
 
     def showGeoreferencingDialog(self, refData):
         self.restore(refData)
+
+
+    def startGeoreferencing(self):
+        georefData = self.dataStore.getGeorefData()
+        self.imageGeoref.runGeoref(georefData)
