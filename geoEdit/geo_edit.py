@@ -158,18 +158,8 @@ class GeoEdit():
         #Get wkb type of the sourcelayer
         layerType = self.__sourceLayer.wkbType()
         print('layerType', layerType)
-        #Query for Z and ZM single layer types - layerTranslationXYZ does not output a correct Z value there (bug???)
-        #3002 LineStringZM , 3001 PointZM, 3003 PolygonZM
-        if layerType == 1001 or layerType == 1002 or layerType == 1003 or layerType == 3001 or layerType == 3002 or layerType == 3003:
 
-            #Z-translation - must be carried out first, otherwise an error will occur during the extent calculation.
-            self.geoCalc.layerTranslationZ(tranlationDirection, self.__sourceLayer, self.__translationZ)
-            #Translation in X and Y
-            self.geoCalc.layerTranslationXY(tranlationDirection, self.__sourceLayer, self.__translationX, self.__translationY)
-
-        else:
-            #Translation in X, Y and Z
-            self.geoCalc.layerTranslationXYZ(tranlationDirection, self.__sourceLayer, self.__translationX, self.__translationY, self.__translationZ)
+        self.geoCalc.layerTranslationXYZ(tranlationDirection, self.__sourceLayer, self.__translationX, self.__translationY, self.__translationZ)
 
         #Recalculate Extent
         self.__recalculateLayerExtent()
