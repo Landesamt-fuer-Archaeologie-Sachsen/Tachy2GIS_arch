@@ -9,8 +9,8 @@
 [general]
 name=T2G Archäologie
 qgisMinimumVersion=3.0
-description=Archäologie-PlugIn für Tachy2Gis 
-version=0.1.1
+description=Archäologie-PlugIn für Tachy2Gis
+version=0.4.0
 author=Daniel Timmel
 email=
 
