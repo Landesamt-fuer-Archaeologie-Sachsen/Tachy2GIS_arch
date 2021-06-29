@@ -46,13 +46,13 @@ from .ExtDialoge.myDwgFeatureQuestion import FeatureQuestionDockWidget
 from .ExtDialoge.myDlgQuery import AllLayerQuestionDockWidget
 from .ExtDialoge.myDlgGeometryCheck import GeometryCheckDockWidget
 from .ExtDialoge.myDlgRasterLayerView import RasterLayerViewDockWidget
-from .ExtDialoge.myDwgFeatureToCompare import FeatureToCompareDockWidget
+from .ExtDialoge.myDwgLookForMissingAttributes import LookForMissingAttributesDockWidget
 
 from .transformation.transformation_gui import TransformationGui
 from .geoEdit.geo_edit import GeoEdit
 
 
-VERSION = 'LfA Dresden, Sachsen ' + 'V 0.4.0'
+VERSION = 'LfA Sachsen ' + 'V 0.5.1' + ' für Qgis 3.10 -'
 
 class T2G_Arch:
     """QGIS Plugin Implementation."""
@@ -434,26 +434,8 @@ class T2G_Arch:
             self.dockwidget.butAutoAtt.setIcon(QIcon(os.path.join(self.iconpfad, 'Einstellungen.gif')))
             self.dockwidget.butSchriftfeld.clicked.connect(self.myDlgDrucklayoutShow)
             self.dockwidget.butSchriftfeld.setIcon(QIcon(os.path.join(self.iconpfad, 'Schriftfeld.jpg')))
-            self.dockwidget.txtReflH.textChanged.connect(self.setStatAttribute)
             self.dockwidget.txtAkt.textChanged.connect(self.setStatAttribute)
             self.dockwidget.cboArchGeo.currentIndexChanged.connect(self.setStatAttribute)
-            self.dockwidget.butRefHDel.setIcon(QIcon(os.path.join(self.iconpfad, 'del.gif')))
-            self.dockwidget.butRefHDel.clicked.connect(self.delReflH)
-            self.dockwidget.butRefHDel.setToolTip('Reflektorhöhe löschen')
-
-            #self.dockwidget.butLineRes.setIcon(QIcon(os.path.join(self.iconpfad, 'LineRe.gif')))
-            #self.dockwidget.butLineRes.setToolTip('Linie umdrehen')
-            #self.dockwidget.butLineRes.clicked.connect(self.lineFeatureReverse)
-            #self.dockwidget.butXCoord.setIcon(QIcon(os.path.join(self.iconpfad, 'XCoordMove.gif')))
-            #self.dockwidget.butXCoord.setToolTip('XKoordinate ändern')
-            #self.dockwidget.butXCoord.clicked.connect(self.featureXMove)
-            #self.dockwidget.butYCoord.setIcon(QIcon(os.path.join(self.iconpfad, 'YCoordMove.gif')))
-            #self.dockwidget.butYCoord.setToolTip('YKoordinate ändern')
-            #self.dockwidget.butYCoord.clicked.connect(self.featureYMove)
-            #self.dockwidget.butZCoord.setIcon(QIcon(os.path.join(self.iconpfad, 'ZCoordMove.gif')))
-            #self.dockwidget.butZCoord.setToolTip('ZKoordinate ändern')
-            #self.dockwidget.butZCoord.clicked.connect(self.featureZMove)
-
 
             self.dockwidget.butProfMe.clicked.connect(self.addProfil)
             #self.dockwidget.cboSuche.currentIndexChanged.connect(self.ozoom_1_ok)
@@ -465,10 +447,8 @@ class T2G_Arch:
             self.dockwidget.butLayerFilter.setToolTip('Filter auf alle Layer setzen')
             self.dockwidget.butDelAllFeatures.clicked.connect(self.delAllFeature)
             self.dockwidget.butDelAllFeatures.setToolTip('Löscht alle Geometrien auf den 3 Eingabelayern')
-            self.dockwidget.butsetLayerAliasName.clicked.connect(self.setAliasName)
             self.dockwidget.butProfMe.clicked.connect(self.addProfil)
             self.dockwidget.butProfMe.setIcon(QIcon(os.path.join(self.iconpfad, 'icon.png')))
-            self.dockwidget.butPunktGPSImp.clicked.connect(self.myDlgGPStoShapeShow)
             self.dockwidget.butAttributverwaltung.clicked.connect(self.myDlgAttributverwaltungShow)
 
             self.layerLine = QgsProject.instance().mapLayersByName(T2G_ArchDockWidget.eLayerListe()[0])[0]
@@ -503,8 +483,6 @@ class T2G_Arch:
 
             self.dockwidget.chbautoSave.stateChanged.connect(self.enableAutoSave)
             self.dockwidget.txtautoSave.textChanged.connect(self.enableAutoSave)
-            #self.dockwidget.pushButton_2.clicked.connect(self.projectPfadExplorer)
-            #self.dockwidget.pushButton_2.setIcon(QIcon(os.path.join(self.iconpfad, 'ordner-open.png')))
             self.dockwidget.pushButton_3.clicked.connect(self.dayProjectSave)
             self.dockwidget.pushButton_3.setIcon(QIcon(os.path.join(self.iconpfad, 'media-floppy.png')))
 
@@ -512,8 +490,6 @@ class T2G_Arch:
             self.dockwidget.butFeatureFirst.setIcon(QIcon(os.path.join(self.iconpfad, '-gvor.gif')))
             self.dockwidget.butFeatureLast.clicked.connect(self.featureLast)
             self.dockwidget.butFeatureLast.setIcon(QIcon(os.path.join(self.iconpfad, '-ghinten.gif')))
-            #self.dockwidget.butFeatureQuestion.clicked.connect(self.featureQuestion)
-            #self.dockwidget.butFeatureQuestion.setIcon(QIcon(os.path.join(self.iconpfad, 'FeatureQuest.gif')))
             self.dockwidget.butAllLayfFilterEnt.clicked.connect(self.eventAllLayfFilterEnt)
             self.dockwidget.butAllLayfFilterEnt.setToolTip('Löscht alle Layerfilter')
             self.dockwidget.butAllLayfFilterEnt.setIcon(QIcon(os.path.join(self.iconpfad, 'FilterAllLayerEnt.gif')))
@@ -544,29 +520,13 @@ class T2G_Arch:
             self.iface.layerTreeView().currentLayerChanged.connect(self.currentLayerChanged)
             QgsProject.instance().customVariablesChanged.connect(self.customVariablesChanged)
             self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
-            #self.dockwidget.butInsideClip.clicked.connect(self.insideClip)
-            #self.dockwidget.butInsideClip.setToolTip('Innenliegend')
-            #self.dockwidget.butInsideClip.setIcon(QIcon(os.path.join(self.iconpfad, 'butInsideClip.gif')))
-            #self.dockwidget.butOutsideClip.clicked.connect(self.outsideClip)
-            #self.dockwidget.butOutsideClip.setToolTip('Außenliegend')
-            #self.dockwidget.butOutsideClip.setIcon(QIcon(os.path.join(self.iconpfad, 'butOutsideClip.gif')))
-            #self.dockwidget.butContactClip.clicked.connect(self.contactClip)
-            #self.dockwidget.butContactClip.setToolTip('Berührend')
-            #self.dockwidget.butContactClip.setIcon(QIcon(os.path.join(self.iconpfad, 'butContactClip.gif')))
+
+            self.dockwidget.toolBox.currentChanged.connect(self.toolbox_currentChanged)
             self.dockwidget.show()
             self.layerPoly.selectionChanged.connect(self.selectFeatureChanged)
 
-            self.dockwidget.pushButton_2.clicked.connect(self.setXml)
-            self.dockwidget.pushButton_8.clicked.connect(self.getXml)
             self.dockwidget.pushButton_9.clicked.connect(self.myDlgFeatureCheckShow)
-            #self.dockwidget.pushButton_7.clicked.connect(self.ctmLayerVisibleShow)
-            #self.dockwidget.pushButton_7.setIcon(QIcon(os.path.join(self.iconpfad, 'Gruppe.gif')))
             self.watch.timeout.connect(self.watchEvent)
-            self.dockwidget.pushButton_10.clicked.connect(self.teeeeeest)
-
-            self.dockwidget.butFeatureToCompare.clicked.connect(self.myDwgFeatureToCompareShow)
-
-
 
             ####################################################################
             ############################# Transformation #######################
@@ -585,20 +545,20 @@ class T2G_Arch:
 
             ####################################################################
 
+            self.dockwidget.butLookForMissingAttributes.clicked.connect(self.myDwgLookForMissingAttributesShow)
+
             self.setup()
 
     def setup(self):
         self.dockwidget.butFeatureFirst.hide()
         self.dockwidget.butFeatureLast.hide()
-        self.dockwidget.butPunktGPSImp.hide()
         self.dockwidget.butLayerFilter.hide()
-        self.dockwidget.butsetLayerAliasName.hide()
         self.dockwidget.butDelAllFeatures.hide()
-        self.dockwidget.groupBox.hide()
+        self.dockwidget.butLookForMissingAttributes.hide()
         self.dockwidget.label_10.setText(VERSION)
         self.QgisDateiPfad = QgsProject.instance().readPath('./')
         self.ProjPfad = os.path.abspath(os.path.join(self.QgisDateiPfad, "./.."))
-        self.delReflH()
+
         self.currentLayerChanged()
         self.customVariablesChanged()  # self.getValue()
         self.getMaxValues()
@@ -606,7 +566,6 @@ class T2G_Arch:
         self.dockwidget.chbautoSave.setChecked(True)
         self.enableAutoSave()
         self.dockwidget.labAtt.hide()
-        self.dockwidget.labMes.hide()
         self.dockwidget.txtPointTemp.hide()
         iface.messageBar().pushMessage(u"T2G Archäologie: ", u"Aufsatz Archäologie für T2G ist einsatzbereit.",
                                        level=Qgis.Info)
@@ -635,6 +594,14 @@ class T2G_Arch:
         # <uuid ereugen wenn Feld uuid leer
 
         self.FilterGesetzt()
+
+    def toolbox_currentChanged(self,index):
+        QgsMessageLog.logMessage(str(index), 'T2G Archäologie', Qgis.Info)
+        if index == 1 or index == 4:
+            self.dockwidget.setFixedWidth(390)
+        else:
+            self.dockwidget.setFixedWidth(200)
+
 
     def pluginSichtbarkeit(self):
         if self.dockwidget is None:
@@ -956,9 +923,6 @@ class T2G_Arch:
                                            u"Layer ist kein Rasterlayer oder eine GeoTif!",
                                            level=Qgis.Critical)
 
-    def setAliasName(self):
-        #setAliasName()
-        pass
 
     def eventEditingStarted(self):
         #QgsMessageLog.logMessage('Änderung Start', 'T2G Archäologie', Qgis.Info)
@@ -1088,18 +1052,8 @@ class T2G_Arch:
         QgsMessageLog.logMessage(('Variable geändert'), 'T2G Archäologie', Qgis.Info)
         self.dockwidget.labAtt.setText('')
         self.dockwidget.txtAkt.setText(getCustomProjectVariable('aktcode'))
-        self.dockwidget.txtReflH.setText(getCustomProjectVariable('reflH'))
         self.dockwidget.cboArchGeo.setCurrentText(getCustomProjectVariable('geo-arch'))
-        if self.dockwidget.txtReflH.text() == '':
-            self.dockwidget.txtReflH.setStyleSheet("QLineEdit { Background-color : rgb(255, 255, 255) ; }")
-            self.dockwidget.labMes.setStyleSheet("QLabel { Background-color : rgb(240, 240, 240) ; }")
-            self.dockwidget.labMes.hide()
-            self.dockwidget.labMes.setText('')
-        else:
-            self.dockwidget.txtReflH.setStyleSheet("QLineEdit { Background-color : rgb(255, 99, 79) ; }")
-            self.dockwidget.labMes.show()
-            self.dockwidget.labMes.setText('Spiegelhöhe gesetzt!')
-            self.dockwidget.labMes.setStyleSheet("QLabel { Background-color : rgb(255, 99, 79) ; }")
+
         if getCustomProjectVariable('autoAttribute') == 'True':
             self.dockwidget.labAtt.show()
             self.dockwidget.labAtt.setText('Auto  Attribute! ')
@@ -1117,12 +1071,8 @@ class T2G_Arch:
             self.dockwidget.labZahl.setText('')
             self.dockwidget.labZahl.setStyleSheet("QLabel { Background-color : rgb(240, 240, 240) ; }")
 
-    def delReflH(self):
-        setCustomProjectVariable('reflH', '')
-        self.dockwidget.labMes.setStyleSheet("QLabel { Background-color : rgb(240, 240, 240) ; }")
 
     def setStatAttribute (self):
-        setCustomProjectVariable('reflH', str(self.dockwidget.txtReflH.text()))
         setCustomProjectVariable('aktcode', str(self.dockwidget.txtAkt.text()))
         setCustomProjectVariable('geo-arch', str(self.dockwidget.cboArchGeo.currentText()))
 
@@ -1259,13 +1209,28 @@ class T2G_Arch:
 
         ### Anfang Blickrichtung bestimmen
         view = None
+        koordlist = []
         for feat in profLayer.selectedFeatures():
-            pointA = feat.geometry().get()[0]
-            pointB = feat.geometry().get()[-1]
-            pointAx = pointA.x()
-            pointAy = pointA.y()
-            pointBx = pointB.x()
-            pointBy = pointB.y()
+            if feat.geometry().isMultipart():
+                # Multipart
+                parts = feat.geometry().asGeometryCollection()
+                for part in parts:
+                    for vertex in part.vertices():
+                        koordlist.append({'x': vertex.x(), 'y': vertex.y()})
+                QgsMessageLog.logMessage(str(koordlist[0]['x']) , 'T2G Archäologie', Qgis.Info)
+                pointAx = koordlist[0]['x']
+                pointAy = koordlist[0]['y']
+                pointBx = koordlist[-0]['x']
+                pointBy = koordlist[-0]['y']
+            else:
+                # Singlepart
+                pointA = feat.geometry().get()[0]
+                pointB = feat.geometry().get()[-1]
+                pointAx = pointA.x()
+                pointAy = pointA.y()
+                pointBx = pointB.x()
+                pointBy = pointB.y()
+
             dx = pointBx - pointAx
             dy = pointBy - pointAy
             vp = [dx, dy]
@@ -1295,7 +1260,8 @@ class T2G_Arch:
         feats = []
         ok = True
         profPointLayer = QgsProject.instance().mapLayersByName('E_Point')[0]
-        such2 = '"obj_type"=\'Fotoentzerrpunkt\' and '
+        such2 = '"obj_art"=\'Fotoentzerrpunkt\' and '
+        #such2 = '"obj_type"=\'V_Referenzierungspunkt\' and '
         it = profPointLayer.getFeatures(QgsFeatureRequest(QgsExpression(str(such2 + suchstr))))
         QgsMessageLog.logMessage(str(such2 + suchstr), 'T2G Archäologie', Qgis.Info)
         ids = [i.id() for i in it]
@@ -1318,6 +1284,7 @@ class T2G_Arch:
 
             msgout = '%s, %s, %s, %s, %s, %s, %s\n' % (value, x, y, z, profnr, view, 1)
             if feat["obj_type"] != 'Fotoentzerrpunkt' or feat["prof_nr"] == '':
+            #if feat["obj_art"] != 'Fotoentzerrungspunkt' or feat["prof_nr"] == '':
                 ok = False
             feats.append(msgout)
         delLayer("Prof Entzerrpunkte AAR-Tool")
@@ -1371,22 +1338,22 @@ class T2G_Arch:
                 # templayer erzeugen
                 vl = QgsVectorLayer("Point", "Prof Entzerrpunkte AAR-Tool", "memory")
                 # change memorylayer crs to layer crs
-                #resultl.setCrs(layer.crs())
+                vl.setCrs(profPointLayer.crs())
                 pr = vl.dataProvider()
-                pr.addAttributes([QgsField("punktnr", QVariant.String),
-                                  QgsField("x", QVariant.String),
-                                  QgsField("y", QVariant.String),
-                                  QgsField("z", QVariant.String),
-                                  QgsField("profilnr", QVariant.String),
-                                  QgsField("view", QVariant.String),
-                                  QgsField("points used", QVariant.String),])
+                pr.addAttributes([QgsField("punktnr", QVariant.String,'text'),
+                                  QgsField("x", QVariant.Double,'double'),
+                                  QgsField("y", QVariant.Double,'double'),
+                                  QgsField("z", QVariant.Double,'double'),
+                                  QgsField("profilnr", QVariant.Int,'integer'),
+                                  QgsField("view", QVariant.String,'text'),
+                                  QgsField("points used", QVariant.Int,'integer')])
                 vl.updateFields()
                 feat = QgsFeature()
                 for item in feats:
                     it = item.split(',')
                     point = QgsPoint(float(it[1]), float(it[2]), float(it[3]))
                     feat.setGeometry(QgsGeometry(point))
-                    feat.setAttributes([it[0],it[1],it[2],it[3],it[4],it[5],it[6]])
+                    feat.setAttributes([str(it[0]),point.x(),point.y(),point.z(),int(it[4]),str(it[5]),int(it[6])])
                     pr.addFeatures([feat])
                     #QgsMessageLog.logMessage(str(it[1]), 'T2G Archäologie', Qgis.Info)
                 # add memorylayer to canvas
@@ -1395,8 +1362,8 @@ class T2G_Arch:
                 g = root.findGroup('Vermessung')
                 g.insertChildNode(0, QgsLayerTreeLayer(vl))
             delSelectFeature()
-            #my_plugin = plugins.get('profileAAR')
-            #my_plugin.run()
+            my_plugin = plugins.get('profileAAR')
+            my_plugin.run()
 
 
     def getMaxValues(self):
@@ -1746,9 +1713,10 @@ class T2G_Arch:
         myDlgRasterLayerView.setAutoFillBackground(True)
         myDlgRasterLayerView.show()
 
-    def myDwgFeatureToCompareShow(self):
-        dialog = FeatureToCompareDockWidget(self.iface, iface.activeLayer())
-        dialog.show()
+    def myDwgLookForMissingAttributesShow(self):
+        self.dwLookForMissingAttributes = LookForMissingAttributesDockWidget(self.iface)#mainWindow()
+        self.dwLookForMissingAttributes.show()
+        self.dwLookForMissingAttributes.ui.cboFieldName.setCurrentText('bef_nr')
 
     def help(self):
         QMessageBox.information(None, 'Hilfe', os.path.join(self.ProjPfad, 'Hinweise.pdf'), QMessageBox.Cancel)
@@ -1853,8 +1821,11 @@ class T2G_Arch:
         koordlist=[]
         z =[]
         contextMenu = QtWidgets.QMenu()
+        if layer.type() == QgsMapLayer.RasterLayer:
+            pass
+
         # multipart
-        if self.selectedFeature.geometry().isMultipart():
+        elif self.selectedFeature.geometry().isMultipart():
             parts = self.selectedFeature.geometry().asGeometryCollection()
             if self.selectedLayer.geometryType() == QgsWkbTypes.PointGeometry:
                 for part in parts:
@@ -2166,45 +2137,6 @@ class T2G_Arch:
         QgsMessageLog.logMessage('liste' + str(self.selectFeatures), 'T2G Archäologie', Qgis.Info)
         pass
 
-    def setXml(self):
-        self.xmlFile.setValue('Id','vier',sssss)
-
-        pass
-
-    def getXml(self):
-        for child in self.dockwidget:
-            child
-            QgsMessageLog.logMessage(child.name(), 'T2G Archäologie', Qgis.Info)
-        pass
-
-    def teeeeeest(self):
-        layer = self.iface.mapCanvas().currentLayer()
-        feat = layer.getFeatures()
-
-        for feature in feat:
-            try:
-                if feature.geometry().isMultipart():
-                    parts = feature.geometry().asGeometryCollection()
-                    for i in range(0, len(parts)):
-                        vertices = parts[i].asPolygon()
-                        QgsMessageLog.logMessage('Multipoly ' + str([len(v) for v in vertices]), 'T2G Archäologie',
-                                                 Qgis.Info)
-                        for i in range(len(vertices)):
-                            #koord = {'x': vertices.vertexAt(i).x(),
-                            #         'y': vertices.vertexAt(i).y(),
-                            #         'z': vertices.vertexAt(i).z()}
-                            QgsMessageLog.logMessage('Multipoly ' + str(vertices[i]), 'T2G Archäologie',
-                                                 Qgis.Info)
-                else:
-                    if feature.geometry():
-                        vertices = feature.geometry().asPolygon()
-                        QgsMessageLog.logMessage('Poly ' + str(len(vertices)), 'T2G Archäologie', Qgis.Info)
-                for poly in feature.geometry().asMultiPolygon():
-                    QgsMessageLog.logMessage('Poly ' + str(poly), 'T2G Archäologie', Qgis.Info)
-
-            except Exception as e:
-                QgsMessageLog.logMessage(str(e), 'T2G Archäologie', Qgis.Info)
-                continue
 
     def canvasReleaseEvent(self, event):
 
@@ -2226,7 +2158,6 @@ class T2G_Arch:
         if event.key() == Qt.Key_Return or event.key() == Qt.Key_Enter:
             QgsMessageLog.logMessage('Enter', 'T2G Archäologie', Qgis.Info)
             #self.finishOperation()
-
         event.accept()
         self.redrawActions()
 
