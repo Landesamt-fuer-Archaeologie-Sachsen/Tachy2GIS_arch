@@ -1,7 +1,7 @@
-# This file contains metadata for your plugin. Since 
-# version 2.0 of QGIS this is the proper way to supply 
-# information about a plugin. The old method of 
-# embedding metadata in __init__.py will 
+# This file contains metadata for your plugin. Since
+# version 2.0 of QGIS this is the proper way to supply
+# information about a plugin. The old method of
+# embedding metadata in __init__.py will
 # is no longer supported since version 2.0.
 
 # This file should be included when you package your plugin.# Mandatory items:
@@ -10,14 +10,14 @@
 name=T2G Archäologie
 qgisMinimumVersion=3.0
 description=Archäologie-PlugIn für Tachy2Gis 
-version=0.1
+version=0.1.1
 author=Daniel Timmel
-email= 
+email=
 
 about=PlugIn zur T2G (Archäologie)
 
-tracker= 
-repository= 
+tracker=
+repository=
 # End of mandatory metadata
 
 # Recommended items:
@@ -28,7 +28,7 @@ repository=
 # Tags are comma separated with spaces allowed
 tags=python
 
-homepage= 
+homepage=
 category=Plugins
 icon=icon.png
 # experimental flag
@@ -36,4 +36,3 @@ experimental=True
 
 # deprecated flag (applies to the whole plugin, not just a single version)
 deprecated=False
-
