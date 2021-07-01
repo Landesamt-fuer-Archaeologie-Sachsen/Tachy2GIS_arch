@@ -53,7 +53,6 @@ class DataStore():
                 print('statePoint', statePoint['uuid'])
                 print('pointObj', pointObj['uuid'])
                 if statePoint['uuid'] == pointObj['uuid']:
-                    print('jetzt')
                     statePoint['x'] = pointObj['x']
                     statePoint['z'] = pointObj['z']
                     checker = True

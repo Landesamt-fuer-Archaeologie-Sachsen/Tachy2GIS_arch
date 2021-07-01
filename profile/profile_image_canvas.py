@@ -70,7 +70,7 @@ class ProfileImageCanvas(QgsMapCanvas):
 
             self.markerPoints.append({"uuid": self.activePoint, "marker": m})
 
-            self.pup.publish('imagePointCoordinates', {'uuid': self.activePoint, 'x': pointData[0], 'z': pointData[1]})
+            self.pup.publish('imagePointCoordinates', {'uuid': self.activePoint, 'x': pointData[0], 'z': abs(pointData[1])})
 
 
     def press_point(self, pointData ):
@@ -90,7 +90,7 @@ class ProfileImageCanvas(QgsMapCanvas):
 
             self.markerPoints.append({"uuid": self.activePoint, "marker": m})
 
-            self.pup.publish('imagePointCoordinates', {'uuid': self.activePoint, 'x': pointData[0], 'z': pointData[1]})
+            self.pup.publish('imagePointCoordinates', {'uuid': self.activePoint, 'x': pointData[0], 'z': abs(pointData[1])})
 
     def release_point(self, pointData ):
 
@@ -109,7 +109,7 @@ class ProfileImageCanvas(QgsMapCanvas):
 
             self.markerPoints.append({"uuid": self.activePoint, "marker": m})
 
-            self.pup.publish('imagePointCoordinates', {'uuid': self.activePoint, 'x': pointData[0], 'z': pointData[1]})
+            self.pup.publish('imagePointCoordinates', {'uuid': self.activePoint, 'x': pointData[0], 'z': abs(pointData[1])})
 
     def move_point(self, pointData ):
 
