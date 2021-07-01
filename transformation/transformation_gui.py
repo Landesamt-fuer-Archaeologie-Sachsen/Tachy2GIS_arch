@@ -552,10 +552,12 @@ class TransformationGui():
             with open(filePath, newline='') as csvfile:
                 reader = csv.reader(csvfile, delimiter='\t')
                 for row in reader:
-                    #0-NUMMER	1-Position X	2-Position Y	3-Position Z
-                    pointObj = {'ptnr': row[0], 'x': float(row[1]), 'y': float(row[2]), 'z': float(row[3])}
-                    targetGCP['points'].append(pointObj)
-
+                    if row:
+                        #0-NUMMER	1-Position X	2-Position Y	3-Position Z
+                        pointObj = {'ptnr': row[0], 'x': float(row[1]), 'y': float(row[2]), 'z': float(row[3])}
+                        targetGCP['points'].append(pointObj)
+                    else:
+                        print('Leerzeile')
             return True, targetGCP
         except:
             self.iface.messageBar().pushMessage("GCP-File", "Datei kann nicht eingelesen werden!", level=1, duration=5)

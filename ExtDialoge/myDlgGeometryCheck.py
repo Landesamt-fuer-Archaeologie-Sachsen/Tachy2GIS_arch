@@ -56,22 +56,22 @@ class GeometryCheckDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         pfad = os.path.abspath(os.path.join(os.path.join(os.path.dirname(__file__), "./..")))
         iconpfad = os.path.join(os.path.join(pfad, 'Icons'))
         self.ui = self
-        # self.ui.setWindowIcon(QtGui.QIcon(os.path.join(os.path.dirname(__file__), 'Icons/Schriftfeld.jpg')))
+
         self.iface = iface
         self.canvas = iface.mapCanvas()
         self.layer = None
-        #self.feature = feature
+
         self.koordList = []
         self.ui.butOK.clicked.connect(self.OK)
         self.ui.butAbbruch.clicked.connect(self.Abbruch)
         self.ui.tableWidget.itemChanged.connect(self.vertexEdit)
         self.ui.cboLayerName.currentIndexChanged.connect(self.setCheckLayer)
-        #self.iface.addDockWidget(Qt.LeftDockWidgetArea, self.ui)
+
         self.setup()
 
     def setCheckLayer(self):
         self.layer = QgsProject.instance().mapLayersByName(self.ui.cboLayerName.currentText())[0]
-        self.check()
+        self.Check()
 
     def setup(self):
         list = ['E_Polygon','E_Line','E_Point']
@@ -84,9 +84,9 @@ class GeometryCheckDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     def Abbruch(self):
         self.ui.close()
 
-    def check(self):
+    def Check(self):
         delLayer("Geometrie z-Koord Check")
-        templayer = QgsVectorLayer("Point?crs=31469", "Geometrie z-Koord Check", "memory")
+        templayer = QgsVectorLayer("Point", "Geometrie z-Koord Check", "memory")
         templayer.setCrs(self.layer.crs())
         QgsProject.instance().addMapLayer(templayer, False)
         root = QgsProject.instance().layerTreeRoot()
@@ -120,33 +120,46 @@ class GeometryCheckDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
         elif self.layer.geometryType() == QgsWkbTypes.LineGeometry:
             for f in self.layer.getFeatures():
-                try:
-                    for i in range(len(f.geometry().asPolyline()[0])):
-                        koord = {'x': f.geometry().vertexAt(i).x(), 'y': f.geometry().vertexAt(i).y(),
-                                 'z': f.geometry().vertexAt(i).z()}
-                        if f.geometry().vertexAt(i).z() == 0:
-                            self.koordList.append(koord)
-                except:
-                    sel.append(f.id())
-                    continue
+                if f.geometry().isMultipart():
+                    parts = f.geometry().asGeometryCollection()
+                    for part in parts:
+                        for vertex in part.vertices():
+                            koord = {'x': vertex.x(), 'y': vertex.y(), 'z': vertex.z()}
+                            if vertex.z() == 0:
+                                self.koordList.append(koord)
+                else:
+                    try:
+                        for i in range(len(f.geometry().asPolyline()[0])):
+                            koord = {'x': f.geometry().vertexAt(i).x(), 'y': f.geometry().vertexAt(i).y(),
+                                     'z': f.geometry().vertexAt(i).z()}
+                            if f.geometry().vertexAt(i).z() == 0:
+                                self.koordList.append(koord)
+                    except:
+                        sel.append(f.id())
+                        continue
 
         elif self.layer.geometryType() == QgsWkbTypes.PolygonGeometry:
-            for f in self.layer.getFeatures():
-                try:
-                    for i in range(len(f.geometry().asPolygon()[0])):
-                        koord = {'x': f.geometry().vertexAt(i).x(), 'y': f.geometry().vertexAt(i).y(),
-                                 'z': f.geometry().vertexAt(i).z()}
-                        if f.geometry().vertexAt(i).z() == 0:
-                            self.koordList.append(koord)
-                except:
-                    sel.append(f.id())
-                    continue
+                for f in self.layer.getFeatures():
+                    if f.geometry().isMultipart():
+                        parts = f.geometry().asGeometryCollection()
+                        for part in parts:
+                            for vertex in part.vertices():
+                                koord = {'x': vertex.x(), 'y': vertex.y(), 'z': vertex.z()}
+                                if vertex.z() == 0:
+                                    self.koordList.append(koord)
+                else:
+                    try:
+                        for i in range(len(f.geometry().asPolygon()[0])):
+                            koord = {'x': f.geometry().vertexAt(i).x(), 'y': f.geometry().vertexAt(i).y(),
+                                     'z': f.geometry().vertexAt(i).z()}
+                            if f.geometry().vertexAt(i).z() == 0:
+                                self.koordList.append(koord)
+                    except:
+                        sel.append(f.id())
+                        #continue
 
-        self.layer.selectByIds(sel)
-        #templayer.startEditing()
-        #listOfIds = [feat.id() for feat in templayer.getFeatures()]
-        #templayer.deleteFeatures(listOfIds)
-        #templayer.commitChanges()
+        #self.layer.selectByIds(sel)
+
         tableWidgetRemoveRows(self.tableWidget)
         for i in range(len(self.koordList)):
             self.tableWidget.insertRow(i)

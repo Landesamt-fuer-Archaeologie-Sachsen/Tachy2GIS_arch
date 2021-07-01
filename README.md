@@ -7,7 +7,7 @@ The plugin is designed to use a specified data structure to allow a high degree 
 
 For more details, see the manual. 
 
-Note: Some functions wil not work properly with QGIS Versions 3.10 and higher! Please use QGIS 3.8 instead. 
+Version: QGIS 3.8 and higher. 
 
 
 Tachy2GIS_arch (T2G_arch) ist ein QGIS-Plugin als archäologische Fachschale für die tachymetrische  Grabungsdokumentation. Dazu wird ein weiteres Plugin -  Tachy2GIS - benötigt. 
@@ -15,4 +15,4 @@ Es soll einen effektiven Arbeitsablauf bei der Dokumentation archäologischer Be
 Um einen hohen Automatisierungsgrad zu ermöglichen, ist das Plugin auf die Verwendung einer vorgegebenen Datenstruktur ausgelegt. Dies umfasst Verzeichnisse und Dateien (Shapefiles). Eine QGIS-Projektdatei (leer.qgz), die als Vorlage dient, befindet sich im Ordner .\Projekt. Dabei erlauben anpassbare Thesauri die Kompatibilität mit unterschiedlichen Dokumentationsstandards.
 Weitere Details finden Sie im Handbuch. 
 
-Achtung: Derzeit sind einige Funktionen unter QGIS 3.10 und höher nur eingeschränkt oder gar nicht nutzbar! Bitte benutzen Sie stattdessen QGIS 3.8.
+Version: QGIS 3.8 und höher.

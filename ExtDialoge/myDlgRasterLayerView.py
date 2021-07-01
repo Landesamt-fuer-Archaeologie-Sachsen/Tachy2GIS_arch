@@ -32,7 +32,7 @@ from qgis.core import *
 from qgis.gui import *
 from ..functions import *
 from ..t2g_arch_dockwidget import T2G_ArchDockWidget
-from .showPicture import *
+#from .showPicture import *
 import os, csv, subprocess, re
 
 
