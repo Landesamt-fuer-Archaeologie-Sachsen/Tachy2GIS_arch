@@ -94,6 +94,7 @@ class DataStore():
             	'x': pointObj[0],
                 'y': pointObj[1],
                 'z': pointObj[2],
+                'z_org': pointObj[3],
                 'usage': pointObj[6]
             })
 
@@ -114,6 +115,7 @@ class DataStore():
                                         'input_z': imageObj['z'],
                                         'aar_x': aarObj['x'],
                                         'aar_y': aarObj['y'],
-                                        'aar_z': aarObj['z']
+                                        'aar_z': aarObj['z'],
+                                        'aar_z_org': aarObj['z_org'],
                                     })
         return georefData

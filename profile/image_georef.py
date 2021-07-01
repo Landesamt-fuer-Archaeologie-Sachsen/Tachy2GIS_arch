@@ -32,19 +32,15 @@ class ImageGeoref():
 
     def startTranslate(self):
 
-        import shutil
-        from osgeo import gdal, osr
-
-        orig_fn = self.imageFileIn
-        output_fn = self.imageFileOut
-
-        print('orig_fn', orig_fn)
-        print('output_fn', output_fn)
+        print('self.imageFileIn', self.imageFileIn)
+        print('self.imageFileOut', self.imageFileOut)
         # Create a copy of the original file and save it as the output filename:
-        shutil.copy(orig_fn, output_fn)
-        print('copy_fin')
+
+        gdal.Translate(self.imageFileOut, self.imageFileIn)
+
         # Open the output file for writing for writing:
-        ds = gdal.Open(output_fn, gdal.GA_Update)
+        ds = gdal.Open(self.imageFileOut, gdal.GA_Update)
+        print ('ds', ds)
         # Set spatial reference:
         sr = osr.SpatialReference()
         sr.ImportFromEPSG(31468) #2193 refers to the NZTM2000, but can use any desired projection
@@ -52,13 +48,16 @@ class ImageGeoref():
         # Enter the GCPs
         #   Format: [map x-coordinate(longitude)], [map y-coordinate (latitude)], [elevation],
         #   [image column index(x)], [image row index (y)]
-        '''
-        gcps = []
+
+        gcps_aar = []
+        gcps_aar_test = []
         for point in self.gcpPoints:
 
-            gcps.append(gdal.GCP(float(point['aar_x']), float(point['aar_y']), 0, float(point['input_x']), float(point['input_z'])))
+            gcps_aar.append(gdal.GCP(float(point['aar_x']), float(point['aar_z']), 0, float(point['input_x']), float(point['input_z'])))
+            gcps_aar_test.append([point['aar_x'], point['aar_z'], 0,point['input_x'], point['input_z']])
 
-        '''
+
+
         gcps = [
              gdal.GCP(4577329.306, 5709902.965, 0, 324.211, 1338.53),
              gdal.GCP(4577329.25, 5709903.024, 0, 518.737, 2778.95),
@@ -69,45 +68,15 @@ class ImageGeoref():
 
         #gdal.GCP  (316.80P,-1344.00L) -> (4577329.3363898E,5709903.5600224N,0.00)
         #gdal.GCP  (4396.80P,-1305.60L) -> (4577328.5085405E,5709902.3338992N,0.00)
-        #gdal.GCP  (4128.00P,-2880.00L) -> (4577327.7580637E,5709902.3699617N,0.00)  
+        #gdal.GCP  (4128.00P,-2880.00L) -> (4577327.7580637E,5709902.3699617N,0.00)
         #gdal.GCP  (518.40P,-2774.40L) -> (4577328.5335992E,5709903.5621437N,0.00)
-
+        print('gcps_aar_test', gcps_aar_test)
         print('gcps', gcps)
         # Apply the GCPs to the open output file:
-        ds.SetGCPs(gcps, sr.ExportToWkt())
+        ds.SetGCPs(gcps_aar, sr.ExportToWkt())
 
         # Close the output file in order to be able to work with it in other programs:
         ds = None
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    def startTranslate_old(self):
-
-        fileInfo = QFileInfo(self.imageFileIn)
-        baseName = fileInfo.baseName()
-
-        command = 'gdal_translate -of GTiff'
-
-        for point in self.gcpPoints:
-            command += ' -gcp '+str(float(point['input_x']))+' '+str(float(point['input_z']))+' '+str(float(point['aar_x']))+' '+str(float(point['aar_y']))
-
-        command += ' '+self.imageFileIn+' '+self.imageFileOut
-
-        print('command', command)
-        proc = subprocess.Popen(command)
 
     def startWarp(self):
 

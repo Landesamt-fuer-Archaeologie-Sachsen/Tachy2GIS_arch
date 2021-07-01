@@ -93,7 +93,16 @@ class Profile():
         #Foto
         imagePath = self.__dockwidget.profileFotosComboGeoref.filePath()
         #Blickrichtung
-        viewDirection = self.__dockwidget.profileViewDirectionComboGeoref.currentText()
+        viewDirLong = self.__dockwidget.profileViewDirectionComboGeoref.currentText()
+        
+        if viewDirLong == 'Nord':
+            viewDirection = 'N'
+        if viewDirLong == 'Ost':
+            viewDirection = 'E'
+        if viewDirLong == 'Süd':
+            viewDirection = 'S'
+        if viewDirLong == 'West':
+            viewDirection = 'W'
         #horizontal true/false
         horizontalCheck = self.__dockwidget.radioDirectionHorizontal.isChecked()
         #Speichern unter
