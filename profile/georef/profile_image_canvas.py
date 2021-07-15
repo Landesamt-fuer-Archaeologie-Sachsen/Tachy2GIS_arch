@@ -6,7 +6,7 @@ from PyQt5.QtGui import QIcon, QFont, QColor
 from qgis.core import QgsVectorLayer, QgsRasterLayer, QgsMarkerSymbol, QgsSingleSymbolRenderer, QgsPalLayerSettings, QgsTextFormat, QgsTextBufferSettings, QgsVectorLayerSimpleLabeling, QgsPointXY
 from qgis.gui import QgsMapCanvas, QgsMapToolPan, QgsMapToolZoom, QgsHighlight, QgsVertexMarker
 
-from .publisher import Publisher
+from ..publisher import Publisher
 from .maptool_move import MapToolMove
 
 ## @brief With the ProfileImageCanvas class a map canvas element is realized. It should be used in the profile dialog
@@ -42,7 +42,6 @@ class ProfileImageCanvas(QgsMapCanvas):
         self.createMapToolPan()
         self.createMapToolZoomIn()
         self.createMapToolZoomOut()
-        #self.createMapToolClick()
         self.createMapToolMoveMarker()
 
         self.createConnects()

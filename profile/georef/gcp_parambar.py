@@ -20,7 +20,7 @@ class GcpParambar(QWidget):
 
         super(GcpParambar, self).__init__()
 
-        self.iconpath = os.path.join(os.path.dirname(__file__), 'Icons')
+        self.iconpath = os.path.join(os.path.dirname(__file__), '..', 'Icons')
 
         self.dialogInstance = dialogInstance
 

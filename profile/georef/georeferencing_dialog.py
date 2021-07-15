@@ -14,7 +14,7 @@ from .gcp_parambar import GcpParambar
 from .image_georef import ImageGeoref
 from .data_store import DataStore
 
-from .profileAAR.profileAAR import profileAAR
+from ..profileAAR.profileAAR import profileAAR
 
 ## @brief With the GeoreferencingDialog class a dialog window for the georeferencing of profiles is realized
 #
@@ -29,7 +29,7 @@ class GeoreferencingDialog(QMainWindow):
 
         super(GeoreferencingDialog, self).__init__()
 
-        self.iconpath = os.path.join(os.path.dirname(__file__), 'Icons')
+        self.iconpath = os.path.join(os.path.dirname(__file__), '...', 'Icons')
 
         self.t2GArchInstance = t2GArchInstance
 

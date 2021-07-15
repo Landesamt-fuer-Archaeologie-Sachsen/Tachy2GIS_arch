@@ -7,7 +7,7 @@ import shutil
 from osgeo import gdal, osr
 from PIL import Image
 import numpy as np
-from .ahojnnes.transformation import Transformation
+from ..ahojnnes.transformation import Transformation
 
 
 class ImageGeoref():
@@ -16,7 +16,7 @@ class ImageGeoref():
 
         print('init ImageGeoref')
 
-        self.iconpath = os.path.join(os.path.dirname(__file__), 'Icons')
+        self.iconpath = os.path.join(os.path.dirname(__file__), '..', 'Icons')
 
         self.dialogInstance = dialogInstance
 

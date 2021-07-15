@@ -620,7 +620,7 @@ class Magic_Box():
         for i in range(len(coord_proc)):
 
             coord_trans.append([x_trans[i], y_trans[i], z_trans[i], coord_proc[i][4], coord_proc[i][2],
-                                distance[i], selection_proc[i], id_proc[i]])
+                                distance[i], selection_proc[i],id_proc[i], uuid_proc[i]])
 
             rangcheck_trans.append([x_trans[i], z_trans[i], y_trans[i]])
 

@@ -2,7 +2,7 @@
 from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QHeaderView, QComboBox, QCheckBox, QRadioButton
 from PyQt5.QtCore import Qt
 
-from .publisher import Publisher
+from ..publisher import Publisher
 ## @brief With the TransformationDialogTable class a table based on QTableWidget is realized
 #
 # @author Mario Uhlig, VisDat geodatentechnologie GmbH, mario.uhlig@visdat.de
@@ -33,6 +33,8 @@ class GeorefTable(QTableWidget):
         self.activePoint = ''
 
         self.viewDirection = None
+        self.directionAAR = None
+        self.methodAAR = None
         self.profileNumber = None
 
         self.colHeaders = ['UUID', 'PTNR', 'ID', 'Quelle X', 'Quelle Z', 'Ziel X', 'Ziel Y', 'Ziel Z', 'Error', 'Punkt verwenden', 'Punkt setzen']
@@ -99,7 +101,14 @@ class GeorefTable(QTableWidget):
 
         self.viewDirection = gcpTarget['viewDirection']
         self.profileNumber = gcpTarget['profileNumber']
-        print('gcpTarget', gcpTarget)
+
+        horizontal = gcpTarget['horizontal']
+
+        if horizontal == True:
+            self.directionAAR = 'horizontal'
+        else:
+            self.directionAAR = 'original'
+
         #self.colHeaders = ['UUID', 'PTNR', 'ID', 'Quelle X', 'Quelle Z', 'Ziel X', 'Ziel Y', 'Ziel Z', 'Error', 'Punkt verwenden', 'Punkt setzen']
         targetX = []
         targetY = []
@@ -254,9 +263,10 @@ class GeorefTable(QTableWidget):
                 tblObj['targetPoints'][0], tblObj['targetPoints'][1], tblObj['targetPoints'][2], self.viewDirection, self.profileNumber, int(tblObj['usage']), tblObj['uuid']
             ])
 
+        print('self.directionAAR', self.directionAAR)
         metaInfos = {
         	'method': 'projected',
-        	'direction': 'original'
+        	'direction': self.directionAAR
         }
 
         return points, metaInfos

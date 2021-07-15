@@ -10,31 +10,30 @@ from PyQt5.QtWidgets import QWidget, QHBoxLayout, QLabel, QFrame, QSizePolicy, Q
 # @author Mario Uhlig, VisDat geodatentechnologie GmbH, mario.uhlig@visdat.de
 # @date 2020-11-09
 
-class ImageParambar(QWidget):
+class Parambar(QWidget):
 
     ## The constructor.
     # Creates labels with styles
     # @param dialogInstance pointer to the dialogInstance
 
-    def __init__(self, dialogInstance, canvasImage):
+    def __init__(self, dialogInstance, canvasDigitize):
 
-        super(ImageParambar, self).__init__()
+        super(Parambar, self).__init__()
 
-        self.iconpath = os.path.join(os.path.dirname(__file__), 'Icons')
-
+        self.iconpath = os.path.join(os.path.dirname(__file__), '..', 'Icons')
+        print('iconpath', self.iconpath)
         self.dialogInstance = dialogInstance
 
-        self.canvasImage = canvasImage
+        self.canvasDigitize = canvasDigitize
 
-        self.imageToolbar = QToolBar("Edit", self)
+        self.canvasToolbar = QToolBar("Edit", self)
 
         self.paramsBarLayout = QHBoxLayout()
         self.setLayout(self.paramsBarLayout)
         #self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
 
-        self.paramsBarLayout.addWidget(self.imageToolbar)
+        self.paramsBarLayout.addWidget(self.canvasToolbar)
 
-        self.createMoveAction()
         self.createPanAction()
         self.createActionZoomIn()
         self.createActionZoomOut()
@@ -45,28 +44,23 @@ class ImageParambar(QWidget):
     #
     def activateClick(self):
         print('activateClick')
-        self.canvasImage.setMapTool(self.canvasImage.toolClick)'''
+        self.canvasDigitize.setMapTool(self.canvasDigitize.toolClick)'''
 
-    ## \brief Create move action
-    #
-    def activateMove(self):
-        print('activateMove')
-        self.canvasImage.setMapTool(self.canvasImage.toolMove)
 
     ## \brief Create pan action
     #
     def activatePan(self):
-        self.canvasImage.setMapTool(self.canvasImage.toolPan)
+        self.canvasDigitize.setMapTool(self.canvasDigitize.toolPan)
 
     ## \brief Create pan action
     #
     def activateZoomIn(self):
-        self.canvasImage.setMapTool(self.canvasImage.toolZoomIn)
+        self.canvasDigitize.setMapTool(self.canvasDigitize.toolZoomIn)
 
     ## \brief Create pan action
     #
     def activateZoomOut(self):
-        self.canvasImage.setMapTool(self.canvasImage.toolZoomOut)
+        self.canvasDigitize.setMapTool(self.canvasDigitize.toolZoomOut)
 
     '''
     ## \brief Create click action
@@ -78,26 +72,12 @@ class ImageParambar(QWidget):
         self.actionClick = QAction(iconClick, "Click", self)
         self.actionClick.setCheckable(True)
 
-        self.canvasImage.toolClick.setAction(self.actionClick)
+        self.canvasDigitize.toolClick.setAction(self.actionClick)
 
-        self.imageToolbar.addAction(self.actionClick)
-        self.canvasImage.setMapTool(self.canvasImage.toolClick)
+        self.canvasToolbar.addAction(self.actionClick)
+        self.canvasDigitize.setMapTool(self.canvasDigitize.toolClick)
         self.actionClick.triggered.connect(self.activateClick)'''
 
-    ## \brief Create move action
-    #
-    def createMoveAction(self):
-
-        #move
-        iconMove = QIcon(os.path.join(self.iconpath, 'mActionAddGCPPoint.png'))
-        self.actionMove = QAction(iconMove, "Move", self)
-        self.actionMove.setCheckable(True)
-
-        self.canvasImage.toolMove.setAction(self.actionMove)
-
-        self.imageToolbar.addAction(self.actionMove)
-        self.canvasImage.setMapTool(self.canvasImage.toolMove)
-        self.actionMove.triggered.connect(self.activateMove)
 
     ## \brief Create pan action
     #
@@ -108,10 +88,10 @@ class ImageParambar(QWidget):
         self.actionPan = QAction(iconPan, "Pan", self)
         self.actionPan.setCheckable(True)
 
-        self.canvasImage.toolPan.setAction(self.actionPan)
+        self.canvasDigitize.toolPan.setAction(self.actionPan)
 
-        self.imageToolbar.addAction(self.actionPan)
-        self.canvasImage.setMapTool(self.canvasImage.toolPan)
+        self.canvasToolbar.addAction(self.actionPan)
+        self.canvasDigitize.setMapTool(self.canvasDigitize.toolPan)
         self.actionPan.triggered.connect(self.activatePan)
 
 
@@ -121,10 +101,10 @@ class ImageParambar(QWidget):
         self.actionZoomIn = QAction(iconZoomIn, "Zoom in", self)
         self.actionZoomIn.setCheckable(True)
 
-        self.canvasImage.toolZoomIn.setAction(self.actionZoomIn)
+        self.canvasDigitize.toolZoomIn.setAction(self.actionZoomIn)
 
-        self.imageToolbar.addAction(self.actionZoomIn)
-        self.canvasImage.setMapTool(self.canvasImage.toolZoomIn)
+        self.canvasToolbar.addAction(self.actionZoomIn)
+        self.canvasDigitize.setMapTool(self.canvasDigitize.toolZoomIn)
 
         self.actionZoomIn.triggered.connect(self.activateZoomIn)
 
@@ -134,10 +114,10 @@ class ImageParambar(QWidget):
         self.actionZoomOut = QAction(iconZoomOut, "Zoom out", self)
         self.actionZoomOut.setCheckable(True)
 
-        self.canvasImage.toolZoomOut.setAction(self.actionZoomOut)
+        self.canvasDigitize.toolZoomOut.setAction(self.actionZoomOut)
 
-        self.imageToolbar.addAction(self.actionZoomOut)
-        self.canvasImage.setMapTool(self.canvasImage.toolZoomOut)
+        self.canvasToolbar.addAction(self.actionZoomOut)
+        self.canvasDigitize.setMapTool(self.canvasDigitize.toolZoomOut)
 
         self.actionZoomOut.triggered.connect(self.activateZoomOut)
 
@@ -146,9 +126,9 @@ class ImageParambar(QWidget):
         iconExtent = QIcon(os.path.join(self.iconpath, 'mActionZoomToLayer.png'))
         self.actionExtent = QAction(iconExtent, "Zoom to layer", self)
 
-        self.imageToolbar.addAction(self.actionExtent)
+        self.canvasToolbar.addAction(self.actionExtent)
 
-        self.actionExtent.triggered.connect(self.canvasImage.setExtentByImageLayer)
+        self.actionExtent.triggered.connect(self.canvasDigitize.setExtentByImageLayer)
 
     def activateMapToolMove(self, linkObj):
         self.actionMove.activate(0)

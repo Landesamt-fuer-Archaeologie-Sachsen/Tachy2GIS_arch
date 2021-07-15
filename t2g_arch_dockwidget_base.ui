@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>464</width>
+    <width>426</width>
     <height>937</height>
    </rect>
   </property>
@@ -178,8 +178,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>460</width>
-         <height>587</height>
+         <width>422</width>
+         <height>607</height>
         </rect>
        </property>
        <attribute name="label">
@@ -880,8 +880,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>460</width>
-         <height>587</height>
+         <width>422</width>
+         <height>607</height>
         </rect>
        </property>
        <property name="sizePolicy">
@@ -1148,8 +1148,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>460</width>
-         <height>587</height>
+         <width>422</width>
+         <height>607</height>
         </rect>
        </property>
        <attribute name="label">
@@ -1400,8 +1400,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>460</width>
-         <height>587</height>
+         <width>422</width>
+         <height>607</height>
         </rect>
        </property>
        <attribute name="label">
@@ -1728,8 +1728,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>460</width>
-         <height>587</height>
+         <width>422</width>
+         <height>607</height>
         </rect>
        </property>
        <attribute name="label">
@@ -2124,8 +2124,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>460</width>
-         <height>587</height>
+         <width>422</width>
+         <height>607</height>
         </rect>
        </property>
        <attribute name="label">
@@ -2140,7 +2140,7 @@
 }</string>
           </property>
           <property name="currentIndex">
-           <number>0</number>
+           <number>1</number>
           </property>
           <widget class="QWidget" name="profileGeoreferencing">
            <property name="styleSheet">
@@ -2317,6 +2317,58 @@
            <attribute name="title">
             <string>Digitalisierung</string>
            </attribute>
+           <layout class="QFormLayout" name="formLayout_6">
+            <item row="1" column="0">
+             <widget class="QLabel" name="label_3">
+              <property name="text">
+               <string>Profilbild</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="0">
+             <widget class="QLabel" name="label_33">
+              <property name="text">
+               <string>Punktlayer</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="1">
+             <widget class="QgsMapLayerComboBox" name="pointLayerDigitize"/>
+            </item>
+            <item row="3" column="0">
+             <widget class="QLabel" name="label_34">
+              <property name="text">
+               <string>Linienlayer</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="1">
+             <widget class="QgsMapLayerComboBox" name="lineLayerDigitize"/>
+            </item>
+            <item row="7" column="1">
+             <widget class="QPushButton" name="startDigitizeBtn">
+              <property name="styleSheet">
+               <string notr="true">background-color : green</string>
+              </property>
+              <property name="text">
+               <string>Start</string>
+              </property>
+             </widget>
+            </item>
+            <item row="5" column="0">
+             <widget class="QLabel" name="label_35">
+              <property name="text">
+               <string>Polygonlayer</string>
+              </property>
+             </widget>
+            </item>
+            <item row="5" column="1">
+             <widget class="QgsMapLayerComboBox" name="polygonLayerDigitize"/>
+            </item>
+            <item row="1" column="1">
+             <widget class="QgsFileWidget" name="profileDigitize"/>
+            </item>
+           </layout>
           </widget>
           <widget class="QWidget" name="tab">
            <attribute name="title">
@@ -2332,8 +2384,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>460</width>
-         <height>587</height>
+         <width>422</width>
+         <height>607</height>
         </rect>
        </property>
        <attribute name="label">
@@ -2462,8 +2514,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>460</width>
-         <height>587</height>
+         <width>422</width>
+         <height>607</height>
         </rect>
        </property>
        <attribute name="label">
