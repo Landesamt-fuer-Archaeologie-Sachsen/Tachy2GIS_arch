@@ -1,9 +1,14 @@
 # -*- coding: utf-8 -*-
 import os
+import sys
 import subprocess
 from PyQt5.QtCore import QFileInfo
 import shutil
 from osgeo import gdal, osr
+from PIL import Image
+import numpy as np
+from .ahojnnes.transformation import Transformation
+
 
 class ImageGeoref():
 
@@ -27,7 +32,101 @@ class ImageGeoref():
 
         self.gcpPoints = georefData
         self.startTranslate()
+        #self.startTranslatePIL()
+        #self.startTranslateAh()
         #self.startWarp()
+
+    def find_coeffs(self, source_coords, target_coords):
+        print('source_coords', source_coords)
+        print('target_coords', target_coords)
+        matrix = []
+        for s, t in zip(source_coords, target_coords):
+            matrix.append([t[0], t[1], 1, 0, 0, 0, -s[0]*t[0], -s[0]*t[1]])
+            matrix.append([0, 0, 0, t[0], t[1], 1, -s[1]*t[0], -s[1]*t[1]])
+        A = np.matrix(matrix, dtype=np.float)
+        B = np.array(source_coords).reshape(8)
+        res = np.dot(np.linalg.inv(A.T * A) * A.T, B)
+        return np.array(res).reshape(8)
+
+    '''
+    def find_coeffs(self, pa, pb):
+        print('pa', pa)
+        print('pb', pb)
+        matrix = []
+        for p1, p2 in zip(pa, pb):
+            matrix.append([p1[0], p1[1], 1, 0, 0, 0, -p2[0]*p1[0], -p2[0]*p1[1]])
+            matrix.append([0, 0, 0, p1[0], p1[1], 1, -p2[1]*p1[0], -p2[1]*p1[1]])
+
+        A = np.matrix(matrix, dtype=np.float)
+        B = np.array(pb).reshape(8)
+
+        res = np.dot(np.linalg.inv(A.T * A) * A.T, B)
+        return np.array(res).reshape(8)
+    '''
+    def startTranslatePIL(self):
+        print('self.imageFileIn', self.imageFileIn)
+        print('self.imageFileOut', self.imageFileOut)
+
+        img = Image.open(self.imageFileIn)
+        width, height = img.size
+
+
+        gcps_source = []
+        gcps_target = []
+
+        for point in self.gcpPoints:
+
+            gcps_source.append((point['input_x'], point['input_z']))
+
+            gcps_target.append((point['aar_x'], point['aar_z']))
+
+        coeffs = self.find_coeffs(gcps_source, gcps_source)
+
+        print('coeffs', coeffs)
+
+        #coeffs_startTranslateAh = self.startTranslateAh()
+
+        #print('coeffs_startTranslateAh', coeffs_startTranslateAh)
+
+        img.transform((width, height), Image.PERSPECTIVE, coeffs, Image.BICUBIC).save(self.imageFileOut)
+
+        """
+        m = -0.5
+        xshift = abs(m) * width
+        new_width = width + int(round(xshift))
+        img = img.transform((new_width, height), Image.AFFINE,
+                (1, m, -xshift if m > 0 else 0, 0, 1, 0), Image.BICUBIC)
+        img.save(self.imageFileOut)
+        """
+
+    def startTranslateAh(self):
+        print('self.imageFileIn', self.imageFileIn)
+        print('self.imageFileOut', self.imageFileOut)
+
+        ahTrans = Transformation()
+
+        gcps_source = []
+        gcps_target = []
+
+        for point in self.gcpPoints:
+
+            gcps_source.append([point['input_x'], point['input_z']])
+
+            gcps_target.append([point['aar_x'], point['aar_z']])
+
+        print('gcps_source', gcps_source)
+        print('gcps_target', gcps_target)
+
+        ahTrans.make_tform(np.array(gcps_source),np.array(gcps_target))
+
+        print('ahTrans', ahTrans)
+        print('ahTrans.params', ahTrans.params)
+
+        return ahTrans.params
+
+        #fwdResult = ahTrans.fwd(np.array([[0, 0], [4750,0], [4750,3167], [0,3167]]))
+        #print('fwdResult', fwdResult)
+
 
 
     def startTranslate(self):
@@ -50,28 +149,11 @@ class ImageGeoref():
         #   [image column index(x)], [image row index (y)]
 
         gcps_aar = []
-        gcps_aar_test = []
         for point in self.gcpPoints:
 
             gcps_aar.append(gdal.GCP(float(point['aar_x']), float(point['aar_z']), 0, float(point['input_x']), float(point['input_z'])))
-            gcps_aar_test.append([point['aar_x'], point['aar_z'], 0,point['input_x'], point['input_z']])
+            #gcps_aar_test.append([point['aar_x'], point['aar_z'], 0,point['input_x'], point['input_z']])
 
-
-
-        gcps = [
-             gdal.GCP(4577329.306, 5709902.965, 0, 324.211, 1338.53),
-             gdal.GCP(4577329.25, 5709903.024, 0, 518.737, 2778.95),
-             gdal.GCP(4577327.626, 5709902.911, 0, 4409.26, 1301.47),
-             gdal.GCP(4577327.635, 5709902.953, 0, 4159.16, 2862.32)
-
-        ]
-
-        #gdal.GCP  (316.80P,-1344.00L) -> (4577329.3363898E,5709903.5600224N,0.00)
-        #gdal.GCP  (4396.80P,-1305.60L) -> (4577328.5085405E,5709902.3338992N,0.00)
-        #gdal.GCP  (4128.00P,-2880.00L) -> (4577327.7580637E,5709902.3699617N,0.00)
-        #gdal.GCP  (518.40P,-2774.40L) -> (4577328.5335992E,5709903.5621437N,0.00)
-        print('gcps_aar_test', gcps_aar_test)
-        print('gcps', gcps)
         # Apply the GCPs to the open output file:
         ds.SetGCPs(gcps_aar, sr.ExportToWkt())
 
