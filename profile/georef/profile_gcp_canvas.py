@@ -6,6 +6,8 @@ from PyQt5.QtGui import QIcon, QFont, QColor
 from qgis.core import QgsVectorLayer, QgsMarkerSymbol, QgsSingleSymbolRenderer, QgsPalLayerSettings, QgsTextFormat, QgsTextBufferSettings, QgsVectorLayerSimpleLabeling
 from qgis.gui import QgsMapCanvas, QgsMapToolPan, QgsMapToolZoom, QgsHighlight
 
+from ..publisher import Publisher
+
 ## @brief With the ProfileGcpCanvas class a map canvas element is realized. It should be used in the profile dialog
 #
 # Inherits from QgsMapCanvas
@@ -21,6 +23,8 @@ class ProfileGcpCanvas(QgsMapCanvas):
     def __init__(self, dialogInstance):
 
         super(ProfileGcpCanvas, self).__init__()
+
+        self.pup = Publisher()
 
         self.iconpath = os.path.join(os.path.dirname(__file__), 'Icons')
 
@@ -51,6 +55,7 @@ class ProfileGcpCanvas(QgsMapCanvas):
     def canvasMoveEvent(self, event):
         x = event.x()
         y = event.y()
+        self.pup.publish('moveCoordinate', {'x': x, 'y': y})
         #self.dialogInstance.setCoordinatesOnStatusBar(x, y)
 
     ## \brief Create action to pan on the map

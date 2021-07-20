@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QWidget, QHBoxLayout, QLabel, QFrame, QSizePolicy, QToolBar, QAction
+from PyQt5.QtWidgets import QWidget, QHBoxLayout, QLabel, QFrame, QSizePolicy, QToolBar, QAction, QLineEdit
 
 ## @brief With the TransformationDialogParambar class a bar based on QWidget is realized
 #
@@ -26,13 +26,14 @@ class ImageParambar(QWidget):
 
         self.canvasImage = canvasImage
 
+        self.createComponents()
+        self.createLayout()
+
+    ## \brief Create components
+    #
+    def createComponents(self):
+
         self.imageToolbar = QToolBar("Edit", self)
-
-        self.paramsBarLayout = QHBoxLayout()
-        self.setLayout(self.paramsBarLayout)
-        #self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-
-        self.paramsBarLayout.addWidget(self.imageToolbar)
 
         self.createMoveAction()
         self.createPanAction()
@@ -40,12 +41,29 @@ class ImageParambar(QWidget):
         self.createActionZoomOut()
         self.createActionExtent()
 
-    '''
-    ## \brief Create click action
+        self.toolbarCoord = QToolBar("Coordinates", self)
+
+        self.coordLabel = QLabel("Koordinate ")
+        self.coordLineEdit = QLineEdit()
+        self.coordLineEdit.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
+        self.coordLineEdit.setReadOnly(True)
+        self.coordLineEdit.setMinimumWidth(150);
+
+        self.toolbarCoord.addWidget(self.coordLabel)
+        self.toolbarCoord.addWidget(self.coordLineEdit)
+
+    ## \brief Create Layout
     #
-    def activateClick(self):
-        print('activateClick')
-        self.canvasImage.setMapTool(self.canvasImage.toolClick)'''
+    def createLayout(self):
+
+        self.paramsBarLayout = QHBoxLayout()
+        self.paramsBarLayout.setContentsMargins(0, 0, 0, 0)
+        self.paramsBarLayout.setSpacing(0)
+        self.setLayout(self.paramsBarLayout)
+        #self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.paramsBarLayout.addWidget(self.imageToolbar)
+
+        self.paramsBarLayout.addWidget(self.toolbarCoord)
 
     ## \brief Create move action
     #
@@ -161,3 +179,8 @@ class ImageParambar(QWidget):
         vSplit.setFrameShape(QFrame.VLine|QFrame.Sunken)
 
         return vSplit
+
+    ## \brief Create a splitter (vertical line to separate labels in the parambar)
+    #
+    def updateCoordinate(self, coordObj):
+        self.coordLineEdit.setText(str(round(coordObj['x'], 2))+','+str(round(coordObj['y'], 2)))

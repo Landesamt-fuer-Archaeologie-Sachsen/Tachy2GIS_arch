@@ -88,7 +88,7 @@ class DigitizeCanvas(QgsMapCanvas):
     #
     # \param imageLayerPath
 
-    def updateCanvas(self, imageLayerPath):
+    def update(self, imageLayerPath):
 
         #canvas leeren
 

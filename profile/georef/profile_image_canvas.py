@@ -193,7 +193,7 @@ class ProfileImageCanvas(QgsMapCanvas):
     def canvasMoveEvent(self, event):
         x = event.x()
         y = event.y()
-        #self.dialogInstance.setCoordinatesOnStatusBar(x, y)
+        self.pup.publish('moveCoordinate', {'x': x, 'y': y})
 
     ## \brief Set extent of the map by extent of the source layer
     #

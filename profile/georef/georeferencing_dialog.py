@@ -123,6 +123,9 @@ class GeoreferencingDialog(QMainWindow):
 
         self.profileAAR.pup.register('aarPointsChanged', self.dataStore.addAarPoints)
 
+        self.canvasGcp.pup.register('moveCoordinate',self.gcpParambar.updateCoordinate)
+        self.canvasImage.pup.register('moveCoordinate',self.imageParambar.updateCoordinate)
+
         self.startGeorefBtn.clicked.connect(self.startGeoreferencing)
 
     ## \brief create actions

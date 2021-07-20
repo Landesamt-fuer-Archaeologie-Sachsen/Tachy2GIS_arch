@@ -93,7 +93,8 @@ class DigitizeDialog(QMainWindow):
 
     def restore(self, refData):
 
-        self.canvasDigitize.updateCanvas(refData['profilePath'])
+        self.canvasDigitize.update(refData['profilePath'])
+        self.parambar.update(refData)
 
         self.adjustSize()
         self.show()
