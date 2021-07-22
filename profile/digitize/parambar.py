@@ -2,7 +2,9 @@
 import os
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QWidget, QHBoxLayout, QLabel, QFrame, QSizePolicy, QToolBar, QAction, QComboBox
+from PyQt5.QtWidgets import QWidget, QHBoxLayout, QLabel, QFrame, QSizePolicy, QToolBar, QAction, QComboBox, QLineEdit
+
+from .rotation_coords import RotationCoords
 
 ## @brief With the TransformationDialogParambar class a bar based on QWidget is realized
 #
@@ -17,7 +19,7 @@ class Parambar(QWidget):
     # Creates labels with styles
     # @param dialogInstance pointer to the dialogInstance
 
-    def __init__(self, dialogInstance, canvasDigitize):
+    def __init__(self, dialogInstance, canvasDigitize, dataStore):
 
         super(Parambar, self).__init__()
 
@@ -25,6 +27,7 @@ class Parambar(QWidget):
         self.dialogInstance = dialogInstance
 
         self.canvasDigitize = canvasDigitize
+        self.dataStore = dataStore
 
         self.createComponents()
         self.createLayout()
@@ -34,6 +37,8 @@ class Parambar(QWidget):
     ## \brief Create components
     #
     def createComponents(self):
+
+        self.rotationCoords = RotationCoords(self.dataStore)
 
         #MapEdits
         self.canvasToolbar = QToolBar("Edit", self)
@@ -55,6 +60,16 @@ class Parambar(QWidget):
         self.toolbarLayer.addWidget(self.labelActiveLayerCombo)
         self.toolbarLayer.addWidget(self.activeLayerCombo)
 
+        #Koordinatenanzeige
+        self.toolbarCoord = QToolBar("Coordinates", self)
+        self.coordLabel = QLabel("Koordinate ")
+        self.coordLineEdit = QLineEdit()
+        self.coordLineEdit.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
+        self.coordLineEdit.setReadOnly(True)
+        self.coordLineEdit.setMinimumWidth(150);
+        self.toolbarCoord.addWidget(self.coordLabel)
+        self.toolbarCoord.addWidget(self.coordLineEdit)
+
 
     ## \brief Create Layout
     #
@@ -67,8 +82,8 @@ class Parambar(QWidget):
         #self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
 
         self.paramsBarLayout.addWidget(self.canvasToolbar)
-
         self.paramsBarLayout.addWidget(self.toolbarLayer)
+        self.paramsBarLayout.addWidget(self.toolbarCoord)
 
     ## \brief Create pan action
     #
@@ -169,7 +184,16 @@ class Parambar(QWidget):
 
         self.activeLayerCombo.resize(self.activeLayerCombo.sizeHint())
 
+    ## \brief Create a splitter (vertical line to separate labels in the parambar)
+    #
+    def updateCoordinate(self, coordObj):
 
+        retObj = self.rotationCoords.rotationReverse(coordObj['x'], coordObj['y'], coordObj['y'], True)
+
+        print('orginal', coordObj['x'], coordObj['y'], 10)
+        print('transform', retObj['x_trans'], retObj['y_trans'], retObj['z_trans'])
+
+        self.coordLineEdit.setText(str(round(retObj['x_trans'], 2))+','+str(round(retObj['z_trans'], 2)))
 
     ## \brief Create a splitter (vertical line to separate labels in the parambar)
     #

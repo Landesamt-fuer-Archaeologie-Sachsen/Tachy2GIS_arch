@@ -72,8 +72,8 @@ import itertools
 
 from .errorhandling import ErrorHandler
 
-
 def rotation (self, coord_proc, slope_deg, zAdaption):
+
     print('rotation_coord_proc', coord_proc)
     #coord_proc = listToList(coord_proc, 0)
     x_coord_proc = listToList(coord_proc, 0)
@@ -88,6 +88,7 @@ def rotation (self, coord_proc, slope_deg, zAdaption):
 
     center_y = mean(y_coord_proc)
 
+    center_z = mean(z_coord_proc)
     # instantiate lists for the transformed coordinates
 
     x_trans = []
@@ -112,13 +113,13 @@ def rotation (self, coord_proc, slope_deg, zAdaption):
 
         if zAdaption is True:
 
-            z_trans.append(coord_proc[i][2] + center_y - mean(z_coord_proc))
+            z_trans.append(coord_proc[i][2] + center_y - center_z)
 
         else:
 
             z_trans.append(coord_proc[i][2])
 
-    return {'x_trans': x_trans, 'y_trans': y_trans ,'z_trans': z_trans }
+    return {'x_trans': x_trans, 'y_trans': y_trans ,'z_trans': z_trans, 'transformationParams': {'center_x': center_x, 'center_y': center_y, 'center_z': center_z, 'slope_deg': slope_deg}}
 
 
 def listToList(coord_proc, position):
@@ -379,6 +380,9 @@ class Magic_Box():
 
             print('coord_proc[0]', coord_proc[0])
             print('rotationresult',  rotationresult['x_trans'])
+            print('rotationresult',  rotationresult['transformationParams'])
+
+            transformationParams = rotationresult['transformationParams']
 
             for i in range(len(coord_proc)):
 
@@ -568,6 +572,8 @@ class Magic_Box():
         first_rotationresult = rotation(self, coord_proc, slope_deg, True)
 
         print('first_rotationresult', first_rotationresult)
+
+        transformationParams = first_rotationresult['transformationParams']
 
         for i in range(len(coord_proc)):
 
@@ -781,12 +787,8 @@ class Magic_Box():
 
         print('########################')
         print('coord_proc', coord_proc)
-        #print({'coord_trans': coord_trans, 'cutting_start': cutting_start, 'linegress': linegress, 'ns_error': ns_fehler_vorhanden})
-        print('########################')
-        print(rotation(self, coord_trans, -slope_deg, True))
-        print('########################')
-        return {'coord_trans': coord_trans, 'cutting_start': cutting_start, 'linegress': linegress,
-                'ns_error': ns_fehler_vorhanden}
+
+        return {'coord_trans': coord_trans, 'cutting_start': cutting_start, 'linegress': linegress, 'ns_error': ns_fehler_vorhanden, 'transformationParams': transformationParams}
 
 
     def height_points (self, coord_trans):

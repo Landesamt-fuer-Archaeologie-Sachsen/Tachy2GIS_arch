@@ -44,6 +44,7 @@ class DigitizeCanvas(QgsMapCanvas):
     def canvasMoveEvent(self, event):
         x = event.x()
         y = event.y()
+        self.pup.publish('moveCoordinate', {'x': x, 'y': y})
         #self.dialogInstance.setCoordinatesOnStatusBar(x, y)
 
     ## \brief Event connections

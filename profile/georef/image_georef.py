@@ -149,6 +149,7 @@ class ImageGeoref():
         #   [image column index(x)], [image row index (y)]
 
         gcps_aar = []
+        print('self.gcpPoints', self.gcpPoints)
         for point in self.gcpPoints:
 
             gcps_aar.append(gdal.GCP(float(point['aar_x']), float(point['aar_z']), 0, float(point['input_x']), float(point['input_z'])))

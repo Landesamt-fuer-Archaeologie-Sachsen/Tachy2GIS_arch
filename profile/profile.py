@@ -8,6 +8,7 @@ from qgis.core import QgsProject, QgsGeometry, QgsVectorLayer, QgsApplication, Q
 from processing.gui import AlgorithmExecutor
 from qgis import processing
 
+from .data_store import DataStore
 from .georef.georef import Georef
 from .digitize.digitize import Digitize
 
@@ -29,8 +30,11 @@ class Profile():
         self.__dockwidget = t2gArchInstance.dockwidget
         self.__iface = iFace
 
-        self.georef = Georef(self.__t2gArchInstance, iFace)
-        self.digitize = Digitize(self.__t2gArchInstance, iFace)
+        self.dataStore = DataStore()
+
+
+        self.georef = Georef(self.__t2gArchInstance, iFace, self.dataStore)
+        self.digitize = Digitize(self.__t2gArchInstance, iFace, self.dataStore)
 
     ## @brief Initializes the functionality for profile modul
     #

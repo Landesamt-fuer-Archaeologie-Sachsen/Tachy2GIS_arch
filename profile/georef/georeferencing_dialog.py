@@ -12,7 +12,6 @@ from .profile_georef_table import GeorefTable
 from .image_parambar import ImageParambar
 from .gcp_parambar import GcpParambar
 from .image_georef import ImageGeoref
-from .data_store import DataStore
 
 from ..profileAAR.profileAAR import profileAAR
 
@@ -25,13 +24,16 @@ from ..profileAAR.profileAAR import profileAAR
 
 class GeoreferencingDialog(QMainWindow):
 
-    def __init__(self, t2GArchInstance):
+    def __init__(self, t2GArchInstance, dataStore):
 
         super(GeoreferencingDialog, self).__init__()
 
         self.iconpath = os.path.join(os.path.dirname(__file__), '...', 'Icons')
 
         self.t2GArchInstance = t2GArchInstance
+
+        #DataStore
+        self.dataStore = dataStore
 
         self.createMenu()
         self.createComponents()
@@ -104,9 +106,6 @@ class GeoreferencingDialog(QMainWindow):
 
         #Bildgeoreferenzierung
         self.imageGeoref = ImageGeoref(self)
-
-        #DataStore
-        self.dataStore = DataStore()
 
     ## \brief Event connections
     #

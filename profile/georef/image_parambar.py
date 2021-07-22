@@ -42,7 +42,6 @@ class ImageParambar(QWidget):
         self.createActionExtent()
 
         self.toolbarCoord = QToolBar("Coordinates", self)
-
         self.coordLabel = QLabel("Koordinate ")
         self.coordLineEdit = QLineEdit()
         self.coordLineEdit.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)

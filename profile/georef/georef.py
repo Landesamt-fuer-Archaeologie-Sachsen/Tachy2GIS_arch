@@ -21,14 +21,14 @@ class Georef():
     #
     #  @param dockWidget pointer to the dockwidget
     #  @param iFace pointer to the iface class
-    def __init__(self, t2gArchInstance, iFace):
+    def __init__(self, t2gArchInstance, iFace, dataStore):
 
         self.__iconpath = os.path.join(os.path.dirname(__file__), 'Icons')
         self.__t2gArchInstance = t2gArchInstance
         self.__dockwidget = t2gArchInstance.dockwidget
         self.__iface = iFace
 
-        self.georeferencingDialog = GeoreferencingDialog(self)
+        self.georeferencingDialog = GeoreferencingDialog(self, dataStore)
 
     ## @brief Initializes the functionality for profile modul
     #

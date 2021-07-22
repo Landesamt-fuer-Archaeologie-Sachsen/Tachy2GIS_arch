@@ -17,18 +17,18 @@ from .digitize_canvas import DigitizeCanvas
 
 class DigitizeDialog(QMainWindow):
 
-    def __init__(self, t2GArchInstance):
+    def __init__(self, dataStore):
 
         super(DigitizeDialog, self).__init__()
 
         self.iconpath = os.path.join(os.path.dirname(__file__), '...', 'Icons')
 
-        self.t2GArchInstance = t2GArchInstance
+        self.dataStore = dataStore
 
         self.createMenu()
         self.createComponents()
         self.createLayout()
-        #self.createConnects()
+        self.createConnects()
 
     ## \brief Create different menus
     #
@@ -72,7 +72,15 @@ class DigitizeDialog(QMainWindow):
         self.canvasDigitize = DigitizeCanvas(self)
 
         #paramsBar
-        self.parambar = Parambar(self, self.canvasDigitize)
+        self.parambar = Parambar(self, self.canvasDigitize, self.dataStore)
+
+
+    ## \brief Event connections
+    #
+
+    def createConnects(self):
+
+        self.canvasDigitize.pup.register('moveCoordinate', self.parambar.updateCoordinate)
 
 
     ## \brief Creates the layout for the window and assigns the created components

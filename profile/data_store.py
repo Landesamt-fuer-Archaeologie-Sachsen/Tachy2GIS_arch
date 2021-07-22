@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import os
 
 ## @brief With the TransformationDialogParambar class a bar based on QWidget is realized
 #
@@ -23,6 +22,8 @@ class DataStore():
         self.targetPoints = []
 
         self.aarPoints = []
+
+        self.aarTransformationParams = {}
 
 
     ## \brief Add image point
@@ -99,7 +100,26 @@ class DataStore():
             })
 
         print('self.aarPoints', self.aarPoints)
+        transformationParams = aarList['transformationParams']
 
+        z_slope = aarList['linegress'][0]
+
+        z_intercept = aarList['linegress'][1]
+
+        transformationParams['z_slope'] = z_slope
+        transformationParams['z_intercept'] = z_intercept
+
+        self.updateAarTransformationParams(transformationParams)
+
+    def updateAarTransformationParams(self, params):
+
+        self.aarTransformationParams = params
+
+        print('self.aarTransformationParams', self.aarTransformationParams)
+
+    def getAarTransformationParams(self):
+
+        return self.aarTransformationParams
 
     def getGeorefData(self):
 
