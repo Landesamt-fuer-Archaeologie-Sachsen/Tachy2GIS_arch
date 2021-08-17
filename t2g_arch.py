@@ -1260,8 +1260,7 @@ class T2G_Arch:
         feats = []
         ok = True
         profPointLayer = QgsProject.instance().mapLayersByName('E_Point')[0]
-        such2 = '"obj_art"=\'Fotoentzerrpunkt\' and '
-        #such2 = '"obj_type"=\'V_Referenzierungspunkt\' and '
+        such2 = '"obj_type"=\'Fotoentzerrpunkt\' and '
         it = profPointLayer.getFeatures(QgsFeatureRequest(QgsExpression(str(such2 + suchstr))))
         QgsMessageLog.logMessage(str(such2 + suchstr), 'T2G Archäologie', Qgis.Info)
         ids = [i.id() for i in it]
@@ -1284,7 +1283,6 @@ class T2G_Arch:
 
             msgout = '%s, %s, %s, %s, %s, %s, %s\n' % (value, x, y, z, profnr, view, 1)
             if feat["obj_type"] != 'Fotoentzerrpunkt' or feat["prof_nr"] == '':
-            #if feat["obj_art"] != 'Fotoentzerrungspunkt' or feat["prof_nr"] == '':
                 ok = False
             feats.append(msgout)
         delLayer("Prof Entzerrpunkte AAR-Tool")
