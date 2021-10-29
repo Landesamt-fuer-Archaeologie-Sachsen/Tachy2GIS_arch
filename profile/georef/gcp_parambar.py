@@ -63,6 +63,10 @@ class GcpParambar(QWidget):
         self.paramsBarLayout.setSpacing(0)
         self.paramsBarLayout.addWidget(self.gcpToolbar)
 
+        spacer = QWidget();
+        spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred);
+        self.paramsBarLayout.addWidget(spacer);
+
         self.paramsBarLayout.addWidget(self.toolbarCoord)
 
     ## \brief Create pan action

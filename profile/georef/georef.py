@@ -1,13 +1,15 @@
 ## @package QGIS geoEdit extension..
 import shutil
 import os
+import math
 
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QMessageBox
-from qgis.core import QgsProject, QgsGeometry, QgsVectorLayer, QgsApplication, QgsLayerTreeGroup, QgsLayerTreeLayer, QgsRectangle, QgsVectorFileWriter
+from qgis.core import QgsProject, QgsGeometry, QgsVectorLayer, QgsApplication, QgsLayerTreeGroup, QgsLayerTreeLayer, QgsRectangle, QgsVectorFileWriter, QgsWkbTypes
 from processing.gui import AlgorithmExecutor
 from qgis import processing
 
+from .data_store_georef import DataStoreGeoref
 from .georeferencing_dialog import GeoreferencingDialog
 
 ## @brief The class is used to implement functionalities for work with profiles within the dock widget of the Tachy2GIS_arch plugin
@@ -21,14 +23,16 @@ class Georef():
     #
     #  @param dockWidget pointer to the dockwidget
     #  @param iFace pointer to the iface class
-    def __init__(self, t2gArchInstance, iFace, dataStore):
+    def __init__(self, t2gArchInstance, iFace):
 
         self.__iconpath = os.path.join(os.path.dirname(__file__), 'Icons')
         self.__t2gArchInstance = t2gArchInstance
         self.__dockwidget = t2gArchInstance.dockwidget
         self.__iface = iFace
 
-        self.georeferencingDialog = GeoreferencingDialog(self, dataStore)
+        self.dataStoreGeoref = DataStoreGeoref()
+
+        self.georeferencingDialog = GeoreferencingDialog(self, self.dataStoreGeoref)
 
     ## @brief Initializes the functionality for profile modul
     #
@@ -50,6 +54,13 @@ class Georef():
         self.__dockwidget.profileSaveComboGeoref.setStorageMode(3)
 
         self.__dockwidget.startGeoreferencingBtn.clicked.connect(self.__startGeoreferencingDialog)
+
+
+        self.__dockwidget.layerGcpGeoref.currentIndexChanged.connect(self.__calculateViewDirection)
+
+        self.__dockwidget.profileIdsComboGeoref.currentIndexChanged.connect(self.__calculateViewDirection)
+
+        self.__dockwidget.layerProfileGeoref.currentIndexChanged.connect(self.__calculateViewDirection)
 
 
     ## \brief Start georeferencing dialog
@@ -113,6 +124,70 @@ class Georef():
         refData = {'lineLayer': lineLayer, 'pointLayer': pointLayer, 'profileNumber': profileNumber, 'imagePath': imagePath, 'viewDirection': viewDirection, 'horizontal': horizontalCheck, 'savePath': savePath, 'saveMetadata': metadataCheck, 'targetGCP': targetGCP}
 
         return refData
+
+    ## \brief Blickrichtung bestimmen
+    #
+    #
+    def __calculateViewDirection(self):
+
+        #lineLayer
+        lineLayer = self.__dockwidget.layerProfileGeoref.currentLayer().clone()
+
+        #Profilnummer
+        profileNumber = self.__dockwidget.profileIdsComboGeoref.currentText()
+
+        lineLayer.setSubsetString("prof_nr = '"+profileNumber+"'")
+
+        view = None
+
+
+        if lineLayer.geometryType() ==  QgsWkbTypes.LineGeometry:
+            for feat in lineLayer.getFeatures():
+
+                geom = feat.geometry()
+                #Singlepart
+                if QgsWkbTypes.isSingleType(geom.wkbType()):
+                    line = geom.asPolyline()
+                else:
+                    # Multipart
+                    line = geom.asMultiPolyline()[0]
+
+                pointA = line[0]
+                pointB = line[-1]
+
+                pointAx = pointA.x()
+                pointAy = pointA.y()
+                pointBx = pointB.x()
+                pointBy = pointB.y()
+
+                dx = pointBx - pointAx
+                dy = pointBy - pointAy
+                vp = [dx, dy]
+                v0 = [-1, 1]
+                # Lösung von hier: https://stackoverflow.com/questions/14066933/direct-way-of-computing-clockwise-angle-between-2-vectors/16544330#16544330, angepasst auf Berechnung ohne numpy
+                dot = v0[0] * vp[0] + v0[1] * vp[1]  # dot product: x1*x2 + y1*y2
+                det = v0[0] * vp[1] - vp[0] * v0[1]  # determinant: x1*y2 - y1*x2
+
+                radians = math.atan2(det, dot)
+                angle = math.degrees(radians)
+                # negative Winkelwerte (3. und 4. Quadrant, Laufrichtung entgegen Uhrzeigersinn) in fortlaufenden Wert (181 bis 360) umrechnen
+                if angle < 0:
+                    angle *= -1
+                    angle = 180 - angle + 180
+
+                if angle <= 90:
+                    view = "Nord"
+                elif angle <= 180:
+                    view = "West"
+                elif angle <= 270:
+                    view = "Süd"
+                elif angle > 270:
+                    view = "Ost"
+
+                self.__dockwidget.profileViewDirectionComboGeoref.setCurrentText(view)
+
+
+    ### Ende Blickrichtung bestimmen
 
     ## \brief Preselection of __preselectViewDirection
     #

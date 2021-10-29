@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 import csv
+import json
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QWidget, QMainWindow, QAction, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QSizePolicy, QLineEdit, QFileDialog
 from PyQt5.QtGui import QIcon
@@ -24,7 +25,7 @@ from ..profileAAR.profileAAR import profileAAR
 
 class GeoreferencingDialog(QMainWindow):
 
-    def __init__(self, t2GArchInstance, dataStore):
+    def __init__(self, t2GArchInstance, dataStoreGeoref):
 
         super(GeoreferencingDialog, self).__init__()
 
@@ -32,8 +33,10 @@ class GeoreferencingDialog(QMainWindow):
 
         self.t2GArchInstance = t2GArchInstance
 
+        self.refData = None
+
         #DataStore
-        self.dataStore = dataStore
+        self.dataStoreGeoref = dataStoreGeoref
 
         self.createMenu()
         self.createComponents()
@@ -105,7 +108,7 @@ class GeoreferencingDialog(QMainWindow):
         self.profileAAR = profileAAR()
 
         #Bildgeoreferenzierung
-        self.imageGeoref = ImageGeoref(self)
+        self.imageGeoref = ImageGeoref(self, self.dataStoreGeoref)
 
     ## \brief Event connections
     #
@@ -116,11 +119,11 @@ class GeoreferencingDialog(QMainWindow):
         self.georefTable.pup.register('activatePoint', self.canvasImage.setActivePoint)
         self.georefTable.pup.register('activatePoint', self.imageParambar.activateMapToolMove)
         self.canvasImage.pup.register('imagePointCoordinates', self.georefTable.updateImageCoordinates)
-        self.canvasImage.pup.register('imagePointCoordinates', self.dataStore.addImagePoint)
+        self.canvasImage.pup.register('imagePointCoordinates', self.dataStoreGeoref.addImagePoint)
 
         self.georefTable.pup.register('dataChanged', self.profileAAR.run)
 
-        self.profileAAR.pup.register('aarPointsChanged', self.dataStore.addAarPoints)
+        self.profileAAR.pup.register('aarPointsChanged', self.dataStoreGeoref.addAarPoints)
 
         self.canvasGcp.pup.register('moveCoordinate',self.gcpParambar.updateCoordinate)
         self.canvasImage.pup.register('moveCoordinate',self.imageParambar.updateCoordinate)
@@ -149,7 +152,15 @@ class GeoreferencingDialog(QMainWindow):
 
         self.startGeorefBtn = QPushButton("Profil entzerren", self)
 
+        self.startGeorefBtn.setStyleSheet("background-color: green; width: 200px")
+
         self.toolbarMap.addWidget(self.startGeorefBtn)
+
+        #self.toolbarMap.setContentsMargins(4,4,4,4);
+
+
+        #self.toolbarMap.setStyleSheet("padding-top: 8px; padding-bottom: 8px;")
+
         #self.toolbarMap.addAction(self.canvasTransform.actionPan)
         #self.toolbarMap.addAction(self.canvasTransform.actionZoomIn)
         #self.toolbarMap.addAction(self.canvasTransform.actionZoomOut)
@@ -164,6 +175,7 @@ class GeoreferencingDialog(QMainWindow):
 
         verticalLayout = QVBoxLayout()
         verticalLayout.setContentsMargins(0,0,0,0)
+        verticalLayout.setSpacing(0)
         widgetCentral.setLayout(verticalLayout)
         self.setCentralWidget(widgetCentral)
 
@@ -186,6 +198,8 @@ class GeoreferencingDialog(QMainWindow):
 
     def restore(self, refData):
 
+        self.refData = refData
+
         self.georefTable.cleanGeorefTable()
         self.georefTable.updateGeorefTable(refData)
         self.georefTable.pointUsageChanged()
@@ -193,7 +207,7 @@ class GeoreferencingDialog(QMainWindow):
         self.canvasImage.updateCanvas(refData['imagePath'])
         self.canvasGcp.updateCanvas(refData)
 
-        self.dataStore.addTargetPoints(refData)
+        self.dataStoreGeoref.addTargetPoints(refData)
 
         self.imageGeoref.updateMetadata(refData)
 
@@ -201,6 +215,32 @@ class GeoreferencingDialog(QMainWindow):
         self.show()
         self.resize(1000, 700)
 
+
+    ## \brief Export GCP-Data in a textfile
+    #
+    def writeMetafile(self):
+
+        saveFileName = self.refData['savePath'][:-3]
+        saveFileName = saveFileName + 'meta'
+        print('saveFileName', saveFileName)
+
+        if self.refData['horizontal'] == True:
+            ebene = 'vertikal'
+        else:
+            ebene = 'geneigt'
+
+        data = {
+        	"profilnummer": self.refData['profileNumber'],
+        	"profil": self.refData['savePath'],
+        	"profilfoto": self.refData['imagePath'],
+        	"blickrichtung": self.refData['viewDirection'],
+        	"entzerrungsebene": ebene,
+        	"gcps": self.dataStoreGeoref.getGeorefData(),
+        	"transform_params": self.dataStoreGeoref.getAarTransformationParams()
+        }
+
+        with open(saveFileName, 'w') as outfile:
+            json.dump(data, outfile)
 
     ## \brief Open up the transformation dialog
     #
@@ -213,5 +253,6 @@ class GeoreferencingDialog(QMainWindow):
 
 
     def startGeoreferencing(self):
-        georefData = self.dataStore.getGeorefData()
+        georefData = self.dataStoreGeoref.getGeorefData()
         self.imageGeoref.runGeoref(georefData)
+        self.writeMetafile()

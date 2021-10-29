@@ -1,6 +1,7 @@
 ## @package QGIS geoEdit extension..
 import shutil
 import os
+import json
 
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QMessageBox
@@ -8,6 +9,7 @@ from qgis.core import QgsProject, QgsGeometry, QgsVectorLayer, QgsApplication, Q
 from processing.gui import AlgorithmExecutor
 from qgis import processing
 
+from .data_store_digitize import DataStoreDigitize
 from .digitize_dialog import DigitizeDialog
 
 
@@ -22,14 +24,16 @@ class Digitize():
     #
     #  @param dockWidget pointer to the dockwidget
     #  @param iFace pointer to the iface class
-    def __init__(self, t2gArchInstance, iFace, dataStore):
+    def __init__(self, t2gArchInstance, iFace):
 
         self.__iconpath = os.path.join(os.path.dirname(__file__), '...', 'Icons')
         self.__t2gArchInstance = t2gArchInstance
         self.__dockwidget = t2gArchInstance.dockwidget
         self.__iface = iFace
 
-        self.digitizeDialog = DigitizeDialog(dataStore)
+        self.dataStoreDigitize = DataStoreDigitize()
+
+        self.digitizeDialog = DigitizeDialog(self.dataStoreDigitize, self.__iface)
 
     ## @brief Initializes the functionality for profile modul
     #
@@ -52,8 +56,31 @@ class Digitize():
 
         refData = self.__getSelectedValues()
 
-        print('refData', refData)
+        self.__importMetaData(refData['profilePath'])
+        self.dataStoreDigitize.triggerAarTransformationParams()
+
         self.digitizeDialog.showDigitizeDialog(refData)
+
+    ## \brief get meta data to profile
+    #
+    #
+    def __importMetaData(self, profilePath):
+
+        metaFileName = profilePath[:-3]
+        metaFileName = metaFileName + 'meta'
+        print('metaFileName', metaFileName)
+
+        with open(metaFileName) as json_file:
+            data = json.load(json_file)
+
+            self.dataStoreDigitize.addProfileNumber(data['profilnummer'])
+            self.dataStoreDigitize.addProfile(data['profil'])
+            self.dataStoreDigitize.addProfileFoto(data['profilfoto'])
+            self.dataStoreDigitize.addView(data['blickrichtung'])
+            self.dataStoreDigitize.addEntzerrungsebene(data['entzerrungsebene'])
+            self.dataStoreDigitize.addGcps(data['gcps'])
+            self.dataStoreDigitize.addTransformParams(data['transform_params'])
+
 
 
     ## \brief get selected values

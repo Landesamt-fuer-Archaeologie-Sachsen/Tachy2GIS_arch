@@ -7,7 +7,9 @@
 # @author Mario Uhlig, VisDat geodatentechnologie GmbH, mario.uhlig@visdat.de
 # @date 2020-11-09
 
-class DataStore():
+from ..publisher import Publisher
+
+class DataStoreGeoref():
 
     ## The constructor.
     # Creates labels with styles
@@ -15,7 +17,9 @@ class DataStore():
 
     def __init__(self):
 
-        print('init_dataStore')
+        print('init_dataStore_georef')
+
+        self.pup = Publisher()
 
         self.imagePoints = []
 
@@ -120,6 +124,11 @@ class DataStore():
     def getAarTransformationParams(self):
 
         return self.aarTransformationParams
+
+    def triggerAarTransformationParams(self, linkObj):
+
+        self.pup.publish('pushAarTransformationParams', self.getAarTransformationParams())
+
 
     def getGeorefData(self):
 

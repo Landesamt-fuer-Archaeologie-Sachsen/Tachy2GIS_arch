@@ -7,12 +7,17 @@ import shutil
 from osgeo import gdal, osr
 from PIL import Image
 import numpy as np
+
+from qgis.core import QgsVectorLayer, QgsField, QgsVectorFileWriter, QgsCoordinateReferenceSystem, QgsFeature, QgsPointXY, QgsGeometry
+from PyQt5.QtCore import QVariant
+
 from ..ahojnnes.transformation import Transformation
 
+from ..digitize.rotation_coords import RotationCoords
 
 class ImageGeoref():
 
-    def __init__(self, dialogInstance):
+    def __init__(self, dialogInstance, dataStoreGeoref):
 
         print('init ImageGeoref')
 
@@ -26,12 +31,18 @@ class ImageGeoref():
 
         self.gcpPoints = ''
 
+        self.dataStoreGeoref = dataStoreGeoref
+
 
     def runGeoref(self, georefData):
         print('run ImageGeoref')
 
         self.gcpPoints = georefData
         self.startTranslate()
+        self.createGcpShape()
+
+        print('Finish ImageGeoref')
+
         #self.startTranslatePIL()
         #self.startTranslateAh()
         #self.startWarp()
@@ -132,17 +143,20 @@ class ImageGeoref():
     def startTranslate(self):
 
         print('self.imageFileIn', self.imageFileIn)
+        tempOut = self.imageFileOut[:-4]
+        tempOut = tempOut + '_translate.tif'
+        print('tempOut', tempOut)
         print('self.imageFileOut', self.imageFileOut)
         # Create a copy of the original file and save it as the output filename:
 
-        gdal.Translate(self.imageFileOut, self.imageFileIn)
+        gdal.Translate(tempOut, self.imageFileIn)
 
         # Open the output file for writing for writing:
-        ds = gdal.Open(self.imageFileOut, gdal.GA_Update)
+        ds = gdal.Open(tempOut, gdal.GA_Update)
         print ('ds', ds)
         # Set spatial reference:
         sr = osr.SpatialReference()
-        sr.ImportFromEPSG(31468) #2193 refers to the NZTM2000, but can use any desired projection
+        sr.ImportFromEPSG(31468)
 
         # Enter the GCPs
         #   Format: [map x-coordinate(longitude)], [map y-coordinate (latitude)], [elevation],
@@ -158,19 +172,62 @@ class ImageGeoref():
         # Apply the GCPs to the open output file:
         ds.SetGCPs(gcps_aar, sr.ExportToWkt())
 
+        print('start warp')
+        #ds = gdal.Open(self.imageFileOut)
+        #gdal.Warp(self.imageFileOut, ds, dstSRS=ds.GetProjection(), options="-overwrite -r bilinear -co compress=none")
+
+        gdal.Warp(self.imageFileOut, ds, dstSRS=ds.GetProjection(), options="-overwrite -r bilinear -order 1 -co compress=none")
+
+        #gdal.Warp(self.imageFileOut, ds, dstSRS=ds.GetProjection(), options="-overwrite -r bilinear -tps -co compress=none")
+
         # Close the output file in order to be able to work with it in other programs:
         ds = None
 
-    def startWarp(self):
+        os.remove(tempOut)
 
-        command = 'gdalwarp -r near -order 1 -co COMPRESS=NONE '+self.imageFileOut+' '+self.imageFileOut
+        print('finish warp')
 
-        print('command', command)
-        proc = subprocess.Popen(command)
+    def createGcpShape(self):
+
+        self.rotationCoords = RotationCoords()
+
+        self.rotationCoords.setAarTransformationParams(self.dataStoreGeoref.getAarTransformationParams())
+
+        vl = QgsVectorLayer("Point", "temporary_points", "memory")
+
+        pr = vl.dataProvider()
+        vl.startEditing()
+        pr.addAttributes([QgsField('UUID', QVariant.String), QgsField('type', QVariant.String)])
+        #vl.updateFields()
+
+        shpOut = self.imageFileOut[:-4]
+        shpOut = shpOut + 'gcp_aar.shp'
+
+        for point in self.gcpPoints:
+
+            feat = QgsFeature()
+            feat.setGeometry(QgsGeometry.fromPointXY(QgsPointXY(float(point['aar_x']), float(point['aar_z']))))
+            feat.setAttributes([point['uuid'], 'aar'])
+            pr.addFeature(feat)
+
+            feat = QgsFeature()
+
+            retObj = self.rotationCoords.rotationReverse(float(point['aar_x']), float(point['aar_z']), True)
+
+            feat.setGeometry(QgsGeometry.fromPointXY(QgsPointXY(retObj['x_trans'], retObj['y_trans'])))
+            feat.setAttributes([point['uuid'], 'reverse_aar'])
+            pr.addFeature(feat)
+
+        vl.updateExtents()
+
+        vl.commitChanges()
+
+        QgsVectorFileWriter.writeAsVectorFormat(vl, shpOut, "UTF-8", QgsCoordinateReferenceSystem('EPSG:31468'), "ESRI Shapefile")
 
 
-        #gdal_translate -of GTiff -gcp 310.316 1329.26 4.57733e+06 5.7099e+06 -gcp 2320.42 1278.32 4.57733e+06 5.7099e+06 -gcp 4409.26 1306.11 4.57733e+06 5.7099e+06 -gcp 4154.53 2876.21 4.57733e+06 5.7099e+06 -gcp 2292.63 2853.05 4.57733e+06 5.7099e+06 "Y:/Projekte/2021/lfa_profil/beispieldaten/AZB-16/AZB-16/Entzerrungen/AZB-16_Pr50.JPG" "C:/Users/Mario/AppData/Local/Temp/AZB-16_Pr50.JPG"
-        #gdalwarp -r near -order 1 -co COMPRESS=NONE  "C:/Users/Mario/AppData/Local/Temp/AZB-16_Pr50.JPG" "Y:/Projekte/2021/lfa_profil/tests/AZB-16_Pr50_modifiziert.tif"
+
+
+
 
 
     def updateMetadata(self, refData):

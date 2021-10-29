@@ -54,9 +54,6 @@
 
 from __future__ import absolute_import
 
-
-
-
 from builtins import chr
 from builtins import str
 from builtins import range
@@ -65,13 +62,11 @@ from builtins import object
 
 #from numpy import std, mean, cross
 
-from numpy import *
+import numpy as np
 
 import sys
 
 from math import pi, fabs, atan
-
-import scipy
 
 # columreader in a "table" (list of lists)
 
@@ -194,9 +189,9 @@ class ErrorHandler(object):
 
             xyz = columnreader(coord_proc, i)
 
-            xyz_lower = mean(xyz) - (2 * std(xyz))
+            xyz_lower = np.mean(xyz) - (2 * np.std(xyz))
 
-            xyz_upper = mean(xyz) + (2 * std(xyz))
+            xyz_upper = np.mean(xyz) + (2 * np.std(xyz))
 
             for j in range(len(xyz)):
 
@@ -298,7 +293,7 @@ class ErrorHandler(object):
 
                 y1pred = intercept + slope*xw[i]
 
-                p1 = scipy.array([x1pred, y1pred])
+                p1 = np.array([x1pred, y1pred])
 
             # Predict the value for the maximal x
 
@@ -308,18 +303,20 @@ class ErrorHandler(object):
 
                 y2pred = intercept + slope*xw[i]
 
-                p2 =  scipy.array([x2pred, y2pred])
+                #p2 =  scipy.array([x2pred, y2pred])
+
+                p2 = np.array([x2pred, y2pred])
 
         # Calculate the distance from every point to the line.
 
-        distance = []		
+        distance = []
 
         # Export this value to every point, and give a sum of all distances indicator: sum = 0, fine; sum = max point (this is the bad one) ; sum > max point (maybe more than one are bad)
 
         for i in range(len(xw)):
 
-            p3 = scipy.array([xw[i],yw[i]])
+            p3 = np.array([xw[i],yw[i]])
 
-            distance.append(linalg.norm(cross(p2 - p1, p1 - p3)) / linalg.norm(p2 - p1))
+            distance.append(np.linalg.norm(np.cross(p2 - p1, p1 - p3)) / np.linalg.norm(p2 - p1))
 
         return distance

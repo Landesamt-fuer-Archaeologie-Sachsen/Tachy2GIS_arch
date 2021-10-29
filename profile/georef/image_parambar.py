@@ -51,6 +51,7 @@ class ImageParambar(QWidget):
         self.toolbarCoord.addWidget(self.coordLabel)
         self.toolbarCoord.addWidget(self.coordLineEdit)
 
+
     ## \brief Create Layout
     #
     def createLayout(self):
@@ -61,6 +62,10 @@ class ImageParambar(QWidget):
         self.setLayout(self.paramsBarLayout)
         #self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.paramsBarLayout.addWidget(self.imageToolbar)
+
+        spacer = QWidget();
+        spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred);
+        self.paramsBarLayout.addWidget(spacer);
 
         self.paramsBarLayout.addWidget(self.toolbarCoord)
 

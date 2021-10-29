@@ -118,8 +118,6 @@ class profileAAR(object):
             point_id = 0
 
             for feature in iter:
-                print('-----')
-                print('feature', feature)
 
                 # retrieve every feature with its geometry and attributes
                 view = feature[3]
@@ -224,7 +222,7 @@ class profileAAR(object):
                     print('cutting_line', cutting_line)
 
                     #return transform_return
-
+                    transform_return['transformationParams']['cutting_line'] = cutting_line
                     self.pup.publish('aarPointsChanged', transform_return)
 
 

@@ -126,17 +126,17 @@ class GeorefTable(QTableWidget):
             ptnrItem = QTableWidgetItem(str(pointObj['ptnr']))
             ptnrItem.setFlags(Qt.ItemIsEnabled)
             self.setItem(rowPosition, 1, ptnrItem)
-            georefTableHeader.setSectionResizeMode(1, QHeaderView.ResizeToContents)
+            georefTableHeader.setSectionResizeMode(1, QHeaderView.Stretch)
             # ID
             idItem = QTableWidgetItem(str(pointObj['id']))
             idItem.setFlags(Qt.ItemIsEnabled)
             self.setItem(rowPosition, 2, idItem)
-            georefTableHeader.setSectionResizeMode(2, QHeaderView.ResizeToContents)
+            georefTableHeader.setSectionResizeMode(2, QHeaderView.Stretch)
             # Quelle X
             qxItem = QTableWidgetItem(str(-99999))
             qxItem.setFlags(Qt.ItemIsEnabled)
             self.setItem(rowPosition, 3, qxItem)
-            georefTableHeader.setSectionResizeMode(3, QHeaderView.ResizeToContents)
+            georefTableHeader.setSectionResizeMode(3, QHeaderView.Stretch)
             # Quelle Y
             #qyItem = QTableWidgetItem()
             #qyItem.setFlags(Qt.ItemIsEnabled)
@@ -146,32 +146,32 @@ class GeorefTable(QTableWidget):
             qzItem = QTableWidgetItem(str(-99999))
             qzItem.setFlags(Qt.ItemIsEnabled)
             self.setItem(rowPosition, 4, qzItem)
-            georefTableHeader.setSectionResizeMode(4, QHeaderView.ResizeToContents)
+            georefTableHeader.setSectionResizeMode(4, QHeaderView.Stretch)
 
             # Ziel X
             txItem = QTableWidgetItem(str(round(pointObj['x'], 3)))
             txItem.setFlags(Qt.ItemIsEnabled)
             self.setItem(rowPosition, 5, txItem)
-            georefTableHeader.setSectionResizeMode(5, QHeaderView.ResizeToContents)
+            georefTableHeader.setSectionResizeMode(5, QHeaderView.Stretch)
 
 
             # Ziel Y
             tyItem = QTableWidgetItem(str(round(pointObj['y'], 3)))
             tyItem.setFlags(Qt.ItemIsEnabled)
             self.setItem(rowPosition, 6, tyItem)
-            georefTableHeader.setSectionResizeMode(6, QHeaderView.ResizeToContents)
+            georefTableHeader.setSectionResizeMode(6, QHeaderView.Stretch)
 
             # Ziel Z
             tzItem = QTableWidgetItem(str(round(pointObj['z'], 3)))
             tzItem.setFlags(Qt.ItemIsEnabled)
             self.setItem(rowPosition, 7, tzItem)
-            georefTableHeader.setSectionResizeMode(7, QHeaderView.ResizeToContents)
+            georefTableHeader.setSectionResizeMode(7, QHeaderView.Stretch)
 
             #Error XY
             errorXyItem = QTableWidgetItem(str(-99999))
             errorXyItem.setFlags(Qt.ItemIsEnabled)
             self.setItem(rowPosition, 8, errorXyItem)
-            georefTableHeader.setSectionResizeMode(8, QHeaderView.ResizeToContents)
+            georefTableHeader.setSectionResizeMode(8, QHeaderView.Stretch)
             #Error Z
             #errorZItem = QTableWidgetItem(str(-99999))
             #errorZItem.setFlags(Qt.ItemIsEnabled)

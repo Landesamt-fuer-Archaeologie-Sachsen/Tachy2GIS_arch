@@ -58,15 +58,11 @@ from __future__ import absolute_import
 from builtins import str
 from builtins import range
 
-import scipy
-
-from scipy import stats
-
 import sys
 
 from math import atan, fabs, pi, cos, sin, tan, isnan, sqrt
 
-from numpy import mean
+import numpy as np
 
 import itertools
 
@@ -84,11 +80,11 @@ def rotation (self, coord_proc, slope_deg, zAdaption):
 
     # calculate the point of rotation
 
-    center_x = mean(x_coord_proc)
+    center_x = np.mean(x_coord_proc)
 
-    center_y = mean(y_coord_proc)
+    center_y = np.mean(y_coord_proc)
 
-    center_z = mean(z_coord_proc)
+    center_z = np.mean(z_coord_proc)
     # instantiate lists for the transformed coordinates
 
     x_trans = []
@@ -152,9 +148,9 @@ def ns_error_determination(self, coord_proc):
 
     # The calculation is after https://www.crashkurs-statistik.de/einfache-lineare-regression/
 
-    xStrich = mean(xw)
+    xStrich = np.mean(xw)
 
-    yStrich = mean(yw)
+    yStrich = np.mean(yw)
 
     abzugX = []
 
@@ -471,27 +467,25 @@ class Magic_Box():
         # Calculate the regression for both directions
         #print(' xw,yw', xw,yw)
 
-        linegress_x = scipy.stats.linregress(scipy.array(xw), scipy.array(yw))
+        #linegress_x = scipy.stats.linregress(scipy.array(xw), scipy.array(yw))
 
-        linegress_y = scipy.stats.linregress(scipy.array(yw), scipy.array(xw))
+        xw_t = np.vstack([xw, np.ones(len(xw))]).T
+        linegress_x = np.linalg.lstsq(xw_t, yw, rcond=None)[0]
 
-        print('xw', xw)
-        print('yw', yw)
+        #linegress_y = scipy.stats.linregress(scipy.array(yw), scipy.array(xw))
 
-        print('x_coord_proc', x_coord_proc)
-        print('y_coord_proc', y_coord_proc)
-        print('linegress_y', linegress_y)
-        print('linegress_x', linegress_x)
+        yw_t = np.vstack([yw, np.ones(len(yw))]).T
+        linegress_y = np.linalg.lstsq(yw_t, xw, rcond=None)[0]
 
-        linegress_profil = scipy.stats.linregress(x_coord_proc, y_coord_proc)
-        print('linegress_profil', linegress_profil)
         # get the sum of residuals for both direction
 
         # We like to use the regression with less sum of the residuals
 
-        res_x = self.calculateResidual(linegress_x, scipy.array(xw), scipy.array(yw))
+        #res_x = self.calculateResidual(linegress_x, scipy.array(xw), scipy.array(yw))
+        #res_y = self.calculateResidual(linegress_y, scipy.array(yw), scipy.array(xw))
 
-        res_y = self.calculateResidual(linegress_y, scipy.array(yw), scipy.array(xw))
+        res_x= self.calculateResidual(linegress_x, xw, yw)
+        res_y = self.calculateResidual(linegress_y, yw, xw)
 
         if isnan(res_y) or res_x >= res_y:
 
@@ -597,11 +591,11 @@ class Magic_Box():
 
             # calculate the minimal x
 
-            mean_x = mean(x_coord_proc)
+            mean_x = np.mean(x_coord_proc)
 
-            mean_y = mean(y_coord_proc)
+            mean_y = np.mean(y_coord_proc)
 
-            mean_z = mean(z_coord_proc)
+            mean_z = np.mean(z_coord_proc)
 
             for i in range(len(x_trans)):
 
@@ -648,7 +642,11 @@ class Magic_Box():
 
             # actual calculation of the slope using the linear regression again
 
-            z_slope = scipy.stats.linregress(scipy.array(z_yw), scipy.array(z_zw))[0]
+            #z_slope = scipy.stats.linregress(scipy.array(z_yw), scipy.array(z_zw))[0]
+
+            z_yw_t = np.vstack([z_yw, np.ones(len(z_yw))]).T
+            linegress = np.linalg.lstsq(z_yw_t, z_zw, rcond=None)[0]
+            z_slope = linegress[0]
 
             # transform the radians of the slope into degrees
 
@@ -668,9 +666,9 @@ class Magic_Box():
 
             # calculate the centerpoint
 
-            z_center_y = mean(y_trans)
+            z_center_y = np.mean(y_trans)
 
-            z_center_z = mean(z_trans)
+            z_center_z = np.mean(z_trans)
 
             # rewrite the lists for the y and z values
 
@@ -718,9 +716,9 @@ class Magic_Box():
 
             # get the centerpoint
 
-            y_center_x = mean(x_trans)
+            y_center_x = np.mean(x_trans)
 
-            y_center_z = mean(z_trans)
+            y_center_z = np.mean(z_trans)
 
             # rewrite the lists for the x and z values
 
@@ -788,7 +786,18 @@ class Magic_Box():
         print('########################')
         print('coord_proc', coord_proc)
 
-        return {'coord_trans': coord_trans, 'cutting_start': cutting_start, 'linegress': linegress, 'ns_error': ns_fehler_vorhanden, 'transformationParams': transformationParams}
+        array_z_org = []
+        for point in coord_proc:
+            array_z_org.append(point[2])
+
+        array_z_trans = []
+        for point in coord_trans:
+            array_z_trans.append(point[2])
+
+        array_z_org_t = np.vstack([array_z_org, np.ones(len(array_z_org))]).T
+        linegress_profil = np.linalg.lstsq(array_z_org_t, array_z_trans, rcond=None)[0]
+
+        return {'coord_trans': coord_trans, 'cutting_start': cutting_start, 'linegress': linegress_profil, 'ns_error': ns_fehler_vorhanden, 'transformationParams': transformationParams}
 
 
     def height_points (self, coord_trans):
@@ -857,7 +866,7 @@ class Magic_Box():
 
         obs_values = array2
 
-        pred_values = linegress[0] * array1 + linegress[1]
+        pred_values = np.array(linegress[0]) * array1 + np.array(linegress[1])
 
         # This prints the residual for each pair of observations
 

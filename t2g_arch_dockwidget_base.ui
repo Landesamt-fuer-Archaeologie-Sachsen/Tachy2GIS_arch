@@ -178,8 +178,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>422</width>
-         <height>607</height>
+         <width>98</width>
+         <height>28</height>
         </rect>
        </property>
        <attribute name="label">
@@ -880,8 +880,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>422</width>
-         <height>607</height>
+         <width>284</width>
+         <height>495</height>
         </rect>
        </property>
        <property name="sizePolicy">
@@ -1148,8 +1148,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>422</width>
-         <height>607</height>
+         <width>98</width>
+         <height>28</height>
         </rect>
        </property>
        <attribute name="label">
@@ -1400,8 +1400,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>422</width>
-         <height>607</height>
+         <width>98</width>
+         <height>28</height>
         </rect>
        </property>
        <attribute name="label">
@@ -1728,8 +1728,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>422</width>
-         <height>607</height>
+         <width>336</width>
+         <height>333</height>
         </rect>
        </property>
        <attribute name="label">
@@ -2140,7 +2140,7 @@
 }</string>
           </property>
           <property name="currentIndex">
-           <number>1</number>
+           <number>0</number>
           </property>
           <widget class="QWidget" name="profileGeoreferencing">
            <property name="styleSheet">
@@ -2195,7 +2195,7 @@
             <item row="8" column="0">
              <widget class="QLabel" name="label_29">
               <property name="text">
-               <string>Lage der Georeferenzierung</string>
+               <string>Entzerrungsebene</string>
               </property>
              </widget>
             </item>
@@ -2204,7 +2204,7 @@
               <item>
                <widget class="QRadioButton" name="radioDirectionHorizontal">
                 <property name="text">
-                 <string>Horizontal</string>
+                 <string>Vertikal</string>
                 </property>
                 <property name="checked">
                  <bool>true</bool>
@@ -2214,7 +2214,7 @@
               <item>
                <widget class="QRadioButton" name="radioDirectionOriginal">
                 <property name="text">
-                 <string>Orginal</string>
+                 <string>Geneigt</string>
                 </property>
                </widget>
               </item>
@@ -2384,8 +2384,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>422</width>
-         <height>607</height>
+         <width>98</width>
+         <height>28</height>
         </rect>
        </property>
        <attribute name="label">
@@ -2514,8 +2514,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>422</width>
-         <height>607</height>
+         <width>98</width>
+         <height>28</height>
         </rect>
        </property>
        <attribute name="label">

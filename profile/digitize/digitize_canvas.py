@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
 import os
-from PyQt5.QtCore import Qt
+import processing
+from PyQt5.QtCore import Qt, QVariant
 from PyQt5.QtWidgets import QAction
 from PyQt5.QtGui import QIcon, QFont, QColor
-from qgis.core import QgsVectorLayer, QgsRasterLayer, QgsMarkerSymbol, QgsSingleSymbolRenderer, QgsPalLayerSettings, QgsTextFormat, QgsTextBufferSettings, QgsVectorLayerSimpleLabeling, QgsPointXY
+from qgis.core import QgsProject, QgsVectorLayer, QgsRasterLayer, QgsMarkerSymbol, QgsLineSymbol, QgsFillSymbol, QgsSingleSymbolRenderer, QgsPalLayerSettings, QgsTextFormat, QgsTextBufferSettings, QgsVectorLayerSimpleLabeling, QgsPoint, QgsPointXY, QgsFeature, QgsGeometry, QgsField, QgsCoordinateReferenceSystem
 from qgis.gui import QgsMapCanvas, QgsMapToolPan, QgsMapToolZoom, QgsHighlight, QgsVertexMarker
 
 from ..publisher import Publisher
+
+
 
 ## @brief With the ProfileImageCanvas class a map canvas element is realized. It should be used in the profile dialog
 #
@@ -20,9 +23,11 @@ class DigitizeCanvas(QgsMapCanvas):
     ## The constructor.
     # @param dialogInstance pointer to the dialogInstance
 
-    def __init__(self, dialogInstance):
+    def __init__(self, dialogInstance, iFace):
 
         super(DigitizeCanvas, self).__init__()
+
+        self.__iface = iFace
 
         self.pup = Publisher()
 
@@ -32,12 +37,78 @@ class DigitizeCanvas(QgsMapCanvas):
 
         self.imageLayer = None
 
+        self.digiPointLayer = None
+        self.digiLineLayer = None
+        self.digiPolygonLayer = None
+
         self.createMapToolPan()
         self.createMapToolZoomIn()
         self.createMapToolZoomOut()
+        #self.createMapToolDigiPoint()
+        #self.createMapToolDigiLine()
+        #self.createMapToolDigiPolygon()
 
         self.createConnects()
 
+    def createDigiPointLayer(self, refData):
+        refData['pointLayer'].selectAll()
+        self.digiPointLayer = processing.run("native:saveselectedfeatures", {'INPUT': refData['pointLayer'], 'OUTPUT': 'memory:'})['OUTPUT']
+        refData['pointLayer'].removeSelection()
+
+        #Layer leeren
+        pr = self.digiPointLayer.dataProvider()
+        pr.truncate()
+
+        symbol = QgsMarkerSymbol.createSimple({'name': 'circle', 'color': 'green', 'size': '2'})
+
+        self.digiPointLayer.setRenderer(QgsSingleSymbolRenderer(symbol))
+
+        #crs = QgsCoordinateReferenceSystem(31468)
+
+        crs = refData['pointLayer'].sourceCrs()
+
+        self.digiPointLayer.setCrs(crs)
+
+    def createDigiLineLayer(self, refData):
+
+        refData['lineLayer'].selectAll()
+        self.digiLineLayer = processing.run("native:saveselectedfeatures", {'INPUT': refData['lineLayer'], 'OUTPUT': 'memory:'})['OUTPUT']
+        refData['lineLayer'].removeSelection()
+
+        #Layer leeren
+        pr = self.digiLineLayer.dataProvider()
+        pr.truncate()
+
+        symbol = QgsLineSymbol.createSimple({'line_style': 'solid', 'color': 'green', 'width': '1'})
+
+        self.digiLineLayer.setRenderer(QgsSingleSymbolRenderer(symbol))
+
+        crs = refData['lineLayer'].sourceCrs()
+
+        self.digiLineLayer.setCrs(crs)
+
+
+    def createDigiPolygonLayer(self, refData):
+
+        #self.digiPolygonLayer = refData['polygonLayer']
+
+        #self.digiPolygonLayer.setProviderType('memory')
+
+        refData['polygonLayer'].selectAll()
+        self.digiPolygonLayer = processing.run("native:saveselectedfeatures", {'INPUT': refData['polygonLayer'], 'OUTPUT': 'memory:'})['OUTPUT']
+        refData['polygonLayer'].removeSelection()
+
+        #Layer leeren
+        pr = self.digiPolygonLayer.dataProvider()
+        pr.truncate()
+
+        symbol = QgsFillSymbol.createSimple({'line_style': 'solid', 'color': 'green', 'width': '1'})
+
+        self.digiPolygonLayer.setRenderer(QgsSingleSymbolRenderer(symbol))
+
+        crs = refData['lineLayer'].sourceCrs()
+
+        self.digiPolygonLayer.setCrs(crs)
 
     ## \brief Set coordinates on the statusbar in dialog instance TransformationDialog.setCoordinatesOnStatusBar() . Depends on mouse move on the map element
     #
@@ -54,6 +125,8 @@ class DigitizeCanvas(QgsMapCanvas):
         #Koordinatenanzeige
         self.xyCoordinates.connect(self.canvasMoveEvent)
 
+
+
     ## \brief Create action to pan on the map
     #
     def createMapToolPan(self):
@@ -69,6 +142,18 @@ class DigitizeCanvas(QgsMapCanvas):
     def createMapToolZoomOut(self):
         self.toolZoomOut = QgsMapToolZoom(self, True) # true = out
 
+    ## \brief Create action to digitalize points
+    #def createMapToolDigiPoint(self):
+    #    self.toolDigiPoint = MapToolDigiPoint(self, self.__iface)
+
+    ## \brief Create action to digitalize lines
+    #def createMapToolDigiLine(self):
+    #    self.toolDigiLine = MapToolDigiLine(self, self.__iface)
+
+    ## \brief Create action to digitalize polygons
+    #def createMapToolDigiPolygon(self):
+    #    self.toolDigiPolygon = MapToolDigiPolygon(self, self.__iface)
+
 
     ## \brief Set extent of the map by extent of the source layer
     #
@@ -78,6 +163,32 @@ class DigitizeCanvas(QgsMapCanvas):
         self.refresh()
 
 
+    def removeFeatureByUuid(self, uuid):
+        featuresPoly = self.digiPolygonLayer.getFeatures()
+
+        for feature in featuresPoly:
+            if feature['uuid'] == uuid:
+                self.digiPolygonLayer.startEditing()
+                self.digiPolygonLayer.deleteFeature(feature.id())
+                self.digiPolygonLayer.commitChanges()
+
+        featuresLine = self.digiLineLayer.getFeatures()
+
+        for feature in featuresLine:
+            if feature['uuid'] == uuid:
+                self.digiLineLayer.startEditing()
+                self.digiLineLayer.deleteFeature(feature.id())
+                self.digiLineLayer.commitChanges()
+
+        featuresPoint = self.digiPointLayer.getFeatures()
+
+        for feature in featuresPoint:
+            if feature['uuid'] == uuid:
+                self.digiPointLayer.startEditing()
+                self.digiPointLayer.deleteFeature(feature.id())
+                self.digiPointLayer.commitChanges()
+
+                #layer.dataProvider().deleteFeatures([5, 10])
     ## \brief Update canvas map element
     #
     # - Clear canvas element
@@ -89,9 +200,11 @@ class DigitizeCanvas(QgsMapCanvas):
     #
     # \param imageLayerPath
 
-    def update(self, imageLayerPath):
+    def update(self, refData):
 
         #canvas leeren
+
+        imageLayerPath = refData['profilePath']
 
         self.clearCache()
         self.refresh()
@@ -100,16 +213,32 @@ class DigitizeCanvas(QgsMapCanvas):
         if not self.imageLayer.isValid():
             print("Layer failed to load!")
 
-
         sourceCrs = self.imageLayer.crs()
 
         #Sets canvas CRS
-        #my_crs = QgsCoordinateReferenceSystem(31469, QgsCoordinateReferenceSystem.EpsgCrsId)
         self.setDestinationCrs(sourceCrs)
 
         # set extent to the extent of Layer E_Point
         self.setExtentByImageLayer()
         listLayers = []
+
+        self.createDigiPointLayer(refData)
+        self.createDigiLineLayer(refData)
+        self.createDigiPolygonLayer(refData)
+
+        listLayers.append(self.digiPointLayer)
+        listLayers.append(self.digiLineLayer)
+        listLayers.append(self.digiPolygonLayer)
+
         listLayers.append(self.imageLayer)
 
         self.setLayers(listLayers)
+
+        self.pup.publish('setDigiPointLayer', self.digiPointLayer)
+        self.pup.publish('setDigiLineLayer', self.digiLineLayer)
+        self.pup.publish('setDigiPolygonLayer', self.digiPolygonLayer)
+
+
+        #self.toolDigiPoint.setDigiPointLayer(self.digiPointLayer)
+        #self.toolDigiLine.setDigiLineLayer(self.digiLineLayer)
+        #self.toolDigiPolygon.setDigiPolygonLayer(self.digiPolygonLayer)
