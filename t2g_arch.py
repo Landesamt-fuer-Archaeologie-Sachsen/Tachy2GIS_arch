@@ -1279,6 +1279,8 @@ class T2G_Arch:
         # QgsMessageLog.logMessage('aaa ' + len(geom.featureCount()), 'T2G Archäologie', Qgis.Info)
 
         #######
+        msgout = '%s, %s, %s, %s, %s, %s, %s\n' % ('punktnr', 'x', 'y', 'z', 'profnr', 'view', 'pointsused')
+        feats.append(msgout)
         for feat in profPointLayer.selectedFeatures():
             koordlist = []
             if feat.geometry().isMultipart():
@@ -1347,7 +1349,7 @@ class T2G_Arch:
                 # csv-Datei
                 output_file = QFileDialog.getSaveFileName(None, 'Speicherpfad',
                                                           QgsProject.instance().readPath('./../Jobs'),
-                                                          'Excel (*.csv);;Alle Dateien (*.*)')
+                                                          'Excel (*.csv);;Excel (*.txt);;Alle Dateien (*.*)')
                 if output_file[0] != '':
                     # write to csv
                     output_file = open(output_file[0], 'w')
@@ -1384,8 +1386,8 @@ class T2G_Arch:
                 g = root.findGroup('Vermessung')
                 g.insertChildNode(0, QgsLayerTreeLayer(vl))
             delSelectFeature()
-            my_plugin = plugins.get('profileAAR')
-            my_plugin.run()
+            #my_plugin = plugins.get('profileAAR')
+            #my_plugin.run()
 
 
     def getMaxValues(self):
