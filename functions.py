@@ -326,10 +326,9 @@ def setSelectAllFeatures(layer):
         QMessageBox.warning(None, "Meldung", 'Keine Objekte gefunden!')
 
 def delSelectFeature():
-    for a in iface.attributesToolBar().actions():
-        if a.objectName() == 'mActionDeselectAll':
-            a.trigger()
-            break
+    for layer in QgsProject.instance().mapLayers().values():
+        if layer.type() == QgsMapLayer.VectorLayer:
+            layer.removeSelection()
 
 def fileLineCount(file):
     file = open(file)
