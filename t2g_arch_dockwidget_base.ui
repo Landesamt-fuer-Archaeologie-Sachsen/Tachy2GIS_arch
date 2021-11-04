@@ -10,6 +10,12 @@
     <height>937</height>
    </rect>
   </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
   <property name="minimumSize">
    <size>
     <width>198</width>
@@ -33,7 +39,7 @@
   </property>
   <widget class="QWidget" name="dockWidgetContents">
    <property name="sizePolicy">
-    <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
      <horstretch>0</horstretch>
      <verstretch>0</verstretch>
     </sizepolicy>
@@ -171,7 +177,7 @@
        <enum>QFrame::NoFrame</enum>
       </property>
       <property name="currentIndex">
-       <number>5</number>
+       <number>4</number>
       </property>
       <widget class="QWidget" name="page_1">
        <property name="geometry">
@@ -881,7 +887,7 @@
          <x>0</x>
          <y>0</y>
          <width>284</width>
-         <height>495</height>
+         <height>497</height>
         </rect>
        </property>
        <property name="sizePolicy">
@@ -1192,6 +1198,7 @@
         </property>
         <property name="font">
          <font>
+          <pointsize>8</pointsize>
           <weight>75</weight>
           <bold>true</bold>
          </font>
@@ -1211,6 +1218,7 @@
         </property>
         <property name="font">
          <font>
+          <pointsize>8</pointsize>
           <weight>75</weight>
           <bold>true</bold>
          </font>
@@ -1287,6 +1295,7 @@
         </property>
         <property name="font">
          <font>
+          <pointsize>8</pointsize>
           <weight>75</weight>
           <bold>true</bold>
          </font>
@@ -1336,6 +1345,9 @@
         </property>
         <property name="font">
          <font>
+          <pointsize>8</pointsize>
+          <weight>50</weight>
+          <bold>false</bold>
           <underline>true</underline>
          </font>
         </property>
@@ -1728,8 +1740,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>336</width>
-         <height>333</height>
+         <width>422</width>
+         <height>607</height>
         </rect>
        </property>
        <attribute name="label">
@@ -1750,7 +1762,7 @@
 }</string>
           </property>
           <property name="currentIndex">
-           <number>2</number>
+           <number>0</number>
           </property>
           <widget class="QWidget" name="lfaWidgetVerschieben">
            <property name="styleSheet">
@@ -2124,8 +2136,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>422</width>
-         <height>607</height>
+         <width>395</width>
+         <height>371</height>
         </rect>
        </property>
        <attribute name="label">
@@ -2134,6 +2146,12 @@
        <layout class="QVBoxLayout" name="verticalLayout_4">
         <item>
          <widget class="QTabWidget" name="profileMainTabWidget">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="styleSheet">
            <string notr="true">#profileMainTabWidget{
 	background-color:  rgb(240,240,240)

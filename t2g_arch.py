@@ -569,12 +569,16 @@ class T2G_Arch:
 
         self.currentLayerChanged()
         self.customVariablesChanged()  # self.getValue()
+
         self.getMaxValues()
+
         self.dockwidget.txtautoSave.setText('15')
         self.dockwidget.chbautoSave.setChecked(True)
+
         self.enableAutoSave()
         self.dockwidget.labAtt.hide()
         self.dockwidget.txtPointTemp.hide()
+
         iface.messageBar().pushMessage(u"T2G Archäologie: ", u"Aufsatz Archäologie für T2G ist einsatzbereit.",
                                        level=Qgis.Info)
         QgsMessageLog.logMessage('Aufsatz Archäologie für T2G ist einsatzbereit.', 'T2G Archäologie', Qgis.Info)
@@ -586,6 +590,7 @@ class T2G_Arch:
         iface.messageBar().pushMessage(u"T2G Archäologie: ", u"Überprüfe UUID.", level=Qgis.Info)
         # >uuid ereugen wenn Feld uuid leer
         list = [self.layerPoly, self.layerLine, self.layerPoint, self.layerMesspoint]
+
         for layer in list:
             layer.startEditing()
             if layer.dataProvider().fieldNameIndex("uuid") == -1:
@@ -602,6 +607,7 @@ class T2G_Arch:
         # <uuid ereugen wenn Feld uuid leer
 
         self.FilterGesetzt()
+
 
     def toolbox_currentChanged(self,index):
         QgsMessageLog.logMessage(str(index), 'T2G Archäologie', Qgis.Info)
@@ -1390,6 +1396,7 @@ class T2G_Arch:
             for layer in layerlist:
 
                 max1 = maxValue(layer, 'bef_nr')
+
                 #QgsMessageLog.logMessage(str(max1), 'T2G Archäologie', Qgis.Info)
                 if BefNrMax < max1:
                     BefNrMax = max1
@@ -1415,7 +1422,7 @@ class T2G_Arch:
                 setCustomProjectVariable('nextProfNr', str(ProfNrMax + 1))
                 setCustomProjectVariable('nextFundNr', str(FundNrMax + 1))
                 setCustomProjectVariable('nextProbNr', str(ProbNrMax + 1))
-
+                
             iface.messageBar().pushMessage(u"T2G Archäologie: ", u"Nächste zu vergebende Nummern wurden aktuallisiert.", level=Qgis.Info)
             setCustomProjectVariable('maxWerteAktualisieren', 'False')
             #self.autoNummer()

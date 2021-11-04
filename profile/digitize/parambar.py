@@ -19,7 +19,7 @@ class Parambar(QWidget):
     # Creates labels with styles
     # @param dialogInstance pointer to the dialogInstance
 
-    def __init__(self, dialogInstance, canvasDigitize, toolDigiPoint, toolDigiLine, toolDigiPolygon, toolEditLine, rotationCoords):
+    def __init__(self, dialogInstance, canvasDigitize, toolDigiPoint, toolDigiLine, toolDigiPolygon, toolEditPoint, toolEditLine, toolEditPolygon, rotationCoords):
 
         super(Parambar, self).__init__()
 
@@ -33,7 +33,9 @@ class Parambar(QWidget):
         self.toolDigiLine = toolDigiLine
         self.toolDigiPolygon = toolDigiPolygon
 
+        self.toolEditPoint = toolEditPoint
         self.toolEditLine = toolEditLine
+        self.toolEditPolygon = toolEditPolygon
 
         self.rotationCoords = rotationCoords
 
@@ -70,7 +72,11 @@ class Parambar(QWidget):
         self.createDigiLineAction()
         self.createDigiPolygonAction()
 
+        self.createEditPointAction()
         self.createEditLineAction()
+        self.createEditPolygonAction()
+
+        self.activatePan()
 
         #Button in Eingabelayer übernehmen
         self.takeLayerButton = QPushButton(self)
@@ -143,27 +149,23 @@ class Parambar(QWidget):
         self.toolDigiPolygon.rotationFromEingabelayer(bufferGeometry)
 
     def __switchLayer(self, ix):
-        print('__switchLayer')
+
         combo = self.sender()
         layer_id = combo.currentData()
 
         if self.refData['pointLayer'].id() == layer_id:
-            print('point')
             self.enableDigiPointAction()
             self.disableDigiLineAction()
             self.disableDigiPolygonAction()
             self.activateDigiPoint()
 
         if self.refData['lineLayer'].id() == layer_id:
-            print('line')
             self.enableDigiLineAction()
             self.disableDigiPointAction()
             self.disableDigiPolygonAction()
             self.activateDigiLine()
-            self.activateEditLine()
 
         if self.refData['polygonLayer'].id() == layer_id:
-            print('polygon')
             self.disableDigiLineAction()
             self.disableDigiPointAction()
             self.enableDigiPolygonAction()
@@ -199,10 +201,21 @@ class Parambar(QWidget):
     def activateDigiPolygon(self):
         self.canvasDigitize.setMapTool(self.toolDigiPolygon)
 
+    ## \brief Create point action
+    #
+    def activateEditPoint(self):
+        self.canvasDigitize.setMapTool(self.toolEditPoint)
+
     ## \brief Create line action
     #
     def activateEditLine(self):
         self.canvasDigitize.setMapTool(self.toolEditLine)
+
+    ## \brief Create polygon action
+    #
+    def activateEditPolygon(self):
+        self.canvasDigitize.setMapTool(self.toolEditPolygon)
+
 
     ## \brief Create pan action
     #
@@ -262,7 +275,7 @@ class Parambar(QWidget):
         #Point
         iconDigiPoint = QIcon(os.path.join(self.iconpath, 'mActionCapturePoint.png'))
         self.actionDigiPoint = QAction(iconDigiPoint, "Digitalisieren - Punkt", self)
-        self.actionDigiPoint.setCheckable(False)
+        self.actionDigiPoint.setCheckable(True)
 
         self.toolDigiPoint.setAction(self.actionDigiPoint)
 
@@ -277,7 +290,7 @@ class Parambar(QWidget):
         #Line
         iconDigiLine = QIcon(os.path.join(self.iconpath, 'mActionCaptureLine.png'))
         self.actionDigiLine = QAction(iconDigiLine, "Digitalisieren - Linie", self)
-        self.actionDigiLine.setCheckable(False)
+        self.actionDigiLine.setCheckable(True)
 
         self.toolDigiLine.setAction(self.actionDigiLine)
 
@@ -292,7 +305,7 @@ class Parambar(QWidget):
         #Polygon
         iconDigiPolygon = QIcon(os.path.join(self.iconpath, 'mActionCapturePolygon.png'))
         self.actionDigiPolygon = QAction(iconDigiPolygon, "Digitalisieren - Polygon", self)
-        self.actionDigiPolygon.setCheckable(False)
+        self.actionDigiPolygon.setCheckable(True)
 
         self.toolDigiPolygon.setAction(self.actionDigiPolygon)
 
@@ -300,14 +313,28 @@ class Parambar(QWidget):
         self.canvasDigitize.setMapTool(self.toolDigiPolygon)
         self.actionDigiPolygon.triggered.connect(self.activateDigiPolygon)
 
+    ## \brief Create point action
+    #
+    def createEditPointAction(self):
+
+        iconEditPoint = QIcon(os.path.join(self.iconpath, 'mActionNodeTool.png'))
+        self.actionEditPoint = QAction(iconEditPoint, "Knotenwerkzeug - Punkt", self)
+        self.actionEditPoint.setCheckable(True)
+
+        self.toolEditPoint.setAction(self.actionEditPoint)
+
+        self.toolbarLayer.addAction(self.actionEditPoint)
+        self.canvasDigitize.setMapTool(self.toolEditPoint)
+        self.actionEditPoint.triggered.connect(self.activateEditPoint)
+
     ## \brief Create line action
     #
     def createEditLineAction(self):
 
         #Line
-        iconEditLine = QIcon(os.path.join(self.iconpath, 'mActionCaptureLine.png'))
+        iconEditLine = QIcon(os.path.join(self.iconpath, 'mActionNodeTool.png'))
         self.actionEditLine = QAction(iconEditLine, "Knotenwerkzeug - Linie", self)
-        self.actionEditLine.setCheckable(False)
+        self.actionEditLine.setCheckable(True)
 
         self.toolEditLine.setAction(self.actionEditLine)
 
@@ -315,12 +342,28 @@ class Parambar(QWidget):
         self.canvasDigitize.setMapTool(self.toolEditLine)
         self.actionEditLine.triggered.connect(self.activateEditLine)
 
+    ## \brief Create polygon action
+    #
+    def createEditPolygonAction(self):
+
+        #Line
+        iconEditPolygon = QIcon(os.path.join(self.iconpath, 'mActionNodeTool.png'))
+        self.actionEditPolygon = QAction(iconEditPolygon, "Knotenwerkzeug - Polygon", self)
+        self.actionEditPolygon.setCheckable(True)
+
+        self.toolEditPolygon.setAction(self.actionEditPolygon)
+
+        self.toolbarLayer.addAction(self.actionEditPolygon)
+        self.canvasDigitize.setMapTool(self.toolEditPolygon)
+        self.actionEditPolygon.triggered.connect(self.activateEditPolygon)
+
     def activateMapToolMove(self, linkObj):
         self.actionMove.activate(0)
 
 
     def enableDigiPointAction(self):
         self.actionDigiPoint.setVisible(True)
+        self.actionEditPoint.setVisible(True)
 
     def enableDigiLineAction(self):
         self.actionDigiLine.setVisible(True)
@@ -328,9 +371,11 @@ class Parambar(QWidget):
 
     def enableDigiPolygonAction(self):
         self.actionDigiPolygon.setVisible(True)
+        self.actionEditPolygon.setVisible(True)
 
     def disableDigiPointAction(self):
         self.actionDigiPoint.setVisible(False)
+        self.actionEditPoint.setVisible(False)
         self.toolDigiPoint.clearVertexMarker()
 
     def disableDigiLineAction(self):
@@ -340,6 +385,7 @@ class Parambar(QWidget):
 
     def disableDigiPolygonAction(self):
         self.actionDigiPolygon.setVisible(False)
+        self.actionEditPolygon.setVisible(False)
         self.toolDigiPolygon.clearRubberband()
     ## \brief Update parambar element
     #

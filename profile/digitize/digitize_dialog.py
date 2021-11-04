@@ -12,7 +12,9 @@ from .maptool_digi_point import MapToolDigiPoint
 from .maptool_digi_line import MapToolDigiLine
 from .maptool_digi_polygon import MapToolDigiPolygon
 
+from .maptool_edit_point import MapToolEditPoint
 from .maptool_edit_line import MapToolEditLine
+from .maptool_edit_polygon import MapToolEditPolygon
 from .rotation_coords import RotationCoords
 ## @brief With the GeoreferencingDialog class a dialog window for the georeferencing of profiles is realized
 #
@@ -87,10 +89,12 @@ class DigitizeDialog(QMainWindow):
         self.toolDigiLine = MapToolDigiLine(self.canvasDigitize, self.__iface, self.rotationCoords)
         self.toolDigiPolygon = MapToolDigiPolygon(self.canvasDigitize, self.__iface, self.rotationCoords)
 
+        self.toolEditPoint = MapToolEditPoint(self.canvasDigitize, self.__iface, self.rotationCoords)
         self.toolEditLine = MapToolEditLine(self.canvasDigitize, self.__iface, self.rotationCoords)
+        self.toolEditPolygon = MapToolEditPolygon(self.canvasDigitize, self.__iface, self.rotationCoords)
 
         #paramsBar
-        self.parambar = Parambar(self, self.canvasDigitize, self.toolDigiPoint, self.toolDigiLine, self.toolDigiPolygon, self.toolEditLine, self.rotationCoords)
+        self.parambar = Parambar(self, self.canvasDigitize, self.toolDigiPoint, self.toolDigiLine, self.toolDigiPolygon, self.toolEditPoint, self.toolEditLine, self.toolEditPolygon, self.rotationCoords)
 
         #Table
         self.tableDigitize = DigitizeTable(self)
@@ -107,7 +111,9 @@ class DigitizeDialog(QMainWindow):
         self.canvasDigitize.pup.register('setDigiLineLayer', self.toolDigiLine.setDigiLineLayer)
         self.canvasDigitize.pup.register('setDigiPolygonLayer', self.toolDigiPolygon.setDigiPolygonLayer)
 
+        self.canvasDigitize.pup.register('setDigiPointLayer', self.toolEditPoint.setDigiPointLayer)
         self.canvasDigitize.pup.register('setDigiLineLayer', self.toolEditLine.setDigiLineLayer)
+        self.canvasDigitize.pup.register('setDigiPolygonLayer', self.toolEditPolygon.setDigiPolygonLayer)
 
         #self.parambar.pup.register('triggerAarTransformationParams', self.dataStoreDigitize.triggerAarTransformationParams)
         self.dataStoreDigitize.pup.register('pushTransformationParams', self.rotationCoords.setAarTransformationParams)

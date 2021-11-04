@@ -2,16 +2,17 @@ import math
 from PyQt5.QtCore import Qt
 from qgis.gui import QgsMapToolIdentify, QgsMapToolIdentifyFeature, QgsVertexMarker
 from qgis.core import QgsWkbTypes, QgsFeature
+
 from ..publisher import Publisher
 
-class MapToolEditLine(QgsMapToolIdentifyFeature):
+class MapToolEditPolygon(QgsMapToolIdentifyFeature):
     def __init__(self, canvas, iFace, rotationCoords):
         self.__iface = iFace
 
         self.pup = Publisher()
 
         #self.setCursor(Qt.CrossCursor)
-        self.digiLineLayer = None
+        self.digiPolygonLayer = None
         #self.onGeometryChanged = onGeometryChanged
         self.dragging = False
         self.feature = None
@@ -26,7 +27,7 @@ class MapToolEditLine(QgsMapToolIdentifyFeature):
 
     def canvasPressEvent(self, event):
 
-        found_features = self.identify(event.x(), event.y(), [self.digiLineLayer], QgsMapToolIdentify.TopDownAll)
+        found_features = self.identify(event.x(), event.y(), [self.digiPolygonLayer], QgsMapToolIdentify.TopDownAll)
         identified_features = [f.mFeature for f in found_features]
 
         click_point = self.canvas.getCoordinateTransform().toMapCoordinates(event.x(), event.y())
@@ -74,7 +75,7 @@ class MapToolEditLine(QgsMapToolIdentifyFeature):
 
     def findFeatureAt(self, pos):
 
-        found_features = self.identify(pos.x(), pos.y(), [self.digiLineLayer], QgsMapToolIdentify.TopDownAll)
+        found_features = self.identify(pos.x(), pos.y(), [self.digiPolygonLayer], QgsMapToolIdentify.TopDownAll)
         identified_features = [f.mFeature for f in found_features]
 
         for feature in identified_features:
@@ -93,7 +94,7 @@ class MapToolEditLine(QgsMapToolIdentifyFeature):
     def canvasReleaseEvent(self, event):
         if self.dragging:
             layerPt = self.moveVertexTo(event.pos())
-            self.digiLineLayer.updateExtents()
+            self.digiPolygonLayer.updateExtents()
             self.clearVertexMarker()
             self.setVertexMarker(layerPt)
             self.canvas.refresh()
@@ -106,7 +107,7 @@ class MapToolEditLine(QgsMapToolIdentifyFeature):
         geometry = self.feature.geometry()
         layerPt = self.canvas.getCoordinateTransform().toMapCoordinates(pos.x(), pos.y())
         geometry.moveVertex(layerPt.x(), layerPt.y(), self.vertex)
-        self.digiLineLayer.changeGeometry(self.feature.id(), geometry)
+        self.digiPolygonLayer.changeGeometry(self.feature.id(), geometry)
 
         return layerPt
 
@@ -123,7 +124,7 @@ class MapToolEditLine(QgsMapToolIdentifyFeature):
                 return
 
         if geometry.deleteVertex(vertex):
-            self.digiLineLayer.changeGeometry(feature.id(), geometry)
+            self.digiPolygonLayer.changeGeometry(feature.id(), geometry)
             #self.onGeometryChanged()
 
 
@@ -143,7 +144,7 @@ class MapToolEditLine(QgsMapToolIdentifyFeature):
             return
 
         geometry.insertVertex(closestPt.x(), closestPt.y(), beforeVertex)
-        self.digiLineLayer.changeGeometry(feature.id(), geometry)
+        self.digiPolygonLayer.changeGeometry(feature.id(), geometry)
         self.canvas.refresh()
 
     def calcTolerance(self, pos):
@@ -152,5 +153,5 @@ class MapToolEditLine(QgsMapToolIdentifyFeature):
         tolerance = layerPt2.x() - layerPt1.x()
         return tolerance
 
-    def setDigiLineLayer(self, digiLineLayer):
-        self.digiLineLayer = digiLineLayer
+    def setDigiPolygonLayer(self, digiPolygonLayer):
+        self.digiPolygonLayer = digiPolygonLayer

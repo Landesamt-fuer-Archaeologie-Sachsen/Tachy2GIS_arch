@@ -291,7 +291,8 @@ class GeoEdit():
 
                 validationFeatureText = ''
 
-                for i, feat in enumerate(self.__sourceLayer.getFeatures()):
+                #for i, feat in enumerate(self.__sourceLayer.getFeatures()):
+                for i, feat in enumerate(self.__sourceLayer.selectedFeatures()):
 
                     validationError = feat.geometry().validateGeometry()
 

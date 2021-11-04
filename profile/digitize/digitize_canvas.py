@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
 import os
 import processing
-from PyQt5.QtCore import Qt, QVariant
-from PyQt5.QtWidgets import QAction
-from PyQt5.QtGui import QIcon, QFont, QColor
-from qgis.core import QgsProject, QgsVectorLayer, QgsRasterLayer, QgsMarkerSymbol, QgsLineSymbol, QgsFillSymbol, QgsSingleSymbolRenderer, QgsPalLayerSettings, QgsTextFormat, QgsTextBufferSettings, QgsVectorLayerSimpleLabeling, QgsPoint, QgsPointXY, QgsFeature, QgsGeometry, QgsField, QgsCoordinateReferenceSystem
-from qgis.gui import QgsMapCanvas, QgsMapToolPan, QgsMapToolZoom, QgsHighlight, QgsVertexMarker
+from PyQt5.QtCore import Qt
+from qgis.core import QgsVectorLayer, QgsRasterLayer, QgsMarkerSymbol, QgsMarkerLineSymbolLayer, QgsSimpleMarkerSymbolLayer, QgsSimpleLineSymbolLayer, QgsLineSymbol, QgsFillSymbol, QgsSingleSymbolRenderer, QgsPoint, QgsCoordinateReferenceSystem
+from qgis.gui import QgsMapCanvas, QgsMapToolPan, QgsMapToolZoom
 
 from ..publisher import Publisher
 
@@ -81,7 +79,14 @@ class DigitizeCanvas(QgsMapCanvas):
 
         symbol = QgsLineSymbol.createSimple({'line_style': 'solid', 'color': 'green', 'width': '1'})
 
-        self.digiLineLayer.setRenderer(QgsSingleSymbolRenderer(symbol))
+        symbol_layer_vertex = QgsMarkerLineSymbolLayer()
+        symbol_layer_vertex.setSubSymbol(QgsMarkerSymbol.createSimple({'name': 'circle', 'color': 'red'}))
+        symbol_layer_vertex.setPlacement(1)
+
+        symbol.appendSymbolLayer(symbol_layer_vertex)
+
+        self.digiLineLayer.renderer().setUsingSymbolLevels(True)
+        self.digiLineLayer.renderer().setSymbol(symbol)
 
         crs = refData['lineLayer'].sourceCrs()
 
@@ -89,10 +94,6 @@ class DigitizeCanvas(QgsMapCanvas):
 
 
     def createDigiPolygonLayer(self, refData):
-
-        #self.digiPolygonLayer = refData['polygonLayer']
-
-        #self.digiPolygonLayer.setProviderType('memory')
 
         refData['polygonLayer'].selectAll()
         self.digiPolygonLayer = processing.run("native:saveselectedfeatures", {'INPUT': refData['polygonLayer'], 'OUTPUT': 'memory:'})['OUTPUT']
@@ -102,9 +103,16 @@ class DigitizeCanvas(QgsMapCanvas):
         pr = self.digiPolygonLayer.dataProvider()
         pr.truncate()
 
-        symbol = QgsFillSymbol.createSimple({'line_style': 'solid', 'color': 'green', 'width': '1'})
+        symbol = QgsFillSymbol.createSimple({'style':'no', 'outline_style': 'solid', 'outline_color': 'green', 'outline_width': '1'})
 
-        self.digiPolygonLayer.setRenderer(QgsSingleSymbolRenderer(symbol))
+        symbol_layer_vertex = QgsMarkerLineSymbolLayer()
+        symbol_layer_vertex.setSubSymbol(QgsMarkerSymbol.createSimple({'name': 'circle', 'color': 'red'}))
+        symbol_layer_vertex.setPlacement(1)
+
+        symbol.appendSymbolLayer(symbol_layer_vertex)
+
+        self.digiPolygonLayer.renderer().setUsingSymbolLevels(True)
+        self.digiPolygonLayer.renderer().setSymbol(symbol)
 
         crs = refData['lineLayer'].sourceCrs()
 

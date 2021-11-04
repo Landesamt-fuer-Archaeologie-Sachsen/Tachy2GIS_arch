@@ -53,7 +53,8 @@ class Digitize():
     #
     #
     def __startDigitizeDialog(self):
-
+        #print('__startDigitizeDialog')
+        #self.__dockwidget.setSizeGripEnabled(True);
         refData = self.__getSelectedValues()
 
         self.__importMetaData(refData['profilePath'])
