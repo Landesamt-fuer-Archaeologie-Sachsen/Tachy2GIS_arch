@@ -337,6 +337,7 @@ class T2G_Arch:
         self.myDlgAutoAttribut = None
         self.selectFeatures = []
         self.selFeatureTemp = None
+        self.abbruch = None
 
         self.iconpfad = os.path.join(os.path.dirname(__file__), 'Icons')
         self.xmlFile = xml(self.plugin_dir + '/settings.xml')
@@ -546,7 +547,6 @@ class T2G_Arch:
             ####################################################################
 
             self.dockwidget.butLookForMissingAttributes.clicked.connect(self.myDwgLookForMissingAttributesShow)
-
             self.setup()
 
     def setup(self):
@@ -1085,7 +1085,7 @@ class T2G_Arch:
         else:
             output_file = QFileDialog.getSaveFileName(None, 'Speicherpfad',
                                                       QgsProject.instance().readPath('./../Jobs'),
-                                                      'Excel (*.csv);;Alle Dateien (*.*)')
+                                                      'Text (*.txt);;Excel (*.csv);;Alle Dateien (*.*)')
             if output_file[0] != '':
                 output_file = open(output_file[0], 'w')
 
@@ -2049,37 +2049,77 @@ class T2G_Arch:
                     self.iface.mapCanvas().currentLayer().selectAll()
                     self.iface.mapCanvas().currentLayer().invertSelection()
 
+    def setAbbruch(self):
+        self.abbruch = True
+        iface.messageBar().clearWidgets()
+
+    def createCancellationMessage(self, text):
+        iface.messageBar().clearWidgets()
+        widgetMessage = iface.messageBar().createMessage(text)
+        button = QPushButton(widgetMessage)
+        button.setText("Abbruch")
+        button.pressed.connect(self.setAbbruch)
+        widgetMessage.layout().addWidget(button)
+        #button = QPushButton(widgetMessage)
+        #button.setText("Weiter")
+        #widgetMessage.layout().addWidget(button)
+        iface.messageBar().pushWidget(widgetMessage, Qgis.Info)
+
     def contactClip(self):
         self.toolButton2.setDefaultAction(self.action8)
+        self.mapToolSel = IdentifyGeometry(self.mapCanvas)
+        self.iface.mapCanvas().setMapTool(self.mapToolSel)
+        self.mapToolSel.geomIdentified.connect(self.featureSelect2)
         rubberlist = []
+        featurelist = []
+        self.abbruch = False
+        self.selectedFeature = None
         layer = self.iface.mapCanvas().currentLayer()
-        if layer.type() == QgsMapLayer.VectorLayer:
-            if layer.geometryType() == QgsWkbTypes.PolygonGeometry:
-                iface.messageBar().pushMessage(u"T2G Archäologie:  ", u"Vorlagenobjekt wählen.", level=Qgis.Info)
-                self.iface.mapCanvas().setMapTool(self.mapToolSel)
-                while len(layer.selectedFeatures()) == 0:
-                    QApplication.processEvents()
-                fsel =layer.selectedFeatures()[0]
-                delSelectFeature()
+        try:
+            if layer.type() == QgsMapLayer.VectorLayer:
+                if layer.geometryType() == QgsWkbTypes.PolygonGeometry:
+                    self.createCancellationMessage('Schablone wählen.')
+                    while self.selectedFeature == None:
+                        if self.abbruch == True:
+                            raise NameError
+                        QApplication.processEvents()
+                    while len(featurelist) < 1 :
+                        # Feature eins
+                        while self.selectedFeature is None:
+                            if self.abbruch == True:
+                                raise NameError
+                            QApplication.processEvents()
 
-                r = QgsRubberBand(iface.mapCanvas(), True)
-                r.setToGeometry(fsel.geometry(), None)
-                r.setColor(QColor(0, 0, 255, 180))
-                r.setWidth(5)
-                r.show()
-                rubberlist.append(r)
+                        if self.selectedLayer.name() == 'E_Polygon':
+                            fsel = self.selectedFeature
+                            r = QgsRubberBand(iface.mapCanvas(), True)
+                            r.setToGeometry(fsel.geometry(), None)
+                            r.setColor(QColor(0, 0, 255, 180))
+                            r.setWidth(5)
+                            r.show()
+                            rubberlist.append(r)
+                            featurelist.append(self.selectedFeature)
+                        layer.removeSelection()
+                        self.selectedFeature = None
+                        # Feature zwei
+                        iface.messageBar().popWidget()
+                        self.createCancellationMessage('Schnittobjekt wählen.')
+                        while self.selectedFeature is None:
+                            if self.abbruch == True:
 
-                iface.messageBar().pushMessage(u"T2G Archäologie:  ", u"Zu schneidendes Objekt wählen.", level=Qgis.Info)
+                                for maker in rubberlist:
+                                    iface.mapCanvas().scene().removeItem(maker)
 
-                while len(layer.selectedFeatures()) == 0 :
-                    QApplication.processEvents()
-                #QgsMessageLog.logMessage("weiter", 'T2G Archäologie', Qgis.Info)
+                                raise NameError
+                            QApplication.processEvents()
+                        if self.selectedLayer.name() == 'E_Polygon':
+                            featurelist.append(self.selectedFeature)
+                            selection = self.selectedFeature
 
-                selection = layer.selectedFeatures()
 
-                layer.startEditing()
-                for g in selection:
-                    if g.id() != fsel.id():
+
+                for g in featurelist:
+                    if g.id() != featurelist [0].id():
                         if (g.geometry().intersects(fsel.geometry())):
                             # clipping non selected intersecting features
                             attributes = g.attributes()
@@ -2114,31 +2154,46 @@ class T2G_Arch:
 
                             size = box.size()
                             desktopsize = QtWidgets.QDesktopWidget().screenGeometry()
-                            top = (desktopsize.height() / 2) - (size.height()-200)
+                            top = (desktopsize.height() / 2) - (size.height() - 200)
                             left = (desktopsize.width() / 2) - (size.width())
                             box.move(left, top)
 
                             box.exec_()
 
                             if box.clickedButton() == buttonY:
+                                layer.startEditing()
                                 layer.addFeature(diff)
                                 layer.deleteFeature(g.id())
-                                #indx = diff.fields().indexFromName('id')
-                                #layer.changeAttributeValue(diff.id(),indx,diff.id())
+                                layer.commitChanges()
+                                layer.endEditCommand()
+
                             elif box.clickedButton() == buttonN:
                                 layer.deleteFeature(diff.id())
+                                #layer.commitChanges()
+                                #layer.endEditCommand()
                                 pass
+        except NameError:
+            QgsMessageLog.logMessage('Abbruch', 'T2G Archäologie', Qgis.Info)
+            pass
+        for maker in rubberlist:
+            iface.mapCanvas().scene().removeItem(maker)
 
-                for maker in rubberlist:
-                    iface.mapCanvas().scene().removeItem(maker)
+        #layer.commitChanges()
+        #layer.endEditCommand()
+        layer.removeSelection()
+        iface.actionSelect().trigger()
+        iface.messageBar().clearWidgets()
+        #self.selectedFeature == None
+        self.mapToolSel.geomIdentified.disconnect()
 
-                layer.commitChanges()
-                #layer.startEditing()
-                layer.removeSelection()
-                iface.actionSelect().trigger()
 
     def featureSelect2(self,layer,feature):
-        layer.select(int(feature.id()))
+        self.selectedLayer = layer
+        self.selectedFeature = feature
+        self.iface.setActiveLayer(self.selectedLayer)
+        self.selectedLayer.select(int(self.selectedFeature.id()))
+        #layer.select(int(feature.id()))
+        QgsMessageLog.logMessage(str(layer.name())+str(feature.id()), 'aaa', Qgis.Info)
 
     def selectFeatureChanged(self,fselected, fdeselected):
         QgsMessageLog.logMessage('sel' + str(fselected), 'T2G Archäologie', Qgis.Info)
@@ -2209,3 +2264,4 @@ class PrintClickedPoint(QgsMapToolEmitPoint):
             self.dlg.txtPointTemp.setText(str(point.x())+','+str(point.y()))
         except:
             pass
+
