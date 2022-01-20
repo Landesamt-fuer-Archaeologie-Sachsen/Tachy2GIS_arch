@@ -81,6 +81,8 @@ class MapToolDigiLine(QgsMapTool):
         self.digiLineLayer.startEditing()
         self.refData['lineLayer'].startEditing()
 
+        self.feat['geo_quelle'] = 'profile_object'
+
         #uuid to identify feature
         feature_uuid = uuid.uuid4()
         self.feat['uuid'] = str(feature_uuid)
@@ -106,6 +108,8 @@ class MapToolDigiLine(QgsMapTool):
 
         print('acceptedAttributeDialog')
         self.refData['lineLayer'].commitChanges()
+
+        self.feat['geo_quelle'] = 'profile_object'
 
         self.addFeature2Layer()
         self.clearRubberband()
@@ -145,7 +149,7 @@ class MapToolDigiLine(QgsMapTool):
         self.digiLineLayer.updateExtents()
         self.digiLineLayer.endEditCommand()
 
-    def rotationFromEingabelayer(self, bufferGeometry):
+    def getFeaturesFromEingabelayer(self, bufferGeometry, geoType):
 
         self.digiLineLayer.startEditing()
         pr = self.digiLineLayer.dataProvider()
@@ -160,56 +164,131 @@ class MapToolDigiLine(QgsMapTool):
 
             if feature.geometry().within(bufferGeometry):
 
-                rotFeature = QgsFeature(self.digiLineLayer.fields())
+                if geoType == 'tachy':
+                    if feature['geo_quelle'] != 'profile_object':
 
-                rotateGeom = self.rotationCoords.rotateLineFeatureFromOrg(feature)
+                        rotFeature = QgsFeature(self.digiLineLayer.fields())
 
-                rotFeature.setGeometry(rotateGeom)
+                        rotateGeom = self.rotationCoords.rotateLineFeatureFromOrg(feature)
 
-                rotFeature.setAttributes(feature.attributes())
+                        rotFeature.setGeometry(rotateGeom)
 
-                selFeatures.append(rotFeature)
+                        rotFeature.setAttributes(feature.attributes())
 
-        #print('selFeatures', selFeatures)
+                        selFeatures.append(rotFeature)
+
+                if geoType == 'profile':
+                    if feature['geo_quelle'] == 'profile_object':
+                        print('getFeaturesFromEingabelayer')
+                        rotFeature = QgsFeature(self.digiLineLayer.fields())
+
+                        rotateGeom = self.rotationCoords.rotateLineFeatureFromOrg(feature)
+                        print('rotateGeom_hu', rotateGeom)
+                        #rotateGeomPr = pr.convertToProviderType(rotateGeom)
+                        #print('rotateGeomPr', rotateGeomPr)
+                        rotFeature.setGeometry(rotateGeom)
+
+                        rotFeature.setAttributes(feature.attributes())
+
+                        selFeatures.append(rotFeature)
+
+                        #write to table
+                        dataObj = {}
+                        for item in feature.fields():
+                            if item.name() == 'uuid' or item.name() == 'id' or item.name() == 'obj_type' or item.name() == 'obj_art' or item.name() == 'zeit' or item.name() == 'material' or item.name() == 'bemerkung' or item.name() == 'benerkung':
+
+                                #Workaround - In Line Shapedatei hat das Feld "Bemerkung" den Namen benerkung
+                                if item.name() == 'benerkung':
+                                    dataObj['bemerkung'] = feature[item.name()]
+                                else:
+                                    dataObj[item.name()] = feature[item.name()]
+
+                        dataObj['layer'] = self.refData['lineLayer'].sourceName()
+
+                        self.pup.publish('lineFeatureAttr', dataObj)
+
+        print('selFeatures_hu', selFeatures)
         pr.addFeatures(selFeatures)
 
         self.digiLineLayer.commitChanges()
+        self.digiLineLayer.updateExtents()
+        self.digiLineLayer.endEditCommand()
+
+    def removeNoneProfileFeatures(self):
+
+        self.digiLineLayer.startEditing()
+        pr = self.digiLineLayer.dataProvider()
+        features = self.digiLineLayer.getFeatures()
+
+        removeFeatures = []
+        for feature in features:
+
+            if feature['geo_quelle'] != 'profile_object':
+
+                removeFeatures.append(feature.id())
+
+        pr.deleteFeatures(removeFeatures)
+
+        self.digiLineLayer.commitChanges()
+        self.digiLineLayer.updateExtents()
         self.digiLineLayer.endEditCommand()
 
     def reverseRotation2Eingabelayer(self, layer_id):
         print('reverseRotation', layer_id)
 
+        self.refData['lineLayer'].startEditing()
+
         pr = self.refData['lineLayer'].dataProvider()
 
         features = self.digiLineLayer.getFeatures()
 
+        #iterrieren über zu schreibende features
         for feature in features:
-            self.refData['lineLayer'].startEditing()
+            #Zielgeometrie erzeugen
 
+            emptyTargetGeometry = self.rubberband.asGeometry()
+            print('emptyTargetGeometry', emptyTargetGeometry)
+
+            #Zielfeature erzeugen
             rotFeature = QgsFeature(self.refData['lineLayer'].fields())
 
-            rotateGeom = self.rotationCoords.rotateLineFeature(feature)
+            #Geometrie in Kartenebene umrechnen
+            rotateGeom = self.rotationCoords.rotateLineFeature(feature, emptyTargetGeometry)
+            print('rotateGeom_qqq', rotateGeom)
+            #rotateGeomPr = pr.convertToProviderType(rotateGeom)
+            #print('rotateGeomPr', rotateGeom)
             rotFeature.setGeometry(rotateGeom)
-
             rotFeature.setAttributes(feature.attributes())
 
-            sourceLayerFeatures = self.refData['lineLayer'].getFeatures()
-
             checker = True
+            #Features aus Eingabelayer
+            #schauen ob es schon existiert (anhand uuid), wenn ja dann löschen und durch Zielfeature ersetzen
+            sourceLayerFeatures = self.refData['lineLayer'].getFeatures()
             for sourceFeature in sourceLayerFeatures:
                 if feature["uuid"] == sourceFeature["uuid"]:
+                    pr.deleteFeatures([sourceFeature.id()])
+                    pr.addFeatures([rotFeature])
+
                     checker = False
 
+            #wenn feature nicht vorhanden, neues feature im Layer anlegen
             if checker == True:
                 retObj = pr.addFeatures([rotFeature])
 
-            self.refData['lineLayer'].removeSelection()
+        self.refData['lineLayer'].removeSelection()
+        self.refData['lineLayer'].commitChanges()
+        self.refData['lineLayer'].updateExtents()
+        self.refData['lineLayer'].endEditCommand()
 
-            self.refData['lineLayer'].commitChanges()
+    def removeFeatureInEingabelayerByUuid(self, uuid):
+        features = self.refData['lineLayer'].getFeatures()
 
-            self.refData['lineLayer'].updateExtents()
-
-            self.refData['lineLayer'].endEditCommand()
+        for feature in features:
+            if feature['uuid'] == uuid:
+                if feature['geo_quelle'] == 'profile_object':
+                    self.refData['lineLayer'].startEditing()
+                    self.refData['lineLayer'].deleteFeature(feature.id())
+                    self.refData['lineLayer'].commitChanges()
 
     def setDigiLineLayer(self, digiLineLayer):
         self.digiLineLayer = digiLineLayer

@@ -522,7 +522,10 @@ class T2G_Arch:
             QgsProject.instance().customVariablesChanged.connect(self.customVariablesChanged)
             self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
 
-            self.dockwidget.toolBox.currentChanged.connect(self.toolbox_currentChanged)
+            #Problem: durch self.dockwidget.setFixedWidth() verliert das dockWidget
+            #die Möglichkeit geresized zu werden
+            #die Layouts der einzelnen Abschnitte müssen responsive gemacht werden!
+            #self.dockwidget.toolBox.currentChanged.connect(self.toolbox_currentChanged)
             self.dockwidget.show()
             self.layerPoly.selectionChanged.connect(self.selectFeatureChanged)
 
@@ -1422,7 +1425,7 @@ class T2G_Arch:
                 setCustomProjectVariable('nextProfNr', str(ProfNrMax + 1))
                 setCustomProjectVariable('nextFundNr', str(FundNrMax + 1))
                 setCustomProjectVariable('nextProbNr', str(ProbNrMax + 1))
-                
+
             iface.messageBar().pushMessage(u"T2G Archäologie: ", u"Nächste zu vergebende Nummern wurden aktuallisiert.", level=Qgis.Info)
             setCustomProjectVariable('maxWerteAktualisieren', 'False')
             #self.autoNummer()

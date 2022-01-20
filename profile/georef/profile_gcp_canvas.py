@@ -81,8 +81,6 @@ class ProfileGcpCanvas(QgsMapCanvas):
         self.refresh()
 
     def setActivePoint(self, linkObj):
-        print('setActivePoint image')
-        #print(linkObj['uuid'])
         self.activePoint = linkObj['uuid']
 
     ## \brief Update canvas map element
@@ -110,10 +108,6 @@ class ProfileGcpCanvas(QgsMapCanvas):
             self.messageBar.pushMessage("Error", "Layer "+self.gcpLayer.name()+" failed to load!", level=1, duration=5)
 
         sourceCrs = self.gcpLayer.crs()
-
-        #self.gcpLayer.setSubsetString("obj_type = '"+self.dialogInstance.colNameGcpSource+"'")
-
-        #renderer = layer.renderer()
 
         symbol = QgsMarkerSymbol.createSimple({'name': 'circle', 'color': 'red', 'size': '2'})
 

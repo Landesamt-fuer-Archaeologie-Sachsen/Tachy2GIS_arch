@@ -33,15 +33,13 @@ class Digitize():
 
         self.dataStoreDigitize = DataStoreDigitize()
 
-        self.digitizeDialog = DigitizeDialog(self.dataStoreDigitize, self.__iface)
-
     ## @brief Initializes the functionality for profile modul
     #
 
     def setup(self):
 
         #set datatype filter to profileFotosComboGeoref
-        self.__dockwidget.profileDigitize.setFilter('Images (*.tif)')
+        self.__dockwidget.profileDigitize.setFilter('Images (*.jpg)')
         #Preselection of Inputlayers (only Layer below "Eingabelayer" are available)
         self.__preselectionPointLayer()
         self.__preselectionLineLayer()
@@ -53,14 +51,26 @@ class Digitize():
     #
     #
     def __startDigitizeDialog(self):
-        #print('__startDigitizeDialog')
-        #self.__dockwidget.setSizeGripEnabled(True);
+
         refData = self.__getSelectedValues()
 
-        self.__importMetaData(refData['profilePath'])
-        self.dataStoreDigitize.triggerAarTransformationParams()
+        if refData != 'error':
 
-        self.digitizeDialog.showDigitizeDialog(refData)
+            metaChecker = True
+            try:
+                self.__importMetaData(refData['profilePath'])
+
+            except:
+                metaChecker = False
+                self.__iface.messageBar().pushMessage("Error", "Keine .meta Datei zum Profil vorhanden!", level=1, duration=3)
+
+            if metaChecker == True:
+
+                self.digitizeDialog = DigitizeDialog(self.dataStoreDigitize, self.__iface)
+
+                self.dataStoreDigitize.triggerAarTransformationParams()
+
+                self.digitizeDialog.showDigitizeDialog(refData)
 
     ## \brief get meta data to profile
     #
@@ -84,6 +94,26 @@ class Digitize():
 
 
 
+    def __validateInputLayers(self, layerArray):
+
+        errorArray = []
+
+        for layer in layerArray:
+            checkerGeoQuelle = False
+
+            fieldNames = layer.fields().names()
+
+            for name in fieldNames:
+                if name == 'geo_quelle':
+                    checkerGeoQuelle = True
+
+            if checkerGeoQuelle == False:
+                errorArray.append({'error': True, 'layer': layer.name()})
+                self.__iface.messageBar().pushMessage("Error", "Im Layer "+layer.name() + " fehlt die Spalte 'geo_quelle'", level=1, duration=5)
+
+        return errorArray
+
+
     ## \brief get selected values
     #
     #
@@ -94,12 +124,20 @@ class Digitize():
         lineLayer = self.__dockwidget.lineLayerDigitize.currentLayer().clone()
         polygonLayer = self.__dockwidget.polygonLayerDigitize.currentLayer().clone()
 
-        #Foto
-        profilePath = self.__dockwidget.profileDigitize.filePath()
+        layerArray = [pointLayer, lineLayer, polygonLayer]
+        errorArray = self.__validateInputLayers(layerArray)
 
-        refData = {'pointLayer': pointLayer, 'lineLayer': lineLayer, 'polygonLayer': polygonLayer, 'profilePath': profilePath}
+        if len(errorArray) == 0:
+            #Foto
+            profilePath = self.__dockwidget.profileDigitize.filePath()
 
-        return refData
+            refData = {'pointLayer': pointLayer, 'lineLayer': lineLayer, 'polygonLayer': polygonLayer, 'profilePath': profilePath}
+
+            return refData
+        else:
+        	return 'error'
+
+
 
     ## \brief Preselection of Point-Inputlayers
     #

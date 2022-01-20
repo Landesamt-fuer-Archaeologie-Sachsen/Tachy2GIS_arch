@@ -89,7 +89,7 @@ class ProfileImageCanvas(QgsMapCanvas):
 
             self.markerPoints.append({"uuid": self.activePoint, "marker": m})
 
-            self.pup.publish('imagePointCoordinates', {'uuid': self.activePoint, 'x': pointData[0], 'z': abs(pointData[1])})
+            #self.pup.publish('imagePointCoordinates', {'uuid': self.activePoint, 'x': pointData[0], 'z': abs(pointData[1])})
 
     def release_point(self, pointData ):
 
@@ -219,21 +219,27 @@ class ProfileImageCanvas(QgsMapCanvas):
 
         self.clearCache()
         self.refresh()
+        checker = False
 
         self.imageLayer = QgsRasterLayer(imageLayerPath, "Profile image")
         if not self.imageLayer.isValid():
             print("Layer failed to load!")
+            checker = False
+        else:
+            checker = True
+            print("Layer is loaded!")
 
+            sourceCrs = self.imageLayer.crs()
 
-        sourceCrs = self.imageLayer.crs()
+            #Sets canvas CRS
+            #my_crs = QgsCoordinateReferenceSystem(31469, QgsCoordinateReferenceSystem.EpsgCrsId)
+            self.setDestinationCrs(sourceCrs)
 
-        #Sets canvas CRS
-        #my_crs = QgsCoordinateReferenceSystem(31469, QgsCoordinateReferenceSystem.EpsgCrsId)
-        self.setDestinationCrs(sourceCrs)
+            # set extent to the extent of Layer E_Point
+            self.setExtentByImageLayer()
+            listLayers = []
+            listLayers.append(self.imageLayer)
 
-        # set extent to the extent of Layer E_Point
-        self.setExtentByImageLayer()
-        listLayers = []
-        listLayers.append(self.imageLayer)
+            self.setLayers(listLayers)
 
-        self.setLayers(listLayers)
+        return checker

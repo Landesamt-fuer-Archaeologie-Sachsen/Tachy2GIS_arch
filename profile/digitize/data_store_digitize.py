@@ -68,5 +68,4 @@ class DataStoreDigitize():
 
     def triggerAarTransformationParams(self):
 
-        print('hhhhhhhhhhhhhhuuuuu', self.getAarTransformationParams())
         self.pup.publish('pushTransformationParams', self.getAarTransformationParams())

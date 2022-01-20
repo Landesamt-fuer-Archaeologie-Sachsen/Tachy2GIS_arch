@@ -55,8 +55,7 @@ class DataStoreGeoref():
         else:
             checker = False
             for statePoint in self.imagePoints:
-                print('statePoint', statePoint['uuid'])
-                print('pointObj', pointObj['uuid'])
+
                 if statePoint['uuid'] == pointObj['uuid']:
                     statePoint['x'] = pointObj['x']
                     statePoint['z'] = pointObj['z']
@@ -68,8 +67,6 @@ class DataStoreGeoref():
                 	'x': pointObj['x'],
                     'z': pointObj['z']
                 })
-
-        print('self.imagePoints', self.imagePoints)
 
 
     def addTargetPoints(self, refData):
@@ -85,11 +82,9 @@ class DataStoreGeoref():
                 'z': pointObj['z']
             })
 
-        print('self.targetPoints', self.targetPoints)
-
 
     def addAarPoints(self, aarList):
-        print('add_aar_points', aarList)
+        print('jetzt_addAarPoints', aarList)
         self.aarPoints = []
 
         for pointObj in aarList['coord_trans']:
@@ -100,10 +95,10 @@ class DataStoreGeoref():
                 'y': pointObj[1],
                 'z': pointObj[2],
                 'z_org': pointObj[3],
+                'distance': pointObj[5],
                 'usage': pointObj[6]
             })
 
-        print('self.aarPoints', self.aarPoints)
         transformationParams = aarList['transformationParams']
 
         z_slope = aarList['linegress'][0]
@@ -116,19 +111,11 @@ class DataStoreGeoref():
         self.updateAarTransformationParams(transformationParams)
 
     def updateAarTransformationParams(self, params):
-
         self.aarTransformationParams = params
-
-        print('self.aarTransformationParams', self.aarTransformationParams)
 
     def getAarTransformationParams(self):
 
         return self.aarTransformationParams
-
-    def triggerAarTransformationParams(self, linkObj):
-
-        self.pup.publish('pushAarTransformationParams', self.getAarTransformationParams())
-
 
     def getGeorefData(self):
 
@@ -146,5 +133,6 @@ class DataStoreGeoref():
                                         'aar_y': aarObj['y'],
                                         'aar_z': aarObj['z'],
                                         'aar_z_org': aarObj['z_org'],
+                                        'aar_distance': aarObj['distance'],
                                     })
         return georefData

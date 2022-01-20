@@ -32,8 +32,6 @@ class Georef():
 
         self.dataStoreGeoref = DataStoreGeoref()
 
-        self.georeferencingDialog = GeoreferencingDialog(self, self.dataStoreGeoref)
-
     ## @brief Initializes the functionality for profile modul
     #
 
@@ -50,7 +48,7 @@ class Georef():
         #Preselection View direction
         self.__preselectViewDirection()
         #set datatype filter and save mode to profileSaveComboGeoref
-        self.__dockwidget.profileSaveComboGeoref.setFilter('Images (*.tif)')
+        self.__dockwidget.profileSaveComboGeoref.setFilter('Images (*.jpg)')
         self.__dockwidget.profileSaveComboGeoref.setStorageMode(3)
 
         self.__dockwidget.startGeoreferencingBtn.clicked.connect(self.__startGeoreferencingDialog)
@@ -70,7 +68,7 @@ class Georef():
 
         refData = self.__getSelectedValues()
 
-        print('refData', refData)
+        self.georeferencingDialog = GeoreferencingDialog(self, self.dataStoreGeoref, self.__iface)
         self.georeferencingDialog.showGeoreferencingDialog(refData)
 
 
@@ -89,6 +87,9 @@ class Georef():
         pointLayer = self.__dockwidget.layerGcpGeoref.currentLayer().clone()
         pointLayer.setSubsetString("obj_type = 'Fotoentzerrpunkt' and obj_art = 'Profil' and prof_nr = '"+profileNumber+"'")
 
+        #transParams = self.dataStoreGeoref.getAarTransformationParams()
+
+        #print(transParams, 'transParams_iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii')
         #Zielkoordinaten
         targetGCP = {}
         targetGCP['points'] = []
@@ -121,7 +122,7 @@ class Georef():
         #Metadaten
         metadataCheck = self.__dockwidget.metaProfileCheckbox.isChecked()
 
-        refData = {'lineLayer': lineLayer, 'pointLayer': pointLayer, 'profileNumber': profileNumber, 'imagePath': imagePath, 'viewDirection': viewDirection, 'horizontal': horizontalCheck, 'savePath': savePath, 'saveMetadata': metadataCheck, 'targetGCP': targetGCP}
+        refData = {'lineLayer': lineLayer, 'pointLayer': pointLayer, 'crs': pointLayer.crs(), 'profileNumber': profileNumber, 'imagePath': imagePath, 'viewDirection': viewDirection, 'horizontal': horizontalCheck, 'savePath': savePath, 'saveMetadata': metadataCheck, 'targetGCP': targetGCP}
 
         return refData
 

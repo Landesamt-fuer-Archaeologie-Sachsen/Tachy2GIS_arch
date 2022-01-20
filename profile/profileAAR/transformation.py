@@ -70,8 +70,6 @@ from .errorhandling import ErrorHandler
 
 def rotation (self, coord_proc, slope_deg, zAdaption):
 
-    print('rotation_coord_proc', coord_proc)
-    #coord_proc = listToList(coord_proc, 0)
     x_coord_proc = listToList(coord_proc, 0)
 
     y_coord_proc = listToList(coord_proc, 1)
@@ -322,14 +320,6 @@ def sectionCalc(self, coord_proc, cutting_start, linegress, ns_error):
 
         westy = rot_result['y_trans'][1]
 
-    # Convert the coorinates to Qgis Vector Points
-
-    print(eastx, easty, westx, westy)
-
-    #QgisEastPoint = QgsPointXY(eastx, easty)
-
-    #QgisWestPoint = QgsPointXY(westx, westy)
-
     # write a list with the coordinates from left to right in direction of view
 
     # This is necessary for the correct mapping in qgis
@@ -357,7 +347,6 @@ class Magic_Box():
 
     def transformation(self, coord_proc, method, direction):
         #initialize the Errorhandler
-        print('coord_proc_transformation',coord_proc)
         errorhandler = ErrorHandler()
 
         profilnr_proc = listToList(coord_proc, 4)
@@ -374,10 +363,6 @@ class Magic_Box():
 
             fehler_check = True
 
-            print('coord_proc[0]', coord_proc[0])
-            print('rotationresult',  rotationresult['x_trans'])
-            print('rotationresult',  rotationresult['transformationParams'])
-
             transformationParams = rotationresult['transformationParams']
 
             for i in range(len(coord_proc)):
@@ -391,23 +376,17 @@ class Magic_Box():
         # write the x and v values in the corresponding lists
         # instantiate an empty list for the transformed coordinates and other values
 
-        print('coord_proc',coord_proc)
         # instantiate lists for the x and y values
         #coordList = listToList(coord_proc, 0)
         x_coord_proc = listToList(coord_proc, 0)
-        print('x_coord_proc',x_coord_proc)
 
         y_coord_proc = listToList(coord_proc, 1)
-        print('y_coord_proc',y_coord_proc)
 
         selection_proc = listToList(coord_proc, 5)
-        print('selection_proc',selection_proc)
 
         id_proc = listToList(coord_proc, 6)
-        print('id_proc',id_proc)
 
         uuid_proc = listToList(coord_proc, 7)
-        print('uuid_proc',uuid_proc)
 
         rangcheck_orginal = []
 
@@ -421,19 +400,6 @@ class Magic_Box():
 
             rangcheck_orginal.append(tmplist)
 
-        '''
-        print('###',rangcheck_orginal)
-        for coords in range(len(rangcheck_orginal)):
-
-            del rangcheck_orginal[coords][1]
-
-            del rangcheck_orginal[coords][2]
-
-            del rangcheck_orginal[coords][3]
-
-        print('###',rangcheck_orginal)
-        '''
-
         # distanz zwischen den beiden Punkten oben CHANGE
         # create the valuelists that are used
 
@@ -445,7 +411,6 @@ class Magic_Box():
 
         yw_check = []
 
-        print('selection_proc ',selection_proc)
         for x in range(len(x_coord_proc)):
 
             # Nur Auswahl zum berechnen der Steigung verwenden
@@ -505,8 +470,6 @@ class Magic_Box():
 
             sys.exit(' ERROR: Calculation failed! Corrupt data!')
 
-        print('linregress, slope', linegress, slope)
-
 
         # Check the distance with all points
 
@@ -552,7 +515,6 @@ class Magic_Box():
 
             cutting_start = 'E'
 
-        print('cutting start, slope_deg', cutting_start, slope_deg)
         # instantiate lists for the transformed coordinates
 
         x_trans = []
@@ -561,11 +523,8 @@ class Magic_Box():
 
         z_trans = []
 
-        print('coord_proc', coord_proc)
         # rotation with z as y: zAdpation == True, z is adapted to mean y value
         first_rotationresult = rotation(self, coord_proc, slope_deg, True)
-
-        print('first_rotationresult', first_rotationresult)
 
         transformationParams = first_rotationresult['transformationParams']
 
@@ -701,7 +660,7 @@ class Magic_Box():
 
         # If the direction is in the "original" setting, the points have
         # to be rotated back to their original orientation
-        print('coord_trans_hor', coord_trans)
+
         if direction == "original":
 
             # the rotation angle is the negative angle of the first rotation
@@ -751,7 +710,6 @@ class Magic_Box():
 
                 rangcheck_trans.append([x_trans[i], z_trans[i], y_trans[i]])
 
-        print('coord_trans_org', coord_trans)
          # check the distances of the outter points from the old points and the converted ones
         original_outer_points = self.outer_profile_points(coord_proc)
 
@@ -766,15 +724,6 @@ class Magic_Box():
                 new_outer_points.append(point)
 
         new_distance = self.calculate_distance_from_outer_profile_points_proc(new_outer_points)
-        print(new_distance)
-
-        print( 'PR:' + str(coord_proc[0][4]), 'Distance')
-
-        print( 'Original Distance: ' + str(original_distance), 'Distance')
-
-        print( 'New Distance: ' + str(new_distance), 'Distance')
-
-        print( 'Diff. Distance: ' + str(abs(original_distance-new_distance)), 'Distance')
 
         if abs(original_distance - new_distance) > 0.01:
 
@@ -784,7 +733,6 @@ class Magic_Box():
             print( 'DISTANCE WARNING!', 'Distance')
 
         print('########################')
-        print('coord_proc', coord_proc)
 
         array_z_org = []
         for point in coord_proc:
@@ -793,6 +741,9 @@ class Magic_Box():
         array_z_trans = []
         for point in coord_trans:
             array_z_trans.append(point[2])
+
+        #print('array_z_org', array_z_org)
+        #print('array_z_trans', array_z_trans)
 
         array_z_org_t = np.vstack([array_z_org, np.ones(len(array_z_org))]).T
         linegress_profil = np.linalg.lstsq(array_z_org_t, array_z_trans, rcond=None)[0]

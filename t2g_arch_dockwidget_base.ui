@@ -2,6 +2,9 @@
 <ui version="4.0">
  <class>T2G_ArchDockWidgetBase</class>
  <widget class="QDockWidget" name="T2G_ArchDockWidgetBase">
+  <property name="enabled">
+   <bool>true</bool>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -18,7 +21,7 @@
   </property>
   <property name="minimumSize">
    <size>
-    <width>198</width>
+    <width>200</width>
     <height>662</height>
    </size>
   </property>
@@ -34,17 +37,23 @@
     <height>0</height>
    </size>
   </property>
+  <property name="floating">
+   <bool>false</bool>
+  </property>
   <property name="windowTitle">
    <string>T2G Archäologie</string>
   </property>
   <widget class="QWidget" name="dockWidgetContents">
    <property name="sizePolicy">
-    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+    <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
      <horstretch>0</horstretch>
      <verstretch>0</verstretch>
     </sizepolicy>
    </property>
    <layout class="QGridLayout" name="gridLayout">
+    <property name="sizeConstraint">
+     <enum>QLayout::SetDefaultConstraint</enum>
+    </property>
     <property name="leftMargin">
      <number>2</number>
     </property>
@@ -64,73 +73,8 @@
       </property>
      </widget>
     </item>
-    <item row="17" column="0">
-     <widget class="QPushButton" name="butHilfe">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="sizeIncrement">
-       <size>
-        <width>7</width>
-        <height>7</height>
-       </size>
-      </property>
-      <property name="baseSize">
-       <size>
-        <width>0</width>
-        <height>0</height>
-       </size>
-      </property>
-      <property name="toolTip">
-       <string extracomment="Hilfe"/>
-      </property>
-      <property name="text">
-       <string/>
-      </property>
-      <property name="icon">
-       <iconset>
-        <normalon>Icons/Frage.gif</normalon>
-       </iconset>
-      </property>
-      <property name="iconSize">
-       <size>
-        <width>15</width>
-        <height>15</height>
-       </size>
-      </property>
-      <property name="autoDefault">
-       <bool>false</bool>
-      </property>
-      <property name="default">
-       <bool>false</bool>
-      </property>
-     </widget>
-    </item>
     <item row="0" column="0">
      <widget class="QLabel" name="labAtt">
-      <property name="font">
-       <font>
-        <pointsize>9</pointsize>
-        <weight>75</weight>
-        <bold>true</bold>
-       </font>
-      </property>
-      <property name="text">
-       <string>TextLabel</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-      <property name="wordWrap">
-       <bool>true</bool>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="0">
-     <widget class="QLabel" name="labZahl">
       <property name="font">
        <font>
         <pointsize>9</pointsize>
@@ -177,7 +121,7 @@
        <enum>QFrame::NoFrame</enum>
       </property>
       <property name="currentIndex">
-       <number>4</number>
+       <number>5</number>
       </property>
       <widget class="QWidget" name="page_1">
        <property name="geometry">
@@ -982,7 +926,7 @@
           </layout>
          </widget>
         </item>
-        <item alignment="Qt::AlignTop">
+        <item>
          <widget class="QGroupBox" name="layerTransformGroupBox">
           <property name="enabled">
            <bool>true</bool>
@@ -1740,14 +1684,17 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>422</width>
-         <height>607</height>
+         <width>336</width>
+         <height>335</height>
         </rect>
        </property>
        <attribute name="label">
         <string>Tools Geometrie</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_2">
+        <property name="sizeConstraint">
+         <enum>QLayout::SetDefaultConstraint</enum>
+        </property>
         <item>
          <widget class="QTabWidget" name="geometryEditMainTabWidget">
           <property name="sizePolicy">
@@ -2136,14 +2083,23 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>395</width>
-         <height>371</height>
+         <width>422</width>
+         <height>607</height>
         </rect>
+       </property>
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
        </property>
        <attribute name="label">
         <string>Profile</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_4">
+        <property name="sizeConstraint">
+         <enum>QLayout::SetDefaultConstraint</enum>
+        </property>
         <item>
          <widget class="QTabWidget" name="profileMainTabWidget">
           <property name="sizePolicy">
@@ -2231,6 +2187,9 @@
               </item>
               <item>
                <widget class="QRadioButton" name="radioDirectionOriginal">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
                 <property name="text">
                  <string>Geneigt</string>
                 </property>
@@ -2586,6 +2545,71 @@
         </property>
        </widget>
       </widget>
+     </widget>
+    </item>
+    <item row="17" column="0">
+     <widget class="QPushButton" name="butHilfe">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="sizeIncrement">
+       <size>
+        <width>7</width>
+        <height>7</height>
+       </size>
+      </property>
+      <property name="baseSize">
+       <size>
+        <width>0</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="toolTip">
+       <string extracomment="Hilfe"/>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="icon">
+       <iconset>
+        <normalon>Icons/Frage.gif</normalon>
+       </iconset>
+      </property>
+      <property name="iconSize">
+       <size>
+        <width>15</width>
+        <height>15</height>
+       </size>
+      </property>
+      <property name="autoDefault">
+       <bool>false</bool>
+      </property>
+      <property name="default">
+       <bool>false</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="0">
+     <widget class="QLabel" name="labZahl">
+      <property name="font">
+       <font>
+        <pointsize>9</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>TextLabel</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+      <property name="wordWrap">
+       <bool>true</bool>
+      </property>
      </widget>
     </item>
    </layout>

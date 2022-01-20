@@ -24,6 +24,14 @@ class MapToolEditLine(QgsMapToolIdentifyFeature):
 
         QgsMapToolIdentifyFeature.__init__(self, self.canvas)
 
+        self.deactivated.connect(self.deactivateLayer)
+
+    def deactivateLayer(self):
+        if self.digiLineLayer != None:
+            self.digiLineLayer.commitChanges()
+            self.digiLineLayer.updateExtents()
+            self.digiLineLayer.endEditCommand()
+
     def canvasPressEvent(self, event):
 
         found_features = self.identify(event.x(), event.y(), [self.digiLineLayer], QgsMapToolIdentify.TopDownAll)
@@ -35,31 +43,36 @@ class MapToolEditLine(QgsMapToolIdentifyFeature):
 
         for feature in identified_features:
 
-            feat_geom = feature.geometry()
+            if feature['geo_quelle'] == 'profile_object':
 
-            vertexCoord,vertex,prevVertex,nextVertex,distSquared = feat_geom.closestVertex(click_point)
-            distance = math.sqrt(distSquared)
+                self.digiLineLayer.startEditing()
 
-            tolerance = self.calcTolerance(event.pos())
+                feat_geom = feature.geometry()
 
-            if distance > tolerance:
-                return
+                vertexCoord,vertex,prevVertex,nextVertex,distSquared = feat_geom.closestVertex(click_point)
+                distance = math.sqrt(distSquared)
 
-            if event.button() == Qt.LeftButton:
-                # Left click -> move vertex.
-                self.dragging = True
-                self.feature = feature
-                self.vertex = vertex
-                layerPt = self.moveVertexTo(event.pos())
+                tolerance = self.calcTolerance(event.pos())
 
-                self.clearVertexMarker()
-                self.setVertexMarker(layerPt)
+                if distance > tolerance:
+                    return
 
-                self.canvas.refresh()
-            elif event.button() == Qt.RightButton:
-                # Right click -> delete vertex.
-                self.deleteVertex(feature, vertex)
-                self.canvas.refresh()
+                if event.button() == Qt.LeftButton:
+                    # Left click -> move vertex.
+                    self.dragging = True
+                    self.feature = feature
+                    self.vertex = vertex
+                    layerPt = self.moveVertexTo(event.pos())
+
+                    self.clearVertexMarker()
+                    self.setVertexMarker(layerPt)
+
+                    self.canvas.refresh()
+                elif event.button() == Qt.RightButton:
+                    # Right click -> delete vertex.
+                    self.deleteVertex(feature, vertex)
+                    self.canvas.refresh()
+
 
     def clearVertexMarker(self):
         self.canvas.scene().removeItem(self.vertexMarker)

@@ -75,20 +75,15 @@ class Parambar(QWidget):
         self.createEditPointAction()
         self.createEditLineAction()
         self.createEditPolygonAction()
+        self.createGetObjectsAction()
 
         self.activatePan()
 
         #Button in Eingabelayer übernehmen
         self.takeLayerButton = QPushButton(self)
-        self.takeLayerButton.setText("Objekte in Eingabelayerschreiben")
+        self.takeLayerButton.setText("Objekte in Eingabelayer schreiben")
         self.takeLayerButton.setStyleSheet("background-color: green; width: 200px")
         self.toolbarLayer.addWidget(self.takeLayerButton)
-
-        #Button Objekte aus Layer anzeigen
-        self.getObjectsButton = QPushButton(self)
-        self.getObjectsButton.setText("Objekte aus Eingabelayer")
-        self.getObjectsButton.setStyleSheet("background-color: yellow; width: 150px")
-        self.toolbarLayer.addWidget(self.getObjectsButton)
 
         #Koordinatenanzeige
         self.toolbarCoord = QToolBar("Coordinates", self)
@@ -126,10 +121,6 @@ class Parambar(QWidget):
 
         self.takeLayerButton.clicked.connect(self.takeLayerObjects)
 
-        self.getObjectsButton.clicked.connect(self.getOriginalObjects)
-
-
-
     def takeLayerObjects(self):
         layer_id = self.activeLayerCombo.currentData()
         if self.refData['pointLayer'].id() == layer_id:
@@ -140,13 +131,24 @@ class Parambar(QWidget):
             self.toolDigiPolygon.reverseRotation2Eingabelayer(layer_id)
 
     def getOriginalObjects(self):
-        layer_id = self.activeLayerCombo.currentData()
-        bufferGeometry = self.rotationCoords.profileBuffer(1)
 
-        #if self.refData['pointLayer'].id() == layer_id:
-        self.toolDigiPoint.rotationFromEingabelayer(bufferGeometry)
-        self.toolDigiLine.rotationFromEingabelayer(bufferGeometry)
-        self.toolDigiPolygon.rotationFromEingabelayer(bufferGeometry)
+        if self.getObjectsAction.isChecked():
+
+            iconImport = QIcon(os.path.join(self.iconpath, 'Sichtbar_an.gif'))
+            self.getObjectsAction.setIcon(iconImport)
+            bufferGeometry = self.rotationCoords.profileBuffer(1)
+
+            self.toolDigiPoint.getFeaturesFromEingabelayer(bufferGeometry, 'tachy')
+            self.toolDigiLine.getFeaturesFromEingabelayer(bufferGeometry, 'tachy')
+            self.toolDigiPolygon.getFeaturesFromEingabelayer(bufferGeometry, 'tachy')
+        else:
+            iconImport = QIcon(os.path.join(self.iconpath, 'Sichtbar_aus.gif'))
+            self.getObjectsAction.setIcon(iconImport)
+
+            self.toolDigiPoint.removeNoneProfileFeatures()
+            self.toolDigiLine.removeNoneProfileFeatures()
+            self.toolDigiPolygon.removeNoneProfileFeatures()
+
 
     def __switchLayer(self, ix):
 
@@ -205,16 +207,19 @@ class Parambar(QWidget):
     #
     def activateEditPoint(self):
         self.canvasDigitize.setMapTool(self.toolEditPoint)
+        self.toolDigiPoint.clearVertexMarker()
 
     ## \brief Create line action
     #
     def activateEditLine(self):
         self.canvasDigitize.setMapTool(self.toolEditLine)
+        self.toolDigiLine.clearRubberband()
 
     ## \brief Create polygon action
     #
     def activateEditPolygon(self):
         self.canvasDigitize.setMapTool(self.toolEditPolygon)
+        self.toolDigiPolygon.clearRubberband()
 
 
     ## \brief Create pan action
@@ -313,6 +318,18 @@ class Parambar(QWidget):
         self.canvasDigitize.setMapTool(self.toolDigiPolygon)
         self.actionDigiPolygon.triggered.connect(self.activateDigiPolygon)
 
+
+    ## \brief Create point action
+    #
+    def createGetObjectsAction(self):
+
+        #Button Objekte aus Layer anzeigen
+        iconImport = QIcon(os.path.join(self.iconpath, 'Sichtbar_aus.gif'))
+        self.getObjectsAction = QAction(iconImport, "Objecte aus Eingabelayer", self)
+        self.getObjectsAction.setCheckable(True)
+        self.getObjectsAction.triggered.connect(self.getOriginalObjects)
+        self.canvasToolbar.addAction(self.getObjectsAction)
+
     ## \brief Create point action
     #
     def createEditPointAction(self):
@@ -393,6 +410,10 @@ class Parambar(QWidget):
 
     def update(self, refData):
 
+        #self.createComponents()
+        #self.createLayout()
+        #self.createConnects()
+
         self.refData = refData
 
         self.activeLayerCombo.clear()
@@ -405,10 +426,6 @@ class Parambar(QWidget):
     ## \brief Create a splitter (vertical line to separate labels in the parambar)
     #
     def updateCoordinate(self, coordObj):
-
-        #self.pup.publish('triggerAarTransformationParams', {})
-
-        #self.rotationCoords = self.rotationCoords(self.transformationParams)
 
         retObj = self.rotationCoords.rotationReverse(coordObj['x'], coordObj['y'], True)
 

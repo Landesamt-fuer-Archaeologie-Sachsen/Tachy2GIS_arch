@@ -79,6 +79,8 @@ class profileAAR(object):
 
     def run(self, data):
         """Run method that performs all the real work"""
+
+        print('data', data)
         # initialize the Errorhandler
         errorhandler = ErrorHandler()
         magicbox = Magic_Box()
@@ -139,7 +141,6 @@ class profileAAR(object):
 
                 coord.append([x,y,z,view, profileName, use, point_id, uuid])
 
-
                 # write a list of profilenames (unique entries)
                 if profileName not in profile_names:
                     profile_names.append(profileName)
@@ -166,7 +167,6 @@ class profileAAR(object):
                 # datalist in templist
 
                 for x in range(len(coord)):
-                    print(coord[x])
                     coord_proc.append(coord[x])
 
                     # write the unique view values in the checklist
@@ -176,8 +176,6 @@ class profileAAR(object):
                     # write the unique selection values in the checklist
                     if coord[x][4] not in selection_check:
                         selection_check.append(coord[x][3])
-
-
 
                 # Handle Errors depending on the attributes in the fields
 
@@ -212,95 +210,6 @@ class profileAAR(object):
                         transform_return['linegress'],
                         transform_return['ns_error']), )
 
-                    print('Orginaldaten:')
-                    print('coord_proc', coord_proc)
-                    print('Transformierte Daten:')
-                    print('coord_trans', coord_trans)
-                    print('transform_return:')
-                    print('transform_return_aar', transform_return)
-                    print('cutting_line:')
-                    print('cutting_line', cutting_line)
-
                     #return transform_return
                     transform_return['transformationParams']['cutting_line'] = cutting_line
                     self.pup.publish('aarPointsChanged', transform_return)
-
-
-
-            # dummy break
-            """
-            profileCheck == True
-
-            if profileCheck is False:
-
-                '''Export the data'''
-
-                # For exporting we need the data, the path and the crs of the input data
-
-                export.export(coord_trans,
-                              self.dlg.outputPath.text(),
-                              selectedLayer.crs())
-
-                # If points are checked, export them #CHANGE
-
-                if height is True:
-
-                    export.export_height(height_points,
-                                         self.dlg.outputPath.text(),
-                                         selectedLayer.crs())
-
-                if section is True:
-
-                    # if a profile is recommended, we have to export it. To make it easy to display everything,
-                    # export left point first
-
-                    export.export_section(cutting_line,
-                                          coord_proc[0][4],
-                                          self.dlg.outputPath.text(),
-                                          selectedLayer.crs())
-
-                # Load the file to qgis automaticly
-
-                layer = self.iface.addVectorLayer(self.dlg.outputPath.text(),
-                                                  "",
-                                                  "ogr")
-
-                if height is True:
-
-                    filename = self.dlg.outputPath.text().split(".shp")[0]
-
-                    filename = filename + "_height.shp"
-
-                    layer = self.iface.addVectorLayer(filename, "", "ogr")
-
-                if section is True:
-
-                    filename = self.dlg.outputPath.text().split(".shp")[0]
-
-                    filename = filename + "_section.shp"
-
-                    layer = self.iface.addVectorLayer(filename,
-                                                      "",
-                                                      "ogr")
-
-                # if the loading of the layer fails, give a message
-
-                if not layer:
-
-                    criticalMessageToBar(self, 'Error', 'Failed to open '+ self.dlg.outputPath.text())
-            """
-
-            pass
-    """
-    def select_output_file(self):
-
-        prjfi = QFileInfo(QgsProject.instance().fileName())
-
-        filename, __ = QFileDialog.getSaveFileName(self.dlg, "Select output file ", prjfi.absolutePath(), '*.shp')
-
-        self.dlg.outputPath.setText(filename)
-
-    def show_help(self):
-
-        showPluginHelp()
-    """

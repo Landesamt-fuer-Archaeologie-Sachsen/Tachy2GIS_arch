@@ -25,7 +25,7 @@ from ..profileAAR.profileAAR import profileAAR
 
 class GeoreferencingDialog(QMainWindow):
 
-    def __init__(self, t2GArchInstance, dataStoreGeoref):
+    def __init__(self, t2GArchInstance, dataStoreGeoref, iFace):
 
         super(GeoreferencingDialog, self).__init__()
 
@@ -33,7 +33,11 @@ class GeoreferencingDialog(QMainWindow):
 
         self.t2GArchInstance = t2GArchInstance
 
+        self.setAttribute(Qt.WA_DeleteOnClose)
+
         self.refData = None
+
+        self.__iface = iFace
 
         #DataStore
         self.dataStoreGeoref = dataStoreGeoref
@@ -42,6 +46,12 @@ class GeoreferencingDialog(QMainWindow):
         self.createComponents()
         self.createLayout()
         self.createConnects()
+
+    def closeEvent(self, event):
+        print('close')
+        #self.georefTable.cleanGeorefTable()
+
+        #self.canvasImage
 
     ## \brief Create different menus
     #
@@ -95,20 +105,16 @@ class GeoreferencingDialog(QMainWindow):
         #Toolbars
         self.createToolbars()
 
-        #Coordinates in statusBar
-        #self.createStatusBar()
-
-        #TransformationParamsBar
-        #self.transformationParamsBar = TransformationDialogParambar(self)
-
         #GcpTable
-        self.georefTable = GeorefTable(self)
+        self.georefTable = GeorefTable(self, self.dataStoreGeoref)
 
         #profileAAR
         self.profileAAR = profileAAR()
 
         #Bildgeoreferenzierung
-        self.imageGeoref = ImageGeoref(self, self.dataStoreGeoref)
+        self.imageGeoref = ImageGeoref(self, self.dataStoreGeoref, self.__iface)
+
+
 
     ## \brief Event connections
     #
@@ -120,6 +126,7 @@ class GeoreferencingDialog(QMainWindow):
         self.georefTable.pup.register('activatePoint', self.imageParambar.activateMapToolMove)
         self.canvasImage.pup.register('imagePointCoordinates', self.georefTable.updateImageCoordinates)
         self.canvasImage.pup.register('imagePointCoordinates', self.dataStoreGeoref.addImagePoint)
+        self.canvasImage.pup.register('imagePointCoordinates', self.georefTable.updateErrorValues)
 
         self.georefTable.pup.register('dataChanged', self.profileAAR.run)
 
@@ -204,17 +211,20 @@ class GeoreferencingDialog(QMainWindow):
         self.georefTable.updateGeorefTable(refData)
         self.georefTable.pointUsageChanged()
 
-        self.canvasImage.updateCanvas(refData['imagePath'])
-        self.canvasGcp.updateCanvas(refData)
+        validImageLayer = self.canvasImage.updateCanvas(refData['imagePath'])
 
-        self.dataStoreGeoref.addTargetPoints(refData)
+        if validImageLayer == True:
+            self.canvasGcp.updateCanvas(refData)
 
-        self.imageGeoref.updateMetadata(refData)
+            self.dataStoreGeoref.addTargetPoints(refData)
 
-        self.adjustSize()
-        self.show()
-        self.resize(1000, 700)
+            self.imageGeoref.updateMetadata(refData)
 
+            self.adjustSize()
+            self.show()
+            self.resize(1000, 700)
+        else:
+            self.__iface.messageBar().pushMessage("Error", "Rasterlayer konnte nicht gelesen werden", level=1, duration=3)
 
     ## \brief Export GCP-Data in a textfile
     #
@@ -242,6 +252,7 @@ class GeoreferencingDialog(QMainWindow):
         with open(saveFileName, 'w') as outfile:
             json.dump(data, outfile)
 
+        return saveFileName
     ## \brief Open up the transformation dialog
     #
     # calls the funcion restore()
@@ -249,10 +260,17 @@ class GeoreferencingDialog(QMainWindow):
     # \param refData
 
     def showGeoreferencingDialog(self, refData):
+
         self.restore(refData)
 
 
     def startGeoreferencing(self):
         georefData = self.dataStoreGeoref.getGeorefData()
-        self.imageGeoref.runGeoref(georefData)
-        self.writeMetafile()
+        georefChecker = self.imageGeoref.runGeoref(georefData, self.refData['crs'])
+        if georefChecker == 'ok':
+            fileName = self.writeMetafile()
+            print('fertig')
+            self.__iface.messageBar().pushMessage("Hinweis", "Das Profil wurde unter "+fileName+" referenziert", level=3, duration=5)
+
+        self.close()
+        self.destroy()

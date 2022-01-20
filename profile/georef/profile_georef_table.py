@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QHeaderView, QComboBox, QCheckBox, QRadioButton
 from PyQt5.QtCore import Qt
+import numpy as np
 
 from ..publisher import Publisher
+from .residuals import Residuals
 ## @brief With the TransformationDialogTable class a table based on QTableWidget is realized
 #
 # @author Mario Uhlig, VisDat geodatentechnologie GmbH, mario.uhlig@visdat.de
@@ -21,7 +23,7 @@ class GeorefTable(QTableWidget):
     #
     #  @param dialogInstance pointer to the dialogInstance
 
-    def __init__(self, dialogInstance):
+    def __init__(self, dialogInstance, dataStoreGeoref):
 
         super(GeorefTable, self).__init__()
 
@@ -29,11 +31,14 @@ class GeorefTable(QTableWidget):
 
         self.dialogInstance = dialogInstance
 
+        self.dataStoreGeoref = dataStoreGeoref
+
         #allows selection of image coordinates in canvasImage
         self.activePoint = ''
 
         self.viewDirection = None
         self.directionAAR = None
+        self.targetGCP = None
         self.methodAAR = None
         self.profileNumber = None
 
@@ -49,6 +54,8 @@ class GeorefTable(QTableWidget):
         self.clicked.connect(self.georefTableCellClick)
         #click auf row
         self.verticalHeader().sectionClicked.connect(self.georefTableRowClick)
+
+        self.res = Residuals()
 
 
     def __getTableData(self):
@@ -101,6 +108,7 @@ class GeorefTable(QTableWidget):
 
         self.viewDirection = gcpTarget['viewDirection']
         self.profileNumber = gcpTarget['profileNumber']
+        self.targetGCP = gcpTarget['targetGCP']['points']
 
         horizontal = gcpTarget['horizontal']
 
@@ -115,6 +123,9 @@ class GeorefTable(QTableWidget):
         targetZ = []
 
         georefTableHeader = self.horizontalHeader()
+
+
+        print('hhhhhhhhhhhhhhhhhhuuuuuuuuuuuuuuuuuuuu', gcpTarget)
 
         for pointObj in gcpTarget['targetGCP']['points']:
 
@@ -137,11 +148,6 @@ class GeorefTable(QTableWidget):
             qxItem.setFlags(Qt.ItemIsEnabled)
             self.setItem(rowPosition, 3, qxItem)
             georefTableHeader.setSectionResizeMode(3, QHeaderView.Stretch)
-            # Quelle Y
-            #qyItem = QTableWidgetItem()
-            #qyItem.setFlags(Qt.ItemIsEnabled)
-            #self.setItem(rowPosition, 4, qyItem)
-            #georefTableHeader.setSectionResizeMode(4, QHeaderView.ResizeToContents)
             # Quelle Z
             qzItem = QTableWidgetItem(str(-99999))
             qzItem.setFlags(Qt.ItemIsEnabled)
@@ -271,6 +277,88 @@ class GeorefTable(QTableWidget):
 
         return points, metaInfos
 
+
+
+    ## \brief Update error values in the table
+    #
+    # \param
+    #
+    def updateErrorValues(self, linkObj):
+
+        georefData = self.dataStoreGeoref.getGeorefData()
+
+        #nur die aktiven Punkte
+        print('juuju_georefData', georefData)
+
+        #alle Punkte
+        print('juuju_targetGCP', self.targetGCP)
+
+
+        gcpArray = []
+        for georefObj in georefData:
+
+            for targetObj in self.targetGCP:
+                if targetObj['uuid'] == georefObj['uuid']:
+                    gcpArray.append([georefObj['input_x'], georefObj['input_z'], targetObj['x'], targetObj['z'], targetObj['uuid']])
+
+        self.hide()
+
+        rowCount = self.rowCount()
+        columnCount = self.columnCount()
+
+        if len(georefData) > 2:
+
+            self.res.testFunc()
+
+            print('Helmert', gcpArray)
+
+            #gcps = np.array([[100, 200, 5745674, 5745400], [150, 280, 5745654, 5745460], [400, 800, 5744574, 5747400]])
+
+            V_X, V_Y, V_XY, V_XY_uuid, mo, mox, moy, retA = self.res.helm_trans(np.array(gcpArray)) #cgps is numpy.array [x, y, Xmap, Ymap]
+
+            print('V_X', V_X)
+            print('V_Y', V_Y)
+            print('V_XY', V_XY)
+            print('V_XY_uuid', V_XY_uuid)
+            print('mo', mo)
+            print('mox', mox)
+            print('moy', moy)
+            print('retA', retA)
+
+            for i in range(0, rowCount):
+
+                tblPointUuid = None
+
+                for j in range(0, columnCount):
+
+                    head = self.horizontalHeaderItem(j).text()
+
+                    if head == 'UUID':
+                        tblPointUuid = self.item(i, j).text()
+
+                #in Zelle der Tabelle eintragen
+                for j in range(0, columnCount):
+                    head = self.horizontalHeaderItem(j).text()
+
+                    if head == 'Error':
+                        self.item(i, j).setText(str(-99999))
+                        for errorObj in V_XY_uuid:
+                            print('tblPointUuid', tblPointUuid)
+                            print('V_XY_uuid', errorObj['uuid'])
+                            if errorObj['uuid'] == tblPointUuid:
+                                self.item(i, j).setText(str(round(errorObj['v_xy'], 4)))
+        else:
+            for i in range(0, rowCount):
+                #in Zelle der Tabelle eintragen
+                for j in range(0, columnCount):
+                    head = self.horizontalHeaderItem(j).text()
+
+                    if head == 'Error':
+                        self.item(i, j).setText(str(-99999))
+
+        self.show()
+
+
     ## \brief Update image coordinates for a specific point (uuid)
     #
     # \param linkObj
@@ -309,10 +397,8 @@ class GeorefTable(QTableWidget):
 
         tableData = self.__getTableData()
 
-        print('tableData', tableData)
-
         data = self.prepareData(tableData)
 
-        print('dataaaaaa', data)
-
         self.pup.publish('dataChanged', data)
+
+        self.updateErrorValues(None)

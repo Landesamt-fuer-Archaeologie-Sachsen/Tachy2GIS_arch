@@ -68,6 +68,8 @@ class MapToolDigiPoint(QgsMapTool):
         feature_uuid = uuid.uuid4()
         self.feat['uuid'] = str(feature_uuid)
 
+        #Type of digitize
+        self.feat['geo_quelle'] = 'profile_object'
         ## set current date
         e = QgsExpression( " $now " )
         self.feat['messdatum'] = e.evaluate()
@@ -93,6 +95,8 @@ class MapToolDigiPoint(QgsMapTool):
         atrObj = self.dialogAttributes.feature().attributes()
 
         self.feat.setAttributes(atrObj)
+
+        self.feat['geo_quelle'] = 'profile_object'
 
         self.addFeature2Layer()
         self.clearVertexMarker()
@@ -130,6 +134,7 @@ class MapToolDigiPoint(QgsMapTool):
         self.digiPointLayer.endEditCommand()
 
     def reverseRotation2Eingabelayer(self, layer_id):
+        #in Ergebnislayer schreiben
         print('reverseRotation', layer_id)
 
         pr = self.refData['pointLayer'].dataProvider()
@@ -157,6 +162,7 @@ class MapToolDigiPoint(QgsMapTool):
                     checker = False
 
             if checker == True:
+
                 retObj = pr.addFeatures([rotFeature])
 
             self.refData['pointLayer'].removeSelection()
@@ -168,8 +174,8 @@ class MapToolDigiPoint(QgsMapTool):
             self.refData['pointLayer'].endEditCommand()
 
 
-    def rotationFromEingabelayer(self, bufferGeometry):
-
+    def getFeaturesFromEingabelayer(self, bufferGeometry, geoType):
+        #aus Eingabelayer holen
         self.digiPointLayer.startEditing()
         pr = self.digiPointLayer.dataProvider()
 
@@ -183,22 +189,91 @@ class MapToolDigiPoint(QgsMapTool):
 
             if feature.geometry().within(bufferGeometry):
 
-                rotFeature = QgsFeature(self.digiPointLayer.fields())
+                if geoType == 'tachy':
+                    if feature['geo_quelle'] != 'profile_object':
 
-                rotateGeom = self.rotationCoords.rotatePointFeatureFromOrg(feature)
+                        rotFeature = QgsFeature(self.digiPointLayer.fields())
 
-                zPoint = QgsPoint(rotateGeom['x_trans'], rotateGeom['z_trans'], rotateGeom['z_trans'])
+                        rotateGeom = self.rotationCoords.rotatePointFeatureFromOrg(feature)
 
-                gZPoint = QgsGeometry(zPoint)
-                rotFeature.setGeometry(gZPoint)
-                rotFeature.setAttributes(feature.attributes())
+                        zPoint = QgsPoint(rotateGeom['x_trans'], rotateGeom['z_trans'], rotateGeom['z_trans'])
 
-                selFeatures.append(rotFeature)
+                        gZPoint = QgsGeometry(zPoint)
+                        rotFeature.setGeometry(gZPoint)
+                        rotFeature.setAttributes(feature.attributes())
+
+                        checker = True
+                        for digiPointFeature in self.digiPointLayer.getFeatures():
+                            if feature["uuid"] == digiPointFeature["uuid"]:
+                                checker = False
+
+                        if checker == True:
+                            selFeatures.append(rotFeature)
+
+                if geoType == 'profile':
+                    if feature['geo_quelle'] == 'profile_object':
+
+                        rotFeature = QgsFeature(self.digiPointLayer.fields())
+
+                        rotateGeom = self.rotationCoords.rotatePointFeatureFromOrg(feature)
+
+                        zPoint = QgsPoint(rotateGeom['x_trans'], rotateGeom['z_trans'], rotateGeom['z_trans'])
+
+                        gZPoint = QgsGeometry(zPoint)
+                        rotFeature.setGeometry(gZPoint)
+                        rotFeature.setAttributes(feature.attributes())
+
+                        checker = True
+                        for digiPointFeature in self.digiPointLayer.getFeatures():
+                            if feature["uuid"] == digiPointFeature["uuid"]:
+                                checker = False
+
+                        if checker == True:
+                            selFeatures.append(rotFeature)
+
+                        #write to table
+                        dataObj = {}
+                        for item in feature.fields():
+                            if item.name() == 'uuid' or item.name() == 'id' or item.name() == 'obj_type' or item.name() == 'obj_art' or item.name() == 'zeit' or item.name() == 'material' or item.name() == 'bemerkung':
+                                dataObj[item.name()] = feature[item.name()]
+
+                        dataObj['layer'] = self.refData['pointLayer'].sourceName()
+
+                        self.pup.publish('pointFeatureAttr', dataObj)
 
         pr.addFeatures(selFeatures)
 
         self.digiPointLayer.commitChanges()
+        self.digiPointLayer.updateExtents()
         self.digiPointLayer.endEditCommand()
+
+    def removeNoneProfileFeatures(self):
+
+        self.digiPointLayer.startEditing()
+        pr = self.digiPointLayer.dataProvider()
+        features = self.digiPointLayer.getFeatures()
+
+        removeFeatures = []
+        for feature in features:
+
+            if feature['geo_quelle'] != 'profile_object':
+                removeFeatures.append(feature.id())
+
+        pr.deleteFeatures(removeFeatures)
+
+        self.digiPointLayer.commitChanges()
+        self.digiPointLayer.updateExtents()
+        self.digiPointLayer.endEditCommand()
+
+    def removeFeatureInEingabelayerByUuid(self, uuid):
+        features = self.refData['pointLayer'].getFeatures()
+
+        for feature in features:
+            if feature['uuid'] == uuid:
+                if feature['geo_quelle'] == 'profile_object':
+                    self.refData['pointLayer'].startEditing()
+                    self.refData['pointLayer'].deleteFeature(feature.id())
+                    self.refData['pointLayer'].commitChanges()
 
     def setDigiPointLayer(self, digiPointLayer):
         self.digiPointLayer = digiPointLayer

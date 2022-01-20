@@ -82,7 +82,7 @@ class DigitizeDialog(QMainWindow):
         self.canvasDigitize = DigitizeCanvas(self, self.__iface)
 
         #RotationCoords
-        self.rotationCoords = RotationCoords()
+        self.rotationCoords = RotationCoords(self)
 
         #MapTools
         self.toolDigiPoint = MapToolDigiPoint(self.canvasDigitize, self.__iface, self.rotationCoords)
@@ -124,6 +124,11 @@ class DigitizeDialog(QMainWindow):
 
         self.tableDigitize.pup.register('removeFeatureByUuid', self.canvasDigitize.removeFeatureByUuid)
 
+        self.tableDigitize.pup.register('removeFeatureByUuid', self.toolDigiPoint.removeFeatureInEingabelayerByUuid)
+        self.tableDigitize.pup.register('removeFeatureByUuid', self.toolDigiLine.removeFeatureInEingabelayerByUuid)
+        self.tableDigitize.pup.register('removeFeatureByUuid', self.toolDigiPolygon.removeFeatureInEingabelayerByUuid)
+
+
     ## \brief Creates the layout for the window and assigns the created components
     #
 
@@ -163,3 +168,9 @@ class DigitizeDialog(QMainWindow):
 
     def showDigitizeDialog(self, refData):
         self.restore(refData)
+
+        bufferGeometry = self.rotationCoords.profileBuffer(1)
+
+        self.toolDigiPoint.getFeaturesFromEingabelayer(bufferGeometry, 'profile')
+        self.toolDigiLine.getFeaturesFromEingabelayer(bufferGeometry, 'profile')
+        self.toolDigiPolygon.getFeaturesFromEingabelayer(bufferGeometry, 'profile')

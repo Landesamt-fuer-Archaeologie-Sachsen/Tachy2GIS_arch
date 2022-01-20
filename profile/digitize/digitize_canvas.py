@@ -2,7 +2,8 @@
 import os
 import processing
 from PyQt5.QtCore import Qt
-from qgis.core import QgsVectorLayer, QgsRasterLayer, QgsMarkerSymbol, QgsMarkerLineSymbolLayer, QgsSimpleMarkerSymbolLayer, QgsSimpleLineSymbolLayer, QgsLineSymbol, QgsFillSymbol, QgsSingleSymbolRenderer, QgsPoint, QgsCoordinateReferenceSystem
+from PyQt5.QtGui import QFont, QColor
+from qgis.core import QgsVectorLayer, QgsRasterLayer, QgsMarkerSymbol, QgsPalLayerSettings, QgsTextFormat, QgsTextBufferSettings, QgsVectorLayerSimpleLabeling, QgsMarkerLineSymbolLayer, QgsSimpleMarkerSymbolLayer, QgsSimpleLineSymbolLayer, QgsLineSymbol, QgsFillSymbol, QgsSingleSymbolRenderer, QgsCategorizedSymbolRenderer, QgsRendererCategory, QgsPoint, QgsCoordinateReferenceSystem
 from qgis.gui import QgsMapCanvas, QgsMapToolPan, QgsMapToolZoom
 
 from ..publisher import Publisher
@@ -42,9 +43,6 @@ class DigitizeCanvas(QgsMapCanvas):
         self.createMapToolPan()
         self.createMapToolZoomIn()
         self.createMapToolZoomOut()
-        #self.createMapToolDigiPoint()
-        #self.createMapToolDigiLine()
-        #self.createMapToolDigiPolygon()
 
         self.createConnects()
 
@@ -57,15 +55,44 @@ class DigitizeCanvas(QgsMapCanvas):
         pr = self.digiPointLayer.dataProvider()
         pr.truncate()
 
-        symbol = QgsMarkerSymbol.createSimple({'name': 'circle', 'color': 'green', 'size': '2'})
+        #Renderer
+        symbol_profile = QgsMarkerSymbol.createSimple({'name': 'circle', 'color': 'green', 'size': '2'})
+        symbol_tachy = QgsMarkerSymbol.createSimple({'name': 'circle', 'color': 'grey', 'size': '2'})
 
-        self.digiPointLayer.setRenderer(QgsSingleSymbolRenderer(symbol))
+        #self.digiPointLayer.setRenderer(QgsSingleSymbolRenderer(symbol))
 
-        #crs = QgsCoordinateReferenceSystem(31468)
+        categorized_renderer = QgsCategorizedSymbolRenderer()
 
+        categorized_renderer.setClassAttribute('geo_quelle')
+
+        field = self.digiPointLayer.fields().lookupField('geo_quelle')
+        unique_values = self.digiPointLayer.uniqueValues(field)
+        # Add a few categories
+        cat1 = QgsRendererCategory('profile_object', symbol_profile, 'profile')
+        cat2 = QgsRendererCategory(None, symbol_tachy, 'tachy')
+        categorized_renderer.addCategory(cat1)
+        categorized_renderer.addCategory(cat2)
+
+        self.digiPointLayer.setRenderer(categorized_renderer)
+
+        #Projection
         crs = refData['pointLayer'].sourceCrs()
-
         self.digiPointLayer.setCrs(crs)
+
+        #Label Layer
+        palSettings  = QgsPalLayerSettings()
+        textFormat = QgsTextFormat()
+        textFormat.setFont(QFont("Arial", 10))
+        textFormat.setSize(10)
+        palSettings.setFormat(textFormat)
+
+        palSettings.fieldName = "id"
+        palSettings.placement = 4
+        palSettings.enabled = True
+
+        labelSettings = QgsVectorLayerSimpleLabeling(palSettings)
+        self.digiPointLayer.setLabelsEnabled(True)
+        self.digiPointLayer.setLabeling(labelSettings)
 
     def createDigiLineLayer(self, refData):
 
@@ -77,20 +104,51 @@ class DigitizeCanvas(QgsMapCanvas):
         pr = self.digiLineLayer.dataProvider()
         pr.truncate()
 
-        symbol = QgsLineSymbol.createSimple({'line_style': 'solid', 'color': 'green', 'width': '1'})
+        #Renderer
+        symbol_profile = QgsLineSymbol.createSimple({'line_style': 'solid', 'color': 'green', 'width': '1'})
+        symbol_tachy = QgsLineSymbol.createSimple({'line_style': 'solid', 'color': 'grey', 'width': '1'})
 
-        symbol_layer_vertex = QgsMarkerLineSymbolLayer()
-        symbol_layer_vertex.setSubSymbol(QgsMarkerSymbol.createSimple({'name': 'circle', 'color': 'red'}))
-        symbol_layer_vertex.setPlacement(1)
+        symbol_tachy_vertex = QgsMarkerLineSymbolLayer()
+        symbol_tachy_vertex.setSubSymbol(QgsMarkerSymbol.createSimple({'name': 'circle', 'color': 'grey'}))
+        symbol_tachy_vertex.setPlacement(1)
 
-        symbol.appendSymbolLayer(symbol_layer_vertex)
+        symbol_profile_vertex = QgsMarkerLineSymbolLayer()
+        symbol_profile_vertex.setSubSymbol(QgsMarkerSymbol.createSimple({'name': 'circle', 'color': 'red'}))
+        symbol_profile_vertex.setPlacement(1)
+
+        symbol_profile.appendSymbolLayer(symbol_profile_vertex)
+        symbol_tachy.appendSymbolLayer(symbol_tachy_vertex)
+
+        # Add a few categories
+        categorized_renderer = QgsCategorizedSymbolRenderer()
+        categorized_renderer.setClassAttribute('geo_quelle')
+        cat1 = QgsRendererCategory('profile_object', symbol_profile, 'profile')
+        cat2 = QgsRendererCategory(None, symbol_tachy, 'tachy')
+        categorized_renderer.addCategory(cat1)
+        categorized_renderer.addCategory(cat2)
 
         self.digiLineLayer.renderer().setUsingSymbolLevels(True)
-        self.digiLineLayer.renderer().setSymbol(symbol)
+        self.digiLineLayer.setRenderer(categorized_renderer)
 
         crs = refData['lineLayer'].sourceCrs()
 
         self.digiLineLayer.setCrs(crs)
+
+        #Label Layer
+        palSettings  = QgsPalLayerSettings()
+        textFormat = QgsTextFormat()
+
+        textFormat.setFont(QFont("Arial", 10))
+        textFormat.setSize(10)
+        palSettings.setFormat(textFormat)
+
+        palSettings.fieldName = "id"
+        palSettings.placement = 4
+        palSettings.enabled = True
+
+        labelSettings = QgsVectorLayerSimpleLabeling(palSettings)
+        self.digiLineLayer.setLabelsEnabled(True)
+        self.digiLineLayer.setLabeling(labelSettings)
 
 
     def createDigiPolygonLayer(self, refData):
@@ -103,20 +161,51 @@ class DigitizeCanvas(QgsMapCanvas):
         pr = self.digiPolygonLayer.dataProvider()
         pr.truncate()
 
-        symbol = QgsFillSymbol.createSimple({'style':'no', 'outline_style': 'solid', 'outline_color': 'green', 'outline_width': '1'})
+        #Renderer
+        symbol_profile = QgsFillSymbol.createSimple({'style':'no', 'outline_style': 'solid', 'outline_color': 'green', 'outline_width': '1'})
+        symbol_tachy = QgsFillSymbol.createSimple({'style':'no', 'outline_style': 'solid', 'outline_color': 'grey', 'outline_width': '1'})
 
-        symbol_layer_vertex = QgsMarkerLineSymbolLayer()
-        symbol_layer_vertex.setSubSymbol(QgsMarkerSymbol.createSimple({'name': 'circle', 'color': 'red'}))
-        symbol_layer_vertex.setPlacement(1)
+        symbol_tachy_vertex = QgsMarkerLineSymbolLayer()
+        symbol_tachy_vertex.setSubSymbol(QgsMarkerSymbol.createSimple({'name': 'circle', 'color': 'grey'}))
+        symbol_tachy_vertex.setPlacement(1)
 
-        symbol.appendSymbolLayer(symbol_layer_vertex)
+        symbol_profile_vertex = QgsMarkerLineSymbolLayer()
+        symbol_profile_vertex.setSubSymbol(QgsMarkerSymbol.createSimple({'name': 'circle', 'color': 'red'}))
+        symbol_profile_vertex.setPlacement(1)
+
+        symbol_profile.appendSymbolLayer(symbol_profile_vertex)
+        symbol_tachy.appendSymbolLayer(symbol_tachy_vertex)
+
+        # Add a few categories
+        categorized_renderer = QgsCategorizedSymbolRenderer()
+        categorized_renderer.setClassAttribute('geo_quelle')
+        cat1 = QgsRendererCategory('profile_object', symbol_profile, 'profile')
+        cat2 = QgsRendererCategory(None, symbol_tachy, 'tachy')
+        categorized_renderer.addCategory(cat1)
+        categorized_renderer.addCategory(cat2)
 
         self.digiPolygonLayer.renderer().setUsingSymbolLevels(True)
-        self.digiPolygonLayer.renderer().setSymbol(symbol)
+        self.digiPolygonLayer.setRenderer(categorized_renderer)
 
-        crs = refData['lineLayer'].sourceCrs()
+        crs = refData['polygonLayer'].sourceCrs()
 
         self.digiPolygonLayer.setCrs(crs)
+
+        #Label Layer
+        palSettings  = QgsPalLayerSettings()
+        textFormat = QgsTextFormat()
+
+        textFormat.setFont(QFont("Arial", 10))
+        textFormat.setSize(10)
+        palSettings.setFormat(textFormat)
+
+        palSettings.fieldName = "id"
+        palSettings.placement = 4
+        palSettings.enabled = True
+
+        labelSettings = QgsVectorLayerSimpleLabeling(palSettings)
+        self.digiPolygonLayer.setLabelsEnabled(True)
+        self.digiPolygonLayer.setLabeling(labelSettings)
 
     ## \brief Set coordinates on the statusbar in dialog instance TransformationDialog.setCoordinatesOnStatusBar() . Depends on mouse move on the map element
     #
@@ -129,11 +218,8 @@ class DigitizeCanvas(QgsMapCanvas):
     ## \brief Event connections
     #
     def createConnects(self):
-
         #Koordinatenanzeige
         self.xyCoordinates.connect(self.canvasMoveEvent)
-
-
 
     ## \brief Create action to pan on the map
     #
@@ -149,19 +235,6 @@ class DigitizeCanvas(QgsMapCanvas):
     #
     def createMapToolZoomOut(self):
         self.toolZoomOut = QgsMapToolZoom(self, True) # true = out
-
-    ## \brief Create action to digitalize points
-    #def createMapToolDigiPoint(self):
-    #    self.toolDigiPoint = MapToolDigiPoint(self, self.__iface)
-
-    ## \brief Create action to digitalize lines
-    #def createMapToolDigiLine(self):
-    #    self.toolDigiLine = MapToolDigiLine(self, self.__iface)
-
-    ## \brief Create action to digitalize polygons
-    #def createMapToolDigiPolygon(self):
-    #    self.toolDigiPolygon = MapToolDigiPolygon(self, self.__iface)
-
 
     ## \brief Set extent of the map by extent of the source layer
     #
@@ -245,8 +318,3 @@ class DigitizeCanvas(QgsMapCanvas):
         self.pup.publish('setDigiPointLayer', self.digiPointLayer)
         self.pup.publish('setDigiLineLayer', self.digiLineLayer)
         self.pup.publish('setDigiPolygonLayer', self.digiPolygonLayer)
-
-
-        #self.toolDigiPoint.setDigiPointLayer(self.digiPointLayer)
-        #self.toolDigiLine.setDigiLineLayer(self.digiLineLayer)
-        #self.toolDigiPolygon.setDigiPolygonLayer(self.digiPolygonLayer)

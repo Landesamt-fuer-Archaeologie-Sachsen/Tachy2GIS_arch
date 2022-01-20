@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
-from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QHeaderView, QComboBox, QCheckBox, QPushButton
-from PyQt5.QtGui import QIcon
+from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QHeaderView, QComboBox, QPushButton, QMessageBox
+from PyQt5.QtGui import QIcon, QPalette, QColor
 from PyQt5.QtCore import Qt
 
 from ..publisher import Publisher
@@ -39,23 +39,38 @@ class DigitizeTable(QTableWidget):
         self.setRowCount(0)
         self.setColumnCount(8)
         self.setHorizontalHeaderLabels(self.colHeaders)
-        self.setStyleSheet("QTableWidget::item { padding: 4px } QTableWidget::item:selected{ background-color: rgba(255, 255, 255, 100%) }");
+
+        palette = self.palette()
+        hightlight_brush = palette.brush(QPalette.Highlight)
+        hightlight_brush.setColor(QColor('white'))
+        palette.setBrush(QPalette.Highlight, hightlight_brush)
+
+        palette.setColor(QPalette.HighlightedText, (QColor('black')))
+        self.setPalette(palette)
+        #self.setStyleSheet("QTableWidget::item { padding: 4px } QTableWidget::item:selected{ background-color: rgba(255, 255, 255, 100%) }");
 
         #click in Tabellenzelle
         #self.clicked.connect(self.georefTableCellClick)
         #click auf row
         #self.verticalHeader().sectionClicked.connect(self.georefTableRowClick)
 
-    def removeFeature(self):
+    def showDialog(self):
+
         print('removeFeature')
         button = self.sender()
         if button:
             row = self.indexAt(button.pos()).row()
-            print('row', row)
-            self.removeRow(row)
 
-            self.pup.publish('removeFeatureByUuid', button.uuid)
+            msgBox = QMessageBox()
+            msgBox.setIcon(QMessageBox.Information)
+            msgBox.setText("Wollen Sie das Objekt wirklich löschen? Es wird ebenfalls aus dem Eingabelayer entfernt!")
+            msgBox.setWindowTitle("Löschen")
+            msgBox.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
 
+            returnValue = msgBox.exec()
+            if returnValue == QMessageBox.Ok:
+                self.removeRow(row)
+                self.pup.publish('removeFeatureByUuid', button.uuid)
 
     ## \brief Update der Tabelle
     #
@@ -121,8 +136,7 @@ class DigitizeTable(QTableWidget):
         deleteBtn = QPushButton()
         deleteBtn.setIcon(iconDel)
         deleteBtn.uuid = dataObj['uuid']
-        #setPointRadio.pointUUID = pointObj['uuid']
         deleteBtn.setStyleSheet("margin-left:50%; margin-right:50%; bsckground-color:transparent; border:none;");
         self.setCellWidget(rowPosition, 7, deleteBtn)
-        deleteBtn.clicked.connect(self.removeFeature)
+        deleteBtn.clicked.connect(self.showDialog)
         tableHeader.setSectionResizeMode(7, QHeaderView.ResizeToContents)
