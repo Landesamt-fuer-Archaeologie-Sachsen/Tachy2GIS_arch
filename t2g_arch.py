@@ -338,6 +338,7 @@ class T2G_Arch:
         self.myDlgAutoAttribut = None
         self.selectFeatures = []
         self.selFeatureTemp = None
+        self.abbruch = None
 
         self.iconpfad = os.path.join(os.path.dirname(__file__), 'Icons')
         self.xmlFile = xml(self.plugin_dir + '/settings.xml')
@@ -557,7 +558,6 @@ class T2G_Arch:
             ####################################################################
 
             self.dockwidget.butLookForMissingAttributes.clicked.connect(self.myDwgLookForMissingAttributesShow)
-
             self.setup()
 
     def setup(self):
@@ -1102,7 +1102,7 @@ class T2G_Arch:
         else:
             output_file = QFileDialog.getSaveFileName(None, 'Speicherpfad',
                                                       QgsProject.instance().readPath('./../Jobs'),
-                                                      'Excel (*.csv);;Alle Dateien (*.*)')
+                                                      'Text (*.txt);;Excel (*.csv);;Alle Dateien (*.*)')
             if output_file[0] != '':
                 output_file = open(output_file[0], 'w')
 
@@ -1205,6 +1205,11 @@ class T2G_Arch:
     ### Ergänzungen: C. Schubert (Landesamt für Archäologie Sachsen), 07.04.2020
 
     def profEntzpointExp(self):
+
+        FN_PROFILNUMMER = 'prof_nr'  # Feldname in der die Profilnummer steht
+        FN_DEF_FOTOENTZERRPUNKT = 'obj_type'  # Feldname in der die Entzerrpunkt-definition steht
+        AW_FOTOENTZERRPUNKT = 'Fotoentzerrpunkt'  # Entzerrpunkt-definition
+
         self.toolButton1.setDefaultAction(self.action6)
         profnr, ok = QInputDialog.getText(None, 'Profil', 'Profilnummer eingeben')
         if ok != True:
@@ -1212,11 +1217,12 @@ class T2G_Arch:
 
         # Linien-Layer für Profillinie aussuchen
         profLayer = QgsProject.instance().mapLayersByName('E_Line')[0]
-        suchstr = '"prof_nr"=' + '\'' + profnr + '\''
+        suchstr = '"' + FN_PROFILNUMMER + '"=' + '\'' + profnr + '\''
         it = profLayer.getFeatures(QgsFeatureRequest(QgsExpression(suchstr)))
         ids = [i.id() for i in it]
         profLayer.selectByIds(ids)
-        if profLayer.selectedFeatureCount() == 0:
+
+        if str(profLayer.selectedFeatureCount()) == '0':
             QMessageBox.information(None, "Meldung", u"Kein Profil gefunden!")
             return
         elif profLayer.selectedFeatureCount() > 1:
@@ -1234,7 +1240,7 @@ class T2G_Arch:
                 for part in parts:
                     for vertex in part.vertices():
                         koordlist.append({'x': vertex.x(), 'y': vertex.y()})
-                QgsMessageLog.logMessage(str(koordlist[0]['x']) , 'T2G Archäologie', Qgis.Info)
+                QgsMessageLog.logMessage(str(koordlist[0]['x']), 'T2G Archäologie', Qgis.Info)
                 pointAx = koordlist[0]['x']
                 pointAy = koordlist[0]['y']
                 pointBx = koordlist[-0]['x']
@@ -1271,14 +1277,15 @@ class T2G_Arch:
                 view = "S"
             elif angle > 270:
                 view = "E"
-    ### Ende Blickrichtung bestimmen
-
+        ### Ende Blickrichtung bestimmen
 
         feats = []
         ok = True
         profPointLayer = QgsProject.instance().mapLayersByName('E_Point')[0]
-        such2 = '"obj_art"=\'Fotoentzerrpunkt\' and '
-        #such2 = '"obj_type"=\'V_Referenzierungspunkt\' and '
+        # such2 = '"obj_art"=\'Fotoentzerrpunkt\' and '
+        # such2 = '"obj_type"=\'V_Referenzierungspunkt\' and '
+        # such2 = '"obj_type"='+ '\''+ AW_FOTOENTZERRPUNKT + '\' and '
+        such2 = '"' + FN_DEF_FOTOENTZERRPUNKT + '"=' + '\'' + AW_FOTOENTZERRPUNKT + '\' and '
         it = profPointLayer.getFeatures(QgsFeatureRequest(QgsExpression(str(such2 + suchstr))))
         QgsMessageLog.logMessage(str(such2 + suchstr), 'T2G Archäologie', Qgis.Info)
         ids = [i.id() for i in it]
@@ -1288,20 +1295,36 @@ class T2G_Arch:
             return
         # QgsMessageLog.logMessage('aaa ' + len(geom.featureCount()), 'T2G Archäologie', Qgis.Info)
 
+        #######
+        msgout = '%s, %s, %s, %s, %s, %s, %s\n' % ('punktnr', 'x', 'y', 'z', 'profnr', 'view', 'pointsused')
+        feats.append(msgout)
         for feat in profPointLayer.selectedFeatures():
-            x = feat.geometry().get().x()  # round(float((coord[0]).replace("(", "")), 3)
-            y = feat.geometry().get().y()  # round(float((coord[1])), 3)
-            z = feat.geometry().get().z()  # round(float((coord[2]).replace(")", "")), 3)
-            value = '---'
+            koordlist = []
+            if feat.geometry().isMultipart():
+                # Multipart
+                parts = feat.geometry().asGeometryCollection()
+                for part in parts:
+                    for vertex in part.vertices():
+                        koordlist.append({'x': vertex.x(), 'y': vertex.y(), 'z': vertex.z()})
+                        QgsMessageLog.logMessage(str(vertex.z()), 'T2G Archäologie', Qgis.Info)
+                x = koordlist[0]['x']
+                y = koordlist[0]['y']
+                z = koordlist[0]['z']
+            else:
+                # Singlepart
+                x = feat.geometry().get().x()  # round(float((coord[0]).replace("(", "")), 3)
+                y = feat.geometry().get().y()  # round(float((coord[1])), 3)
+                z = feat.geometry().get().z()  # round(float((coord[2]).replace(")", "")), 3)
+                value = '---'
             try:
-                value = feat["aktcode"] + '_' + feat["ptnr"]  # Fehler
+                value = str(feat["aktcode"]) + '_' + str(feat["ptnr"])  # Fehler
             except Exception as e:
                 QgsMessageLog.logMessage(str(e), 'T2G Archäologie', Qgis.Info)
                 pass
-
+            ###
             msgout = '%s, %s, %s, %s, %s, %s, %s\n' % (value, x, y, z, profnr, view, 1)
-            if feat["obj_type"] != 'Fotoentzerrpunkt' or feat["prof_nr"] == '':
-            #if feat["obj_art"] != 'Fotoentzerrungspunkt' or feat["prof_nr"] == '':
+            # if feat["obj_type"] != 'Fotoentzerrpunkt' or feat["prof_nr"] == '':
+            if feat[FN_DEF_FOTOENTZERRPUNKT] != AW_FOTOENTZERRPUNKT or feat[FN_PROFILNUMMER] == '':
                 ok = False
             feats.append(msgout)
         delLayer("Prof Entzerrpunkte AAR-Tool")
@@ -1339,48 +1362,49 @@ class T2G_Arch:
             buttonY.setFocus()
             box.exec_()
 
-            if box.clickedButton() == buttonN or box.clickedButton() == buttonA :
+            if box.clickedButton() == buttonN or box.clickedButton() == buttonA:
                 # csv-Datei
                 output_file = QFileDialog.getSaveFileName(None, 'Speicherpfad',
-                                                      QgsProject.instance().readPath('./../Jobs'),
-                                                      'Excel (*.csv);;Alle Dateien (*.*)')
+                                                          QgsProject.instance().readPath('./../Jobs'),
+                                                          'Excel (*.csv);;Excel (*.txt);;Alle Dateien (*.*)')
                 if output_file[0] != '':
                     # write to csv
                     output_file = open(output_file[0], 'w')
                     for item in feats:
                         output_file.write(item.replace(' ', ''))
                     output_file.close()
-            vl=None
+            vl = None
             if box.clickedButton() == buttonY or box.clickedButton() == buttonA:
                 # templayer erzeugen
                 vl = QgsVectorLayer("Point", "Prof Entzerrpunkte AAR-Tool", "memory")
                 # change memorylayer crs to layer crs
                 vl.setCrs(profPointLayer.crs())
                 pr = vl.dataProvider()
-                pr.addAttributes([QgsField("punktnr", QVariant.String,'text'),
-                                  QgsField("x", QVariant.Double,'double'),
-                                  QgsField("y", QVariant.Double,'double'),
-                                  QgsField("z", QVariant.Double,'double'),
-                                  QgsField("profilnr", QVariant.Int,'integer'),
-                                  QgsField("view", QVariant.String,'text'),
-                                  QgsField("points used", QVariant.Int,'integer')])
+                pr.addAttributes([QgsField("punktnr", QVariant.String, 'text'),
+                                  QgsField("x", QVariant.Double, 'double'),
+                                  QgsField("y", QVariant.Double, 'double'),
+                                  QgsField("z", QVariant.Double, 'double'),
+                                  QgsField("profilnr", QVariant.Int, 'integer'),
+                                  QgsField("view", QVariant.String, 'text'),
+                                  QgsField("points used", QVariant.Int, 'integer')])
                 vl.updateFields()
                 feat = QgsFeature()
                 for item in feats:
                     it = item.split(',')
                     point = QgsPoint(float(it[1]), float(it[2]), float(it[3]))
                     feat.setGeometry(QgsGeometry(point))
-                    feat.setAttributes([str(it[0]),point.x(),point.y(),point.z(),int(it[4]),str(it[5]),int(it[6])])
+                    feat.setAttributes(
+                        [str(it[0]), point.x(), point.y(), point.z(), int(it[4]), str(it[5]), int(it[6])])
                     pr.addFeatures([feat])
-                    #QgsMessageLog.logMessage(str(it[1]), 'T2G Archäologie', Qgis.Info)
+                    # QgsMessageLog.logMessage(str(it[1]), 'T2G Archäologie', Qgis.Info)
                 # add memorylayer to canvas
                 QgsProject.instance().addMapLayer(vl, False)
                 root = QgsProject.instance().layerTreeRoot()
                 g = root.findGroup('Vermessung')
                 g.insertChildNode(0, QgsLayerTreeLayer(vl))
             delSelectFeature()
-            my_plugin = plugins.get('profileAAR')
-            my_plugin.run()
+            #my_plugin = plugins.get('profileAAR')
+            #my_plugin.run()
 
 
     def getMaxValues(self):
@@ -2043,37 +2067,77 @@ class T2G_Arch:
                     self.iface.mapCanvas().currentLayer().selectAll()
                     self.iface.mapCanvas().currentLayer().invertSelection()
 
+    def setAbbruch(self):
+        self.abbruch = True
+        iface.messageBar().clearWidgets()
+
+    def createCancellationMessage(self, text):
+        iface.messageBar().clearWidgets()
+        widgetMessage = iface.messageBar().createMessage(text)
+        button = QPushButton(widgetMessage)
+        button.setText("Abbruch")
+        button.pressed.connect(self.setAbbruch)
+        widgetMessage.layout().addWidget(button)
+        #button = QPushButton(widgetMessage)
+        #button.setText("Weiter")
+        #widgetMessage.layout().addWidget(button)
+        iface.messageBar().pushWidget(widgetMessage, Qgis.Info)
+
     def contactClip(self):
         self.toolButton2.setDefaultAction(self.action8)
+        self.mapToolSel = IdentifyGeometry(self.mapCanvas)
+        self.iface.mapCanvas().setMapTool(self.mapToolSel)
+        self.mapToolSel.geomIdentified.connect(self.featureSelect2)
         rubberlist = []
+        featurelist = []
+        self.abbruch = False
+        self.selectedFeature = None
         layer = self.iface.mapCanvas().currentLayer()
-        if layer.type() == QgsMapLayer.VectorLayer:
-            if layer.geometryType() == QgsWkbTypes.PolygonGeometry:
-                iface.messageBar().pushMessage(u"T2G Archäologie:  ", u"Vorlagenobjekt wählen.", level=Qgis.Info)
-                self.iface.mapCanvas().setMapTool(self.mapToolSel)
-                while len(layer.selectedFeatures()) == 0:
-                    QApplication.processEvents()
-                fsel =layer.selectedFeatures()[0]
-                delSelectFeature()
+        try:
+            if layer.type() == QgsMapLayer.VectorLayer:
+                if layer.geometryType() == QgsWkbTypes.PolygonGeometry:
+                    self.createCancellationMessage('Schablone wählen.')
+                    while self.selectedFeature == None:
+                        if self.abbruch == True:
+                            raise NameError
+                        QApplication.processEvents()
+                    while len(featurelist) < 1 :
+                        # Feature eins
+                        while self.selectedFeature is None:
+                            if self.abbruch == True:
+                                raise NameError
+                            QApplication.processEvents()
 
-                r = QgsRubberBand(iface.mapCanvas(), True)
-                r.setToGeometry(fsel.geometry(), None)
-                r.setColor(QColor(0, 0, 255, 180))
-                r.setWidth(5)
-                r.show()
-                rubberlist.append(r)
+                        if self.selectedLayer.name() == 'E_Polygon':
+                            fsel = self.selectedFeature
+                            r = QgsRubberBand(iface.mapCanvas(), True)
+                            r.setToGeometry(fsel.geometry(), None)
+                            r.setColor(QColor(0, 0, 255, 180))
+                            r.setWidth(5)
+                            r.show()
+                            rubberlist.append(r)
+                            featurelist.append(self.selectedFeature)
+                        layer.removeSelection()
+                        self.selectedFeature = None
+                        # Feature zwei
+                        iface.messageBar().popWidget()
+                        self.createCancellationMessage('Schnittobjekt wählen.')
+                        while self.selectedFeature is None:
+                            if self.abbruch == True:
 
-                iface.messageBar().pushMessage(u"T2G Archäologie:  ", u"Zu schneidendes Objekt wählen.", level=Qgis.Info)
+                                for maker in rubberlist:
+                                    iface.mapCanvas().scene().removeItem(maker)
 
-                while len(layer.selectedFeatures()) == 0 :
-                    QApplication.processEvents()
-                #QgsMessageLog.logMessage("weiter", 'T2G Archäologie', Qgis.Info)
+                                raise NameError
+                            QApplication.processEvents()
+                        if self.selectedLayer.name() == 'E_Polygon':
+                            featurelist.append(self.selectedFeature)
+                            selection = self.selectedFeature
 
-                selection = layer.selectedFeatures()
 
-                layer.startEditing()
-                for g in selection:
-                    if g.id() != fsel.id():
+
+                for g in featurelist:
+                    if g.id() != featurelist [0].id():
                         if (g.geometry().intersects(fsel.geometry())):
                             # clipping non selected intersecting features
                             attributes = g.attributes()
@@ -2108,31 +2172,46 @@ class T2G_Arch:
 
                             size = box.size()
                             desktopsize = QtWidgets.QDesktopWidget().screenGeometry()
-                            top = (desktopsize.height() / 2) - (size.height()-200)
+                            top = (desktopsize.height() / 2) - (size.height() - 200)
                             left = (desktopsize.width() / 2) - (size.width())
                             box.move(left, top)
 
                             box.exec_()
 
                             if box.clickedButton() == buttonY:
+                                layer.startEditing()
                                 layer.addFeature(diff)
                                 layer.deleteFeature(g.id())
-                                #indx = diff.fields().indexFromName('id')
-                                #layer.changeAttributeValue(diff.id(),indx,diff.id())
+                                layer.commitChanges()
+                                layer.endEditCommand()
+
                             elif box.clickedButton() == buttonN:
                                 layer.deleteFeature(diff.id())
+                                #layer.commitChanges()
+                                #layer.endEditCommand()
                                 pass
+        except NameError:
+            QgsMessageLog.logMessage('Abbruch', 'T2G Archäologie', Qgis.Info)
+            pass
+        for maker in rubberlist:
+            iface.mapCanvas().scene().removeItem(maker)
 
-                for maker in rubberlist:
-                    iface.mapCanvas().scene().removeItem(maker)
+        #layer.commitChanges()
+        #layer.endEditCommand()
+        layer.removeSelection()
+        iface.actionSelect().trigger()
+        iface.messageBar().clearWidgets()
+        #self.selectedFeature == None
+        self.mapToolSel.geomIdentified.disconnect()
 
-                layer.commitChanges()
-                #layer.startEditing()
-                layer.removeSelection()
-                iface.actionSelect().trigger()
 
     def featureSelect2(self,layer,feature):
-        layer.select(int(feature.id()))
+        self.selectedLayer = layer
+        self.selectedFeature = feature
+        self.iface.setActiveLayer(self.selectedLayer)
+        self.selectedLayer.select(int(self.selectedFeature.id()))
+        #layer.select(int(feature.id()))
+        QgsMessageLog.logMessage(str(layer.name())+str(feature.id()), 'aaa', Qgis.Info)
 
     def selectFeatureChanged(self,fselected, fdeselected):
         QgsMessageLog.logMessage('sel' + str(fselected), 'T2G Archäologie', Qgis.Info)
@@ -2203,3 +2282,4 @@ class PrintClickedPoint(QgsMapToolEmitPoint):
             self.dlg.txtPointTemp.setText(str(point.x())+','+str(point.y()))
         except:
             pass
+
