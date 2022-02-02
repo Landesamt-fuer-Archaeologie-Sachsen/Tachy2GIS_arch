@@ -186,7 +186,10 @@ def maxValue(layer, fieldname):
                             index = index + 1
                         values.append(int(zahl))
                         pass
-    delSelectFeature()
+    #Scheint nicht zu gehen???
+    #layer.removeSelection() eingefügt damit die Layer nicht zu Beginn alle selektiert sind
+    #delSelectFeature()
+    layer.removeSelection()
     return int(max(values))
 
 def maxValueInt (layer, fieldname):

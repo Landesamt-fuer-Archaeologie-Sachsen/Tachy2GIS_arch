@@ -2,18 +2,27 @@
 <ui version="4.0">
  <class>T2G_ArchDockWidgetBase</class>
  <widget class="QDockWidget" name="T2G_ArchDockWidgetBase">
+  <property name="enabled">
+   <bool>true</bool>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>208</width>
-    <height>898</height>
+    <width>426</width>
+    <height>937</height>
    </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
   </property>
   <property name="minimumSize">
    <size>
-    <width>198</width>
-    <height>635</height>
+    <width>200</width>
+    <height>662</height>
    </size>
   </property>
   <property name="maximumSize">
@@ -28,17 +37,23 @@
     <height>0</height>
    </size>
   </property>
+  <property name="floating">
+   <bool>false</bool>
+  </property>
   <property name="windowTitle">
    <string>T2G Archäologie</string>
   </property>
   <widget class="QWidget" name="dockWidgetContents">
    <property name="sizePolicy">
-    <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+    <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
      <horstretch>0</horstretch>
      <verstretch>0</verstretch>
     </sizepolicy>
    </property>
    <layout class="QGridLayout" name="gridLayout">
+    <property name="sizeConstraint">
+     <enum>QLayout::SetDefaultConstraint</enum>
+    </property>
     <property name="leftMargin">
      <number>2</number>
     </property>
@@ -58,73 +73,8 @@
       </property>
      </widget>
     </item>
-    <item row="17" column="0">
-     <widget class="QPushButton" name="butHilfe">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="sizeIncrement">
-       <size>
-        <width>7</width>
-        <height>7</height>
-       </size>
-      </property>
-      <property name="baseSize">
-       <size>
-        <width>0</width>
-        <height>0</height>
-       </size>
-      </property>
-      <property name="toolTip">
-       <string extracomment="Hilfe"/>
-      </property>
-      <property name="text">
-       <string/>
-      </property>
-      <property name="icon">
-       <iconset>
-        <normalon>Icons/Frage.gif</normalon>
-       </iconset>
-      </property>
-      <property name="iconSize">
-       <size>
-        <width>15</width>
-        <height>15</height>
-       </size>
-      </property>
-      <property name="autoDefault">
-       <bool>false</bool>
-      </property>
-      <property name="default">
-       <bool>false</bool>
-      </property>
-     </widget>
-    </item>
     <item row="0" column="0">
      <widget class="QLabel" name="labAtt">
-      <property name="font">
-       <font>
-        <pointsize>9</pointsize>
-        <weight>75</weight>
-        <bold>true</bold>
-       </font>
-      </property>
-      <property name="text">
-       <string>TextLabel</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-      <property name="wordWrap">
-       <bool>true</bool>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="0">
-     <widget class="QLabel" name="labZahl">
       <property name="font">
        <font>
         <pointsize>9</pointsize>
@@ -171,15 +121,15 @@
        <enum>QFrame::NoFrame</enum>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>5</number>
       </property>
       <widget class="QWidget" name="page_1">
        <property name="geometry">
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>204</width>
-         <height>595</height>
+         <width>98</width>
+         <height>28</height>
         </rect>
        </property>
        <attribute name="label">
@@ -881,7 +831,7 @@
          <x>0</x>
          <y>0</y>
          <width>284</width>
-         <height>578</height>
+         <height>497</height>
         </rect>
        </property>
        <property name="sizePolicy">
@@ -976,7 +926,7 @@
           </layout>
          </widget>
         </item>
-        <item alignment="Qt::AlignTop">
+        <item>
          <widget class="QGroupBox" name="layerTransformGroupBox">
           <property name="enabled">
            <bool>true</bool>
@@ -1148,8 +1098,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>204</width>
-         <height>595</height>
+         <width>98</width>
+         <height>28</height>
         </rect>
        </property>
        <attribute name="label">
@@ -1192,6 +1142,7 @@
         </property>
         <property name="font">
          <font>
+          <pointsize>8</pointsize>
           <weight>75</weight>
           <bold>true</bold>
          </font>
@@ -1211,6 +1162,7 @@
         </property>
         <property name="font">
          <font>
+          <pointsize>8</pointsize>
           <weight>75</weight>
           <bold>true</bold>
          </font>
@@ -1287,6 +1239,7 @@
         </property>
         <property name="font">
          <font>
+          <pointsize>8</pointsize>
           <weight>75</weight>
           <bold>true</bold>
          </font>
@@ -1336,6 +1289,9 @@
         </property>
         <property name="font">
          <font>
+          <pointsize>8</pointsize>
+          <weight>50</weight>
+          <bold>false</bold>
           <underline>true</underline>
          </font>
         </property>
@@ -1400,8 +1356,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>204</width>
-         <height>595</height>
+         <width>98</width>
+         <height>28</height>
         </rect>
        </property>
        <attribute name="label">
@@ -1729,13 +1685,16 @@
          <x>0</x>
          <y>0</y>
          <width>336</width>
-         <height>578</height>
+         <height>335</height>
         </rect>
        </property>
        <attribute name="label">
         <string>Tools Geometrie</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_2">
+        <property name="sizeConstraint">
+         <enum>QLayout::SetDefaultConstraint</enum>
+        </property>
         <item>
          <widget class="QTabWidget" name="geometryEditMainTabWidget">
           <property name="sizePolicy">
@@ -1750,7 +1709,7 @@
 }</string>
           </property>
           <property name="currentIndex">
-           <number>2</number>
+           <number>0</number>
           </property>
           <widget class="QWidget" name="lfaWidgetVerschieben">
            <property name="styleSheet">
@@ -2119,13 +2078,291 @@
         </item>
        </layout>
       </widget>
+      <widget class="QWidget" name="page_7">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>422</width>
+         <height>607</height>
+        </rect>
+       </property>
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <attribute name="label">
+        <string>Profile</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_4">
+        <property name="sizeConstraint">
+         <enum>QLayout::SetDefaultConstraint</enum>
+        </property>
+        <item>
+         <widget class="QTabWidget" name="profileMainTabWidget">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">#profileMainTabWidget{
+	background-color:  rgb(240,240,240)
+}</string>
+          </property>
+          <property name="currentIndex">
+           <number>0</number>
+          </property>
+          <widget class="QWidget" name="profileGeoreferencing">
+           <property name="styleSheet">
+            <string notr="true">#profileGeoreferencing{
+	background-color:  rgb(240,240,240)
+}</string>
+           </property>
+           <attribute name="title">
+            <string>Georeferenzierung</string>
+           </attribute>
+           <layout class="QFormLayout" name="formLayout_5">
+            <item row="0" column="0">
+             <widget class="QLabel" name="label_31">
+              <property name="text">
+               <string>Profillayer</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QgsMapLayerComboBox" name="layerProfileGeoref"/>
+            </item>
+            <item row="2" column="0">
+             <widget class="QLabel" name="label_26">
+              <property name="text">
+               <string>Profilnummer</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="1">
+             <widget class="QComboBox" name="profileIdsComboGeoref"/>
+            </item>
+            <item row="5" column="0">
+             <widget class="QLabel" name="label_27">
+              <property name="text">
+               <string>Profilfoto</string>
+              </property>
+             </widget>
+            </item>
+            <item row="5" column="1">
+             <widget class="QgsFileWidget" name="profileFotosComboGeoref"/>
+            </item>
+            <item row="6" column="0">
+             <widget class="QLabel" name="label_28">
+              <property name="text">
+               <string>Blickrichtung auf das Profil</string>
+              </property>
+             </widget>
+            </item>
+            <item row="6" column="1">
+             <widget class="QComboBox" name="profileViewDirectionComboGeoref"/>
+            </item>
+            <item row="8" column="0">
+             <widget class="QLabel" name="label_29">
+              <property name="text">
+               <string>Entzerrungsebene</string>
+              </property>
+             </widget>
+            </item>
+            <item row="8" column="1">
+             <layout class="QHBoxLayout" name="horizontalLayout_5">
+              <item>
+               <widget class="QRadioButton" name="radioDirectionHorizontal">
+                <property name="text">
+                 <string>Vertikal</string>
+                </property>
+                <property name="checked">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QRadioButton" name="radioDirectionOriginal">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="text">
+                 <string>Geneigt</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item row="10" column="0">
+             <widget class="QLabel" name="label_30">
+              <property name="text">
+               <string>Speichern unter</string>
+              </property>
+             </widget>
+            </item>
+            <item row="10" column="1">
+             <widget class="QgsFileWidget" name="profileSaveComboGeoref"/>
+            </item>
+            <item row="11" column="1">
+             <widget class="QCheckBox" name="metaProfileCheckbox">
+              <property name="text">
+               <string>Metadaten zur Profilentzerrung speichern</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item row="12" column="1">
+             <widget class="QPushButton" name="startGeoreferencingBtn">
+              <property name="styleSheet">
+               <string notr="true">background-color : green</string>
+              </property>
+              <property name="text">
+               <string>Start</string>
+              </property>
+             </widget>
+            </item>
+            <item row="13" column="1">
+             <spacer name="verticalSpacer_4">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeType">
+               <enum>QSizePolicy::Maximum</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>1000</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item row="14" column="1">
+             <layout class="QHBoxLayout" name="horizontalLayout_6">
+              <property name="topMargin">
+               <number>9</number>
+              </property>
+              <property name="bottomMargin">
+               <number>9</number>
+              </property>
+              <item>
+               <spacer name="horizontalSpacer_5">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item>
+               <widget class="QPushButton" name="pushButton_13">
+                <property name="text">
+                 <string>Info</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item row="4" column="1">
+             <widget class="QgsMapLayerComboBox" name="layerGcpGeoref"/>
+            </item>
+            <item row="4" column="0">
+             <widget class="QLabel" name="label_32">
+              <property name="text">
+               <string>Punktlayer</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+          <widget class="QWidget" name="profileDigitalization">
+           <property name="styleSheet">
+            <string notr="true">#profileDigitalization{
+	background-color:  rgb(240,240,240)
+}</string>
+           </property>
+           <attribute name="title">
+            <string>Digitalisierung</string>
+           </attribute>
+           <layout class="QFormLayout" name="formLayout_6">
+            <item row="1" column="0">
+             <widget class="QLabel" name="label_3">
+              <property name="text">
+               <string>Profilbild</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="0">
+             <widget class="QLabel" name="label_33">
+              <property name="text">
+               <string>Punktlayer</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="1">
+             <widget class="QgsMapLayerComboBox" name="pointLayerDigitize"/>
+            </item>
+            <item row="3" column="0">
+             <widget class="QLabel" name="label_34">
+              <property name="text">
+               <string>Linienlayer</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="1">
+             <widget class="QgsMapLayerComboBox" name="lineLayerDigitize"/>
+            </item>
+            <item row="7" column="1">
+             <widget class="QPushButton" name="startDigitizeBtn">
+              <property name="styleSheet">
+               <string notr="true">background-color : green</string>
+              </property>
+              <property name="text">
+               <string>Start</string>
+              </property>
+             </widget>
+            </item>
+            <item row="5" column="0">
+             <widget class="QLabel" name="label_35">
+              <property name="text">
+               <string>Polygonlayer</string>
+              </property>
+             </widget>
+            </item>
+            <item row="5" column="1">
+             <widget class="QgsMapLayerComboBox" name="polygonLayerDigitize"/>
+            </item>
+            <item row="1" column="1">
+             <widget class="QgsFileWidget" name="profileDigitize"/>
+            </item>
+           </layout>
+          </widget>
+          <widget class="QWidget" name="tab">
+           <attribute name="title">
+            <string>Profilplan</string>
+           </attribute>
+          </widget>
+         </widget>
+        </item>
+       </layout>
+      </widget>
       <widget class="QWidget" name="page_2">
        <property name="geometry">
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>204</width>
-         <height>595</height>
+         <width>98</width>
+         <height>28</height>
         </rect>
        </property>
        <attribute name="label">
@@ -2254,8 +2491,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>204</width>
-         <height>595</height>
+         <width>98</width>
+         <height>28</height>
         </rect>
        </property>
        <attribute name="label">
@@ -2308,6 +2545,71 @@
         </property>
        </widget>
       </widget>
+     </widget>
+    </item>
+    <item row="17" column="0">
+     <widget class="QPushButton" name="butHilfe">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="sizeIncrement">
+       <size>
+        <width>7</width>
+        <height>7</height>
+       </size>
+      </property>
+      <property name="baseSize">
+       <size>
+        <width>0</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="toolTip">
+       <string extracomment="Hilfe"/>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="icon">
+       <iconset>
+        <normalon>Icons/Frage.gif</normalon>
+       </iconset>
+      </property>
+      <property name="iconSize">
+       <size>
+        <width>15</width>
+        <height>15</height>
+       </size>
+      </property>
+      <property name="autoDefault">
+       <bool>false</bool>
+      </property>
+      <property name="default">
+       <bool>false</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="0">
+     <widget class="QLabel" name="labZahl">
+      <property name="font">
+       <font>
+        <pointsize>9</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>TextLabel</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+      <property name="wordWrap">
+       <bool>true</bool>
+      </property>
      </widget>
     </item>
    </layout>

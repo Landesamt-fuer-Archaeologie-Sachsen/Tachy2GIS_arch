@@ -369,9 +369,6 @@ class GeoEdit():
         notInputLayers = self.__getNotInputlayers()
         inputLayers = self.__getInputlayers(False)
 
-        print('inputLayers', inputLayers)
-        print('notInputLayers', notInputLayers)
-
         self.__dockwidget.layerGeometryMove.setExceptedLayerList(notInputLayers)
 
         for layer in inputLayers:

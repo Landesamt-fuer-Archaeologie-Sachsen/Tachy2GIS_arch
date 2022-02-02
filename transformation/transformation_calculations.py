@@ -2,7 +2,6 @@
 import os
 import numpy as np
 import math
-from scipy import stats
 
 from qgis.core import QgsGeometry, QgsApplication, QgsRectangle
 from processing.gui import AlgorithmExecutor
@@ -432,8 +431,34 @@ class TransformationCalculations():
             z_residuals = targetPointsZ[i]  - (sourcePointsZ[i] + translation_z)
             residuals.append([targetPointsZ[i], sourcePointsZ[i], z_residuals, origin[i][3]])
 
-        linEq = stats.linregress(sourcePointsZ, targetPointsZ)
-        std_z = linEq.stderr
+
+        sourcePointsZ_t = np.vstack([sourcePointsZ, np.ones(len(sourcePointsZ))]).T
+        linegress, rsd, rank, s = np.linalg.lstsq(sourcePointsZ_t, targetPointsZ, rcond=None)
+
+        n = len(targetPointsZ)
+        k = len(linegress)
+
+        errors = targetPointsZ - np.dot(sourcePointsZ_t, linegress)
+        sigma2 = np.sum(errors**2) / (n - k)  # RMSE
+
+        covariance = np.linalg.inv(np.dot(sourcePointsZ_t.T, sourcePointsZ_t))
+
+        C = sigma2 * covariance
+        dC = np.diag(C)
+
+        if (dC < 0.0).any():
+            print('\n{0}\ndetected a negative number in your'
+                          'covariance matrix. Taking the absolute value'
+                          'of the diagonal. something is probably wrong'
+                          'with your data or model'.format(dC))
+            dC = np.abs(dC)
+
+        se = np.sqrt(dC)  # standard error
+
+        std_z = se[0]
+
+        if (std_z < 0.01) or (np.isinf(std_z)):
+            std_z = 0
 
         return residuals, std_z
 

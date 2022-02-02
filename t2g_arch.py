@@ -50,6 +50,7 @@ from .ExtDialoge.myDwgLookForMissingAttributes import LookForMissingAttributesDo
 
 from .transformation.transformation_gui import TransformationGui
 from .geoEdit.geo_edit import GeoEdit
+from .profile.profile import Profile
 
 
 VERSION = 'LfA Sachsen ' + 'V 0.5.1' + ' für Qgis 3.10 -'
@@ -522,7 +523,10 @@ class T2G_Arch:
             QgsProject.instance().customVariablesChanged.connect(self.customVariablesChanged)
             self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
 
-            self.dockwidget.toolBox.currentChanged.connect(self.toolbox_currentChanged)
+            #Problem: durch self.dockwidget.setFixedWidth() verliert das dockWidget
+            #die Möglichkeit geresized zu werden
+            #die Layouts der einzelnen Abschnitte müssen responsive gemacht werden!
+            #self.dockwidget.toolBox.currentChanged.connect(self.toolbox_currentChanged)
             self.dockwidget.show()
             self.layerPoly.selectionChanged.connect(self.selectFeatureChanged)
 
@@ -543,7 +547,14 @@ class T2G_Arch:
 
             self.geoEdit = GeoEdit(self, self.iface)
             self.geoEdit.setup()
+            ####################################################################
 
+            ####################################################################
+            ############################# Profile #################
+            ####################################################################
+
+            self.profile = Profile(self, self.iface)
+            self.profile.setup()
             ####################################################################
 
             self.dockwidget.butLookForMissingAttributes.clicked.connect(self.myDwgLookForMissingAttributesShow)
@@ -561,12 +572,16 @@ class T2G_Arch:
 
         self.currentLayerChanged()
         self.customVariablesChanged()  # self.getValue()
+
         self.getMaxValues()
+
         self.dockwidget.txtautoSave.setText('15')
         self.dockwidget.chbautoSave.setChecked(True)
+
         self.enableAutoSave()
         self.dockwidget.labAtt.hide()
         self.dockwidget.txtPointTemp.hide()
+
         iface.messageBar().pushMessage(u"T2G Archäologie: ", u"Aufsatz Archäologie für T2G ist einsatzbereit.",
                                        level=Qgis.Info)
         QgsMessageLog.logMessage('Aufsatz Archäologie für T2G ist einsatzbereit.', 'T2G Archäologie', Qgis.Info)
@@ -578,6 +593,7 @@ class T2G_Arch:
         iface.messageBar().pushMessage(u"T2G Archäologie: ", u"Überprüfe UUID.", level=Qgis.Info)
         # >uuid ereugen wenn Feld uuid leer
         list = [self.layerPoly, self.layerLine, self.layerPoint, self.layerMesspoint]
+
         for layer in list:
             layer.startEditing()
             if layer.dataProvider().fieldNameIndex("uuid") == -1:
@@ -594,6 +610,7 @@ class T2G_Arch:
         # <uuid ereugen wenn Feld uuid leer
 
         self.FilterGesetzt()
+
 
     def toolbox_currentChanged(self,index):
         QgsMessageLog.logMessage(str(index), 'T2G Archäologie', Qgis.Info)
@@ -1406,6 +1423,7 @@ class T2G_Arch:
             for layer in layerlist:
 
                 max1 = maxValue(layer, 'bef_nr')
+
                 #QgsMessageLog.logMessage(str(max1), 'T2G Archäologie', Qgis.Info)
                 if BefNrMax < max1:
                     BefNrMax = max1
