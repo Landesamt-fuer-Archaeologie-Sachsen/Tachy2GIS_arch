@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QHeaderView, QComboBox, QCheckBox, QRadioButton
+from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QHeaderView, QCheckBox, QRadioButton
 from PyQt5.QtCore import Qt
 import numpy as np
 
@@ -287,13 +287,6 @@ class GeorefTable(QTableWidget):
 
         georefData = self.dataStoreGeoref.getGeorefData()
 
-        #nur die aktiven Punkte
-        print('juuju_georefData', georefData)
-
-        #alle Punkte
-        print('juuju_targetGCP', self.targetGCP)
-
-
         gcpArray = []
         for georefObj in georefData:
 
@@ -306,24 +299,17 @@ class GeorefTable(QTableWidget):
         rowCount = self.rowCount()
         columnCount = self.columnCount()
 
-        if len(georefData) > 2:
+        if len(georefData) > 4:
 
-            self.res.testFunc()
+            V_X, V_Y, V_XY, V_XY_uuid, mo, mox, moy = self.res.projective_trans(np.array(gcpArray))
 
-            print('Helmert', gcpArray)
-
-            #gcps = np.array([[100, 200, 5745674, 5745400], [150, 280, 5745654, 5745460], [400, 800, 5744574, 5747400]])
-
-            V_X, V_Y, V_XY, V_XY_uuid, mo, mox, moy, retA = self.res.helm_trans(np.array(gcpArray)) #cgps is numpy.array [x, y, Xmap, Ymap]
-
-            print('V_X', V_X)
-            print('V_Y', V_Y)
-            print('V_XY', V_XY)
-            print('V_XY_uuid', V_XY_uuid)
-            print('mo', mo)
-            print('mox', mox)
-            print('moy', moy)
-            print('retA', retA)
+            #print('V_X', V_X)
+            #print('V_Y', V_Y)
+            #print('V_XY', V_XY)
+            #print('V_XY_uuid', V_XY_uuid)
+            #print('mo', mo)
+            #print('mox', mox)
+            #print('moy', moy)
 
             for i in range(0, rowCount):
 
@@ -343,8 +329,6 @@ class GeorefTable(QTableWidget):
                     if head == 'Error':
                         self.item(i, j).setText(str(-99999))
                         for errorObj in V_XY_uuid:
-                            print('tblPointUuid', tblPointUuid)
-                            print('V_XY_uuid', errorObj['uuid'])
                             if errorObj['uuid'] == tblPointUuid:
                                 self.item(i, j).setText(str(round(errorObj['v_xy'], 4)))
         else:

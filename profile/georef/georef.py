@@ -1,13 +1,8 @@
 ## @package QGIS geoEdit extension..
-import shutil
 import os
 import math
 
-from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QMessageBox
-from qgis.core import QgsProject, QgsGeometry, QgsVectorLayer, QgsApplication, QgsLayerTreeGroup, QgsLayerTreeLayer, QgsRectangle, QgsVectorFileWriter, QgsWkbTypes
-from processing.gui import AlgorithmExecutor
-from qgis import processing
+from qgis.core import QgsProject, QgsVectorLayer, QgsLayerTreeGroup, QgsLayerTreeLayer, QgsWkbTypes
 
 from .data_store_georef import DataStoreGeoref
 from .georeferencing_dialog import GeoreferencingDialog
@@ -53,13 +48,13 @@ class Georef():
 
         self.__dockwidget.startGeoreferencingBtn.clicked.connect(self.__startGeoreferencingDialog)
 
-
         self.__dockwidget.layerGcpGeoref.currentIndexChanged.connect(self.__calculateViewDirection)
 
         self.__dockwidget.profileIdsComboGeoref.currentIndexChanged.connect(self.__calculateViewDirection)
 
         self.__dockwidget.layerProfileGeoref.currentIndexChanged.connect(self.__calculateViewDirection)
 
+        self.__dockwidget.profileInfoBtn.clicked.connect(self.__testProjective)
 
     ## \brief Start georeferencing dialog
     #
@@ -87,9 +82,6 @@ class Georef():
         pointLayer = self.__dockwidget.layerGcpGeoref.currentLayer().clone()
         pointLayer.setSubsetString("obj_type = 'Fotoentzerrpunkt' and obj_art = 'Profil' and prof_nr = '"+profileNumber+"'")
 
-        #transParams = self.dataStoreGeoref.getAarTransformationParams()
-
-        #print(transParams, 'transParams_iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii')
         #Zielkoordinaten
         targetGCP = {}
         targetGCP['points'] = []
