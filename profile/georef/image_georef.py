@@ -234,18 +234,11 @@ class ImageGeoref():
         pixelwidth = res_img
         pixelheight = res_img * -1
 
-        print('pixelwidth', pixelwidth)
-        print('pixelheight', pixelheight)
-
         lines = [str(pixelwidth), str(0.0), str(0.0), str(pixelheight), str(geo_ul[0]), str(geo_ul[1])]
         with open(worldfilePath, 'w') as f:
             for line in lines:
                 f.write(line)
                 f.write('\n')
-
-
-
-
 
 
     def startTranslate(self):
