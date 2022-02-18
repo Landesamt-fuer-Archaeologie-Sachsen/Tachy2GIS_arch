@@ -56,6 +56,7 @@ class Georef():
 
         #self.__dockwidget.profileInfoBtn.clicked.connect(self.__testProjective)
 
+
     ## \brief Start georeferencing dialog
     #
     #
