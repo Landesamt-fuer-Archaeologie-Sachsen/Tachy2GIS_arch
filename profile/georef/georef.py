@@ -54,7 +54,8 @@ class Georef():
 
         self.__dockwidget.layerProfileGeoref.currentIndexChanged.connect(self.__calculateViewDirection)
 
-        self.__dockwidget.profileInfoBtn.clicked.connect(self.__testProjective)
+        #self.__dockwidget.profileInfoBtn.clicked.connect(self.__testProjective)
+
 
     ## \brief Start georeferencing dialog
     #

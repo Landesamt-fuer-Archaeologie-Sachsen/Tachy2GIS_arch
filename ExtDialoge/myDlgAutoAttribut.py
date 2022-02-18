@@ -41,7 +41,11 @@ class dlgAutoAttribut(QtWidgets.QDialog):
         self.QgisDateiPfad = QgsProject.instance().readPath('./')
         self.ProjPfad = os.path.abspath(os.path.join(self.QgisDateiPfad, "./.."))
 
-        self.ui.labActLayer.setText('akt. Layer:    ' + self.iface.activeLayer().name())
+        if self.iface.activeLayer():
+            self.ui.labActLayer.setText('akt. Layer:    ' + self.iface.activeLayer().name())
+        else:
+            self.ui.labActLayer.setText('akt. Layer:    ')
+
 
         self.getStatAttribute()
         self.getAutoAttribute()
@@ -165,12 +169,13 @@ class dlgAutoAttribut(QtWidgets.QDialog):
             self.ui.groupBox_2.setChecked(False)
 
         self.ui.cboobjTyp.clear()
-        if self.iface.activeLayer().name() == 'E_Point':
-            swert='Punkt'
-        else:
-            swert='Linie'
-        self.ui.cboobjTyp.addItem('')
-        self.ui.cboobjTyp.addItems(csvListfilter(os.path.join(self.ProjPfad, 'Listen\Objekttypen.csv'), 0, 4, swert,''))
+        if self.iface.activeLayer():
+            if self.iface.activeLayer().name() == 'E_Point':
+                swert='Punkt'
+            else:
+                swert='Linie'
+            self.ui.cboobjTyp.addItem('')
+            self.ui.cboobjTyp.addItems(csvListfilter(os.path.join(self.ProjPfad, 'Listen\Objekttypen.csv'), 0, 4, swert,''))
 
         self.ui.cboobjTyp.setCurrentText(getCustomProjectVariable('obj_type'))
         self.ui.cboobjArt.setCurrentText(getCustomProjectVariable('obj_art'))
