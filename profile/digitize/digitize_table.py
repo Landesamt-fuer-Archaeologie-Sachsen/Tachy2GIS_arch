@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
-from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QHeaderView, QComboBox, QPushButton, QMessageBox
+from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QHeaderView, QPushButton, QMessageBox
 from PyQt5.QtGui import QIcon, QPalette, QColor
 from PyQt5.QtCore import Qt
 

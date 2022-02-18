@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 import os
 import processing
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QFont, QColor
-from qgis.core import QgsVectorLayer, QgsRasterLayer, QgsMarkerSymbol, QgsPalLayerSettings, QgsTextFormat, QgsTextBufferSettings, QgsVectorLayerSimpleLabeling, QgsMarkerLineSymbolLayer, QgsSimpleMarkerSymbolLayer, QgsSimpleLineSymbolLayer, QgsLineSymbol, QgsFillSymbol, QgsSingleSymbolRenderer, QgsCategorizedSymbolRenderer, QgsRendererCategory, QgsPoint, QgsCoordinateReferenceSystem
+from PyQt5.QtGui import QFont
+from qgis.core import QgsRasterLayer, QgsMarkerSymbol, QgsPalLayerSettings, QgsTextFormat, QgsVectorLayerSimpleLabeling, QgsMarkerLineSymbolLayer, QgsLineSymbol, QgsFillSymbol, QgsCategorizedSymbolRenderer, QgsRendererCategory
 from qgis.gui import QgsMapCanvas, QgsMapToolPan, QgsMapToolZoom
 
 from ..publisher import Publisher
