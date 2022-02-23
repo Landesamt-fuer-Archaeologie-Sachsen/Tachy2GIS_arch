@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 import os
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QAction
-from PyQt5.QtGui import QIcon, QFont, QColor
-from qgis.core import QgsVectorLayer, QgsRasterLayer, QgsMarkerSymbol, QgsSingleSymbolRenderer, QgsPalLayerSettings, QgsTextFormat, QgsTextBufferSettings, QgsVectorLayerSimpleLabeling, QgsPointXY
-from qgis.gui import QgsMapCanvas, QgsMapToolPan, QgsMapToolZoom, QgsHighlight, QgsVertexMarker
+from PyQt5.QtGui import QColor
+from qgis.core import QgsRasterLayer, QgsPointXY
+from qgis.gui import QgsMapCanvas, QgsMapToolPan, QgsMapToolZoom, QgsVertexMarker
 
 from ..publisher import Publisher
 from .maptool_move import MapToolMove

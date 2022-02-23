@@ -1,7 +1,7 @@
 import math
 from PyQt5.QtCore import Qt
 from qgis.gui import QgsMapToolIdentify, QgsMapToolIdentifyFeature, QgsVertexMarker
-from qgis.core import QgsWkbTypes, QgsFeature
+from qgis.core import QgsWkbTypes
 from ..publisher import Publisher
 
 class MapToolEditLine(QgsMapToolIdentifyFeature):

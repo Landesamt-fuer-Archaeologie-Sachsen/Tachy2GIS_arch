@@ -1,13 +1,11 @@
 ## @package QGIS transformation extension..
-import glob
 import csv
 import os
 import shutil
 import time
 
-from PyQt5.QtWidgets import QMessageBox, QScrollArea
+from PyQt5.QtWidgets import QMessageBox
 from qgis.core import QgsProject, QgsVectorLayer, QgsLayerTreeGroup, QgsLayerTreeLayer, QgsVectorFileWriter, QgsCoordinateReferenceSystem
-from qgis import processing
 from .transformation_dialog import TransformationDialog
 from .transformation_calculations import TransformationCalculations
 

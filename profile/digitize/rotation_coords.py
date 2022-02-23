@@ -1,6 +1,6 @@
 from math import pi, cos, sin, tan, atan
 
-from qgis.core import QgsWkbTypes, QgsGeometry, QgsPoint, QgsPointXY, QgsFeature
+from qgis.core import QgsGeometry, QgsPoint
 
 
 

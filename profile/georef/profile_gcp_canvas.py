@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 import os
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QAction
-from PyQt5.QtGui import QIcon, QFont, QColor
-from qgis.core import QgsVectorLayer, QgsMarkerSymbol, QgsSingleSymbolRenderer, QgsPalLayerSettings, QgsTextFormat, QgsTextBufferSettings, QgsVectorLayerSimpleLabeling
-from qgis.gui import QgsMapCanvas, QgsMapToolPan, QgsMapToolZoom, QgsHighlight
+from PyQt5.QtGui import QFont, QColor
+from qgis.core import QgsMarkerSymbol, QgsSingleSymbolRenderer, QgsPalLayerSettings, QgsTextFormat, QgsTextBufferSettings, QgsVectorLayerSimpleLabeling
+from qgis.gui import QgsMapCanvas, QgsMapToolPan, QgsMapToolZoom
 
 from ..publisher import Publisher
 
