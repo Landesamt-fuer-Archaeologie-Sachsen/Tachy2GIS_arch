@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
+
 from PyQt5.QtCore import Qt, QSizeF, QPointF
 from PyQt5.QtGui import QColor, QTextDocument
 from qgis.core import QgsRasterLayer, QgsFillSymbol, QgsMarkerSymbol, QgsPointXY, QgsMarkerSymbol, QgsAnnotationPointTextItem, QgsTextAnnotation

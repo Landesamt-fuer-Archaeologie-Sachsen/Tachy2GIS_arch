@@ -1,13 +1,8 @@
 ## @package QGIS geoEdit extension..
-import shutil
 import os
 import json
 
-from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QMessageBox
-from qgis.core import QgsProject, QgsGeometry, QgsVectorLayer, QgsApplication, QgsLayerTreeGroup, QgsLayerTreeLayer, QgsRectangle, QgsVectorFileWriter
-from processing.gui import AlgorithmExecutor
-from qgis import processing
+from qgis.core import QgsProject, QgsVectorLayer, QgsLayerTreeGroup, QgsLayerTreeLayer
 
 from .data_store_digitize import DataStoreDigitize
 from .digitize_dialog import DigitizeDialog

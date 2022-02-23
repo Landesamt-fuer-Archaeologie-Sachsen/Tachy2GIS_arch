@@ -40,6 +40,7 @@ class Georef():
         self.__preselectionGcpLayer()
         #set datatype filter to profileFotosComboGeoref
         self.__dockwidget.profileFotosComboGeoref.setFilter('Images (*.png *.JPG *.jpg *.jpeg *.tif)')
+        self.__dockwidget.profileFotosComboGeoref.fileChanged.connect(self.__changedProfileImage)
         #Preselection View direction
         self.__preselectViewDirection()
         #set datatype filter and save mode to profileSaveComboGeoref
@@ -56,6 +57,7 @@ class Georef():
 
         #self.__dockwidget.profileInfoBtn.clicked.connect(self.__testProjective)
 
+
     ## \brief Start georeferencing dialog
     #
     #
@@ -66,6 +68,17 @@ class Georef():
         self.georeferencingDialog = GeoreferencingDialog(self, self.dataStoreGeoref, self.__iface)
         self.georeferencingDialog.showGeoreferencingDialog(refData)
 
+
+    ## \brief SaveComboBox is clicked
+    #
+    # suggest saveFilePath
+
+    def __changedProfileImage(self):
+
+        imageFilePath = self.__dockwidget.profileFotosComboGeoref.filePath()
+        shortFilePath = imageFilePath.rsplit('.', 1)[0]
+        suggestTargetFilePath = shortFilePath + '_entz.jpg'
+        self.__dockwidget.profileSaveComboGeoref.setFilePath(suggestTargetFilePath)
 
     ## \brief get selected values
     #
