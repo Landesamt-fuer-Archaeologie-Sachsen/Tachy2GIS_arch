@@ -1,8 +1,7 @@
 import uuid
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QDialog, QPushButton, QDialogButtonBox, QVBoxLayout
 from qgis.gui import QgsMapTool, QgsRubberBand, QgsVertexMarker, QgsAttributeDialog, QgsAttributeEditorContext
-from qgis.core import QgsExpression, QgsWkbTypes, QgsPointXY, QgsFeature, QgsGeometry, QgsVectorFileWriter, QgsCoordinateReferenceSystem, QgsVectorLayerUtils, QgsFeatureRequest
+from qgis.core import QgsExpression, QgsWkbTypes, QgsFeature, QgsGeometry, QgsFeatureRequest
 
 from ..publisher import Publisher
 

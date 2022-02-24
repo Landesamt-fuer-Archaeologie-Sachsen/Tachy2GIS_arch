@@ -124,9 +124,6 @@ class GeorefTable(QTableWidget):
 
         georefTableHeader = self.horizontalHeader()
 
-
-        print('hhhhhhhhhhhhhhhhhhuuuuuuuuuuuuuuuuuuuu', gcpTarget)
-
         for pointObj in gcpTarget['targetGCP']['points']:
 
             rowPosition = self.rowCount()
@@ -227,7 +224,14 @@ class GeorefTable(QTableWidget):
             print("UUID is %s" % (activeUUID))
             self.setActivePoint(activeUUID)
 
-            self.pup.publish('activatePoint', {'uuid': activeUUID})
+            tableData = self.__getTableData()
+
+            pointNr = ''
+            for tblObj in tableData:    
+                if tblObj['uuid'] == activeUUID:
+                    pointNr = tblObj['ptnr']
+
+            self.pup.publish('activatePoint', {'uuid': activeUUID, 'ptnr': pointNr})
 
     ## \brief The activePoint ist set by UUID
     #

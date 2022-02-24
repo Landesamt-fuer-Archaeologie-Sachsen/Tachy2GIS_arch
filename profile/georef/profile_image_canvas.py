@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 import os
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QAction
-from PyQt5.QtGui import QIcon, QFont, QColor
-from qgis.core import QgsVectorLayer, QgsRasterLayer, QgsMarkerSymbol, QgsSingleSymbolRenderer, QgsPalLayerSettings, QgsTextFormat, QgsTextBufferSettings, QgsVectorLayerSimpleLabeling, QgsPointXY
-from qgis.gui import QgsMapCanvas, QgsMapToolPan, QgsMapToolZoom, QgsHighlight, QgsVertexMarker
+
+from PyQt5.QtCore import Qt, QSizeF, QPointF
+from PyQt5.QtGui import QColor, QTextDocument
+from qgis.core import QgsRasterLayer, QgsFillSymbol, QgsMarkerSymbol, QgsPointXY, QgsMarkerSymbol, QgsAnnotationPointTextItem, QgsTextAnnotation
+from qgis.gui import QgsMapCanvas, QgsMapToolPan, QgsMapToolZoom, QgsVertexMarker, QgsMapCanvasAnnotationItem
 
 from ..publisher import Publisher
 from .maptool_move import MapToolMove
@@ -52,87 +52,79 @@ class ProfileImageCanvas(QgsMapCanvas):
         for mark in self.markerPoints:
             if uuid == mark["uuid"]:
                 self.scene().removeItem(mark["marker"])
+                self.scene().removeItem(mark["annotation"])
         self.refresh()
 
-    def display_point(self, pointData ):
+    def __createMarker(self, pointData):
 
-        if self.activePoint:
-            self.__delete_marker(self.activePoint)
+            pnt = QgsPointXY(pointData[0], pointData[1])
 
-            m = QgsVertexMarker(self)
-            m.setCenter(QgsPointXY(pointData[0], pointData[1]))
+            ptnr = ''
+            if len(self.activePoint['ptnr']) > 0 and self.activePoint['ptnr'] != 'NULL':
+                ptnr = str(self.activePoint['ptnr'])
 
-            m.setColor(QColor(0, 255, 0))
-            m.setIconSize(5)
-            m.setIconType(QgsVertexMarker.ICON_CIRCLE) # or ICON_CROSS, ICON_X
-            m.setPenWidth(3)
+            #Annotation
+            txt = QTextDocument()
+            txt.setHtml('<span style="font-size: 12px"><b>'+ptnr+'</b></span>')
+            lbl = QgsTextAnnotation(self)
+            lbl.setDocument(txt)
+            lbl.setMapPosition(pnt)
+            lbl.setFrameSize(QSizeF(txt.size().width(),txt.size().height()))
+            lbl.setFrameOffsetFromReferencePoint(QPointF(2, -20))
+            sym1 = QgsFillSymbol.createSimple({'color': '0,0,0,0', 'outline_color': '0,0,0,0'})
+            lbl.setFillSymbol(sym1)
 
-            self.markerPoints.append({"uuid": self.activePoint, "marker": m})
+            ann = QgsMapCanvasAnnotationItem(lbl, self)
 
-            self.pup.publish('imagePointCoordinates', {'uuid': self.activePoint, 'x': pointData[0], 'z': abs(pointData[1])})
+            #Marker 
+            mark = QgsVertexMarker(self)
+            mark.setCenter(pnt)
+            mark.setColor(QColor(0, 255, 0))
+            mark.setIconSize(5)
+            mark.setIconType(QgsVertexMarker.ICON_CIRCLE)
+            mark.setPenWidth(3)
 
+            return mark, ann
 
     def press_point(self, pointData ):
 
         print('press_point', pointData)
 
         if self.activePoint:
-            self.__delete_marker(self.activePoint)
+            self.__delete_marker(self.activePoint['uuid'])
 
-            m = QgsVertexMarker(self)
-            m.setCenter(QgsPointXY(pointData[0], pointData[1]))
+            mark, ann = self.__createMarker(pointData)
 
-            m.setColor(QColor(0, 255, 0))
-            m.setIconSize(5)
-            m.setIconType(QgsVertexMarker.ICON_CIRCLE) # or ICON_CROSS, ICON_X
-            m.setPenWidth(3)
-
-            self.markerPoints.append({"uuid": self.activePoint, "marker": m})
-
-            #self.pup.publish('imagePointCoordinates', {'uuid': self.activePoint, 'x': pointData[0], 'z': abs(pointData[1])})
+            self.markerPoints.append({"uuid": self.activePoint['uuid'], "marker": mark, "annotation": ann})
 
     def release_point(self, pointData ):
 
         print('release_point', pointData)
 
         if self.activePoint:
-            self.__delete_marker(self.activePoint)
+            self.__delete_marker(self.activePoint['uuid'])
 
-            m = QgsVertexMarker(self)
-            m.setCenter(QgsPointXY(pointData[0], pointData[1]))
+            mark, ann = self.__createMarker(pointData)
 
-            m.setColor(QColor(0, 255, 0))
-            m.setIconSize(5)
-            m.setIconType(QgsVertexMarker.ICON_CIRCLE) # or ICON_CROSS, ICON_X
-            m.setPenWidth(3)
+            self.markerPoints.append({"uuid": self.activePoint['uuid'], "marker": mark, "annotation": ann})
 
-            self.markerPoints.append({"uuid": self.activePoint, "marker": m})
-
-            self.pup.publish('imagePointCoordinates', {'uuid': self.activePoint, 'x': pointData[0], 'z': abs(pointData[1])})
+            self.pup.publish('imagePointCoordinates', {'uuid': self.activePoint['uuid'], 'x': pointData[0], 'z': abs(pointData[1])})
 
     def move_point(self, pointData ):
 
         print('move_point', pointData)
 
         if self.activePoint:
-            self.__delete_marker(self.activePoint)
+            self.__delete_marker(self.activePoint['uuid'])
 
-            m = QgsVertexMarker(self)
-            m.setCenter(QgsPointXY(pointData[0], pointData[1]))
+            mark, ann = self.__createMarker(pointData)
 
-            m.setColor(QColor(0, 255, 0))
-            m.setIconSize(5)
-            m.setIconType(QgsVertexMarker.ICON_CIRCLE) # or ICON_CROSS, ICON_X
-            m.setPenWidth(3)
-
-            self.markerPoints.append({"uuid": self.activePoint, "marker": m})
-
-            #self.pup.publish('imagePointCoordinates', {'uuid': self.activePoint, 'x': pointData[0], 'z': pointData[1]})
+            self.markerPoints.append({"uuid": self.activePoint['uuid'], "marker": mark, "annotation": ann})
 
     def setActivePoint(self, linkObj):
         print('setActivePoint image')
-        #print(linkObj['uuid'])
-        self.activePoint = linkObj['uuid']
+        print('linkObj', linkObj)
+        self.activePoint = linkObj
 
     ## \brief Event connections
     #
