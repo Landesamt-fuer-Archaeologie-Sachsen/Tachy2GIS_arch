@@ -67,5 +67,5 @@ class DataStoreDigitize():
         return self.aarTransformationParams
 
     def triggerAarTransformationParams(self):
-
+        print('wurde getriggert',  self.getAarTransformationParams())
         self.pup.publish('pushTransformationParams', self.getAarTransformationParams())

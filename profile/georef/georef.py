@@ -18,14 +18,13 @@ class Georef():
     #
     #  @param dockWidget pointer to the dockwidget
     #  @param iFace pointer to the iface class
-    def __init__(self, t2gArchInstance, iFace):
+    def __init__(self, t2gArchInstance, iFace, rotationCoords):
 
-        self.__iconpath = os.path.join(os.path.dirname(__file__), 'Icons')
-        self.__t2gArchInstance = t2gArchInstance
         self.__dockwidget = t2gArchInstance.dockwidget
         self.__iface = iFace
 
         self.dataStoreGeoref = DataStoreGeoref()
+        self.rotationCoords = rotationCoords
 
     ## @brief Initializes the functionality for profile modul
     #
@@ -62,12 +61,11 @@ class Georef():
     #
     #
     def __startGeoreferencingDialog(self):
-
+        print('__startGeoreferencingDialog')
         refData = self.__getSelectedValues()
-
-        self.georeferencingDialog = GeoreferencingDialog(self, self.dataStoreGeoref, self.__iface)
+        
+        self.georeferencingDialog = GeoreferencingDialog(self, self.dataStoreGeoref, self.rotationCoords, self.__iface)
         self.georeferencingDialog.showGeoreferencingDialog(refData)
-
 
     ## \brief SaveComboBox is clicked
     #
@@ -104,7 +102,6 @@ class Georef():
             g = feature.geometry()
 
             pointObj = {'uuid': feature.attribute("uuid"), 'ptnr': feature.attribute("ptnr"), 'id': feature.attribute("id"), 'x': float(g.get().x()), 'y': float(g.get().y()), 'z': float(g.get().z())}
-
             targetGCP['points'].append(pointObj)
 
         #Foto

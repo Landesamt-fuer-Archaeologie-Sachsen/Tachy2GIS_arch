@@ -10,6 +10,7 @@ from qgis import processing
 
 from .georef.georef import Georef
 from .digitize.digitize import Digitize
+from .rotation_coords import RotationCoords
 
 ## @brief The class is used to implement functionalities for work with profiles within the dock widget of the Tachy2GIS_arch plugin
 #
@@ -24,13 +25,13 @@ class Profile():
     #  @param iFace pointer to the iface class
     def __init__(self, t2gArchInstance, iFace):
 
-        self.__iconpath = os.path.join(os.path.dirname(__file__), 'Icons')
         self.__t2gArchInstance = t2gArchInstance
-        self.__dockwidget = t2gArchInstance.dockwidget
-        self.__iface = iFace
 
-        self.georef = Georef(self.__t2gArchInstance, iFace)
-        self.digitize = Digitize(self.__t2gArchInstance, iFace)
+        #RotationCoords
+        self.rotationCoords = RotationCoords()
+
+        self.georef = Georef(self.__t2gArchInstance, iFace, self.rotationCoords)
+        self.digitize = Digitize(self.__t2gArchInstance, iFace, self.rotationCoords)
 
     ## @brief Initializes the functionality for profile modul
     #

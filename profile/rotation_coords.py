@@ -6,9 +6,9 @@ from qgis.core import QgsGeometry, QgsPoint
 
 class RotationCoords():
 
-    def __init__(self, dialogInstance):
+    def __init__(self):
 
-        self.dialogInstance = dialogInstance
+        #self.dialogInstance = dialogInstance
 
         self.transformationParams = None
 
@@ -20,6 +20,8 @@ class RotationCoords():
 
 
     def rotation(self, x, y, z, zAdaption):
+
+        print('transformationParams', self.transformationParams)
 
         slope_deg = self.transformationParams['slope_deg']
         center_x = self.transformationParams['center_x']
@@ -291,7 +293,8 @@ class RotationCoords():
             print('emptyTargetGeometry', emptyTargetGeometry)
 
         else:
-            self.dialogInstance.messageBar.pushMessage("Error", "Geometrietypen(ist: "+str(geomFeat.wkbType())+") müssen Z oder ZM sein", level=1, duration=3)
+            pass
+            #self.dialogInstance.messageBar.pushMessage("Error", "Geometrietypen(ist: "+str(geomFeat.wkbType())+") müssen Z oder ZM sein", level=1, duration=3)
 
 
         return emptyTargetGeometry

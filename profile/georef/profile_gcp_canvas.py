@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 import os
+import processing
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont, QColor
-from qgis.core import QgsMarkerSymbol, QgsSingleSymbolRenderer, QgsPalLayerSettings, QgsTextFormat, QgsTextBufferSettings, QgsVectorLayerSimpleLabeling
+from qgis.core import QgsPoint, QgsFeature, QgsGeometry, QgsMarkerSymbol, QgsSingleSymbolRenderer, QgsPalLayerSettings, QgsTextFormat, QgsTextBufferSettings, QgsVectorLayerSimpleLabeling
 from qgis.gui import QgsMapCanvas, QgsMapToolPan, QgsMapToolZoom
+
 
 from ..publisher import Publisher
 
@@ -17,9 +19,9 @@ from ..publisher import Publisher
 class ProfileGcpCanvas(QgsMapCanvas):
 
     ## The constructor.
-    # @param dialogInstance pointer to the dialogInstance
+    #
 
-    def __init__(self, dialogInstance):
+    def __init__(self, dialogInstance, rotationCoords):
 
         super(ProfileGcpCanvas, self).__init__()
 
@@ -27,11 +29,11 @@ class ProfileGcpCanvas(QgsMapCanvas):
 
         self.iconpath = os.path.join(os.path.dirname(__file__), 'Icons')
 
-        self.dialogInstance = dialogInstance
-
         self.activePoint = None
 
         self.gcpLayer = None
+
+        self.rotationCoords = rotationCoords
 
         self.setCanvasColor(Qt.white)
 
@@ -76,7 +78,7 @@ class ProfileGcpCanvas(QgsMapCanvas):
     #
     def setExtentByGcpLayer(self):
 
-        self.setExtent(self.gcpLayer.extent())
+        self.setExtent(self.gcpLayer.extent().buffered(0.2))
         self.refresh()
 
     def setActivePoint(self, linkObj):
@@ -100,50 +102,16 @@ class ProfileGcpCanvas(QgsMapCanvas):
         self.clearCache()
         self.refresh()
 
-        self.gcpLayer = refData['pointLayer']
+        self.setupGcpLayer(refData)
 
-        #check validation of Layers
-        if not self.gcpLayer.isValid():
-            self.messageBar.pushMessage("Error", "Layer "+self.gcpLayer.name()+" failed to load!", level=1, duration=5)
-
-        sourceCrs = self.gcpLayer.crs()
-
-        symbol = QgsMarkerSymbol.createSimple({'name': 'circle', 'color': 'red', 'size': '2'})
-
-        self.gcpLayer.setRenderer(QgsSingleSymbolRenderer(QgsMarkerSymbol()))
-        self.gcpLayer.renderer().setSymbol(symbol)
-        # show the change
-        self.gcpLayer.triggerRepaint()
+        self.styleLayer()
 
         #Sets canvas CRS
+        sourceCrs = self.gcpLayer.crs()
         self.setDestinationCrs(sourceCrs)
 
         # set extent to the extent of Layer E_Point
         self.setExtentByGcpLayer()
-
-        #Label Source Layer
-        sourcelayerSettings  = QgsPalLayerSettings()
-        textFormat = QgsTextFormat()
-
-        textFormat.setFont(QFont("Arial", 12))
-        textFormat.setSize(12)
-
-        bufferSettings = QgsTextBufferSettings()
-        bufferSettings.setEnabled(True)
-        bufferSettings.setSize(0.10)
-        bufferSettings.setColor(QColor("black"))
-
-        textFormat.setBuffer(bufferSettings)
-        sourcelayerSettings.setFormat(textFormat)
-
-        sourcelayerSettings.fieldName = "ptnr"
-        sourcelayerSettings.placement = 4
-        sourcelayerSettings.enabled = True
-
-        sourcelayerSettings = QgsVectorLayerSimpleLabeling(sourcelayerSettings)
-        self.gcpLayer.setLabelsEnabled(True)
-        self.gcpLayer.setLabeling(sourcelayerSettings)
-        self.gcpLayer.triggerRepaint()
 
         listLayers = []
         listLayers.append(self.gcpLayer)
@@ -160,3 +128,81 @@ class ProfileGcpCanvas(QgsMapCanvas):
             uuidFeat = feature.attribute("uuid")
             if uuidFeat == uuidValue:
                 self.flashFeatureIds(self.gcpLayer, [feature.id()], startColor = QColor(Qt.green), endColor = QColor(Qt.green), flashes = 5, duration = 500)
+
+    def styleLayer(self):
+
+        #Label Layer
+        sourcelayerSettings  = QgsPalLayerSettings()
+        textFormat = QgsTextFormat()
+
+        textFormat.setFont(QFont("Arial", 13))
+
+        bufferSettings = QgsTextBufferSettings()
+        bufferSettings.setEnabled(True)
+        bufferSettings.setSize(0.20)
+        bufferSettings.setColor(QColor("black"))
+
+        textFormat.setBuffer(bufferSettings)
+        sourcelayerSettings.setFormat(textFormat)
+
+        sourcelayerSettings.fieldName = "ptnr"
+        sourcelayerSettings.placement = 4
+        sourcelayerSettings.enabled = True
+
+        sourcelayerSettings = QgsVectorLayerSimpleLabeling(sourcelayerSettings)
+        self.gcpLayer.setLabelsEnabled(True)
+        self.gcpLayer.setLabeling(sourcelayerSettings)
+
+        #Styling
+        symbol = QgsMarkerSymbol.createSimple({'name': 'circle', 'color': 'green', 'size': '2'})
+        self.gcpLayer.setRenderer(QgsSingleSymbolRenderer(symbol))
+
+        self.gcpLayer.triggerRepaint()
+
+    def setupGcpLayer(self, refData):
+        refData['pointLayer'].selectAll()
+        self.gcpLayer = processing.run("native:saveselectedfeatures", {'INPUT': refData['pointLayer'], 'OUTPUT': 'memory:'})['OUTPUT']
+        refData['pointLayer'].removeSelection()
+
+        #check validation of Layers
+        if not self.gcpLayer.isValid():
+            self.messageBar.pushMessage("Error", "Layer "+self.gcpLayer.name()+" failed to load!", level=1, duration=5)
+
+        #gcpLayer leeren
+        features = self.gcpLayer.getFeatures()
+
+        self.gcpLayer.startEditing()
+
+        for feature in features:    
+            self.gcpLayer.deleteFeature(feature.id())
+
+        self.gcpLayer.commitChanges()
+
+        #aus Eingabelayer holen und in Profilsystem (x, z) konvertieren
+        self.gcpLayer.startEditing()
+        pr = self.gcpLayer.dataProvider()
+
+        featsSel = refData['pointLayer'].getFeatures()
+
+        selFeatures = []
+        for feature in featsSel:
+
+            rotFeature = QgsFeature(self.gcpLayer.fields())
+
+            rotateGeom = self.rotationCoords.rotatePointFeatureFromOrg(feature)
+
+            zPoint = QgsPoint(rotateGeom['x_trans'], rotateGeom['z_trans'], rotateGeom['z_trans'])
+
+            gZPoint = QgsGeometry(zPoint)
+            rotFeature.setGeometry(gZPoint)
+            rotFeature.setAttributes(feature.attributes())
+            selFeatures.append(rotFeature)
+
+        pr.addFeatures(selFeatures)
+
+        self.gcpLayer.commitChanges()
+        self.gcpLayer.updateExtents()
+        self.gcpLayer.endEditCommand()
+
+        # show the change
+        self.gcpLayer.triggerRepaint()

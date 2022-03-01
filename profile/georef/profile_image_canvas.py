@@ -65,7 +65,7 @@ class ProfileImageCanvas(QgsMapCanvas):
 
             #Annotation
             txt = QTextDocument()
-            txt.setHtml('<span style="font-size: 12px"><b>'+ptnr+'</b></span>')
+            txt.setHtml('<span style="font-family: Arial; font-size: 13px"><b>'+ptnr+'</b></span>')
             lbl = QgsTextAnnotation(self)
             lbl.setDocument(txt)
             lbl.setMapPosition(pnt)
