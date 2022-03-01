@@ -19,7 +19,7 @@ class Digitize():
     #
     #  @param dockWidget pointer to the dockwidget
     #  @param iFace pointer to the iface class
-    def __init__(self, t2gArchInstance, iFace):
+    def __init__(self, t2gArchInstance, iFace, rotationCoords):
 
         self.__iconpath = os.path.join(os.path.dirname(__file__), '...', 'Icons')
         self.__t2gArchInstance = t2gArchInstance
@@ -27,6 +27,7 @@ class Digitize():
         self.__iface = iFace
 
         self.dataStoreDigitize = DataStoreDigitize()
+        self.rotationCoords = rotationCoords
 
     ## @brief Initializes the functionality for profile modul
     #
@@ -61,7 +62,7 @@ class Digitize():
 
             if metaChecker == True:
 
-                self.digitizeDialog = DigitizeDialog(self.dataStoreDigitize, self.__iface)
+                self.digitizeDialog = DigitizeDialog(self.dataStoreDigitize, self.rotationCoords, self.__iface)
 
                 self.dataStoreDigitize.triggerAarTransformationParams()
 

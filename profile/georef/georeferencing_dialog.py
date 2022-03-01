@@ -24,7 +24,7 @@ from ..profileAAR.profileAAR import profileAAR
 
 class GeoreferencingDialog(QMainWindow):
 
-    def __init__(self, t2GArchInstance, dataStoreGeoref, iFace):
+    def __init__(self, t2GArchInstance, dataStoreGeoref, rotationCoords, iFace):
 
         super(GeoreferencingDialog, self).__init__()
 
@@ -41,6 +41,8 @@ class GeoreferencingDialog(QMainWindow):
         #DataStore
         self.dataStoreGeoref = dataStoreGeoref
 
+        self.rotationCoords = rotationCoords
+
         self.createMenu()
         self.createComponents()
         self.createLayout()
@@ -48,6 +50,7 @@ class GeoreferencingDialog(QMainWindow):
 
     def closeEvent(self, event):
         print('close')
+        self.dataStoreGeoref.clearStore()
         #self.georefTable.cleanGeorefTable()
 
         #self.canvasImage
@@ -92,7 +95,7 @@ class GeoreferencingDialog(QMainWindow):
 
         #Canvas Elemente
         self.canvasImage = ProfileImageCanvas(self)
-        self.canvasGcp = ProfileGcpCanvas(self)
+        self.canvasGcp = ProfileGcpCanvas(self, self.rotationCoords)
 
         #paramsBar
         self.imageParambar = ImageParambar(self, self.canvasImage)
@@ -130,6 +133,8 @@ class GeoreferencingDialog(QMainWindow):
         self.georefTable.pup.register('dataChanged', self.profileAAR.run)
 
         self.profileAAR.pup.register('aarPointsChanged', self.dataStoreGeoref.addAarPoints)
+
+        self.dataStoreGeoref.pup.register('pushTransformationParams', self.rotationCoords.setAarTransformationParams)
 
         self.canvasGcp.pup.register('moveCoordinate',self.gcpParambar.updateCoordinate)
         self.canvasImage.pup.register('moveCoordinate',self.imageParambar.updateCoordinate)

@@ -9,7 +9,7 @@ from qgis.core import QgsVectorLayer, QgsField, QgsVectorFileWriter, QgsCoordina
 from qgis.analysis import QgsGcpTransformerInterface
 from PyQt5.QtCore import QVariant
 
-from ..digitize.rotation_coords import RotationCoords
+from ..rotation_coords import RotationCoords
 
 class ImageGeoref():
 

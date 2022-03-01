@@ -14,7 +14,6 @@ from .maptool_digi_polygon import MapToolDigiPolygon
 from .maptool_edit_point import MapToolEditPoint
 from .maptool_edit_line import MapToolEditLine
 from .maptool_edit_polygon import MapToolEditPolygon
-from .rotation_coords import RotationCoords
 ## @brief With the GeoreferencingDialog class a dialog window for the georeferencing of profiles is realized
 #
 # The class inherits form QMainWindow
@@ -24,7 +23,7 @@ from .rotation_coords import RotationCoords
 
 class DigitizeDialog(QMainWindow):
 
-    def __init__(self, dataStoreDigitize, iFace):
+    def __init__(self, dataStoreDigitize, rotationCoords, iFace):
 
         super(DigitizeDialog, self).__init__()
 
@@ -33,6 +32,7 @@ class DigitizeDialog(QMainWindow):
         self.iconpath = os.path.join(os.path.dirname(__file__), '...', 'Icons')
 
         self.dataStoreDigitize = dataStoreDigitize
+        self.rotationCoords = rotationCoords
 
         self.createMenu()
         self.createComponents()
@@ -79,9 +79,6 @@ class DigitizeDialog(QMainWindow):
 
         #Canvas Elemente
         self.canvasDigitize = DigitizeCanvas(self, self.__iface)
-
-        #RotationCoords
-        self.rotationCoords = RotationCoords(self)
 
         #MapTools
         self.toolDigiPoint = MapToolDigiPoint(self.canvasDigitize, self.__iface, self.rotationCoords)

@@ -113,6 +113,8 @@ class DataStoreGeoref():
     def updateAarTransformationParams(self, params):
         self.aarTransformationParams = params
 
+        self.pup.publish('pushTransformationParams', self.getAarTransformationParams())
+
     def getAarTransformationParams(self):
 
         return self.aarTransformationParams
@@ -136,3 +138,10 @@ class DataStoreGeoref():
                                         'aar_distance': aarObj['distance'],
                                     })
         return georefData
+
+    def clearStore(self):
+        
+        self.imagePoints = []
+        self.targetPoints = []
+        self.aarPoints = []
+        self.aarTransformationParams = {}
