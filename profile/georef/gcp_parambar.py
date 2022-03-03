@@ -16,7 +16,7 @@ class GcpParambar(QWidget):
     # Creates labels with styles
     # @param dialogInstance pointer to the dialogInstance
 
-    def __init__(self, dialogInstance, canvasGcp):
+    def __init__(self, dialogInstance, canvasGcp, rotationCoords):
 
         super(GcpParambar, self).__init__()
 
@@ -25,6 +25,8 @@ class GcpParambar(QWidget):
         self.dialogInstance = dialogInstance
 
         self.canvasGcp = canvasGcp
+
+        self.rotationCoords = rotationCoords
 
         self.createComponents()
         self.createLayout()
@@ -46,10 +48,10 @@ class GcpParambar(QWidget):
         self.coordLineEdit = QLineEdit()
         self.coordLineEdit.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
         self.coordLineEdit.setReadOnly(True)
-        self.coordLineEdit.setMinimumWidth(150);
+        self.coordLineEdit.setMinimumWidth(200)
 
         self.toolbarCoord.addWidget(self.coordLabel)
-        self.toolbarCoord.addWidget(self.coordLineEdit)
+        self.toolbarCoord.addWidget(self.coordLineEdit)    
 
 
     ## \brief Create Layout
@@ -64,8 +66,8 @@ class GcpParambar(QWidget):
         self.paramsBarLayout.addWidget(self.gcpToolbar)
 
         spacer = QWidget();
-        spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred);
-        self.paramsBarLayout.addWidget(spacer);
+        spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        self.paramsBarLayout.addWidget(spacer)
 
         self.paramsBarLayout.addWidget(self.toolbarCoord)
 
@@ -145,4 +147,9 @@ class GcpParambar(QWidget):
     ## \brief Create a splitter (vertical line to separate labels in the parambar)
     #
     def updateCoordinate(self, coordObj):
-        self.coordLineEdit.setText(str(round(coordObj['x'], 2))+','+str(round(coordObj['y'], 2)))
+        #self.coordLineEdit.setText(str(round(coordObj['x'], 2))+','+str(round(coordObj['y'], 2)))
+
+        retObj = self.rotationCoords.rotationReverse(coordObj['x'], coordObj['y'], True)
+
+        self.coordLineEdit.setText(str(round(retObj['x_trans'], 3))+','+str(round(retObj['y_trans'], 3))+','+str(round(retObj['z_trans'], 3)))
+
