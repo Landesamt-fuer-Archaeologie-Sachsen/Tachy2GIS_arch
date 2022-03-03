@@ -136,41 +136,48 @@ class MapToolDigiPoint(QgsMapTool):
         #in Ergebnislayer schreiben
         print('reverseRotation', layer_id)
 
+        self.refData['pointLayer'].startEditing()
+        
         pr = self.refData['pointLayer'].dataProvider()
 
         features = self.digiPointLayer.getFeatures()
 
+        #iterrieren über zu schreibende features
         for feature in features:
-            self.refData['pointLayer'].startEditing()
-
+            
+            #Zielfeature erzeugen
             rotFeature = QgsFeature(self.refData['pointLayer'].fields())
 
+            #Geometrie in Kartenebene umrechnen
             rotateGeom = self.rotationCoords.rotatePointFeature(feature)
 
+            #Zielpunktgeometrie erzeugen und zum Zielfeature hinzufügen
             zPoint = QgsPoint(rotateGeom['x_trans'], rotateGeom['y_trans'], rotateGeom['z_trans'])
-
             gZPoint = QgsGeometry(zPoint)
             rotFeature.setGeometry(gZPoint)
+
+            #Attribute setzen
             rotFeature.setAttributes(feature.attributes())
 
             sourceLayerFeatures = self.refData['pointLayer'].getFeatures()
 
+            #Prüfen ob im Ziellayer das Feature bereits vorhanden ist
+            #wenn ja dann löschen und durch Zielfeature ersetzen
             checker = True
             for sourceFeature in sourceLayerFeatures:
                 if feature["uuid"] == sourceFeature["uuid"]:
+                    pr.deleteFeatures([sourceFeature.id()])
+                    pr.addFeatures([rotFeature])
                     checker = False
 
             if checker == True:
 
-                retObj = pr.addFeatures([rotFeature])
+                pr.addFeatures([rotFeature])
 
-            self.refData['pointLayer'].removeSelection()
-
-            self.refData['pointLayer'].commitChanges()
-
-            self.refData['pointLayer'].updateExtents()
-
-            self.refData['pointLayer'].endEditCommand()
+        self.refData['pointLayer'].removeSelection()
+        self.refData['pointLayer'].commitChanges()
+        self.refData['pointLayer'].updateExtents()
+        self.refData['pointLayer'].endEditCommand()
 
 
     def getFeaturesFromEingabelayer(self, bufferGeometry, geoType):
