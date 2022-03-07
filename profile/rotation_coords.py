@@ -18,17 +18,13 @@ class RotationCoords():
 
         self.transformationParams = params
 
-
+    #Karte zu Profil
     def rotation(self, x, y, z, zAdaption):
-
-        print('transformationParams', self.transformationParams)
 
         slope_deg = self.transformationParams['slope_deg']
         center_x = self.transformationParams['center_x']
         center_y = self.transformationParams['center_y']
         center_z = self.transformationParams['center_z']
-        z_slope = self.transformationParams['z_slope']
-        z_intercept = self.transformationParams['z_intercept']
 
         x_trans = center_x + (x - center_x) * cos(slope_deg / 180 * pi) - sin(slope_deg / 180 * pi) * (y - center_y)
 
@@ -41,12 +37,13 @@ class RotationCoords():
 
         return {'x_trans': x_trans, 'y_trans': y_trans ,'z_trans': z_trans}
 
+    #Profil zu Karte
     def rotationReverse(self, x, z, zAdaption):
-
+        
         slope_deg = self.transformationParams['slope_deg'] * (-1)
         center_x = self.transformationParams['center_x']
         center_y = self.transformationParams['center_y']
-        z_slope = self.transformationParams['z_slope']
+        z_slope = 1 #self.transformationParams['z_slope'] -- geht nicht mit dem Neigungswinkel
         z_intercept = self.transformationParams['z_intercept']
 
         x_trans = center_x + (x - center_x) * cos(slope_deg / 180 * pi) - sin(slope_deg / 180 * pi) * 0
@@ -61,7 +58,6 @@ class RotationCoords():
         return {'x_trans': x_trans, 'y_trans': y_trans ,'z_trans': z_trans}
 
     def rotatePointFeature(self, feature):
-        #print(type(feature))
 
         geomFeat = feature.geometry()
 
@@ -203,40 +199,11 @@ class RotationCoords():
 
                 print('adjustGeom', adjustGeom)
 
-
-            #print('pointList_6', pointList)
-            print('hhhhhhhhhhhhhhuuuuuuuuuuuuuuuu')
-
             #adjustGeom.addPart(adjustPart)
             print('adjustGeom', adjustGeom)
             #provGeom = layer.dataProvider().convertToProviderType(adjustGeom)
 
             return adjustGeom
-
-    """
-    def rotateLineFeature(self, feature, emptyTargetGeometry):
-        print('rotateLineFeature', type(feature))
-
-        geomFeat = feature.geometry()
-
-        #1 point, 2 line, 3 polygon, 6 Multipolygon
-        geomType = str(geomFeat.wkbType())[-1]
-
-        print('geomType', geomType)
-
-        geomFeatPoly = geomFeat.asPolyline()
-
-        pointList = []
-
-        for part in geomFeatPoly:
-            rotateGeom = self.rotationReverse(part.x(), part.y(), True)
-
-            zPoint = QgsPoint(rotateGeom['x_trans'], rotateGeom['y_trans'], rotateGeom['z_trans'])
-            pointList.append(zPoint)
-
-        polyline = QgsGeometry.fromPolyline(pointList)
-        return polyline
-        """
 
     def rotateLineFeature(self, feature, emptyTargetGeometry):
         print('rotateLineFeature', type(feature))
