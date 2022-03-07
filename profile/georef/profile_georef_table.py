@@ -175,11 +175,6 @@ class GeorefTable(QTableWidget):
             errorXyItem.setFlags(Qt.ItemIsEnabled)
             self.setItem(rowPosition, 8, errorXyItem)
             georefTableHeader.setSectionResizeMode(8, QHeaderView.Stretch)
-            #Error Z
-            #errorZItem = QTableWidgetItem(str(-99999))
-            #errorZItem.setFlags(Qt.ItemIsEnabled)
-            #self.setItem(rowPosition, 10, errorZItem)
-            #georefTableHeader.setSectionResizeMode(10, QHeaderView.ResizeToContents)
 
             # Punkt verwenden
             usageCheck = QCheckBox()
