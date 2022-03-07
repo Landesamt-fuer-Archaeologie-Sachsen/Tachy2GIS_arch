@@ -602,7 +602,7 @@ class Magic_Box():
             # actual calculation of the slope using the linear regression again
 
             #z_slope = scipy.stats.linregress(scipy.array(z_yw), scipy.array(z_zw))[0]
-
+            
             z_yw_t = np.vstack([z_yw, np.ones(len(z_yw))]).T
             linegress = np.linalg.lstsq(z_yw_t, z_zw, rcond=None)[0]
             z_slope = linegress[0]
@@ -747,6 +747,8 @@ class Magic_Box():
 
         array_z_org_t = np.vstack([array_z_org, np.ones(len(array_z_org))]).T
         linegress_profil = np.linalg.lstsq(array_z_org_t, array_z_trans, rcond=None)[0]
+
+        print('zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz')
 
         return {'coord_trans': coord_trans, 'cutting_start': cutting_start, 'linegress': linegress_profil, 'ns_error': ns_fehler_vorhanden, 'transformationParams': transformationParams}
 
