@@ -25,7 +25,7 @@ from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt,
 from PyQt5.QtGui import *#QIcon, QPixmap
 from PyQt5.QtWidgets import *#QAction, QMessageBox, QFileDialog, QTreeWidgetItem, QInputDialog
 from qgis.core import QgsProject, QgsExpressionContextUtils, QgsMessageLog, Qgis, QgsVectorLayer, QgsFeature,QgsWkbTypes, QgsField
-from qgis.utils import iface, plugins
+from qgis.utils import iface, plugins, reloadPlugin
 from qgis.gui import QgisInterface
 from PyQt5.QtWidgets import QApplication as qApp
 from .t2g_arch_dockwidget import T2G_ArchDockWidget
@@ -344,13 +344,13 @@ class T2G_Arch:
         self.xmlFile = xml(self.plugin_dir + '/settings.xml')
 
     #--------------------------------------------------------------------------
-
+    
     def onClosePlugin(self):
         print('onClosePlugin')
         """Cleanup necessary items here when plugin dockwidget is closed"""
 
         #print "** CLOSING T2G_Arch"
-
+        
         # disconnects
         self.dockwidget.closingPlugin.disconnect(self.onClosePlugin)
 
@@ -368,6 +368,7 @@ class T2G_Arch:
         for action in self.myactions:
             action.setEnabled(False)
         self.actions[0].setEnabled(True)
+        
 
     def unload(self):
         print('unload')
@@ -610,6 +611,22 @@ class T2G_Arch:
         # <uuid ereugen wenn Feld uuid leer
 
         self.FilterGesetzt()
+
+        #Connection when project is closed
+        QgsProject.instance().cleared.connect(self.__projectClosed)
+
+        #Connection when project is read
+        QgsProject.instance().readProject.connect(self.__projectRead)
+
+    def __projectClosed(self):
+
+        self.geoEdit = None
+        self.profile = None
+        self.dockwidget.close()      
+
+    def __projectRead(self):
+
+        reloadPlugin('Tachy2GIS_arch')
 
 
     def toolbox_currentChanged(self,index):

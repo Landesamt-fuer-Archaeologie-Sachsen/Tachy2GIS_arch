@@ -34,27 +34,30 @@ class Georef():
         #Preselection of Inputlayers (only Layer below "Eingabelayer" are available)
         preselectedLineLayer = self.__preselectionProfileLayer()
         #Preselection profilenumber
-        self.__preselectProfileNumbers(preselectedLineLayer)
-        #Preselection of Inputlayers (only Layer below "Eingabelayer" are available)
-        self.__preselectionGcpLayer()
-        #set datatype filter to profileFotosComboGeoref
-        self.__dockwidget.profileFotosComboGeoref.setFilter('Images (*.png *.JPG *.jpg *.jpeg *.tif)')
-        self.__dockwidget.profileFotosComboGeoref.fileChanged.connect(self.__changedProfileImage)
-        #Preselection View direction
-        self.__preselectViewDirection()
-        #set datatype filter and save mode to profileSaveComboGeoref
-        self.__dockwidget.profileSaveComboGeoref.setFilter('Images (*.jpg)')
-        self.__dockwidget.profileSaveComboGeoref.setStorageMode(3)
+        print(type(preselectedLineLayer))
+        if isinstance(preselectedLineLayer, QgsVectorLayer):
 
-        self.__dockwidget.startGeoreferencingBtn.clicked.connect(self.__startGeoreferencingDialog)
+            self.__preselectProfileNumbers(preselectedLineLayer)
+            #Preselection of Inputlayers (only Layer below "Eingabelayer" are available)
+            self.__preselectionGcpLayer()
+            #set datatype filter to profileFotosComboGeoref
+            self.__dockwidget.profileFotosComboGeoref.setFilter('Images (*.png *.JPG *.jpg *.jpeg *.tif)')
+            self.__dockwidget.profileFotosComboGeoref.fileChanged.connect(self.__changedProfileImage)
+            #Preselection View direction
+            self.__preselectViewDirection()
+            #set datatype filter and save mode to profileSaveComboGeoref
+            self.__dockwidget.profileSaveComboGeoref.setFilter('Images (*.jpg)')
+            self.__dockwidget.profileSaveComboGeoref.setStorageMode(3)
 
-        self.__dockwidget.layerGcpGeoref.currentIndexChanged.connect(self.__calculateViewDirection)
+            self.__dockwidget.startGeoreferencingBtn.clicked.connect(self.__startGeoreferencingDialog)
 
-        self.__dockwidget.profileIdsComboGeoref.currentIndexChanged.connect(self.__calculateViewDirection)
+            self.__dockwidget.layerGcpGeoref.currentIndexChanged.connect(self.__calculateViewDirection)
 
-        self.__dockwidget.layerProfileGeoref.currentIndexChanged.connect(self.__calculateViewDirection)
+            self.__dockwidget.profileIdsComboGeoref.currentIndexChanged.connect(self.__calculateViewDirection)
 
-        #self.__dockwidget.profileInfoBtn.clicked.connect(self.__testProjective)
+            self.__dockwidget.layerProfileGeoref.currentIndexChanged.connect(self.__calculateViewDirection)
+        else:
+            print('preselectedLineLayer is kein QgsVectorLayer')
 
 
     ## \brief Start georeferencing dialog
@@ -131,63 +134,68 @@ class Georef():
     ## \brief Blickrichtung bestimmen
     #
     #
-    def __calculateViewDirection(self):
+    def __calculateViewDirection(self, idx):	
 
-        #lineLayer
-        lineLayer = self.__dockwidget.layerProfileGeoref.currentLayer().clone()
+        print('idx', idx)
 
-        #Profilnummer
-        profileNumber = self.__dockwidget.profileIdsComboGeoref.currentText()
+        print('type_idx', type(idx))
+        if isinstance(idx, int) and idx > 0:
 
-        lineLayer.setSubsetString("prof_nr = '"+profileNumber+"'")
+            #lineLayer
+            lineLayer = self.__dockwidget.layerProfileGeoref.currentLayer().clone()
 
-        view = None
+            #Profilnummer
+            profileNumber = self.__dockwidget.profileIdsComboGeoref.currentText()
+
+            lineLayer.setSubsetString("prof_nr = '"+profileNumber+"'")
+
+            view = None
 
 
-        if lineLayer.geometryType() ==  QgsWkbTypes.LineGeometry:
-            for feat in lineLayer.getFeatures():
+            if lineLayer.geometryType() ==  QgsWkbTypes.LineGeometry:
+                for feat in lineLayer.getFeatures():
 
-                geom = feat.geometry()
-                #Singlepart
-                if QgsWkbTypes.isSingleType(geom.wkbType()):
-                    line = geom.asPolyline()
-                else:
-                    # Multipart
-                    line = geom.asMultiPolyline()[0]
+                    geom = feat.geometry()
+                    #Singlepart
+                    if QgsWkbTypes.isSingleType(geom.wkbType()):
+                        line = geom.asPolyline()
+                    else:
+                        # Multipart
+                        line = geom.asMultiPolyline()[0]
 
-                pointA = line[0]
-                pointB = line[-1]
+                    pointA = line[0]
+                    pointB = line[-1]
 
-                pointAx = pointA.x()
-                pointAy = pointA.y()
-                pointBx = pointB.x()
-                pointBy = pointB.y()
+                    pointAx = pointA.x()
+                    pointAy = pointA.y()
+                    pointBx = pointB.x()
+                    pointBy = pointB.y()
 
-                dx = pointBx - pointAx
-                dy = pointBy - pointAy
-                vp = [dx, dy]
-                v0 = [-1, 1]
-                # Lösung von hier: https://stackoverflow.com/questions/14066933/direct-way-of-computing-clockwise-angle-between-2-vectors/16544330#16544330, angepasst auf Berechnung ohne numpy
-                dot = v0[0] * vp[0] + v0[1] * vp[1]  # dot product: x1*x2 + y1*y2
-                det = v0[0] * vp[1] - vp[0] * v0[1]  # determinant: x1*y2 - y1*x2
+                    dx = pointBx - pointAx
+                    dy = pointBy - pointAy
+                    vp = [dx, dy]
+                    v0 = [-1, 1]
+                    # Lösung von hier: https://stackoverflow.com/questions/14066933/direct-way-of-computing-clockwise-angle-between-2-vectors/16544330#16544330, angepasst auf Berechnung ohne numpy
+                    dot = v0[0] * vp[0] + v0[1] * vp[1]  # dot product: x1*x2 + y1*y2
+                    det = v0[0] * vp[1] - vp[0] * v0[1]  # determinant: x1*y2 - y1*x2
 
-                radians = math.atan2(det, dot)
-                angle = math.degrees(radians)
-                # negative Winkelwerte (3. und 4. Quadrant, Laufrichtung entgegen Uhrzeigersinn) in fortlaufenden Wert (181 bis 360) umrechnen
-                if angle < 0:
-                    angle *= -1
-                    angle = 180 - angle + 180
+                    radians = math.atan2(det, dot)
+                    angle = math.degrees(radians)
+                    # negative Winkelwerte (3. und 4. Quadrant, Laufrichtung entgegen Uhrzeigersinn) in fortlaufenden Wert (181 bis 360) umrechnen
+                    if angle < 0:
+                        angle *= -1
+                        angle = 180 - angle + 180
 
-                if angle <= 90:
-                    view = "Nord"
-                elif angle <= 180:
-                    view = "West"
-                elif angle <= 270:
-                    view = "Süd"
-                elif angle > 270:
-                    view = "Ost"
+                    if angle <= 90:
+                        view = "Nord"
+                    elif angle <= 180:
+                        view = "West"
+                    elif angle <= 270:
+                        view = "Süd"
+                    elif angle > 270:
+                        view = "Ost"
 
-                self.__dockwidget.profileViewDirectionComboGeoref.setCurrentText(view)
+                    self.__dockwidget.profileViewDirectionComboGeoref.setCurrentText(view)
 
 
     ### Ende Blickrichtung bestimmen
