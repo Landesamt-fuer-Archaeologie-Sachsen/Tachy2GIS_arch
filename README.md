@@ -1,4 +1,6 @@
 # Tachy2GIS_arch
+# Development branch - for stable version please switch to main branch!!
+
 QGIS plugin for documentation of archaeological features using Tachy2GIS
 
 Tachy2GIS_arch (T2G_arch) is a QGIS plugin that serves as application module for archaeological on-site documentation. It is designed to work with the forked Tachy2GIS plugin. 
