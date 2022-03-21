@@ -10,7 +10,7 @@ class Residuals:
 
     #HELMERT  TRANSFORMATIONS
     def projective_trans(self, gcps_uuid): #cgps is numpy.array [x, y, Xmap, Ymap]
-
+        print('huhuhu')
         gcps = gcps_uuid[:,0:4].astype(np.float32)
         n = len(gcps)
 
@@ -34,7 +34,7 @@ class Residuals:
         V_X = Xi - gcps[:,2]
         V_Y = Yi - gcps[:,3]
         V_XY = np.sqrt(V_X*V_X + V_Y*V_Y)
-        
+        print('V_XY', V_XY)
         V_XY_uuid = []
         V_XY_sum_sq, V_X_sum_sq, V_Y_sum_sq = 0, 0, 0
         for i in range(n):
