@@ -3,7 +3,6 @@ from math import pi, cos, sin, tan, atan
 from qgis.core import QgsGeometry, QgsPoint
 
 
-
 class RotationCoords():
 
     def __init__(self):
@@ -30,6 +29,7 @@ class RotationCoords():
 
         y_trans = center_y + (x - center_x) * sin(slope_deg / 180 * pi) + (y - center_y) * cos(slope_deg / 180 * pi)
 
+
         if zAdaption is True:
             z_trans = z + center_y - center_z
         else:
@@ -39,7 +39,7 @@ class RotationCoords():
 
     #Profil zu Karte
     def rotationReverse(self, x, z, zAdaption):
-        
+
         slope_deg = self.transformationParams['slope_deg'] * (-1)
         center_x = self.transformationParams['center_x']
         center_y = self.transformationParams['center_y']
@@ -56,6 +56,7 @@ class RotationCoords():
             z_trans = z
 
         return {'x_trans': x_trans, 'y_trans': y_trans ,'z_trans': z_trans}
+
 
     def rotatePointFeature(self, feature):
 

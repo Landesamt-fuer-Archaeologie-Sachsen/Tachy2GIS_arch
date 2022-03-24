@@ -25,7 +25,11 @@ class DataStoreGeoref():
 
         self.targetPoints = []
 
-        self.aarPoints = []
+        self.aarPointsHorizontal = []
+
+        self.aarPointsOriginal = []
+
+        self.aarPointsAbsolute = []
 
         self.aarTransformationParams = {}
 
@@ -85,30 +89,67 @@ class DataStoreGeoref():
 
     def addAarPoints(self, aarList):
         print('jetzt_addAarPoints', aarList)
-        self.aarPoints = []
 
-        for pointObj in aarList['coord_trans']:
+        aarDirection = aarList['aar_direction']
 
-            self.aarPoints.append({
-            	'uuid': pointObj[8],
-            	'x': pointObj[0],
-                'y': pointObj[1],
-                'z': pointObj[2],
-                'z_org': pointObj[3],
-                'distance': pointObj[5],
-                'usage': pointObj[6]
-            })
+        if aarDirection == 'horizontal':
 
-        transformationParams = aarList['transformationParams']
+            self.aarPointsHorizontal = []
 
-        z_slope = aarList['linegress'][0]
+            #Punkte
+            for pointObj in aarList['coord_trans']:
 
-        z_intercept = aarList['linegress'][1]
+                self.aarPointsHorizontal.append({
+                    'uuid': pointObj[8],
+                    'x': pointObj[0],
+                    'y': pointObj[1],
+                    'z': pointObj[2],
+                    'z_org': pointObj[3],
+                    'distance': pointObj[5],
+                    'usage': pointObj[6]
+                })
 
-        transformationParams['z_slope'] = z_slope
-        transformationParams['z_intercept'] = z_intercept
+            #Transformationsparameter
+            transformationParams = aarList['transformationParams']
+            z_slope = aarList['linegress'][0]
+            z_intercept = aarList['linegress'][1]
+            transformationParams['z_slope'] = z_slope
+            transformationParams['z_intercept'] = z_intercept
 
-        self.updateAarTransformationParams(transformationParams)
+            self.updateAarTransformationParams(transformationParams)
+
+        if aarDirection == 'original':
+        
+            self.aarPointsOriginal = []
+
+            for pointObj in aarList['coord_trans']:
+
+                self.aarPointsOriginal.append({
+                    'uuid': pointObj[8],
+                    'x': pointObj[0],
+                    'y': pointObj[1],
+                    'z': pointObj[2],
+                    'z_org': pointObj[3],
+                    'distance': pointObj[5],
+                    'usage': pointObj[6]
+                })
+
+        if aarDirection == 'absolute height':
+        
+            self.aarPointsAbsolute = []
+
+            for pointObj in aarList['coord_trans']:
+
+                self.aarPointsAbsolute.append({
+                    'uuid': pointObj[8],
+                    'x': pointObj[0],
+                    'y': pointObj[1],
+                    'z': pointObj[2],
+                    'z_org': pointObj[3],
+                    'distance': pointObj[5],
+                    'usage': pointObj[6]
+                })
+
 
     def updateAarTransformationParams(self, params):
         self.aarTransformationParams = params
@@ -119,11 +160,20 @@ class DataStoreGeoref():
 
         return self.aarTransformationParams
 
-    def getGeorefData(self):
+    def getGeorefData(self, aarDirection):
+
+        if aarDirection == 'horizontal':
+            retPoints = self.aarPointsHorizontal
+
+        if aarDirection == 'original':
+            retPoints = self.aarPointsOriginal
+
+        if aarDirection == 'absolute height':
+            retPoints = self.aarPointsAbsolute
 
         georefData = []
 
-        for aarObj in self.aarPoints:
+        for aarObj in retPoints:
             if(aarObj['usage'] == 1):
                 for imageObj in self.imagePoints:
                     if aarObj['uuid'] == imageObj['uuid']:
@@ -136,6 +186,7 @@ class DataStoreGeoref():
                                         'aar_z': aarObj['z'],
                                         'aar_z_org': aarObj['z_org'],
                                         'aar_distance': aarObj['distance'],
+                                        'aar_direction': aarDirection,
                                     })
         return georefData
 
@@ -143,5 +194,7 @@ class DataStoreGeoref():
         
         self.imagePoints = []
         self.targetPoints = []
-        self.aarPoints = []
+        self.aarPointsHorizontal = []
+        self.aarPointsOriginal = []
+        self.aarPointsAbsolute = []
         self.aarTransformationParams = {}
