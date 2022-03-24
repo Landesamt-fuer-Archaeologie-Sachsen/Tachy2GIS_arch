@@ -104,7 +104,7 @@ class GeorefTable(QTableWidget):
     #
     # \param gcpTarget
     # @returns
-    def updateGeorefTable(self, gcpTarget):
+    def updateGeorefTable(self, gcpTarget, aarDirection):
 
         self.viewDirection = gcpTarget['viewDirection']
         self.profileNumber = gcpTarget['profileNumber']
@@ -112,10 +112,12 @@ class GeorefTable(QTableWidget):
 
         horizontal = gcpTarget['horizontal']
 
-        if horizontal == True:
-            self.directionAAR = 'horizontal'
-        else:
-            self.directionAAR = 'original'
+        self.directionAAR = aarDirection
+
+        #if horizontal == True:
+        #    self.directionAAR = 'horizontal'
+        #else:
+        #    self.directionAAR = 'original'
 
         #self.colHeaders = ['UUID', 'PTNR', 'ID', 'Quelle X', 'Quelle Z', 'Ziel X', 'Ziel Y', 'Ziel Z', 'Error', 'Punkt verwenden', 'Punkt setzen']
         targetX = []
@@ -259,7 +261,7 @@ class GeorefTable(QTableWidget):
 
         self.dialogInstance.canvasGcp.highlightSourceLayer(uuidValue)
 
-    def prepareData(self, tableData):
+    def prepareData(self, tableData, aarDirection):
         """Prepare table data for transformation"""
 
         points = []
@@ -268,10 +270,10 @@ class GeorefTable(QTableWidget):
                 tblObj['targetPoints'][0], tblObj['targetPoints'][1], tblObj['targetPoints'][2], self.viewDirection, self.profileNumber, int(tblObj['usage']), tblObj['uuid']
             ])
 
-        print('self.directionAAR', self.directionAAR)
+        print('self.directionAAR', aarDirection)
         metaInfos = {
         	'method': 'projected',
-        	'direction': self.directionAAR
+        	'direction': aarDirection 
         }
 
         return points, metaInfos
@@ -284,7 +286,7 @@ class GeorefTable(QTableWidget):
     #
     def updateErrorValues(self, linkObj):
 
-        georefData = self.dataStoreGeoref.getGeorefData()
+        georefData = self.dataStoreGeoref.getGeorefData(self.directionAAR)
 
         gcpArray = []
         for georefObj in georefData:
@@ -380,8 +382,12 @@ class GeorefTable(QTableWidget):
 
         tableData = self.__getTableData()
 
-        data = self.prepareData(tableData)
+        data = self.prepareData(tableData, 'horizontal')
+        self.pup.publish('dataChanged', data)
+        self.updateErrorValues(None)
 
+        data = self.prepareData(tableData, 'original')
         self.pup.publish('dataChanged', data)
 
-        self.updateErrorValues(None)
+        data = self.prepareData(tableData, 'absolute height')
+        self.pup.publish('dataChanged', data)

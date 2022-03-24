@@ -212,5 +212,6 @@ class profileAAR(object):
 
                     #return transform_return
                     transform_return['transformationParams']['cutting_line'] = cutting_line
+                    transform_return['transformationParams']['aar_direction'] = direction
                     print('transform_return', transform_return)
                     self.pup.publish('aarPointsChanged', transform_return)
