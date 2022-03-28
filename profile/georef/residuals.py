@@ -11,7 +11,7 @@ class Residuals:
     #HELMERT  TRANSFORMATIONS
     def projective_trans(self, gcps_uuid): #cgps is numpy.array [x, y, Xmap, Ymap]
 
-        gcps = gcps_uuid[:,0:4].astype(np.float32)
+        gcps = gcps_uuid[:,0:4].astype(np.float64)
         n = len(gcps)
 
         src_cp = []
