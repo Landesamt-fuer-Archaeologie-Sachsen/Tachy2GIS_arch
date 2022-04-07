@@ -34,12 +34,17 @@ class ImageGeoref():
         self.crs = ''
 
 
-    def runGeoref(self, georefData, crs):
+    def runGeoref(self, georefData, crs, imageFileIn, imageFileOut):
+
+        self.imageFileIn = imageFileIn
+        self.imageFileOut = imageFileOut
+
         print('run ImageGeoref')
 
         self.crs = crs
         retVal = 'ok'
         self.gcpPoints = georefData
+        #print('self.gcpPoints', self.gcpPoints)
         if len(self.gcpPoints) > 3:
             self.__startProjective()
             #self.createGcpShape()
@@ -322,7 +327,6 @@ class ImageGeoref():
 
         QgsVectorFileWriter.writeAsVectorFormat(vl, shpOut, "UTF-8", QgsCoordinateReferenceSystem('EPSG:31468'), "ESRI Shapefile")
 
-    def updateMetadata(self, refData):
-
-        self.imageFileIn = refData['imagePath']
-        self.imageFileOut = refData['savePath']
+    #def updateMetadata(self, refData):
+    #    self.imageFileIn = refData['imagePath']
+    #    self.imageFileOut = refData['savePath']

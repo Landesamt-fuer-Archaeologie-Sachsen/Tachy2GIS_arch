@@ -56,9 +56,9 @@ class Digitize():
             try:
                 self.__importMetaData(refData['profilePath'])
 
-            except:
+            except ValueError as err:
                 metaChecker = False
-                self.__iface.messageBar().pushMessage("Error", "Keine .meta Datei zum Profil vorhanden!", level=1, duration=3)
+                self.__iface.messageBar().pushMessage("Error", str(err.args[0]), level=1, duration=3)
 
             if metaChecker == True:
 
@@ -75,18 +75,28 @@ class Digitize():
 
         metaFileName = profilePath[:-3]
         metaFileName = metaFileName + 'meta'
-        print('metaFileName', metaFileName)
 
-        with open(metaFileName) as json_file:
-            data = json.load(json_file)
+        if os.path.isfile(metaFileName):
 
-            self.dataStoreDigitize.addProfileNumber(data['profilnummer'])
-            self.dataStoreDigitize.addProfile(data['profil'])
-            self.dataStoreDigitize.addProfileFoto(data['profilfoto'])
-            self.dataStoreDigitize.addView(data['blickrichtung'])
-            self.dataStoreDigitize.addEntzerrungsebene(data['entzerrungsebene'])
-            self.dataStoreDigitize.addGcps(data['gcps'])
-            self.dataStoreDigitize.addTransformParams(data['transform_params'])
+            with open(metaFileName) as json_file:
+                data = json.load(json_file)
+
+                if data['aar_direction'] == 'horizontal':
+
+                    self.dataStoreDigitize.addProfileNumber(data['profilnummer'])
+                    self.dataStoreDigitize.addProfile(data['profil'])
+                    self.dataStoreDigitize.addProfileFoto(data['profilfoto'])
+                    self.dataStoreDigitize.addView(data['blickrichtung'])
+                    self.dataStoreDigitize.addEntzerrungsebene(data['entzerrungsebene'])
+                    self.dataStoreDigitize.addGcps(data['gcps'])
+                    self.dataStoreDigitize.addTransformParams(data['transform_params'])
+
+                else:
+                    raise ValueError('AAR direction muss horizontal sein!')
+
+        else:
+            raise ValueError("Keine .meta Datei zum Profil vorhanden!")
+
 
 
 

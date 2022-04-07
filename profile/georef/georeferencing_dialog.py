@@ -38,6 +38,8 @@ class GeoreferencingDialog(QMainWindow):
 
         self.__iface = iFace
 
+        self.aarDirection = 'horizontal'
+
         #DataStore
         self.dataStoreGeoref = dataStoreGeoref
 
@@ -167,16 +169,6 @@ class GeoreferencingDialog(QMainWindow):
 
         self.toolbarMap.addWidget(self.startGeorefBtn)
 
-        #self.toolbarMap.setContentsMargins(4,4,4,4);
-
-
-        #self.toolbarMap.setStyleSheet("padding-top: 8px; padding-bottom: 8px;")
-
-        #self.toolbarMap.addAction(self.canvasTransform.actionPan)
-        #self.toolbarMap.addAction(self.canvasTransform.actionZoomIn)
-        #self.toolbarMap.addAction(self.canvasTransform.actionZoomOut)
-        #self.toolbarMap.addAction(self.canvasTransform.actionExtent)
-
     ## \brief Creates the layout for the window and assigns the created components
     #
 
@@ -212,7 +204,7 @@ class GeoreferencingDialog(QMainWindow):
         self.refData = refData
 
         self.georefTable.cleanGeorefTable()
-        self.georefTable.updateGeorefTable(refData)
+        self.georefTable.updateGeorefTable(refData, self.aarDirection)
         self.georefTable.pointUsageChanged()
 
         validImageLayer = self.canvasImage.updateCanvas(refData['imagePath'])
@@ -222,8 +214,6 @@ class GeoreferencingDialog(QMainWindow):
 
             self.dataStoreGeoref.addTargetPoints(refData)
 
-            self.imageGeoref.updateMetadata(refData)
-
             self.adjustSize()
             self.show()
             self.resize(1000, 700)
@@ -232,31 +222,24 @@ class GeoreferencingDialog(QMainWindow):
 
     ## \brief Export GCP-Data in a textfile
     #
-    def writeMetafile(self):
-
-        saveFileName = self.refData['savePath'][:-3]
-        saveFileName = saveFileName + 'meta'
-        print('saveFileName', saveFileName)
-
-        if self.refData['horizontal'] == True:
-            ebene = 'vertikal'
-        else:
-            ebene = 'geneigt'
+    def writeMetafile(self, aarDirection, metaFileOut):
 
         data = {
         	"profilnummer": self.refData['profileNumber'],
         	"profil": self.refData['savePath'],
         	"profilfoto": self.refData['imagePath'],
         	"blickrichtung": self.refData['viewDirection'],
-        	"entzerrungsebene": ebene,
-        	"gcps": self.dataStoreGeoref.getGeorefData(),
+        	"entzerrungsebene": 'vertikal',
+            "aar_direction": aarDirection,
+        	"gcps": self.dataStoreGeoref.getGeorefData(aarDirection),
         	"transform_params": self.dataStoreGeoref.getAarTransformationParams()
         }
 
-        with open(saveFileName, 'w') as outfile:
+        with open(metaFileOut, 'w') as outfile:
             json.dump(data, outfile)
 
-        return saveFileName
+        return metaFileOut
+
     ## \brief Open up the transformation dialog
     #
     # calls the funcion restore()
@@ -269,12 +252,21 @@ class GeoreferencingDialog(QMainWindow):
 
 
     def startGeoreferencing(self):
-        georefData = self.dataStoreGeoref.getGeorefData()
-        georefChecker = self.imageGeoref.runGeoref(georefData, self.refData['crs'])
-        if georefChecker == 'ok':
-            fileName = self.writeMetafile()
-            print('fertig')
-            self.__iface.messageBar().pushMessage("Hinweis", "Das Profil wurde unter "+fileName+" referenziert", level=3, duration=5)
+
+        aarDirections = ['horizontal', 'original', 'absolute height']
+
+        for aarDirection in aarDirections:
+
+            georefData = self.dataStoreGeoref.getGeorefData(aarDirection)
+
+            imageFileIn = self.refData['imagePath']
+            imageFileOut = self.refData['savePath'].split(".jpg")[0]+'_'+aarDirection+'.jpg'
+            metaFileOut = self.refData['savePath'].split(".jpg")[0]+'_'+aarDirection+'.meta'
+            georefChecker = self.imageGeoref.runGeoref(georefData, self.refData['crs'], imageFileIn, imageFileOut)
+            
+            if georefChecker == 'ok':
+                fileName = self.writeMetafile(aarDirection, metaFileOut)
+                self.__iface.messageBar().pushMessage("Hinweis", "Das Profil wurde unter "+imageFileOut+" referenziert", level=3, duration=5)
 
         self.close()
         self.destroy()

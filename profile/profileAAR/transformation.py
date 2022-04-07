@@ -538,6 +538,8 @@ class Magic_Box():
 
         if direction == "absolute height":
 
+            print('absolute height in aar')
+
             # To get an export for the absolute height it is necessary to rotate the profile like the horizontal way
 
             # and move it on the y-axis
@@ -742,15 +744,10 @@ class Magic_Box():
         for point in coord_trans:
             array_z_trans.append(point[2])
 
-        #print('array_z_org', array_z_org)
-        #print('array_z_trans', array_z_trans)
-
         array_z_org_t = np.vstack([array_z_org, np.ones(len(array_z_org))]).T
         linegress_profil = np.linalg.lstsq(array_z_org_t, array_z_trans, rcond=None)[0]
 
-        print('zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz')
-
-        return {'coord_trans': coord_trans, 'cutting_start': cutting_start, 'linegress': linegress_profil, 'ns_error': ns_fehler_vorhanden, 'transformationParams': transformationParams}
+        return {'aar_direction': direction, 'coord_trans': coord_trans, 'cutting_start': cutting_start, 'linegress': linegress_profil, 'ns_error': ns_fehler_vorhanden, 'transformationParams': transformationParams}
 
 
     def height_points (self, coord_trans):
