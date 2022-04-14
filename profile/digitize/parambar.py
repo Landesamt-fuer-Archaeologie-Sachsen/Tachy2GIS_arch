@@ -109,9 +109,9 @@ class Parambar(QWidget):
         self.paramsBarLayout.addWidget(self.canvasToolbar)
         self.paramsBarLayout.addWidget(self.toolbarLayer)
 
-        spacer = QWidget();
-        spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred);
-        self.paramsBarLayout.addWidget(spacer);
+        spacer = QWidget()
+        spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        self.paramsBarLayout.addWidget(spacer)
 
         self.paramsBarLayout.addWidget(self.toolbarCoord)
 
