@@ -3,7 +3,8 @@ import os
 import json
 
 import processing
-from qgis.core import QgsVectorFileWriter, QgsCoordinateTransformContext, QgsProject, QgsVectorLayer, QgsLayerTreeGroup, QgsLayerTreeLayer, QgsPoint, QgsFeature, QgsGeometry, QgsFeatureRequest
+from qgis.PyQt.QtCore import QVariant
+from qgis.core import QgsPointXY, QgsFeature, QgsField, QgsVectorFileWriter, QgsCoordinateTransformContext, QgsProject, QgsVectorLayer, QgsLayerTreeGroup, QgsLayerTreeLayer, QgsPoint, QgsGeometry, QgsFeatureRequest
 
 from .layout import Layout
 
@@ -62,7 +63,7 @@ class Plan():
 
         planData = self.__getSelectedValues()
 
-        baseFilePath = planData['profilePath'][:-3]
+        baseFilePath = planData['profilePath'][:-4]
 
         metaChecker = True
         try:
@@ -80,7 +81,7 @@ class Plan():
 
             self.__exportPlanLayers(refData, baseFilePath)
 
-            self.layout.startLayout(planData)
+            #self.layout.startLayout(planData)
 
     ## \brief get selected values
     #
@@ -166,10 +167,16 @@ class Plan():
 
         return refData
 
+    ## \brief export layers
+    #
+    #
 
     def __exportPlanLayers(self, refData, baseFilePath):
 
+        #Todo: make buffersize in ui flexible
         bufferGeometry = self.rotationCoords.profileBuffer(1)
+        #epsg from pointLayer - Todo search better solution (from meta file)
+        epsgCode = refData['pointLayer'].crs().authid()
 
         #Punktlayer schreiben
         selFeaturesPoint = self.__getPointFeaturesFromEingabelayer(refData['pointLayer'], bufferGeometry, 'profile')
@@ -183,6 +190,14 @@ class Plan():
         selFeaturesPolygon =  self.__getPolygonFeaturesFromEingabelayer(refData['polygonLayer'], bufferGeometry, 'profile')
         self.__writeLayer(refData['polygonLayer'], selFeaturesPolygon, baseFilePath, 'polygon')   
 
+        #GCP Layer schreiben
+        gcpLayer, selFeatures = self.__getGcpLayer(epsgCode)
+        self.__writeLayer(gcpLayer, selFeatures, baseFilePath, 'gcp')   
+
+
+    ## \brief get points from eingabelayer
+    #
+    #
     def __getPointFeaturesFromEingabelayer(self, pointLayer, bufferGeometry, geoType):
         #aus Eingabelayer holen
 
@@ -213,7 +228,9 @@ class Plan():
 
         return selFeatures
 
-
+    ## \brief get lines from eingabelayer
+    #
+    #
 
     def __getLineFeaturesFromEingabelayer(self, lineLayer, bufferGeometry, geoType):
 
@@ -242,6 +259,10 @@ class Plan():
 
         return selFeatures
 
+    ## \brief get polygons from eingabelayer
+    #
+    #
+
     def __getPolygonFeaturesFromEingabelayer(self, polygonLayer, bufferGeometry, geoType):
 
         bbox = bufferGeometry.boundingBox()
@@ -269,7 +290,62 @@ class Plan():
 
         return selFeatures
 
+    ## \brief get gcps
+    #
+    #
+
+    def __getGcpLayer(self, epsgCode):
+
+        gcpObj = self.dataStorePlan.getGcps()
+
+        # create layer
+
+        gcpLayer = QgsVectorLayer("point?crs="+epsgCode, "gcp_points", "memory")
+
+        pr = gcpLayer.dataProvider()
+
+        #add attributes
+
+        attributes = []
+        
+        for key, value in gcpObj[0].items():
+
+            if isinstance(value, str):
+                attributes.append(QgsField(key, QVariant.String))
+
+            if isinstance(value, float):
+                attributes.append(QgsField(key, QVariant.Double))
+
+        pr.addAttributes(attributes)
+        gcpLayer.updateFields()
+
     
+        #add features
+        features = []
+        for item in gcpObj:
+            
+            feat = QgsFeature()
+
+            feat.setGeometry(QgsGeometry.fromPointXY(QgsPointXY(item['aar_x'],item['aar_z'])))
+
+            attributesFeat = []
+
+            for key, value in item.items():
+                attributesFeat.append(value)
+
+            feat.setAttributes(attributesFeat)
+
+            features.append(feat)
+
+        pr.addFeatures(features)
+    
+        gcpLayer.updateExtents()
+
+        return gcpLayer, features
+
+    ## \brief __writeLayer
+    #
+    #
     def __writeLayer(self, inputLayer, selFeatures, baseFilePath, layerType):
 
         inputLayer.selectAll()

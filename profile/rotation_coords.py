@@ -1,4 +1,4 @@
-from math import pi, cos, sin, tan, atan
+from math import pi, cos, sin
 
 from qgis.core import QgsGeometry, QgsPoint
 
@@ -132,11 +132,8 @@ class RotationCoords():
         print('geomType', geomFeat.wkbType())
 
         geomType = str(geomFeat.wkbType())[-1]
-        #geomFeat.convertToSingleType()
 
         mls = geomFeat.get()
-        #print('geomFeat', type(geomFeat))
-        #print('mls', type(mls))
 
         if geomType == '3':
 
@@ -144,7 +141,6 @@ class RotationCoords():
 
             pointList = []
             mls = geomFeat.get()
-            #print('test', mls.vertices())
             for part in mls.vertices():
                 try:
                     rotateGeom = self.rotation(part.x(), part.y(), part.z(), True)
@@ -154,55 +150,29 @@ class RotationCoords():
                 zPoint = QgsPoint(rotateGeom['x_trans'], rotateGeom['z_trans'], rotateGeom['z_trans'])
                 pointList.append(zPoint)
 
-            print('pointList', pointList)
-
             adjustGeom.addPoints(pointList)
-            print('adjustGeom', adjustGeom)
-            #provGeom = layer.dataProvider().convertToProviderType(adjustGeom)
 
             return adjustGeom
 
         if geomType == '6':
-            print('hier ist 6')
-            print('geomType', geomType)
-
-            #adjustGeom = geomFeat.get().clone()
 
             adjustGeom = QgsGeometry(mls.createEmptyWithSameType())
-            print('adjustGeom_org', adjustGeom)
 
-            #print('poly getConst', poly.getConst())
-            #print('poly getConst type', type(poly.getConst()))
             for poly in geomFeat.parts():
-                print('poly', poly)
-                print('poly type', type(poly))
 
                 pointList = []
 
                 #part ist QgsPoint
                 for part in poly.vertices():
-                    print('part', part)
-                    print('part type', type(part))
                     try:
                         rotateGeom = self.rotation(part.x(), part.y(), part.z(), True)
                     except:
                         rotateGeom = self.rotation(part.x(), part.y(), 0, True)
 
-                    print('part_neu', part)
-                    print('part type neu', type(part))
                     zPoint = QgsPoint(rotateGeom['x_trans'], rotateGeom['z_trans'], rotateGeom['z_trans'])
                     pointList.append(zPoint)
 
-
-                print('pointList', pointList)
-
                 adjustGeom.addPoints(pointList)
-
-                print('adjustGeom', adjustGeom)
-
-            #adjustGeom.addPart(adjustPart)
-            print('adjustGeom', adjustGeom)
-            #provGeom = layer.dataProvider().convertToProviderType(adjustGeom)
 
             return adjustGeom
 
@@ -215,12 +185,6 @@ class RotationCoords():
 
             #1 point, 2 line, 3 polygon, 5 MultiLineString,6 Multipolygon
             geomType = str(geomFeat.wkbType())[-1]
-            print('geomType', geomFeat.wkbType())
-            print('geomType', geomFeat.wkbType())
-            print('emptyTargetGeometry', emptyTargetGeometry.wkbType())
-            #emptyTargetGeometry.convertToSingleType()
-            print('emptyTargetGeometry_singlle', emptyTargetGeometry.wkbType())
-
             pointList = []
             if geomType == '2':
                 mls = geomFeat.get()
@@ -238,12 +202,9 @@ class RotationCoords():
                 print('geomType', geomType)
 
                 for poly in geomFeat.parts():
-                    print('poly', poly)
-                    print('poly type', type(poly))
 
                     for part in poly.vertices():
-                        print('part', part)
-                        print('part type', type(part))
+
                         rotateGeom = self.rotationReverse(part.x(), part.y(), True)
                         if emptyTargetGeometry.wkbType() == 1005:
                             zPoint = QgsPoint(rotateGeom['x_trans'], rotateGeom['y_trans'], rotateGeom['z_trans'])
@@ -252,18 +213,7 @@ class RotationCoords():
 
                         pointList.append(zPoint)
 
-            print('pointList', pointList)
-
-            #emptyTargetGeometry.addPoints(pointList)
-
             emptyTargetGeometry = QgsGeometry.fromPolyline(pointList)
-
-            print('emptyTargetGeometry', emptyTargetGeometry)
-
-        else:
-            pass
-            #self.dialogInstance.messageBar.pushMessage("Error", "Geometrietypen(ist: "+str(geomFeat.wkbType())+") müssen Z oder ZM sein", level=1, duration=3)
-
 
         return emptyTargetGeometry
 
@@ -272,20 +222,12 @@ class RotationCoords():
         print('rotatePolygonFeature', type(feature))
 
         geomFeat = feature.geometry()
-        #geomFeat.convertToSingleType()
-
         #1 point, 2 line, 3 polygon, 6 Multipolygon
         geomType = str(geomFeat.wkbType())[-1]
-        print('geomType', geomFeat.wkbType())
-        print('geomType', geomFeat.wkbType())
-        print('emptyTargetGeometry', emptyTargetGeometry.wkbType())
-        #emptyTargetGeometry.convertToSingleType()
-        print('emptyTargetGeometry_singlle', emptyTargetGeometry.wkbType())
 
         pointList = []
         if geomType == '3':
             mls = geomFeat.get()
-            #print('test', mls.vertices())
             for part in mls.vertices():
                 rotateGeom = self.rotationReverse(part.x(), part.y(), True)
                 zPoint = QgsPoint(rotateGeom['x_trans'], rotateGeom['y_trans'], rotateGeom['z_trans'])
@@ -293,28 +235,14 @@ class RotationCoords():
 
         if geomType == '6':
 
-            print('geomType', geomType)
-            #print('poly getConst', poly.getConst())
-            #print('poly getConst type', type(poly.getConst()))
             for poly in geomFeat.parts():
-                print('poly', poly)
-                print('poly type', type(poly))
 
-                #mls = poly.get()
-                #print('mls', mls)
-                #print('mls type', type(mls))
                 for part in poly.vertices():
-                    print('part', part)
-                    print('part type', type(part))
                     rotateGeom = self.rotationReverse(part.x(), part.y(), True)
                     zPoint = QgsPoint(rotateGeom['x_trans'], rotateGeom['y_trans'], rotateGeom['z_trans'])
                     pointList.append(zPoint)
 
-        print('pointList', pointList)
-
         emptyTargetGeometry.addPoints(pointList)
-
-        print('emptyTargetGeometry', emptyTargetGeometry)
 
         return emptyTargetGeometry
 
