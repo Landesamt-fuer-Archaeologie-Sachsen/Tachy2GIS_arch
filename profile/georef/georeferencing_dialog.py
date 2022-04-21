@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import os
 import json
+import pathlib
+
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QWidget, QMainWindow, QAction, QVBoxLayout, QHBoxLayout, QPushButton
 from PyQt5.QtGui import QIcon
@@ -235,7 +237,7 @@ class GeoreferencingDialog(QMainWindow):
         	"transform_params": self.dataStoreGeoref.getAarTransformationParams()
         }
 
-        with open(metaFileOut, 'w') as outfile:
+        with open(str(metaFileOut), 'w') as outfile:
             json.dump(data, outfile)
 
         return metaFileOut
@@ -260,13 +262,23 @@ class GeoreferencingDialog(QMainWindow):
             georefData = self.dataStoreGeoref.getGeorefData(aarDirection)
 
             imageFileIn = self.refData['imagePath']
-            imageFileOut = self.refData['savePath'].split(".jpg")[0]+'_'+aarDirection+'.jpg'
-            metaFileOut = self.refData['savePath'].split(".jpg")[0]+'_'+aarDirection+'.meta'
-            georefChecker = self.imageGeoref.runGeoref(georefData, self.refData['crs'], imageFileIn, imageFileOut)
+            profileTargetName = self.refData['profileTargetName']
+            
+            if aarDirection == 'horizontal':
+                base_path = pathlib.Path(self.refData['profileDirs']['dirPh'])
+            if aarDirection == 'original':
+                base_path = pathlib.Path(self.refData['profileDirs']['dirPo'])
+            if aarDirection == 'absolute height':
+                base_path = pathlib.Path(self.refData['profileDirs']['dirPa'])
+
+            imageFileOut = base_path / f'{profileTargetName}.jpg'
+            metaFileOut = base_path / f'{profileTargetName}.meta'
+
+            georefChecker = self.imageGeoref.runGeoref(georefData, self.refData['crs'], imageFileIn, str(imageFileOut))
             
             if georefChecker == 'ok':
                 fileName = self.writeMetafile(aarDirection, metaFileOut)
-                self.__iface.messageBar().pushMessage("Hinweis", "Das Profil wurde unter "+imageFileOut+" referenziert", level=3, duration=5)
+                self.__iface.messageBar().pushMessage("Hinweis", "Das Profil wurde unter "+str(imageFileOut)+" referenziert", level=3, duration=5)
 
         self.close()
         self.destroy()
