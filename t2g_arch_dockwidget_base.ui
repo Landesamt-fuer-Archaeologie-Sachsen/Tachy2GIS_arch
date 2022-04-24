@@ -128,8 +128,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>422</width>
-         <height>607</height>
+         <width>98</width>
+         <height>28</height>
         </rect>
        </property>
        <attribute name="label">
@@ -830,8 +830,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>422</width>
-         <height>607</height>
+         <width>284</width>
+         <height>497</height>
         </rect>
        </property>
        <property name="sizePolicy">
@@ -1098,8 +1098,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>422</width>
-         <height>607</height>
+         <width>98</width>
+         <height>28</height>
         </rect>
        </property>
        <attribute name="label">
@@ -1356,8 +1356,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>422</width>
-         <height>607</height>
+         <width>98</width>
+         <height>28</height>
         </rect>
        </property>
        <attribute name="label">
@@ -1684,8 +1684,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>422</width>
-         <height>607</height>
+         <width>336</width>
+         <height>335</height>
         </rect>
        </property>
        <attribute name="label">
@@ -2114,7 +2114,7 @@
 }</string>
           </property>
           <property name="currentIndex">
-           <number>2</number>
+           <number>0</number>
           </property>
           <widget class="QWidget" name="profileGeoreferencing">
            <property name="styleSheet">
@@ -2145,6 +2145,16 @@
             </item>
             <item row="2" column="1">
              <widget class="QComboBox" name="profileIdsComboGeoref"/>
+            </item>
+            <item row="4" column="0">
+             <widget class="QLabel" name="label_32">
+              <property name="text">
+               <string>Punktlayer</string>
+              </property>
+             </widget>
+            </item>
+            <item row="4" column="1">
+             <widget class="QgsMapLayerComboBox" name="layerGcpGeoref"/>
             </item>
             <item row="5" column="0">
              <widget class="QLabel" name="label_27">
@@ -2205,19 +2215,9 @@
              </widget>
             </item>
             <item row="10" column="1">
-             <widget class="QgsFileWidget" name="profileSaveComboGeoref"/>
+             <widget class="QLineEdit" name="profileTargetName"/>
             </item>
             <item row="11" column="1">
-             <widget class="QCheckBox" name="metaProfileCheckbox">
-              <property name="text">
-               <string>Metadaten zur Profilentzerrung speichern</string>
-              </property>
-              <property name="checked">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item row="12" column="1">
              <widget class="QPushButton" name="startGeoreferencingBtn">
               <property name="styleSheet">
                <string notr="true">background-color : green</string>
@@ -2227,7 +2227,7 @@
               </property>
              </widget>
             </item>
-            <item row="13" column="1">
+            <item row="12" column="1">
              <spacer name="verticalSpacer_4">
               <property name="orientation">
                <enum>Qt::Vertical</enum>
@@ -2243,7 +2243,7 @@
               </property>
              </spacer>
             </item>
-            <item row="14" column="1">
+            <item row="13" column="1">
              <layout class="QHBoxLayout" name="horizontalLayout_6">
               <property name="topMargin">
                <number>9</number>
@@ -2272,16 +2272,6 @@
                </widget>
               </item>
              </layout>
-            </item>
-            <item row="4" column="1">
-             <widget class="QgsMapLayerComboBox" name="layerGcpGeoref"/>
-            </item>
-            <item row="4" column="0">
-             <widget class="QLabel" name="label_32">
-              <property name="text">
-               <string>Punktlayer</string>
-              </property>
-             </widget>
             </item>
            </layout>
           </widget>
@@ -2398,8 +2388,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>422</width>
-         <height>607</height>
+         <width>98</width>
+         <height>28</height>
         </rect>
        </property>
        <attribute name="label">
@@ -2528,8 +2518,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>422</width>
-         <height>607</height>
+         <width>98</width>
+         <height>28</height>
         </rect>
        </property>
        <attribute name="label">

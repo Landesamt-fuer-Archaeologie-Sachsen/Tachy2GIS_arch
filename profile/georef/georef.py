@@ -1,6 +1,7 @@
 ## @package QGIS geoEdit extension..
 import os
 import math
+import pathlib
 
 from qgis.core import QgsProject, QgsVectorLayer, QgsLayerTreeGroup, QgsLayerTreeLayer, QgsWkbTypes
 
@@ -33,6 +34,8 @@ class Georef():
 
         #Preselection of Inputlayers (only Layer below "Eingabelayer" are available)
         preselectedLineLayer = self.__preselectionProfileLayer()
+        #Tooltip
+        self.__dockwidget.profileTargetName.setToolTip("Die Ergebnisdateien werden in Unterverzeichnissen vom Profilfoto abgelegt, die Dateinamen beginnen so wie hier angegeben.")
         #Preselection profilenumber
         print(type(preselectedLineLayer))
         if isinstance(preselectedLineLayer, QgsVectorLayer):
@@ -46,8 +49,8 @@ class Georef():
             #Preselection View direction
             self.__preselectViewDirection()
             #set datatype filter and save mode to profileSaveComboGeoref
-            self.__dockwidget.profileSaveComboGeoref.setFilter('Images (*.jpg)')
-            self.__dockwidget.profileSaveComboGeoref.setStorageMode(3)
+            #self.__dockwidget.profileSaveComboGeoref.setFilter('Images (*.jpg)')
+            #self.__dockwidget.profileSaveComboGeoref.setStorageMode(3)
 
             self.__dockwidget.startGeoreferencingBtn.clicked.connect(self.__startGeoreferencingDialog)
 
@@ -66,20 +69,21 @@ class Georef():
     def __startGeoreferencingDialog(self):
         print('__startGeoreferencingDialog')
         refData = self.__getSelectedValues()
+        self.__createFolders(refData)
         
         self.georeferencingDialog = GeoreferencingDialog(self, self.dataStoreGeoref, self.rotationCoords, self.__iface)
         self.georeferencingDialog.showGeoreferencingDialog(refData)
 
     ## \brief SaveComboBox is clicked
     #
-    # suggest saveFilePath
-
+    # suggest profileTargetName
+    
     def __changedProfileImage(self):
 
         imageFilePath = self.__dockwidget.profileFotosComboGeoref.filePath()
-        shortFilePath = imageFilePath.rsplit('.', 1)[0]
-        suggestTargetFilePath = shortFilePath + '_entz.jpg'
-        self.__dockwidget.profileSaveComboGeoref.setFilePath(suggestTargetFilePath)
+        shortFileName = pathlib.Path(imageFilePath).stem
+        suggestTargetName = shortFileName + '_entz'
+        self.__dockwidget.profileTargetName.setText(suggestTargetName)
 
     ## \brief get selected values
     #
@@ -122,12 +126,22 @@ class Georef():
             viewDirection = 'W'
         #horizontal true/false
         horizontalCheck = self.__dockwidget.radioDirectionHorizontal.isChecked()
-        #Speichern unter
-        savePath = self.__dockwidget.profileSaveComboGeoref.filePath()
-        #Metadaten
-        metadataCheck = self.__dockwidget.metaProfileCheckbox.isChecked()
 
-        refData = {'lineLayer': lineLayer, 'pointLayer': pointLayer, 'crs': pointLayer.crs(), 'profileNumber': profileNumber, 'imagePath': imagePath, 'viewDirection': viewDirection, 'horizontal': horizontalCheck, 'savePath': savePath, 'saveMetadata': metadataCheck, 'targetGCP': targetGCP}
+        #profileTargetName
+        profileTargetName = self.__dockwidget.profileTargetName.text()
+        #Speicherpfad
+        fullPath = self.__dockwidget.profileFotosComboGeoref.filePath()
+        p_path = pathlib.Path(fullPath)
+        savePath = p_path.parent
+
+        profileDirs = {
+            "dirPa": str(savePath / 'pa'), "dirPo": str(savePath / 'po'),  "dirPh": str(savePath / 'ph'),  "dir3d": str(savePath / '3d')
+        }     
+
+        #Metadaten
+        metadataCheck = True #self.__dockwidget.metaProfileCheckbox.isChecked()
+
+        refData = {'lineLayer': lineLayer, 'pointLayer': pointLayer, 'crs': pointLayer.crs(), 'profileNumber': profileNumber, 'imagePath': imagePath, 'viewDirection': viewDirection, 'horizontal': horizontalCheck, 'profileTargetName': profileTargetName, 'savePath': str(savePath), 'profileDirs': profileDirs, 'saveMetadata': metadataCheck, 'targetGCP': targetGCP}
 
         return refData
 
@@ -321,3 +335,17 @@ class Georef():
                                  inputLayers.append(child.layer())
 
         return inputLayers
+
+
+    def __createFolders(self, refData):
+
+        print('Create missing folders ...')
+
+        profileDirs = refData['profileDirs']
+
+        for key, value in profileDirs.items():        
+            if not os.path.exists(value):
+                os.makedirs(value)
+
+
+

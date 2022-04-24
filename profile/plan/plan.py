@@ -81,6 +81,8 @@ class Plan():
 
             self.__exportPlanLayers(refData, baseFilePath)
 
+            self.__iface.messageBar().pushMessage("Hinweis", "Die Daten zum Plan wurden unter "+str(baseFilePath)+" abgelegt", level=3, duration=5)
+
             #self.layout.startLayout(planData)
 
     ## \brief get selected values
