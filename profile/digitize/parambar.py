@@ -2,7 +2,7 @@
 import os
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QWidget, QHBoxLayout, QLabel, QFrame, QSizePolicy, QToolBar, QAction, QComboBox, QLineEdit, QPushButton
+from PyQt5.QtWidgets import QWidget, QHBoxLayout, QLabel, QFrame, QSizePolicy, QToolBar, QAction, QComboBox, QLineEdit, QPushButton, QDoubleSpinBox
 
 from ..publisher import Publisher
 
@@ -85,6 +85,15 @@ class Parambar(QWidget):
         self.takeLayerButton.setStyleSheet("background-color: green; width: 200px")
         self.toolbarLayer.addWidget(self.takeLayerButton)
 
+        #Buffer Spinbox
+        self.bufferSpin = QDoubleSpinBox(self)
+        self.bufferSpin.setMinimum(0)
+        self.bufferSpin.setMaximum(5)
+        self.bufferSpin.setSingleStep(0.01)
+        self.bufferSpin.setValue(1)
+        self.bufferSpin.setToolTip('Max. Abstand [m] der Eingabelayerobjekte von der Profillinie')  
+        self.toolbarLayer.addWidget(self.bufferSpin)
+
         #Koordinatenanzeige
         self.toolbarCoord = QToolBar("Coordinates", self)
         self.coordLabel = QLabel("Koordinate ")
@@ -136,7 +145,7 @@ class Parambar(QWidget):
 
             iconImport = QIcon(os.path.join(self.iconpath, 'Sichtbar_an.gif'))
             self.getObjectsAction.setIcon(iconImport)
-            bufferGeometry = self.rotationCoords.profileBuffer(1)
+            bufferGeometry = self.rotationCoords.profileBuffer(self.bufferSpin.value())
 
             self.toolDigiPoint.getFeaturesFromEingabelayer(bufferGeometry, 'tachy')
             self.toolDigiLine.getFeaturesFromEingabelayer(bufferGeometry, 'tachy')
@@ -325,7 +334,7 @@ class Parambar(QWidget):
 
         #Button Objekte aus Layer anzeigen
         iconImport = QIcon(os.path.join(self.iconpath, 'Sichtbar_aus.gif'))
-        self.getObjectsAction = QAction(iconImport, "Objecte aus Eingabelayer", self)
+        self.getObjectsAction = QAction(iconImport, "Objekte aus Eingabelayer", self)
         self.getObjectsAction.setCheckable(True)
         self.getObjectsAction.triggered.connect(self.getOriginalObjects)
         self.canvasToolbar.addAction(self.getObjectsAction)
