@@ -128,8 +128,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>98</width>
-         <height>28</height>
+         <width>422</width>
+         <height>607</height>
         </rect>
        </property>
        <attribute name="label">
@@ -830,8 +830,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>284</width>
-         <height>497</height>
+         <width>422</width>
+         <height>607</height>
         </rect>
        </property>
        <property name="sizePolicy">
@@ -1098,8 +1098,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>98</width>
-         <height>28</height>
+         <width>422</width>
+         <height>607</height>
         </rect>
        </property>
        <attribute name="label">
@@ -1356,8 +1356,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>98</width>
-         <height>28</height>
+         <width>422</width>
+         <height>607</height>
         </rect>
        </property>
        <attribute name="label">
@@ -1684,8 +1684,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>336</width>
-         <height>335</height>
+         <width>422</width>
+         <height>607</height>
         </rect>
        </property>
        <attribute name="label">
@@ -2114,7 +2114,7 @@
 }</string>
           </property>
           <property name="currentIndex">
-           <number>0</number>
+           <number>2</number>
           </property>
           <widget class="QWidget" name="profileGeoreferencing">
            <property name="styleSheet">
@@ -2367,13 +2367,33 @@
               </property>
              </widget>
             </item>
-            <item row="1" column="1">
+            <item row="2" column="1">
              <widget class="QPushButton" name="startPlanBtn">
               <property name="styleSheet">
                <string notr="true">background-color : green</string>
               </property>
               <property name="text">
                <string>Start</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QDoubleSpinBox" name="profileBufferSpinBox">
+              <property name="maximum">
+               <double>5.000000000000000</double>
+              </property>
+              <property name="singleStep">
+               <double>0.010000000000000</double>
+              </property>
+              <property name="value">
+               <double>1.000000000000000</double>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QLabel" name="label_37">
+              <property name="text">
+               <string>Profilbuffer [m]</string>
               </property>
              </widget>
             </item>
@@ -2388,8 +2408,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>98</width>
-         <height>28</height>
+         <width>422</width>
+         <height>607</height>
         </rect>
        </property>
        <attribute name="label">
@@ -2518,8 +2538,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>98</width>
-         <height>28</height>
+         <width>422</width>
+         <height>607</height>
         </rect>
        </property>
        <attribute name="label">

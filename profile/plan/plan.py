@@ -174,9 +174,9 @@ class Plan():
     #
 
     def __exportPlanLayers(self, refData, baseFilePath):
-
-        #Todo: make buffersize in ui flexible
-        bufferGeometry = self.rotationCoords.profileBuffer(1)
+        
+        #Flexible buffersize from gui
+        bufferGeometry = self.rotationCoords.profileBuffer(self.__dockwidget.profileBufferSpinBox.value())
         #epsg from pointLayer - Todo search better solution (from meta file)
         epsgCode = refData['pointLayer'].crs().authid()
 
