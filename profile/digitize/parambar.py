@@ -2,7 +2,7 @@
 import os
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QWidget, QHBoxLayout, QLabel, QFrame, QSizePolicy, QToolBar, QAction, QComboBox, QLineEdit, QPushButton
+from PyQt5.QtWidgets import QWidget, QHBoxLayout, QLabel, QFrame, QSizePolicy, QToolBar, QAction, QComboBox, QLineEdit, QPushButton, QDoubleSpinBox
 
 from ..publisher import Publisher
 
@@ -57,17 +57,10 @@ class Parambar(QWidget):
         self.createActionZoomOut()
         self.createActionExtent()
 
-        #Layerauswahl
-        self.toolbarLayer = QToolBar("Layer", self)
-        self.labelActiveLayerCombo = QLabel('Activer Layer')
-        self.labelActiveLayerCombo.setAlignment(Qt.AlignVCenter)
-        self.activeLayerCombo = QComboBox()
+        self.createGetObjectsAction()
 
-        #self.activeLayerCombo.wheelEvent = lambda event: None
-        #self.activeLayerCombo.currentTextChanged.connect(self.activeLayerChanged)
+        self.createLayerauswahl()
 
-        self.toolbarLayer.addWidget(self.labelActiveLayerCombo)
-        self.toolbarLayer.addWidget(self.activeLayerCombo)
         self.createDigiPointAction()
         self.createDigiLineAction()
         self.createDigiPolygonAction()
@@ -75,24 +68,18 @@ class Parambar(QWidget):
         self.createEditPointAction()
         self.createEditLineAction()
         self.createEditPolygonAction()
-        self.createGetObjectsAction()
+        
+
+        self.createTakeLayerAction()
 
         self.activatePan()
 
-        #Button in Eingabelayer übernehmen
-        self.takeLayerButton = QPushButton(self)
-        self.takeLayerButton.setText("Objekte in Eingabelayer schreiben")
-        self.takeLayerButton.setStyleSheet("background-color: green; width: 200px")
-        self.toolbarLayer.addWidget(self.takeLayerButton)
-
         #Koordinatenanzeige
         self.toolbarCoord = QToolBar("Coordinates", self)
-        self.coordLabel = QLabel("Koordinate ")
         self.coordLineEdit = QLineEdit()
         self.coordLineEdit.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
         self.coordLineEdit.setReadOnly(True)
         self.coordLineEdit.setMinimumWidth(200);
-        self.toolbarCoord.addWidget(self.coordLabel)
         self.toolbarCoord.addWidget(self.coordLineEdit)
 
 
@@ -107,7 +94,7 @@ class Parambar(QWidget):
         #self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
 
         self.paramsBarLayout.addWidget(self.canvasToolbar)
-        self.paramsBarLayout.addWidget(self.toolbarLayer)
+        #self.paramsBarLayout.addWidget(self.toolbarLayer)
 
         spacer = QWidget()
         spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
@@ -119,7 +106,7 @@ class Parambar(QWidget):
     def createConnects(self):
         self.activeLayerCombo.currentIndexChanged.connect(self.__switchLayer)
 
-        self.takeLayerButton.clicked.connect(self.takeLayerObjects)
+        self.takeLayerButton.triggered.connect(self.takeLayerObjects)
 
     def takeLayerObjects(self):
         layer_id = self.activeLayerCombo.currentData()
@@ -136,7 +123,7 @@ class Parambar(QWidget):
 
             iconImport = QIcon(os.path.join(self.iconpath, 'Sichtbar_an.gif'))
             self.getObjectsAction.setIcon(iconImport)
-            bufferGeometry = self.rotationCoords.profileBuffer(1)
+            bufferGeometry = self.rotationCoords.profileBuffer(self.bufferSpin.value())
 
             self.toolDigiPoint.getFeaturesFromEingabelayer(bufferGeometry, 'tachy')
             self.toolDigiLine.getFeaturesFromEingabelayer(bufferGeometry, 'tachy')
@@ -221,6 +208,21 @@ class Parambar(QWidget):
         self.canvasDigitize.setMapTool(self.toolEditPolygon)
         self.toolDigiPolygon.clearRubberband()
 
+    ## \brief Create pan action
+    #
+    def createTakeLayerAction(self):
+
+
+        #Button in Eingabelayer übernehmen
+        self.canvasToolbar.addSeparator()
+        iconPan = QIcon(os.path.join(self.iconpath, 'export2eingabelayer.png'))
+        self.takeLayerButton = QAction(iconPan, "Objekte in Eingabelayer schreiben", self)
+        self.canvasToolbar.addAction(self.takeLayerButton)
+
+        #self.takeLayerButton = QPushButton(self)
+        #self.takeLayerButton.setText("Objekte in Eingabelayer schreiben")
+        #self.takeLayerButton.setStyleSheet("background-color: green; width: 200px")
+        #self.toolbarLayer.addWidget(self.takeLayerButton)
 
     ## \brief Create pan action
     #
@@ -284,7 +286,7 @@ class Parambar(QWidget):
 
         self.toolDigiPoint.setAction(self.actionDigiPoint)
 
-        self.toolbarLayer.addAction(self.actionDigiPoint)
+        self.canvasToolbar.addAction(self.actionDigiPoint)
         self.canvasDigitize.setMapTool(self.toolDigiPoint)
         self.actionDigiPoint.triggered.connect(self.activateDigiPoint)
 
@@ -299,7 +301,7 @@ class Parambar(QWidget):
 
         self.toolDigiLine.setAction(self.actionDigiLine)
 
-        self.toolbarLayer.addAction(self.actionDigiLine)
+        self.canvasToolbar.addAction(self.actionDigiLine)
         self.canvasDigitize.setMapTool(self.toolDigiLine)
         self.actionDigiLine.triggered.connect(self.activateDigiLine)
 
@@ -314,7 +316,7 @@ class Parambar(QWidget):
 
         self.toolDigiPolygon.setAction(self.actionDigiPolygon)
 
-        self.toolbarLayer.addAction(self.actionDigiPolygon)
+        self.canvasToolbar.addAction(self.actionDigiPolygon)
         self.canvasDigitize.setMapTool(self.toolDigiPolygon)
         self.actionDigiPolygon.triggered.connect(self.activateDigiPolygon)
 
@@ -325,10 +327,38 @@ class Parambar(QWidget):
 
         #Button Objekte aus Layer anzeigen
         iconImport = QIcon(os.path.join(self.iconpath, 'Sichtbar_aus.gif'))
-        self.getObjectsAction = QAction(iconImport, "Objecte aus Eingabelayer", self)
+        self.getObjectsAction = QAction(iconImport, "Objekte aus Eingabelayer", self)
         self.getObjectsAction.setCheckable(True)
         self.getObjectsAction.triggered.connect(self.getOriginalObjects)
+        self.canvasToolbar.addSeparator()
         self.canvasToolbar.addAction(self.getObjectsAction)
+
+        #Buffer Spinbox
+        self.bufferSpin = QDoubleSpinBox(self)
+        self.bufferSpin.setMinimum(0)
+        self.bufferSpin.setMaximum(5)
+        self.bufferSpin.setSingleStep(0.01)
+        self.bufferSpin.setValue(1)
+        self.bufferSpin.setToolTip('Max. Abstand [m] der Eingabelayerobjekte von der Profillinie')  
+        self.canvasToolbar.addWidget(self.bufferSpin)
+
+
+    ## \brief Create Layerauswahl
+    #
+    def createLayerauswahl(self):
+
+        #Layerauswahl
+        self.canvasToolbar.addSeparator()
+        self.labelActiveLayerCombo = QLabel('Aktiver Layer')
+        self.labelActiveLayerCombo.setAlignment(Qt.AlignVCenter)
+        self.labelActiveLayerCombo.setStyleSheet("padding-right: 4px; padding-left: 4px")
+        
+        self.activeLayerCombo = QComboBox()
+        self.canvasToolbar.addWidget(self.labelActiveLayerCombo)
+        self.canvasToolbar.addWidget(self.activeLayerCombo)
+        self.canvasToolbar.addSeparator()
+
+
 
     ## \brief Create point action
     #
@@ -340,7 +370,7 @@ class Parambar(QWidget):
 
         self.toolEditPoint.setAction(self.actionEditPoint)
 
-        self.toolbarLayer.addAction(self.actionEditPoint)
+        self.canvasToolbar.addAction(self.actionEditPoint)
         self.canvasDigitize.setMapTool(self.toolEditPoint)
         self.actionEditPoint.triggered.connect(self.activateEditPoint)
 
@@ -355,7 +385,7 @@ class Parambar(QWidget):
 
         self.toolEditLine.setAction(self.actionEditLine)
 
-        self.toolbarLayer.addAction(self.actionEditLine)
+        self.canvasToolbar.addAction(self.actionEditLine)
         self.canvasDigitize.setMapTool(self.toolEditLine)
         self.actionEditLine.triggered.connect(self.activateEditLine)
 
@@ -370,7 +400,7 @@ class Parambar(QWidget):
 
         self.toolEditPolygon.setAction(self.actionEditPolygon)
 
-        self.toolbarLayer.addAction(self.actionEditPolygon)
+        self.canvasToolbar.addAction(self.actionEditPolygon)
         self.canvasDigitize.setMapTool(self.toolEditPolygon)
         self.actionEditPolygon.triggered.connect(self.activateEditPolygon)
 
