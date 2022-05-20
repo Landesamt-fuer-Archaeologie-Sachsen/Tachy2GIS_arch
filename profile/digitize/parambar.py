@@ -61,6 +61,7 @@ class Parambar(QWidget):
 
         self.createLayerauswahl()
 
+        self.createSnapAction()
         self.createDigiPointAction()
         self.createDigiLineAction()
         self.createDigiPolygonAction()
@@ -170,6 +171,30 @@ class Parambar(QWidget):
     def activateZoomIn(self):
         self.canvasDigitize.setMapTool(self.canvasDigitize.toolZoomIn)
 
+    ## \brief Create snap action
+    #
+    def activateSnap(self):
+
+        if self.actionSnap.isChecked():
+            print('snapping on')
+
+            self.toolDigiPoint.setSnapping(True)
+            self.toolDigiLine.setSnapping(True)
+            self.toolDigiPolygon.setSnapping(True)
+            self.toolEditPoint.setSnapping(True)
+            self.toolEditLine.setSnapping(True)
+            self.toolEditPolygon.setSnapping(True)
+
+        else:
+            print('snapping off')
+            self.toolDigiPoint.setSnapping(False)
+            self.toolDigiLine.setSnapping(False)
+            self.toolDigiPolygon.setSnapping(False)
+            self.toolEditPoint.setSnapping(False)
+            self.toolEditLine.setSnapping(False)
+            self.toolEditPolygon.setSnapping(False)
+
+
     ## \brief Create pan action
     #
     def activateZoomOut(self):
@@ -274,6 +299,17 @@ class Parambar(QWidget):
         self.canvasToolbar.addAction(self.actionExtent)
 
         self.actionExtent.triggered.connect(self.canvasDigitize.setExtentByImageLayer)
+
+    def createSnapAction(self):
+
+        iconSnap = QIcon(os.path.join(self.iconpath, 'mIconSnapping.png'))
+        self.actionSnap = QAction(iconSnap, "Snapping", self)
+        self.actionSnap.setCheckable(True)
+
+        self.canvasToolbar.addAction(self.actionSnap)
+  
+        self.actionSnap.triggered.connect(self.activateSnap)
+
 
     ## \brief Create point action
     #

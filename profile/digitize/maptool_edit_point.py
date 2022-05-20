@@ -1,9 +1,11 @@
 import math
 from qgis.gui import QgsMapToolIdentify, QgsMapToolIdentifyFeature
 from qgis.core import QgsGeometry
-from ..publisher import Publisher
 
-class MapToolEditPoint(QgsMapToolIdentifyFeature):
+from ..publisher import Publisher
+from .maptool_mixin import MapToolMixin
+
+class MapToolEditPoint(QgsMapToolIdentifyFeature, MapToolMixin):
     def __init__(self, canvas, iFace, rotationCoords):
         self.__iface = iFace
 
@@ -17,6 +19,8 @@ class MapToolEditPoint(QgsMapToolIdentifyFeature):
         self.rotationCoords = rotationCoords
 
         self.canvas = canvas
+
+        self.snapping = False
 
         QgsMapToolIdentifyFeature.__init__(self, self.canvas)
 
@@ -47,8 +51,12 @@ class MapToolEditPoint(QgsMapToolIdentifyFeature):
     def canvasMoveEvent(self, event):
         if self.dragging:
 
-            layerPt = self.canvas.getCoordinateTransform().toMapCoordinates(event.x(), event.y())
-            geometry = QgsGeometry.fromPointXY(layerPt)
+            if self.snapping is True:
+                pointXY, position = self.snapToNearestVertex(self.canvas, event.pos())
+            else:
+                pointXY = self.canvas.getCoordinateTransform().toMapCoordinates(event.x(), event.y())
+
+            geometry = QgsGeometry.fromPointXY(pointXY)
 
             self.digiPointLayer.changeGeometry(self.feature.id(), geometry)
 
@@ -58,6 +66,11 @@ class MapToolEditPoint(QgsMapToolIdentifyFeature):
         self.dragging = False
         self.feature = None
 
-
     def setDigiPointLayer(self, digiPointLayer):
         self.digiPointLayer = digiPointLayer
+
+    def setSnapping(self, enableSnapping):
+        if enableSnapping is True:
+            self.snapping = True
+        else:
+            self.snapping = False

@@ -4,8 +4,9 @@ from qgis.gui import QgsMapTool, QgsRubberBand, QgsVertexMarker, QgsAttributeDia
 from qgis.core import QgsExpression, QgsWkbTypes, QgsFeature, QgsGeometry, QgsFeatureRequest
 
 from ..publisher import Publisher
+from .maptool_mixin import MapToolMixin
 
-class MapToolDigiPolygon(QgsMapTool):
+class MapToolDigiPolygon(QgsMapTool, MapToolMixin):
     def __init__(self, canvas, iFace, rotationCoords):
         self.__iface = iFace
 
@@ -36,6 +37,8 @@ class MapToolDigiPolygon(QgsMapTool):
 
         self.refData = None
 
+        self.snapping = False
+
     def createRubberband(self):
         self.rubberband = QgsRubberBand(self.canvas, True)
         self.rubberband.setStrokeColor(Qt.red)
@@ -53,14 +56,14 @@ class MapToolDigiPolygon(QgsMapTool):
 
             self.active = True
 
-            self.point = self.toMapCoordinates(event.pos())
+            if self.snapping is True:
+                pointXY, position = self.snapToNearestVertex(self.canvas, event.pos())
+                self.point = pointXY
+            else:
+                self.point = self.toMapCoordinates(event.pos())
+
             self.canvas.scene().removeItem(self.vertexMarker)
-            self.vertexMarker = QgsVertexMarker(self.canvas)
-            self.vertexMarker.setCenter(self.point)
-            self.vertexMarker.setColor(Qt.red)
-            self.vertexMarker.setIconSize(5)
-            self.vertexMarker.setIconType(QgsVertexMarker.ICON_BOX)
-            self.vertexMarker.setPenWidth(3)
+            self.vertexMarker = self.createVertexMarker(self.canvas, self.point, Qt.red, 5, QgsVertexMarker.ICON_BOX, 3)
 
             self.points.append(self.point)
             self.isEmittingPoint = True
@@ -283,3 +286,9 @@ class MapToolDigiPolygon(QgsMapTool):
 
     def update(self, refData):
         self.refData = refData
+
+    def setSnapping(self, enableSnapping):
+        if enableSnapping is True:
+            self.snapping = True
+        else:
+            self.snapping = False
