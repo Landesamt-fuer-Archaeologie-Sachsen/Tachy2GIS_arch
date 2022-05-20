@@ -4,8 +4,9 @@ from qgis.gui import QgsMapToolIdentify, QgsMapToolIdentifyFeature, QgsVertexMar
 from qgis.core import QgsWkbTypes
 
 from ..publisher import Publisher
+from .maptool_mixin import MapToolMixin
 
-class MapToolEditPolygon(QgsMapToolIdentifyFeature):
+class MapToolEditPolygon(QgsMapToolIdentifyFeature, MapToolMixin):
     def __init__(self, canvas, iFace, rotationCoords):
         self.__iface = iFace
 
@@ -18,6 +19,8 @@ class MapToolEditPolygon(QgsMapToolIdentifyFeature):
         self.feature = None
         self.vertex = None
         self.vertexMarker = None
+
+        self.snapping = False
 
         self.rotationCoords = rotationCoords
 
@@ -38,7 +41,10 @@ class MapToolEditPolygon(QgsMapToolIdentifyFeature):
         found_features = self.identify(event.x(), event.y(), [self.digiPolygonLayer], QgsMapToolIdentify.TopDownAll)
         identified_features = [f.mFeature for f in found_features]
 
-        click_point = self.canvas.getCoordinateTransform().toMapCoordinates(event.x(), event.y())
+        if self.snapping is True:
+            pointXY, position = self.snapToNearestVertex(self.canvas, event.pos())
+        else:
+            pointXY = self.canvas.getCoordinateTransform().toMapCoordinates(event.x(), event.y())
 
         self.clearVertexMarker()
 
@@ -50,10 +56,11 @@ class MapToolEditPolygon(QgsMapToolIdentifyFeature):
 
                 feat_geom = feature.geometry()
 
-                vertexCoord,vertex,prevVertex,nextVertex,distSquared = feat_geom.closestVertex(click_point)
+                vertexCoord,vertex,prevVertex,nextVertex,distSquared = feat_geom.closestVertex(pointXY)
+
                 distance = math.sqrt(distSquared)
 
-                tolerance = self.calcTolerance(event.pos())
+                tolerance = self.calcTolerance(self.canvas, event.pos())
 
                 if distance > tolerance:
                     return
@@ -66,7 +73,7 @@ class MapToolEditPolygon(QgsMapToolIdentifyFeature):
                     layerPt = self.moveVertexTo(event.pos())
 
                     self.clearVertexMarker()
-                    self.setVertexMarker(layerPt)
+                    self.vertexMarker = self.createVertexMarker(self.canvas, layerPt, Qt.red, 5, QgsVertexMarker.ICON_BOX, 3)
 
                     self.canvas.refresh()
                 elif event.button() == Qt.RightButton:
@@ -76,14 +83,6 @@ class MapToolEditPolygon(QgsMapToolIdentifyFeature):
 
     def clearVertexMarker(self):
         self.canvas.scene().removeItem(self.vertexMarker)
-
-    def setVertexMarker(self, layerPt):
-        self.vertexMarker = QgsVertexMarker(self.canvas)
-        self.vertexMarker.setCenter(layerPt)
-        self.vertexMarker.setColor(Qt.red)
-        self.vertexMarker.setIconSize(5)
-        self.vertexMarker.setIconType(QgsVertexMarker.ICON_BOX)
-        self.vertexMarker.setPenWidth(3)
 
     def findFeatureAt(self, pos):
 
@@ -97,38 +96,57 @@ class MapToolEditPolygon(QgsMapToolIdentifyFeature):
 
     def canvasMoveEvent(self, event):
         if self.dragging:
+            print('canvasMoveEvent')
             layerPt = self.moveVertexTo(event.pos())
             self.clearVertexMarker()
-            self.setVertexMarker(layerPt)
+            self.vertexMarker = self.createVertexMarker(self.canvas, layerPt, Qt.red, 5, QgsVertexMarker.ICON_BOX, 3)
+
             self.canvas.refresh()
 
 
     def canvasReleaseEvent(self, event):
         if self.dragging:
-            layerPt = self.moveVertexTo(event.pos())
+
+            print('canvasReleaseEvent')
+
+            if self.snapping is True:
+                pointXY, position = self.snapToNearestVertex(self.canvas, event.pos())
+                self.moveVertexToSnap(position)
+            else:
+                pointXY = self.moveVertexTo(event.pos())
+
             self.digiPolygonLayer.updateExtents()
             self.clearVertexMarker()
-            self.setVertexMarker(layerPt)
+            self.vertexMarker = self.createVertexMarker(self.canvas, pointXY, Qt.red, 5, QgsVertexMarker.ICON_BOX, 3)
+
             self.canvas.refresh()
             self.dragging = False
             self.feature = None
             self.vertex = None
 
 
-    def moveVertexTo(self, pos):
+    def moveVertexTo(self, positionBild):
         geometry = self.feature.geometry()
-        layerPt = self.canvas.getCoordinateTransform().toMapCoordinates(pos.x(), pos.y())
-        geometry.moveVertex(layerPt.x(), layerPt.y(), self.vertex)
+        positionMap = self.canvas.getCoordinateTransform().toMapCoordinates(positionBild.x(), positionBild.y())
+        geometry.moveVertex(positionMap.x(), positionMap.y(), self.vertex)
         self.digiPolygonLayer.changeGeometry(self.feature.id(), geometry)
 
-        return layerPt
+        return positionMap
+
+    def moveVertexToSnap(self, positionMap):
+        geometry = self.feature.geometry()
+        geometry.moveVertex(positionMap.x(), positionMap.y(), self.vertex)
+        self.digiPolygonLayer.changeGeometry(self.feature.id(), geometry)
+
+        return positionMap
 
     def deleteVertex(self, feature, vertex):
         geometry = feature.geometry()
         if geometry.wkbType() == QgsWkbTypes.LineString:
             lineString = geometry.asPolyline()
-        if len(lineString) <= 2:
-            return
+            if len(lineString) <= 2:
+                return
+
         elif geometry.wkbType() == QgsWkbTypes.Polygon:
             polygon = geometry.asPolygon()
             exterior = polygon[0]
@@ -137,8 +155,6 @@ class MapToolEditPolygon(QgsMapToolIdentifyFeature):
 
         if geometry.deleteVertex(vertex):
             self.digiPolygonLayer.changeGeometry(feature.id(), geometry)
-            #self.onGeometryChanged()
-
 
     def canvasDoubleClickEvent(self, event):
 
@@ -151,7 +167,7 @@ class MapToolEditPolygon(QgsMapToolIdentifyFeature):
         geometry = feature.geometry()
         distSquared,closestPt,beforeVertex,leftOrRightOfSegment = geometry.closestSegmentWithContext(layerPt)
         distance = math.sqrt(distSquared)
-        tolerance = self.calcTolerance(event.pos())
+        tolerance = self.calcTolerance(self.canvas, event.pos())
         if distance > tolerance:
             return
 
@@ -159,11 +175,11 @@ class MapToolEditPolygon(QgsMapToolIdentifyFeature):
         self.digiPolygonLayer.changeGeometry(feature.id(), geometry)
         self.canvas.refresh()
 
-    def calcTolerance(self, pos):
-        layerPt1 = self.canvas.getCoordinateTransform().toMapCoordinates(pos.x(), pos.y())
-        layerPt2 = self.canvas.getCoordinateTransform().toMapCoordinates(pos.x() + 10, pos.y())
-        tolerance = layerPt2.x() - layerPt1.x()
-        return tolerance
-
     def setDigiPolygonLayer(self, digiPolygonLayer):
         self.digiPolygonLayer = digiPolygonLayer
+
+    def setSnapping(self, enableSnapping):
+        if enableSnapping is True:
+            self.snapping = True
+        else:
+            self.snapping = False

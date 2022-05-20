@@ -4,37 +4,28 @@ from qgis.gui import QgsMapTool, QgsRubberBand, QgsVertexMarker, QgsAttributeDia
 from qgis.core import QgsExpression, QgsWkbTypes, QgsFeature, QgsGeometry, QgsFeatureRequest
 
 from ..publisher import Publisher
-
-class MapToolDigiLine(QgsMapTool):
+from .maptool_mixin import MapToolMixin
+class MapToolDigiLine(QgsMapTool, MapToolMixin):
     def __init__(self, canvas, iFace, rotationCoords):
         self.__iface = iFace
 
         self.pup = Publisher()
-
         self.rotationCoords = rotationCoords
-
         self.canvas = canvas
-
         self.digiLineLayer = None
-
         self.featGeometry = None
-
         self.feat = None
-
         self.dialogAttributes = None
 
         QgsMapTool.__init__(self, self.canvas)
-
         self.rubberband = None
-
         self.vertexMarker = None
-
         self.createRubberband()
 
         self.point = None
         self.points = []
-
         self.refData = None
+        self.snapping = False
 
     def createRubberband(self):
         self.rubberband = QgsRubberBand(self.canvas, QgsWkbTypes.LineGeometry)
@@ -49,19 +40,20 @@ class MapToolDigiLine(QgsMapTool):
             self.featGeometry = self.rubberband.asGeometry()
             self.showdialog()
 
-
         else:
             print('canvasPressEvent')
             self.active = True
 
+            if self.snapping is True:
+                pointXY, position = self.snapToNearestVertex(self.canvas, event.pos())
+                self.point = pointXY
+            else:
+                self.point = self.toMapCoordinates(event.pos())
+
             self.point = self.toMapCoordinates(event.pos())
             self.canvas.scene().removeItem(self.vertexMarker)
-            self.vertexMarker = QgsVertexMarker(self.canvas)
-            self.vertexMarker.setCenter(self.point)
-            self.vertexMarker.setColor(Qt.red)
-            self.vertexMarker.setIconSize(5)
-            self.vertexMarker.setIconType(QgsVertexMarker.ICON_BOX)
-            self.vertexMarker.setPenWidth(3)
+
+            self.vertexMarker = self.createVertexMarker(self.canvas, self.point, Qt.red, 5, QgsVertexMarker.ICON_BOX, 3)
 
             self.points.append(self.point)
             self.isEmittingPoint = True
@@ -206,7 +198,6 @@ class MapToolDigiLine(QgsMapTool):
 
                         self.pup.publish('lineFeatureAttr', dataObj)
 
-        print('selFeatures_hu', selFeatures)
         pr.addFeatures(selFeatures)
 
         self.digiLineLayer.commitChanges()
@@ -294,3 +285,9 @@ class MapToolDigiLine(QgsMapTool):
 
     def update(self, refData):
         self.refData = refData
+
+    def setSnapping(self, enableSnapping):
+        if enableSnapping is True:
+            self.snapping = True
+        else:
+            self.snapping = False
