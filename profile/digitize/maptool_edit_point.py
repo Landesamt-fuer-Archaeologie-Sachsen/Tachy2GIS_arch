@@ -52,7 +52,7 @@ class MapToolEditPoint(QgsMapToolIdentifyFeature, MapToolMixin):
         if self.dragging:
 
             if self.snapping is True:
-                pointXY, position = self.snapToNearestVertex(self.canvas, event.pos())
+                pointXY, position = self.snapToNearestVertex(self.canvas, event.pos(), self.feature)
             else:
                 pointXY = self.canvas.getCoordinateTransform().toMapCoordinates(event.x(), event.y())
 

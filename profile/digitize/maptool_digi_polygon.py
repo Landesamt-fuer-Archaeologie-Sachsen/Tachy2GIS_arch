@@ -123,7 +123,7 @@ class MapToolDigiPolygon(QgsMapTool, MapToolMixin):
         dataObj = {}
 
         for item in self.feat.fields():
-            #print(item.name())
+
             if item.name() == 'uuid' or item.name() == 'id' or item.name() == 'obj_type' or item.name() == 'obj_art' or item.name() == 'zeit' or item.name() == 'material' or item.name() == 'bemerkung':
                 dataObj[item.name()] = dialogFeature[item.name()]
 
@@ -185,7 +185,6 @@ class MapToolDigiPolygon(QgsMapTool, MapToolMixin):
                         rotFeature = QgsFeature(self.digiPolygonLayer.fields())
 
                         rotateGeom = self.rotationCoords.rotatePolygonFeatureFromOrg(feature)
-                        print('rotateGeom', rotateGeom)
                         rotFeature.setGeometry(rotateGeom)
 
                         rotFeature.setAttributes(feature.attributes())
@@ -230,8 +229,7 @@ class MapToolDigiPolygon(QgsMapTool, MapToolMixin):
 
     #in den Eingabelayer schreiben
     def reverseRotation2Eingabelayer(self, layer_id):
-        print('reverseRotation', layer_id)
-
+ 
         self.refData['polygonLayer'].startEditing()
 
         pr = self.refData['polygonLayer'].dataProvider()

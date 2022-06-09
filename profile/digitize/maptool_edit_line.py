@@ -40,11 +40,8 @@ class MapToolEditLine(QgsMapToolIdentifyFeature, MapToolMixin):
 
         found_features = self.identify(event.x(), event.y(), [self.digiLineLayer], QgsMapToolIdentify.TopDownAll)
         identified_features = [f.mFeature for f in found_features]
-
-        if self.snapping is True:
-            pointXY, position = self.snapToNearestVertex(self.canvas, event.pos())
-        else:
-            pointXY = self.canvas.getCoordinateTransform().toMapCoordinates(event.x(), event.y())
+        
+        pointXY = self.canvas.getCoordinateTransform().toMapCoordinates(event.x(), event.y())
 
         self.clearVertexMarker()
 
@@ -109,14 +106,15 @@ class MapToolEditLine(QgsMapToolIdentifyFeature, MapToolMixin):
         if self.dragging:
 
             if self.snapping is True:
-                pointXY, position = self.snapToNearestVertex(self.canvas, event.pos())
-                self.moveVertexToSnap(position)
+                pointXY, position = self.snapToNearestVertex(self.canvas, event.pos(), self.feature)
+                self.moveVertexToSnap(pointXY)
             else:
                 pointXY = self.moveVertexTo(event.pos())
 
             self.digiLineLayer.updateExtents()
             self.clearVertexMarker()
             self.setVertexMarker(pointXY)
+
             self.canvas.refresh()
             self.dragging = False
             self.feature = None
