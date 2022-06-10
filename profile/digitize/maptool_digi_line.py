@@ -50,7 +50,6 @@ class MapToolDigiLine(QgsMapTool, MapToolMixin):
             else:
                 self.point = self.toMapCoordinates(event.pos())
 
-            self.point = self.toMapCoordinates(event.pos())
             self.canvas.scene().removeItem(self.vertexMarker)
 
             self.vertexMarker = self.createVertexMarker(self.canvas, self.point, Qt.red, 5, QgsVertexMarker.ICON_BOX, 3)

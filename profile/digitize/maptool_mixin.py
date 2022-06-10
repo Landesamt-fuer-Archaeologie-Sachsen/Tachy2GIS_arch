@@ -11,9 +11,8 @@ class MapToolMixin:
 
         
     def calcTolerance(self, canvas, pos):
-        print('pos', pos)
         pt1 = QPoint(pos.x(), pos.y())
-        pt2 = QPoint(pos.x() + 20, pos.y())
+        pt2 = QPoint(pos.x() + 15, pos.y())
 
         pointXY1 = self.transformCoordinates(canvas, pt1)
         pointXY2 = self.transformCoordinates(canvas, pt2)
@@ -61,8 +60,6 @@ class MapToolMixin:
         pointXY = self.transformCoordinates(canvas, pos)
         tolerance = self.calcTolerance(canvas, pos)
 
-        print('tolerance', tolerance)
-
         vertexCoord,vertex,prevVertex,nextVertex,distSquared = feature.geometry().closestVertex(pointXY)
         
         distance = math.sqrt(distSquared)
@@ -73,12 +70,11 @@ class MapToolMixin:
 
     #will return the coordinate of the clicked-on vertex
     def snapToNearestVertex(self, canvas, pos, excludeFeature=None):
-        print('snapToNearestVertex')
-        
+
         pointXY = self.transformCoordinates(canvas, pos)
 
         feature = self.getFeatureAtPosition(canvas, pos, excludeFeature)
-        
+
         if feature == None: 
             return pointXY, QPoint(pointXY.x(),pointXY.y())
         

@@ -40,11 +40,8 @@ class MapToolEditPolygon(QgsMapToolIdentifyFeature, MapToolMixin):
 
         found_features = self.identify(event.x(), event.y(), [self.digiPolygonLayer], QgsMapToolIdentify.TopDownAll)
         identified_features = [f.mFeature for f in found_features]
-
-        if self.snapping is True:
-            pointXY, position = self.snapToNearestVertex(self.canvas, event.pos())
-        else:
-            pointXY = self.canvas.getCoordinateTransform().toMapCoordinates(event.x(), event.y())
+        
+        pointXY = self.canvas.getCoordinateTransform().toMapCoordinates(event.x(), event.y())
 
         self.clearVertexMarker()
 
@@ -96,7 +93,7 @@ class MapToolEditPolygon(QgsMapToolIdentifyFeature, MapToolMixin):
 
     def canvasMoveEvent(self, event):
         if self.dragging:
-            print('canvasMoveEvent')
+
             layerPt = self.moveVertexTo(event.pos())
             self.clearVertexMarker()
             self.vertexMarker = self.createVertexMarker(self.canvas, layerPt, Qt.red, 5, QgsVertexMarker.ICON_BOX, 3)
@@ -107,11 +104,9 @@ class MapToolEditPolygon(QgsMapToolIdentifyFeature, MapToolMixin):
     def canvasReleaseEvent(self, event):
         if self.dragging:
 
-            print('canvasReleaseEvent')
-
             if self.snapping is True:
-                pointXY, position = self.snapToNearestVertex(self.canvas, event.pos())
-                self.moveVertexToSnap(position)
+                pointXY, position = self.snapToNearestVertex(self.canvas, event.pos(), self.feature)
+                self.moveVertexToSnap(pointXY)
             else:
                 pointXY = self.moveVertexTo(event.pos())
 
