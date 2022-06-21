@@ -101,10 +101,11 @@ class DataStoreGeoref():
 
                 self.aarPointsHorizontal.append({
                     'uuid': pointObj[8],
+                    'ptnr': str(pointObj[7]),
                     'x': pointObj[0],
                     'y': pointObj[1],
                     'z': pointObj[2],
-                    'z_org': pointObj[3],
+                    'z_org': pointObj[4],
                     'distance': pointObj[5],
                     'usage': pointObj[6]
                 })
@@ -126,10 +127,11 @@ class DataStoreGeoref():
 
                 self.aarPointsOriginal.append({
                     'uuid': pointObj[8],
+                    'ptnr': str(pointObj[7]),
                     'x': pointObj[0],
                     'y': pointObj[1],
                     'z': pointObj[2],
-                    'z_org': pointObj[3],
+                    'z_org': pointObj[4],
                     'distance': pointObj[5],
                     'usage': pointObj[6]
                 })
@@ -142,10 +144,11 @@ class DataStoreGeoref():
 
                 self.aarPointsAbsolute.append({
                     'uuid': pointObj[8],
+                    'ptnr': str(pointObj[7]),
                     'x': pointObj[0],
                     'y': pointObj[1],
                     'z': pointObj[2],
-                    'z_org': pointObj[3],
+                    'z_org': pointObj[4],
                     'distance': pointObj[5],
                     'usage': pointObj[6]
                 })
@@ -179,6 +182,7 @@ class DataStoreGeoref():
                     if aarObj['uuid'] == imageObj['uuid']:
                         georefData.append({
                                         'uuid': aarObj['uuid'],
+                                        'ptnr': aarObj['ptnr'],
                                         'input_x': imageObj['x'],
                                         'input_z': imageObj['z'],
                                         'aar_x': aarObj['x'],

@@ -80,7 +80,6 @@ class profileAAR(object):
     def run(self, data):
         """Run method that performs all the real work"""
 
-        print('data', data)
         # initialize the Errorhandler
         errorhandler = ErrorHandler()
         magicbox = Magic_Box()
@@ -102,9 +101,6 @@ class profileAAR(object):
 
             # read the direction, that is selected
             direction = transform_param['direction']
-
-            print('method', method)
-            print('direction', direction)
 
             # PREPARE DATA LIST
             # Go thought all data rows in the selected layer
@@ -213,5 +209,4 @@ class profileAAR(object):
                     #return transform_return
                     transform_return['transformationParams']['cutting_line'] = cutting_line
                     transform_return['transformationParams']['aar_direction'] = direction
-                    print('transform_return', transform_return)
                     self.pup.publish('aarPointsChanged', transform_return)

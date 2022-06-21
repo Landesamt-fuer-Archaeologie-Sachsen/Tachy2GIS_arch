@@ -300,9 +300,13 @@ class Plan():
 
         gcpObj = self.dataStorePlan.getGcps()
 
+        print('gcpObj', gcpObj)
+
         # create layer
 
         gcpLayer = QgsVectorLayer("point?crs="+epsgCode, "gcp_points", "memory")
+
+        gcpLayer.startEditing()
 
         pr = gcpLayer.dataProvider()
 
@@ -340,8 +344,36 @@ class Plan():
             features.append(feat)
 
         pr.addFeatures(features)
-    
+
+        # Rename fields
+        for field in gcpLayer.fields():
+            if field.name() == 'aar_x':
+                gcpLayer.startEditing()
+                idx = gcpLayer.fields().indexFromName(field.name())
+                gcpLayer.renameAttribute(idx, 'x_orig')
+                gcpLayer.commitChanges()
+
+            if field.name() == 'aar_z':
+                gcpLayer.startEditing()
+                idx = gcpLayer.fields().indexFromName(field.name())
+                gcpLayer.renameAttribute(idx, 'y_orig')
+                gcpLayer.commitChanges()
+
+            if field.name() == 'aar_z_org':
+                gcpLayer.startEditing()
+                idx = gcpLayer.fields().indexFromName(field.name())
+                gcpLayer.renameAttribute(idx, 'z_orig')
+                gcpLayer.commitChanges()
+
+            if field.name() == 'aar_y':
+                gcpLayer.startEditing()
+                idx = gcpLayer.fields().indexFromName(field.name())
+                gcpLayer.deleteAttribute(idx)
+                gcpLayer.commitChanges()
+
         gcpLayer.updateExtents()
+
+        gcpLayer.endEditCommand()
 
         return gcpLayer, features
 
