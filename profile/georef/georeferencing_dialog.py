@@ -226,6 +226,9 @@ class GeoreferencingDialog(QMainWindow):
     #
     def writeMetafile(self, aarDirection, metaFileOut):
 
+        transformation_params = self.dataStoreGeoref.getAarTransformationParams()
+        transformation_params['aar_direction'] = aarDirection
+
         data = {
         	"profilnummer": self.refData['profileNumber'],
         	"profil": self.refData['savePath'],
@@ -234,7 +237,7 @@ class GeoreferencingDialog(QMainWindow):
         	"entzerrungsebene": 'vertikal',
             "aar_direction": aarDirection,
         	"gcps": self.dataStoreGeoref.getGeorefData(aarDirection),
-        	"transform_params": self.dataStoreGeoref.getAarTransformationParams()
+        	"transform_params": transformation_params
         }
 
         with open(str(metaFileOut), 'w') as outfile:
