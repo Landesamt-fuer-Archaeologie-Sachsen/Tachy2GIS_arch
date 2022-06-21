@@ -99,6 +99,9 @@ class MapToolDigiLine(QgsMapTool, MapToolMixin):
         print('acceptedAttributeDialog')
         self.refData['lineLayer'].commitChanges()
 
+        atrObj = self.dialogAttributes.feature().attributes()
+        self.feat.setAttributes(atrObj)
+
         self.feat['geo_quelle'] = 'profile_object'
 
         self.addFeature2Layer()
@@ -173,9 +176,7 @@ class MapToolDigiLine(QgsMapTool, MapToolMixin):
                         rotFeature = QgsFeature(self.digiLineLayer.fields())
 
                         rotateGeom = self.rotationCoords.rotateLineFeatureFromOrg(feature)
-                        print('rotateGeom_hu', rotateGeom)
-                        #rotateGeomPr = pr.convertToProviderType(rotateGeom)
-                        #print('rotateGeomPr', rotateGeomPr)
+
                         rotFeature.setGeometry(rotateGeom)
 
                         rotFeature.setAttributes(feature.attributes())
@@ -236,17 +237,14 @@ class MapToolDigiLine(QgsMapTool, MapToolMixin):
             #Zielgeometrie erzeugen
 
             emptyTargetGeometry = self.rubberband.asGeometry()
-            print('emptyTargetGeometry', emptyTargetGeometry)
 
             #Zielfeature erzeugen
             rotFeature = QgsFeature(self.refData['lineLayer'].fields())
 
             #Geometrie in Kartenebene umrechnen
             rotateGeom = self.rotationCoords.rotateLineFeature(feature, emptyTargetGeometry)
-            print('rotateGeom_qqq', rotateGeom)
-            #rotateGeomPr = pr.convertToProviderType(rotateGeom)
-            #print('rotateGeomPr', rotateGeom)
             rotFeature.setGeometry(rotateGeom)
+
             rotFeature.setAttributes(feature.attributes())
 
             checker = True
