@@ -104,7 +104,7 @@ class DataStoreGeoref():
                     'x': pointObj[0],
                     'y': pointObj[1],
                     'z': pointObj[2],
-                    'z_org': pointObj[3],
+                    'z_org': pointObj[4],
                     'distance': pointObj[5],
                     'usage': pointObj[6]
                 })
@@ -129,7 +129,7 @@ class DataStoreGeoref():
                     'x': pointObj[0],
                     'y': pointObj[1],
                     'z': pointObj[2],
-                    'z_org': pointObj[3],
+                    'z_org': pointObj[4],
                     'distance': pointObj[5],
                     'usage': pointObj[6]
                 })
@@ -145,7 +145,7 @@ class DataStoreGeoref():
                     'x': pointObj[0],
                     'y': pointObj[1],
                     'z': pointObj[2],
-                    'z_org': pointObj[3],
+                    'z_org': pointObj[4],
                     'distance': pointObj[5],
                     'usage': pointObj[6]
                 })
