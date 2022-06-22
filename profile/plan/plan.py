@@ -300,53 +300,51 @@ class Plan():
 
         gcpObj = self.dataStorePlan.getGcps()
 
-        print('gcpObj', gcpObj)
-
         # create layer
 
         gcpLayer = QgsVectorLayer("point?crs="+epsgCode, "gcp_points", "memory")
-
         gcpLayer.startEditing()
-
         pr = gcpLayer.dataProvider()
 
         #add attributes
-
+        
         attributes = []
         
         for key, value in gcpObj[0].items():
 
-            if isinstance(value, str):
-                attributes.append(QgsField(key, QVariant.String))
+            if key != 'aar_y':
 
-            if isinstance(value, float):
-                attributes.append(QgsField(key, QVariant.Double))
+                if isinstance(value, str):
+                    attributes.append(QgsField(key, QVariant.String))
+
+                if isinstance(value, float):
+                    attributes.append(QgsField(key, QVariant.Double))
 
         pr.addAttributes(attributes)
         gcpLayer.updateFields()
-
+        
     
         #add features
         features = []
         for item in gcpObj:
             
             feat = QgsFeature()
-
             feat.setGeometry(QgsGeometry.fromPointXY(QgsPointXY(item['aar_x'],item['aar_z'])))
 
             attributesFeat = []
 
             for key, value in item.items():
-                attributesFeat.append(value)
+                if key != 'aar_y':
+                    attributesFeat.append(value)
 
             feat.setAttributes(attributesFeat)
-
             features.append(feat)
 
         pr.addFeatures(features)
 
         # Rename fields
         for field in gcpLayer.fields():
+            print('fieldname', field.name())
             if field.name() == 'aar_x':
                 gcpLayer.startEditing()
                 idx = gcpLayer.fields().indexFromName(field.name())
@@ -365,14 +363,8 @@ class Plan():
                 gcpLayer.renameAttribute(idx, 'z_orig')
                 gcpLayer.commitChanges()
 
-            if field.name() == 'aar_y':
-                gcpLayer.startEditing()
-                idx = gcpLayer.fields().indexFromName(field.name())
-                gcpLayer.deleteAttribute(idx)
-                gcpLayer.commitChanges()
-
+        gcpLayer.updateFields()
         gcpLayer.updateExtents()
-
         gcpLayer.endEditCommand()
 
         return gcpLayer, features
