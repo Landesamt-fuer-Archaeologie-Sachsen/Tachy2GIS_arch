@@ -59,6 +59,12 @@ class Georef():
             self.__dockwidget.profileIdsComboGeoref.currentIndexChanged.connect(self.__calculateViewDirection)
 
             self.__dockwidget.layerProfileGeoref.currentIndexChanged.connect(self.__calculateViewDirection)
+
+            profil_start_idx = self.__dockwidget.profileIdsComboGeoref.currentIndex()
+
+            # Calculate initial profile view
+            self.__calculateViewDirection(profil_start_idx)
+
         else:
             print('preselectedLineLayer is kein QgsVectorLayer')
 
@@ -150,10 +156,7 @@ class Georef():
     #
     def __calculateViewDirection(self, idx):	
 
-        print('idx', idx)
-
-        print('type_idx', type(idx))
-        if isinstance(idx, int) and idx > 0:
+        if isinstance(idx, int) and idx >= 0:
 
             #lineLayer
             lineLayer = self.__dockwidget.layerProfileGeoref.currentLayer().clone()
