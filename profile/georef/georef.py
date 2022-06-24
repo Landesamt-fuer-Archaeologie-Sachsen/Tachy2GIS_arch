@@ -111,17 +111,17 @@ class Georef():
         targetGCP = {}
         targetGCP['points'] = []
 
+        validGeomCheck = True
+        orgGeomType = ''
+
         for feature in pointLayer.getFeatures():
 
             org_geom = feature.geometry()
-
-            print('org_geoType', org_geom.wkbType())
-
+            orgGeomType = org_geom.wkbType()
+            
             g = self.rotationCoords.castMultipointGeometry(org_geom)
 
             geoType = g.wkbType()
-
-            print('casted_geoType', geoType)
 
             if geoType == 1001 or geoType == 3001:
 
@@ -129,7 +129,12 @@ class Georef():
                 targetGCP['points'].append(pointObj)
 
             else:
-                print(f'Kann Geometrietyp nicht verarbeiten {geoType}')
+                validGeomCheck = False
+
+        if validGeomCheck is False:
+
+            errorMsg = f'Kann Geometrietyp nicht verarbeiten {orgGeomType}'
+            self.__iface.messageBar().pushMessage("Error", errorMsg, level=1, duration=3)
 
         #Foto
         imagePath = self.__dockwidget.profileFotosComboGeoref.filePath()
