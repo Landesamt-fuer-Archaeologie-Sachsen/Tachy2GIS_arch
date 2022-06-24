@@ -91,6 +91,7 @@ class Georef():
         suggestTargetName = shortFileName + '_entz'
         self.__dockwidget.profileTargetName.setText(suggestTargetName)
 
+
     ## \brief get selected values
     #
     #
@@ -112,10 +113,23 @@ class Georef():
 
         for feature in pointLayer.getFeatures():
 
-            g = feature.geometry()
+            org_geom = feature.geometry()
 
-            pointObj = {'uuid': feature.attribute("uuid"), 'ptnr': feature.attribute("ptnr"), 'id': feature.attribute("id"), 'x': float(g.get().x()), 'y': float(g.get().y()), 'z': float(g.get().z())}
-            targetGCP['points'].append(pointObj)
+            print('org_geoType', org_geom.wkbType())
+
+            g = self.rotationCoords.castMultipointGeometry(org_geom)
+
+            geoType = g.wkbType()
+
+            print('casted_geoType', geoType)
+
+            if geoType == 1001 or geoType == 3001:
+
+                pointObj = {'uuid': feature.attribute("uuid"), 'ptnr': feature.attribute("ptnr"), 'id': feature.attribute("id"), 'x': float(g.get().x()), 'y': float(g.get().y()), 'z': float(g.get().z())}
+                targetGCP['points'].append(pointObj)
+
+            else:
+                print(f'Kann Geometrietyp nicht verarbeiten {geoType}')
 
         #Foto
         imagePath = self.__dockwidget.profileFotosComboGeoref.filePath()
