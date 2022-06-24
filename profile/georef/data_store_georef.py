@@ -116,6 +116,7 @@ class DataStoreGeoref():
             z_intercept = aarList['linegress'][1]
             transformationParams['z_slope'] = z_slope
             transformationParams['z_intercept'] = z_intercept
+            transformationParams['ns_error'] = aarList['ns_error']
 
             self.updateAarTransformationParams(transformationParams)
 
