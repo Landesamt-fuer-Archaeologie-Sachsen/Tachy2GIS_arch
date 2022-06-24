@@ -229,6 +229,13 @@ class GeoreferencingDialog(QMainWindow):
         transformation_params = self.dataStoreGeoref.getAarTransformationParams()
         transformation_params['aar_direction'] = aarDirection
 
+        # Wenn die AAR-Berechnung aufgrund geringer Genauigkeit (O-W- oder N-S-Profile) 
+        # einen Fehler bringt (ns_error is True) wird in AAR der slope_deg Winkel um 45 Grad reduziert.
+        # Die 45 Grad müssen hier wieder dazu addiert werden damit die Digitalisierung von Objekten im Profil funktioniert
+        
+        if transformation_params['ns_error'] is True:
+            transformation_params['slope_deg'] = transformation_params['slope_deg'] + 45
+
         data = {
         	"profilnummer": self.refData['profileNumber'],
         	"profil": self.refData['savePath'],
