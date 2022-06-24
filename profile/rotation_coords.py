@@ -68,7 +68,7 @@ class RotationCoords():
 
     def rotatePointFeatureFromOrg(self, feature):
 
-        geomFeat = feature.geometry()
+        geomFeat = self.castMultipointGeometry(feature.geometry())
 
         rotateGeom = self.rotation(geomFeat.get().x(), geomFeat.get().y(), geomFeat.get().z(), True)
 
@@ -260,3 +260,18 @@ class RotationCoords():
         bufferGeom = lineGeom.buffer(bufferSize, 5)
 
         return bufferGeom
+
+
+    ## \brief cast multipoint geometries to single point geometries
+    #
+    #
+    def castMultipointGeometry(self, geom):
+
+        geoType = geom.wkbType()
+
+        #PointZ or PointZM
+        if geoType == 1001 or geoType == 3001:
+            return geom
+        else:
+            ret_geom = geom.coerceToType(3001)
+            return ret_geom[0]

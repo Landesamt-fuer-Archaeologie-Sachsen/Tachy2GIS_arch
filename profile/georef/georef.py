@@ -91,6 +91,7 @@ class Georef():
         suggestTargetName = shortFileName + '_entz'
         self.__dockwidget.profileTargetName.setText(suggestTargetName)
 
+
     ## \brief get selected values
     #
     #
@@ -110,12 +111,30 @@ class Georef():
         targetGCP = {}
         targetGCP['points'] = []
 
+        validGeomCheck = True
+        orgGeomType = ''
+
         for feature in pointLayer.getFeatures():
 
-            g = feature.geometry()
+            org_geom = feature.geometry()
+            orgGeomType = org_geom.wkbType()
+            
+            g = self.rotationCoords.castMultipointGeometry(org_geom)
 
-            pointObj = {'uuid': feature.attribute("uuid"), 'ptnr': feature.attribute("ptnr"), 'id': feature.attribute("id"), 'x': float(g.get().x()), 'y': float(g.get().y()), 'z': float(g.get().z())}
-            targetGCP['points'].append(pointObj)
+            geoType = g.wkbType()
+
+            if geoType == 1001 or geoType == 3001:
+
+                pointObj = {'uuid': feature.attribute("uuid"), 'ptnr': feature.attribute("ptnr"), 'id': feature.attribute("id"), 'x': float(g.get().x()), 'y': float(g.get().y()), 'z': float(g.get().z())}
+                targetGCP['points'].append(pointObj)
+
+            else:
+                validGeomCheck = False
+
+        if validGeomCheck is False:
+
+            errorMsg = f'Kann Geometrietyp nicht verarbeiten {orgGeomType}'
+            self.__iface.messageBar().pushMessage("Error", errorMsg, level=1, duration=3)
 
         #Foto
         imagePath = self.__dockwidget.profileFotosComboGeoref.filePath()
