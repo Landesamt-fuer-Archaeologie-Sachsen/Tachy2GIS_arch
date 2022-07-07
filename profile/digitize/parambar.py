@@ -2,7 +2,7 @@
 import os
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QWidget, QHBoxLayout, QLabel, QFrame, QSizePolicy, QToolBar, QAction, QComboBox, QLineEdit, QPushButton, QDoubleSpinBox
+from PyQt5.QtWidgets import QMessageBox, QWidget, QHBoxLayout, QLabel, QFrame, QSizePolicy, QToolBar, QAction, QComboBox, QLineEdit, QPushButton, QDoubleSpinBox
 
 from ..publisher import Publisher
 
@@ -110,13 +110,25 @@ class Parambar(QWidget):
         self.takeLayerButton.triggered.connect(self.takeLayerObjects)
 
     def takeLayerObjects(self):
-        layer_id = self.activeLayerCombo.currentData()
-        if self.refData['pointLayer'].id() == layer_id:
-            self.toolDigiPoint.reverseRotation2Eingabelayer(layer_id)
-        if self.refData['lineLayer'].id() == layer_id:
-            self.toolDigiLine.reverseRotation2Eingabelayer(layer_id)
-        if self.refData['polygonLayer'].id() == layer_id:
-            self.toolDigiPolygon.reverseRotation2Eingabelayer(layer_id)
+
+        try:
+            layer_id = self.activeLayerCombo.currentData()
+            if self.refData['pointLayer'].id() == layer_id:
+                self.toolDigiPoint.reverseRotation2Eingabelayer(layer_id)
+            if self.refData['lineLayer'].id() == layer_id:
+                self.toolDigiLine.reverseRotation2Eingabelayer(layer_id)
+            if self.refData['polygonLayer'].id() == layer_id:
+                self.toolDigiPolygon.reverseRotation2Eingabelayer(layer_id)
+
+            infoText = "Objekte wurden erfolgreich in den Eingabelayer geschrieben."
+            titleText = "Info"
+
+        except Exception as e:
+            infoText = f"Achtung! Die Datenwurden nicht in den Eingabelayer geschrieben. ({e})"
+            titleText = "Fehler"
+
+        #Info message
+        self.__openInfoMessageBox(infoText, titleText)
 
     def getOriginalObjects(self):
 
@@ -504,3 +516,15 @@ class Parambar(QWidget):
         vSplit.setFrameShape(QFrame.VLine|QFrame.Sunken)
 
         return vSplit
+
+
+    ## \brief Opens a message box with background informations
+    #
+
+    def __openInfoMessageBox(self, infoText, titleText):
+
+        self.__infoTranssformMsgBox = QMessageBox()
+        self.__infoTranssformMsgBox.setText(infoText)
+        self.__infoTranssformMsgBox.setWindowTitle(titleText)
+        self.__infoTranssformMsgBox.setStandardButtons((QMessageBox.Ok))
+        self.__infoTranssformMsgBox.exec_()
