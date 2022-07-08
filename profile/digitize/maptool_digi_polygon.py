@@ -1,42 +1,29 @@
-import uuid
 from PyQt5.QtCore import Qt
 from qgis.gui import QgsMapTool, QgsRubberBand, QgsVertexMarker, QgsAttributeDialog, QgsAttributeEditorContext
-from qgis.core import QgsExpression, QgsWkbTypes, QgsFeature, QgsGeometry, QgsFeatureRequest
+from qgis.core import QgsWkbTypes, QgsFeature, QgsGeometry, QgsFeatureRequest
 
 from ..publisher import Publisher
 from .maptool_mixin import MapToolMixin
 
 class MapToolDigiPolygon(QgsMapTool, MapToolMixin):
-    def __init__(self, canvas, iFace, rotationCoords):
+    def __init__(self, canvas, iFace, rotationCoords, dataStoreDigitize):
+        
         self.__iface = iFace
-
         self.pup = Publisher()
-
         self.rotationCoords = rotationCoords
-
+        self.dataStoreDigitize = dataStoreDigitize
         self.canvas = canvas
-
         self.digiPolygonLayer = None
-
         self.featGeometry = None
-
         self.feat = None
-
         self.dialogAttributes = None
-
         QgsMapTool.__init__(self, self.canvas)
-
         self.rubberband = None
-
         self.vertexMarker = None
-
         self.createRubberband()
-
         self.point = None
         self.points = []
-
         self.refData = None
-
         self.snapping = False
 
     def createRubberband(self):
@@ -82,16 +69,8 @@ class MapToolDigiPolygon(QgsMapTool, MapToolMixin):
         self.digiPolygonLayer.startEditing()
         self.refData['polygonLayer'].startEditing()
 
-        #Type of digitize
-        self.feat['geo_quelle'] = 'profile_object'
-
-        #uuid to identify feature
-        feature_uuid = uuid.uuid4()
-        self.feat['uuid'] = str(feature_uuid)
-
-        ## set current date
-        e = QgsExpression( " $now " )
-        self.feat['messdatum'] = e.evaluate()
+        prof_nr = self.dataStoreDigitize.getProfileNumber()
+        self.setPlaceholders(self.feat, prof_nr)
 
         self.dialogAttributes = QgsAttributeDialog(self.refData['polygonLayer'], self.feat, False, None)
         self.dialogAttributes.setMode(QgsAttributeEditorContext.FixAttributeMode)
