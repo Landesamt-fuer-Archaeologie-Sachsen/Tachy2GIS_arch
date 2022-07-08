@@ -81,9 +81,9 @@ class DigitizeDialog(QMainWindow):
         self.canvasDigitize = DigitizeCanvas(self, self.__iface)
 
         #MapTools
-        self.toolDigiPoint = MapToolDigiPoint(self.canvasDigitize, self.__iface, self.rotationCoords)
-        self.toolDigiLine = MapToolDigiLine(self.canvasDigitize, self.__iface, self.rotationCoords)
-        self.toolDigiPolygon = MapToolDigiPolygon(self.canvasDigitize, self.__iface, self.rotationCoords)
+        self.toolDigiPoint = MapToolDigiPoint(self.canvasDigitize, self.__iface, self.rotationCoords, self.dataStoreDigitize)
+        self.toolDigiLine = MapToolDigiLine(self.canvasDigitize, self.__iface, self.rotationCoords, self.dataStoreDigitize)
+        self.toolDigiPolygon = MapToolDigiPolygon(self.canvasDigitize, self.__iface, self.rotationCoords, self.dataStoreDigitize)
 
         self.toolEditPoint = MapToolEditPoint(self.canvasDigitize, self.__iface, self.rotationCoords)
         self.toolEditLine = MapToolEditLine(self.canvasDigitize, self.__iface, self.rotationCoords)

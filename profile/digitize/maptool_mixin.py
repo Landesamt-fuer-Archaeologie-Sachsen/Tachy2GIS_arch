@@ -1,8 +1,9 @@
 import math
+import uuid
 from PyQt5.QtCore import QPoint
 
 from qgis.gui import QgsVertexMarker
-from qgis.core import QgsRectangle, QgsFeatureRequest, QgsVectorLayer, QgsPointXY
+from qgis.core import QgsProject, QgsExpression, QgsExpressionContextUtils, QgsRectangle, QgsFeatureRequest, QgsVectorLayer, QgsPointXY
 
 class MapToolMixin:
     
@@ -87,4 +88,38 @@ class MapToolMixin:
         snapPointXY = QgsPointXY(snapPoint.x(), snapPoint.y())
         
         return snapPointXY, snapPoint
+
+
+    def getCustomProjectVariable(self, variableName):
+        project = QgsProject.instance()
+        if str(QgsExpressionContextUtils.projectScope(project).variable(variableName)) == 'NULL':
+            return str('')
+        else:
+            return QgsExpressionContextUtils.projectScope(project).variable(variableName)
+
+
+    def setPlaceholders(self, feature, prof_nr):
+
+        #uuid to identify feature
+        feature_uuid = uuid.uuid4()
+        feature['uuid'] = str(feature_uuid)
+
+        #Type of digitize
+        feature['geo_quelle'] = 'profile_object'
+        ## set current date
+        e = QgsExpression( " $now " )
+        feature['messdatum'] = e.evaluate()
+
+        #aktCode
+        try:
+            aktcode = self.getCustomProjectVariable('aktcode')
+            feature['aktcode'] = aktcode
+        except:
+            pass
+
+        #obj_type
+        feature['obj_type'] = 'Befund'
+
+        #prf_nr
+        feature['prof_nr'] = prof_nr
         

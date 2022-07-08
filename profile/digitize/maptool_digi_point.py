@@ -1,39 +1,27 @@
-import uuid
 from PyQt5.QtCore import Qt
 from qgis.gui import QgsMapTool, QgsVertexMarker, QgsAttributeDialog, QgsAttributeEditorContext
-from qgis.core import QgsExpression, QgsPoint, QgsFeature, QgsGeometry, QgsFeatureRequest
+from qgis.core import QgsPoint, QgsFeature, QgsGeometry, QgsFeatureRequest
 
 from ..publisher import Publisher
 from .maptool_mixin import MapToolMixin
 
 class MapToolDigiPoint(QgsMapTool, MapToolMixin):
-    def __init__(self, canvas, iFace, rotationCoords):
+    def __init__(self, canvas, iFace, rotationCoords, dataStoreDigitize):
+        
         self.__iface = iFace
-
         self.pup = Publisher()
-
         self.rotationCoords = rotationCoords
-
+        self.dataStoreDigitize = dataStoreDigitize
         self.canvas = canvas
-
         self.digiPointLayer = None
-
         self.featGeometry = None
-
         self.feat = None
-
         self.dialogAttributes = None
-
         QgsMapTool.__init__(self, self.canvas)
-
         self.vertexMarker = None
-
         self.point = None
-
         self.refData = None
-
         self.snapping = False
-
 
     def canvasPressEvent(self, event):
 
@@ -67,15 +55,8 @@ class MapToolDigiPoint(QgsMapTool, MapToolMixin):
         self.digiPointLayer.startEditing()
         self.refData['pointLayer'].startEditing()
 
-        #uuid to identify feature
-        feature_uuid = uuid.uuid4()
-        self.feat['uuid'] = str(feature_uuid)
-
-        #Type of digitize
-        self.feat['geo_quelle'] = 'profile_object'
-        ## set current date
-        e = QgsExpression( " $now " )
-        self.feat['messdatum'] = e.evaluate()
+        prof_nr = self.dataStoreDigitize.getProfileNumber()
+        self.setPlaceholders(self.feat, prof_nr)
 
         self.dialogAttributes = QgsAttributeDialog(self.refData['pointLayer'], self.feat, False, None)
         self.dialogAttributes.setMode(QgsAttributeEditorContext.FixAttributeMode)
