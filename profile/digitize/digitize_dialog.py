@@ -34,6 +34,9 @@ class DigitizeDialog(QMainWindow):
         self.dataStoreDigitize = dataStoreDigitize
         self.rotationCoords = rotationCoords
 
+        prof_nr = self.dataStoreDigitize.getProfileNumber()
+        self.setWindowTitle(f"Digitalisieren im Profil: {prof_nr}")
+
         self.createMenu()
         self.createComponents()
         self.createLayout()
