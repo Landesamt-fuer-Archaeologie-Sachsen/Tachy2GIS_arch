@@ -29,22 +29,14 @@ class GeoreferencingDialog(QMainWindow):
     def __init__(self, t2GArchInstance, dataStoreGeoref, rotationCoords, iFace):
 
         super(GeoreferencingDialog, self).__init__()
-
         self.iconpath = os.path.join(os.path.dirname(__file__), '...', 'Icons')
-
         self.t2GArchInstance = t2GArchInstance
-
         self.setAttribute(Qt.WA_DeleteOnClose)
-
         self.refData = None
-
         self.__iface = iFace
-
         self.aarDirection = 'horizontal'
-
         #DataStore
         self.dataStoreGeoref = dataStoreGeoref
-
         self.rotationCoords = rotationCoords
 
         self.createMenu()
@@ -204,6 +196,9 @@ class GeoreferencingDialog(QMainWindow):
     def restore(self, refData):
 
         self.refData = refData
+
+        prof_nr = self.refData['profileNumber']
+        self.setWindowTitle(f"Georeferenzierung von Profil: {prof_nr}")
 
         self.georefTable.cleanGeorefTable()
         self.georefTable.updateGeorefTable(refData, self.aarDirection)
