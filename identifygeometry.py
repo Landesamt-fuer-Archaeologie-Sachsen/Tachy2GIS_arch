@@ -28,7 +28,7 @@
 
 from PyQt5.QtCore import pyqtSignal,Qt
 from PyQt5.QtGui import QPixmap, QCursor
-from qgis.core import QgsVectorLayer, QgsFeature
+from qgis.core import Qgis, QgsVectorLayer, QgsFeature, QgsMessageLog
 from qgis.gui import QgsMapToolIdentify
 
 #from cursor import Cursor
@@ -54,3 +54,11 @@ class IdentifyGeometry(QgsMapToolIdentify):
         if len(results) > 0:
             print (results[0].mFeature.attributes())
             self.geomIdentified.emit(results[0].mLayer, QgsFeature(results[0].mFeature))
+
+    '''
+    def canvasMoveEvent( self, mouseEvent ):
+        results = self.identify(mouseEvent.x(), mouseEvent.y(), self.LayerSelection, self.layerType)
+        if len(results) > 0:
+            results = self.identify(mouseEvent.x(), mouseEvent.y(), self.LayerSelection,self.layerType)
+            QgsMessageLog.logMessage(str(QgsFeature(results[0].mFeature.id())), 'T2G Archäologie', Qgis.Info)
+    '''  

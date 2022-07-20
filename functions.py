@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import sys, os, shutil, os.path, time, csv, datetime
+import sys, os, shutil, os.path, time, csv, datetime, re
 from datetime import *#date, datetime
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import *
@@ -25,6 +25,7 @@ class fileFunc():
     def file_del(self, path):
         if os.path.exists(path):
             os.remove(path)
+
     def makedirs(self,path):
         if os.path.exists(path):
             os.makedirs(path)
@@ -50,6 +51,7 @@ class projectSaveFunc():
             zeit = unicode(time.strftime("%H-%M")) #"%H-%M-%S"
             ziel = os.path.join(quelle, r'_Sicherungen_', datum + '_' + zeit)
 
+            fileFunc().directory_copy(os.path.join(quelle, 'GPKG Files'), os.path.join(ziel, 'GPKG Files'))
             fileFunc().directory_copy(os.path.join(quelle, 'Shape'), os.path.join(ziel, 'Shape'))
             fileFunc().directory_copy(os.path.join(quelle, 'Projekt'), os.path.join(ziel, 'Projekt'))
 
@@ -66,6 +68,7 @@ class projectSaveFunc():
             zeit = unicode(time.strftime("%H-%M")) #"%H-%M-%S"
             ziel = os.path.join(quelle, r'_Tagesdateien_', datum + '_' + zeit)
 
+            fileFunc().directory_copy(os.path.join(quelle, 'GPKG Files'), os.path.join(ziel, 'GPKG Files'))
             fileFunc().directory_copy(os.path.join(quelle, 'Shape'), os.path.join(ziel, 'Shape'))
             fileFunc().directory_copy(os.path.join(quelle, 'Projekt'), os.path.join(ziel, 'Projekt'))
 
@@ -97,20 +100,20 @@ class makerAndRubberbands():
     def setColor(self, QColor):
         self.color = QColor
 
-    def setMarker(self, x, y):
+    def setMarker(self, x, y, size, penwidth):
         m = QgsVertexMarker(self.canvas)
         m.setCenter(QgsPointXY(float(x), float(y)))
         m.setColor(self.color)
-        m.setIconSize(15)
+        m.setIconSize(size)
         m.setIconType(self.makerTyp)
-        m.setPenWidth(3)
+        m.setPenWidth(penwidth)
         m.show()
         self.lMakers.append(m)
 
-    def setRubberBandPoly(self, ptList):
+    def setRubberBandPoly(self, ptList, penwidth):
         ptL = []
         for a in ptList:
-            item = QgsPoint(float(a['x']), float(a['y']), float(a['z']))
+            item = QgsPoint(float(a[0]), float(a[1]), float(a[2]))
             ptL.append(item)
         # ersten Punkt als letzten einfügen
         # ptList.append(ptList[0])
@@ -118,7 +121,7 @@ class makerAndRubberbands():
         r.setToGeometry(QgsGeometry.fromPolyline(ptL), None)
         r.setColor(self.color)
         #r.fillColor()
-        r.setWidth(5)
+        r.setWidth(penwidth)
         r.show()
         self.lRabberbands.append(r)
 
@@ -151,45 +154,33 @@ def isNumber(str):
         correct = False
     return correct
 
-def maxValue(layer, fieldname):
-    QgsMessageLog.logMessage('Max Wert eritteln', 'T2G Archäologie', Qgis.Info)
-    suchstr = fieldname + '!=' + '\'' + '' + '\''
-    expr = QgsExpression(suchstr)
-    it = layer.getFeatures(QgsFeatureRequest(expr))
-    ids = [i.id() for i in it]
-    layer.selectByIds(ids)
+def str2bool(v):
+    if v is not None:
+        return v.lower() in ("yes", "true", "on" ,"t", "1", "2")
 
+def maxValue(layer, fieldname):
     values = []
-    befnr = []
     values.append(0)
-    for field in layer.fields():
-        if field.name() == fieldname:
-            idField = layer.dataProvider().fieldNameIndex(fieldname)
-            for feat in layer.selectedFeatures():
-                attrs = feat.attributes()
-                if attrs[idField] != None:
-                    try:
-                        values.append(int(attrs[idField]))
-                    except ValueError:
-                        # Zahl aus String extrahieren
-                        index = 0
-                        a = 0
-                        zahl = ''
-                        while index < len(attrs[idField]):
-                            letter = attrs[idField][index]
-                            if isNumber(letter):
-                                a = 1
-                                zahl = zahl + letter
-                            else:
-                                if a == 1:
-                                    break
-                            index = index + 1
-                        values.append(int(zahl))
-                        pass
-    #Scheint nicht zu gehen???
-    #layer.removeSelection() eingefügt damit die Layer nicht zu Beginn alle selektiert sind
-    #delSelectFeature()
-    layer.removeSelection()
+    x = 0
+    idField = layer.dataProvider().fieldNameIndex(fieldname)
+    for feat in layer.getFeatures():
+        attrs = feat.attributes()
+        if attrs[idField] != None:
+            x = x + 1
+            try:
+                if "_" in str(attrs[idField]):
+                    continue
+                # Attribute eine Zahl (bsp. 236)
+                values.append(int(attrs[idField]))
+            except ValueError:
+
+                #list = [int(temp)for temp in str(attrs[idField]).split() if temp.isdigit()]
+                #list = [int(s) for s in re.findall(r'-?\d+\.?\d*', str(attrs[idField]))]
+                pattern = re.compile("\d+(?:;\.\d+)?")
+                list = pattern.findall(str(attrs[idField]))
+                for a in list:
+                    values.append(int(a))
+                pass
     return int(max(values))
 
 def maxValueInt (layer, fieldname):
@@ -219,6 +210,13 @@ def ValueList(layer, fieldname):
     except ValueError:
         befnr.append(0)
         return befnr
+
+def mapCanvasRefresh():
+    cachingEnabled = iface.mapCanvas().isCachingEnabled()
+    for layer in iface.mapCanvas().layers():
+        if cachingEnabled:
+            layer.triggerRepaint()
+    iface.mapCanvas().refresh()
 
 def setColumnVisibility(layer, columnName, visible):
     config = layer.attributeTableConfig()
@@ -548,6 +546,31 @@ class PrintClickedPoint(QgsMapToolEmitPoint):
         self.dlg.txtPointTemp.setText(str(point.x())+','+str(point.y()))
         #except:
         #    pass
+class ClickedPoint(QgsMapToolEmitPoint):
+    geomPoint = pyqtSignal()
+    tempPoint = pyqtSignal()
+    def __init__(self,canvas,dlg):
+        self.canvas = canvas
+        QgsMapToolEmitPoint.__init__(self, self.canvas)
+        self.dlg=dlg
+
+
+    def canvasMoveEvent( self, e ):
+        try:
+            point = self.toMapCoordinates(self.canvas.mouseLastXY())
+            point = e.originalMapPoint()
+            point = e.snapPoint()
+            self.geomPoint.emit()
+            self.dlg.activateWindow()
+        except:
+            pass
+    def canvasPressEvent( self, e ):
+        #try:
+        point = e.snapPoint()
+
+        #point = self.asWkb(e.snapPoint())
+        self.dlg.activateWindow()
+        self.tempPoint.emit()
 
 class xml():
     def __init__(self, file):
@@ -576,3 +599,30 @@ class xml():
                     if child.attrib['name'] == key:
                         child.text = wert
         tree.write(self.file)
+
+class MyMeldung(QWidget):
+
+    def __init__(self,parent = None ):
+        super(MyMeldung, self).__init__(parent, QtCore.Qt.WindowStaysOnTopHint)
+        self.setLayout(QGridLayout())
+        self.layout().setContentsMargins(0, 0, 0, 0)
+        self.meldung = QTextBrowser()
+        self.text = None
+        self.pfad = None
+        self.layout().addWidget(self.meldung,0,0,1,2)
+
+    def run(self,pfad,text,width,height):
+        if pfad == None:
+            self.meldung.setHtml(text)
+        elif text == None:
+            self.meldung.setSource(QtCore.QUrl.fromLocalFile(pfad))
+        #self.meldung.setHtml(self.text)
+        self.resize(width, height)
+        self.show()
+        pass
+
+    def setText(self,text):
+        self.text = text
+
+    def setPfad(self, pfad):
+        self.pfad = text

@@ -21,11 +21,12 @@
  *                                                                         *
  ***************************************************************************/
 """
+
 from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt, QSize, QTimer, pyqtSlot, pyqtSignal, QPoint, QVariant, QObject
 from PyQt5.QtGui import *#QIcon, QPixmap
 from PyQt5.QtWidgets import *#QAction, QMessageBox, QFileDialog, QTreeWidgetItem, QInputDialog
-from qgis.core import QgsProject, QgsExpressionContextUtils, QgsMessageLog, Qgis, QgsVectorLayer, QgsFeature,QgsWkbTypes, QgsField
-from qgis.utils import iface, plugins, reloadPlugin
+from qgis.core import QgsProject, QgsExpressionContextUtils, QgsMessageLog, QgsVectorLayer, QgsFeature,QgsWkbTypes, QgsField, QgsCoordinateReferenceSystem
+from qgis.utils import iface, plugins
 from qgis.gui import QgisInterface
 from PyQt5.QtWidgets import QApplication as qApp
 from .t2g_arch_dockwidget import T2G_ArchDockWidget
@@ -34,26 +35,32 @@ from datetime import date, datetime
 import operator, subprocess
 import os.path
 import uuid
+from configparser import ConfigParser
 from osgeo import gdal
 from .functions import *
-from .ExtDialoge.myDlgAutoAttribut import *
+from .textadjustment import *
 from .ExtDialoge.myDlgDrucklayout import *
-from .ExtDialoge.myDlgGPStoShape import *
 from .ExtDialoge.myDlgAttributverwaltung import *
 from .ExtDialoge.myDwgFeatureQuestion import *
 from .identifygeometry import IdentifyGeometry
 from .ExtDialoge.myDwgFeatureQuestion import FeatureQuestionDockWidget
-from .ExtDialoge.myDlgQuery import AllLayerQuestionDockWidget
 from .ExtDialoge.myDlgGeometryCheck import GeometryCheckDockWidget
 from .ExtDialoge.myDlgRasterLayerView import RasterLayerViewDockWidget
+from .ExtDialoge.myDlgSettings import *
 from .ExtDialoge.myDwgLookForMissingAttributes import LookForMissingAttributesDockWidget
+from .messen.messen import Measurement
+
+#import ezdxf
 
 from .transformation.transformation_gui import TransformationGui
 from .geoEdit.geo_edit import GeoEdit
 from .profile.profile import Profile
 
+VERSION = 'LfA Sachsen ' + 'V 0.8.0' + ' für Qgis 3.20 -'
 
-VERSION = 'LfA Sachsen ' + 'V 0.5.1' + ' für Qgis 3.10 -'
+FN_PROFILNUMMER = 'prof_nr'  # Feldname in der die Profilnummer steht
+FN_DEF_FOTOENTZERRPUNKT = 'obj_type'  # Feldname in der die Entzerrpunkt-definition steht
+AW_FOTOENTZERRPUNKT = 'Fotoentzerrpunkt'  # Entzerrpunkt-definition
 
 class T2G_Arch:
     """QGIS Plugin Implementation."""
@@ -66,6 +73,11 @@ class T2G_Arch:
             application at run time.
         :type iface: QgsInterface
         """
+        if Qgis.QGIS_VERSION_INT < 32000:
+            box = QMessageBox()
+            box.setText(str(Qgis.QGIS_VERSION_INT))
+            box.exec_()
+            raise SystemExit
 
         # Save reference to the QGIS interface
         self.iface = iface
@@ -99,9 +111,6 @@ class T2G_Arch:
 
         self.pluginIsActive = False
         self.dockwidget = None
-
-        self.dwFeatureQuestion = None
-        self.dwAllLayerQuestion = None
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
@@ -232,22 +241,22 @@ class T2G_Arch:
         icon3 = QIcon(os.path.join(iconpfad, 'Einstellungen.gif'))
         icon4 = QIcon(os.path.join(iconpfad, 'media-floppy.png'))
         icon5 = QIcon(os.path.join(iconpfad, 'Befundnr.gif'))
-        self.action1 = QAction(icon3, u'Autoattribute', self.iface.mainWindow())
+
         self.action2 = QAction(icon4, u'Tagesprojekt Sichern', self.iface.mainWindow())
         self.action3 = QAction(icon5, u'Befundnr setzen', self.iface.mainWindow())
         self.popupMenu = QMenu()
         self.myactions.append(self.popupMenu)
-        self.popupMenu.addAction(self.action1)
+
         self.popupMenu.addAction(self.action2)
         self.popupMenu.addAction(self.action3)
 
-        self.action1.triggered.connect(self.myDlgAutoAttributShow)
+
         self.action2.triggered.connect(self.dayProjectSave)
-        self.action3.triggered.connect(self.klickPointLabel)
+        #self.action3.triggered.connect(self.klickPointLabel)
 
         self.toolButton = QToolButton()
         self.toolButton.setMenu(self.popupMenu)
-        self.toolButton.setDefaultAction(self.action1)
+        self.toolButton.setDefaultAction(self.action2)
         self.toolButton.setPopupMode(QToolButton.MenuButtonPopup)
         self.toolbar.addWidget(self.toolButton)
         self.myactions.append(self.toolButton)
@@ -335,22 +344,24 @@ class T2G_Arch:
         self.mapToolSel.geomIdentified.connect(self.featureSelect2)
         self.selectedLayer = None
         self.selectedFeature = None
-        self.myDlgAutoAttribut = None
+
+        self.dwFeatureQuestion = None
+        self.dwAllLayerQuestion = None
+
         self.selectFeatures = []
         self.selFeatureTemp = None
         self.abbruch = None
-
         self.iconpfad = os.path.join(os.path.dirname(__file__), 'Icons')
-        self.xmlFile = xml(self.plugin_dir + '/settings.xml')
+
+        self.config = None
+        self.newFeaturesIds = []
 
     #--------------------------------------------------------------------------
-    
+
     def onClosePlugin(self):
         print('onClosePlugin')
         """Cleanup necessary items here when plugin dockwidget is closed"""
 
-        #print "** CLOSING T2G_Arch"
-        
         # disconnects
         self.dockwidget.closingPlugin.disconnect(self.onClosePlugin)
 
@@ -368,7 +379,9 @@ class T2G_Arch:
         for action in self.myactions:
             action.setEnabled(False)
         self.actions[0].setEnabled(True)
-        
+
+
+
 
     def unload(self):
         print('unload')
@@ -399,6 +412,11 @@ class T2G_Arch:
         #    self.actions[0].setEnabled(True)
         #    for action in self.myactions:
         #        action.setEnabled(True)
+        if plugins.get('Tachy2GIS-3D_viewer') == None:
+            box = QMessageBox()
+            box.setText('Tachy2Gis 3D Viewer ist nicht installiert. Wird aber für die Messfunktion benötigt!')
+            box.exec_()
+            return
 
         if not self.pluginIsActive:
             self.actions[0].setEnabled(True)
@@ -433,14 +451,9 @@ class T2G_Arch:
             self.dockwidget.butProfEntzPunktExp.setIcon(QIcon(os.path.join(self.iconpfad, 'ProfPunktExp.gif')))
             self.dockwidget.butProfEntzPunktExp.setToolTip('Profilentzerrpunkte Export')
             self.dockwidget.butPunktImp.clicked.connect(self.pointImp)
-            self.dockwidget.butAutoAtt.clicked.connect(self.myDlgAutoAttributShow)
-            self.dockwidget.butAutoAtt.setIcon(QIcon(os.path.join(self.iconpfad, 'Einstellungen.gif')))
             self.dockwidget.butSchriftfeld.clicked.connect(self.myDlgDrucklayoutShow)
             self.dockwidget.butSchriftfeld.setIcon(QIcon(os.path.join(self.iconpfad, 'Schriftfeld.jpg')))
-            self.dockwidget.txtAkt.textChanged.connect(self.setStatAttribute)
-            self.dockwidget.cboArchGeo.currentIndexChanged.connect(self.setStatAttribute)
 
-            self.dockwidget.butProfMe.clicked.connect(self.addProfil)
             #self.dockwidget.cboSuche.currentIndexChanged.connect(self.ozoom_1_ok)
             self.dockwidget.butObjFind.setIcon(QIcon(os.path.join(self.iconpfad, 'suchen.gif')))
             self.dockwidget.butObjFind.clicked.connect(self.ozoom_1_ok)
@@ -450,8 +463,8 @@ class T2G_Arch:
             self.dockwidget.butLayerFilter.setToolTip('Filter auf alle Layer setzen')
             self.dockwidget.butDelAllFeatures.clicked.connect(self.delAllFeature)
             self.dockwidget.butDelAllFeatures.setToolTip('Löscht alle Geometrien auf den 3 Eingabelayern')
-            self.dockwidget.butProfMe.clicked.connect(self.addProfil)
-            self.dockwidget.butProfMe.setIcon(QIcon(os.path.join(self.iconpfad, 'icon.png')))
+            #self.dockwidget.butProfMe.clicked.connect(self.addProfil)
+            #self.dockwidget.butProfMe.setIcon(QIcon(os.path.join(self.iconpfad, 'icon.png')))
             self.dockwidget.butAttributverwaltung.clicked.connect(self.myDlgAttributverwaltungShow)
 
             self.layerLine = QgsProject.instance().mapLayersByName(T2G_ArchDockWidget.eLayerListe()[0])[0]
@@ -459,40 +472,37 @@ class T2G_Arch:
             self.layerPoint = QgsProject.instance().mapLayersByName(T2G_ArchDockWidget.eLayerListe()[2])[0]
             self.layerMesspoint = QgsProject.instance().mapLayersByName('Messpunkte')[0]
 
-            #self.layerLine.committedAttributeValuesChanges.connect(self.canvasRefresh)
-            #self.layerPoly.committedAttributeValuesChanges.connect(self.canvasRefresh)
-            #self.layerPoint.committedAttributeValuesChanges.connect(self.canvasRefresh)
-
-
-            self.layerLine.featuresDeleted.connect(self.eventFeaturesDeleted)
-            self.layerPoly.featuresDeleted.connect(self.eventFeaturesDeleted)
-            self.layerPoint.featuresDeleted.connect(self.eventFeaturesDeleted)
+            self.layerLine.featuresDeleted.connect(self.__eventFeaturesDeleted)
+            self.layerPoly.featuresDeleted.connect(self.__eventFeaturesDeleted)
+            self.layerPoint.featuresDeleted.connect(self.__eventFeaturesDeleted)
 
             self.layerLine.editingStarted.connect(self.eventEditingStarted)
             self.layerPoly.editingStarted.connect(self.eventEditingStarted)
             self.layerPoint.editingStarted.connect(self.eventEditingStarted)
 
-            self.layerLine.editingStopped.connect(self.eventEditingEnded)
-            self.layerPoly.editingStopped.connect(self.eventEditingEnded)
-            self.layerPoint.editingStopped.connect(self.eventEditingEnded)
+            #self.layerLine.editingStopped.connect(self.eventEditingStopped)
+            #self.layerPoly.editingStopped.connect(self.eventEditingStopped)
+            #self.layerPoint.editingStopped.connect(self.eventEditingStopped)
 
             self.layerLine.subsetStringChanged.connect(self.FilterGesetzt)
             self.layerPoly.subsetStringChanged.connect(self.FilterGesetzt)
             self.layerPoint.subsetStringChanged.connect(self.FilterGesetzt)
 
-            self.layerLine.attributeValueChanged.connect(self.eventAttributeValueChanged)
-            self.layerPoly.attributeValueChanged.connect(self.eventAttributeValueChanged)
-            self.layerPoint.attributeValueChanged.connect(self.eventAttributeValueChanged)
+            self.layerLine.attributeValueChanged.connect(self.__eventAttributeValueChanged)
+            self.layerPoly.attributeValueChanged.connect(self.__eventAttributeValueChanged)
+            self.layerPoint.attributeValueChanged.connect(self.__eventAttributeValueChanged)
 
-            self.dockwidget.chbautoSave.stateChanged.connect(self.enableAutoSave)
-            self.dockwidget.txtautoSave.textChanged.connect(self.enableAutoSave)
+            #self.layerLine.editCommandDestroyed.connect(self.__eventEditCommandDestroyed)
+            #self.layerPoly.editCommandDestroyed.connect(self.__eventEditCommandDestroyed)
+            #self.layerPoint.editCommandDestroyed.connect(self.__eventEditCommandDestroyed)
+
+            self.layerLine.featureAdded.connect(self.eventFeatureAdded)
+            self.layerPoly.featureAdded.connect(self.eventFeatureAdded)
+            self.layerPoint.featureAdded.connect(self.eventFeatureAdded)
+
             self.dockwidget.pushButton_3.clicked.connect(self.dayProjectSave)
             self.dockwidget.pushButton_3.setIcon(QIcon(os.path.join(self.iconpfad, 'media-floppy.png')))
 
-            self.dockwidget.butFeatureFirst.clicked.connect(self.featureFirst)
-            self.dockwidget.butFeatureFirst.setIcon(QIcon(os.path.join(self.iconpfad, '-gvor.gif')))
-            self.dockwidget.butFeatureLast.clicked.connect(self.featureLast)
-            self.dockwidget.butFeatureLast.setIcon(QIcon(os.path.join(self.iconpfad, '-ghinten.gif')))
             self.dockwidget.butAllLayfFilterEnt.clicked.connect(self.eventAllLayfFilterEnt)
             self.dockwidget.butAllLayfFilterEnt.setToolTip('Löscht alle Layerfilter')
             self.dockwidget.butAllLayfFilterEnt.setIcon(QIcon(os.path.join(self.iconpfad, 'FilterAllLayerEnt.gif')))
@@ -504,9 +514,6 @@ class T2G_Arch:
             self.dockwidget.butAllLayBefFilter.setIcon(QIcon(os.path.join(self.iconpfad, 'FilterAllLayerBef.gif')))
 
             self.dockwidget.canvas_clicked = PrintClickedPoint(self.iface.mapCanvas(), self.dockwidget)
-            self.dockwidget.butBefundLabel.clicked.connect(self.klickPointLabel)
-            self.dockwidget.butBefundLabel.setIcon(QIcon(os.path.join(self.iconpfad, 'Befundnr.gif')))
-            self.dockwidget.txtPointTemp.textChanged.connect(self.befundLabel)
 
             self.dockwidget.pushButton_4.setIcon(QIcon(os.path.join(self.iconpfad, 'V_Jpg-Tif.gif')))
             self.dockwidget.pushButton_4.clicked.connect(self.gtiff2jpg)
@@ -520,14 +527,15 @@ class T2G_Arch:
             self.dockwidget.pushButton_11.clicked.connect(self.myDlgRasterLayerShow)
             self.dockwidget.pushButton_11.setToolTip('Übersicht der Rasterlayer')
 
+            self.dockwidget.butSet.setIcon(QIcon(os.path.join(self.iconpfad, 'Einstellungen.gif')))
+            self.dockwidget.butSet.clicked.connect(self.myDlgSettingsShow)
+            self.dockwidget.butSet.setToolTip('Setupdatei bearbeiten')
+
             self.iface.layerTreeView().currentLayerChanged.connect(self.currentLayerChanged)
-            QgsProject.instance().customVariablesChanged.connect(self.customVariablesChanged)
             self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
 
-            #Problem: durch self.dockwidget.setFixedWidth() verliert das dockWidget
-            #die Möglichkeit geresized zu werden
-            #die Layouts der einzelnen Abschnitte müssen responsive gemacht werden!
             #self.dockwidget.toolBox.currentChanged.connect(self.toolbox_currentChanged)
+            self.dockwidget.tabWidget_2.currentChanged.connect(self.toolbox_currentChanged)
             self.dockwidget.show()
             self.layerPoly.selectionChanged.connect(self.selectFeatureChanged)
 
@@ -559,34 +567,71 @@ class T2G_Arch:
             ####################################################################
 
             self.dockwidget.butLookForMissingAttributes.clicked.connect(self.myDwgLookForMissingAttributesShow)
+            # Event nach Projektdatei wechsel
+            self.iface.projectRead.connect(self.eventReadProject)
+
+            ####################################################################
+            ############################# Messen #################
+            ####################################################################
+
+            self.t2g = Measurement(self, self.iface)
+
+            ####################################################################
+
+            self.__lastMaxNumber = []
             self.setup()
 
-    def setup(self):
-        self.dockwidget.butFeatureFirst.hide()
-        self.dockwidget.butFeatureLast.hide()
-        self.dockwidget.butLayerFilter.hide()
-        self.dockwidget.butDelAllFeatures.hide()
-        self.dockwidget.butLookForMissingAttributes.hide()
-        self.dockwidget.label_10.setText(VERSION)
+    def eventReadProject(self):
+        """ Event Projekt geladen """
+        # Datei- und Projektpfad in Variable speichern
         self.QgisDateiPfad = QgsProject.instance().readPath('./')
         self.ProjPfad = os.path.abspath(os.path.join(self.QgisDateiPfad, "./.."))
 
-        self.currentLayerChanged()
-        self.customVariablesChanged()  # self.getValue()
+        # Config-Datei abarbeiten
+        QgsMessageLog.logMessage('Projekt Config.ini laden.', 'T2G Archäologie', Qgis.Info)
+        self.config = Configfile(os.path.join(self.ProjPfad,'_System_/config.ini'))
+        self.t2g.setconfig(self.config)
+        myDlgSettingsView = DlgSettings(self, self.config)
+        myDlgSettingsView.setup()
+        # Autosave einstellungen setzen
+        autoSaveTime = self.config.getValue("AutoSave","time",'10')
+        autoSaveEnable = self.config.getValue("AutoSave","enabled",'True')
+        if autoSaveEnable == 'True':
+            self.watch.start(int(autoSaveTime) * 60000)
+            QgsMessageLog.logMessage("Auto Backup: An, " + "Takt " + autoSaveTime + " min" , 'T2G Archäologie', Qgis.Info)
+            iface.messageBar().pushMessage(u"T2G Archäologie: ", u"Auto Backup: An, " + "Takt " + autoSaveTime + " min",
+                                           level=Qgis.Info)
+        else:
+            self.watch.stop()
+            QgsMessageLog.logMessage("Auto Backup: Aus", 'T2G Archäologie', Qgis.Info)
+            iface.messageBar().pushMessage(u"T2G Archäologie: ", u"Auto Backup: Aus.",
+                                           level=Qgis.Info)
 
+        val = self.config.getValue("Textgröße","value",'0.70')
+        textadjustment = Textadjustment(self,val)
+        textadjustment.setText()
+
+    def setup(self):
+        iface.setActiveLayer(self.layerPoly)
+
+        self.QgisDateiPfad = QgsProject.instance().readPath('./')
+        self.ProjPfad = os.path.abspath(os.path.join(self.QgisDateiPfad, "./.."))
+
+        self.dockwidget.butLayerFilter.hide()
+        self.dockwidget.butDelAllFeatures.hide()
+        self.dockwidget.butAllLayBefFilter.hide()
+        self.dockwidget.butAllLayFilter.hide()
+        self.dockwidget.butAllLayfFilterEnt.hide()
+        self.dockwidget.butLookForMissingAttributes.hide()
+        self.dockwidget.label_10.setText(VERSION)
+
+        self.currentLayerChanged()
         self.getMaxValues()
 
-        self.dockwidget.txtautoSave.setText('15')
-        self.dockwidget.chbautoSave.setChecked(True)
-
-        self.enableAutoSave()
-        self.dockwidget.labAtt.hide()
         self.dockwidget.txtPointTemp.hide()
-
         iface.messageBar().pushMessage(u"T2G Archäologie: ", u"Aufsatz Archäologie für T2G ist einsatzbereit.",
                                        level=Qgis.Info)
         QgsMessageLog.logMessage('Aufsatz Archäologie für T2G ist einsatzbereit.', 'T2G Archäologie', Qgis.Info)
-        self.myDlgAutoAttribut = dlgAutoAttribut(self.iface, self.dockwidget)
 
         delSelectFeature()
         self.selectFeatures = []
@@ -594,7 +639,6 @@ class T2G_Arch:
         iface.messageBar().pushMessage(u"T2G Archäologie: ", u"Überprüfe UUID.", level=Qgis.Info)
         # >uuid ereugen wenn Feld uuid leer
         list = [self.layerPoly, self.layerLine, self.layerPoint, self.layerMesspoint]
-
         for layer in list:
             layer.startEditing()
             if layer.dataProvider().fieldNameIndex("uuid") == -1:
@@ -610,31 +654,26 @@ class T2G_Arch:
             layer.commitChanges()
         # <uuid ereugen wenn Feld uuid leer
 
+        self.T2G = plugins.get('Tachy2GIS-3D_viewer')
+        self.dockwidget.tabWidget_2.setCurrentIndex(0)
+        self.dockwidget.setFixedWidth(233)
+        self.iface.actionSelectRectangle().trigger()
+
         self.FilterGesetzt()
 
-        #Connection when project is closed
-        QgsProject.instance().cleared.connect(self.__projectClosed)
+        self.eventReadProject()
 
-        #Connection when project is read
-        QgsProject.instance().readProject.connect(self.__projectRead)
-
-    def __projectClosed(self):
-
-        self.geoEdit = None
-        self.profile = None
-        self.dockwidget.close()      
-
-    def __projectRead(self):
-
-        reloadPlugin('Tachy2GIS_arch')
-
+    def eventFeatureAdded(self, fid):
+        self.newFeaturesIds.append(fid)
+        QgsMessageLog.logMessage(str(fid) + ' neu', 'T2G Archäologie', Qgis.Info)
+        pass
 
     def toolbox_currentChanged(self,index):
         QgsMessageLog.logMessage(str(index), 'T2G Archäologie', Qgis.Info)
-        if index == 1 or index == 4:
-            self.dockwidget.setFixedWidth(390)
+        if index == 1 or index == 3 or index == 4:
+            self.dockwidget.setFixedWidth(440)
         else:
-            self.dockwidget.setFixedWidth(200)
+            self.dockwidget.setFixedWidth(233)
 
 
     def pluginSichtbarkeit(self):
@@ -646,64 +685,6 @@ class T2G_Arch:
         else:
             self.dockwidget.show()
             self.actionPluginSichtbarkeit.setIcon(QIcon(os.path.join(self.iconpfad, 'Sichtbar_an.gif')))
-
-    def testMultiPart(self):
-        layer = self.iface.mapCanvas().currentLayer()
-        n_split_feats = 0
-        n_new_feats = 0
-
-        for feature in layer.selectedFeatures():
-            geom = feature.geometry()
-            # if feature geometry is multipart starts split processing
-            if geom != None:
-                if geom.isMultipart():
-                    QgsMessageLog.logMessage('ist multipart', 'T2G Archäologie', Qgis.Info)
-                    n_split_feats += 1
-                    parts = geom.asGeometryCollection()
-                    # Convert part to multiType to prevent errors in Spatialite
-                    for part in parts:
-                        #part.convertToMultiType()
-                        #geom = part.asMultiPolygon()
-
-                        for vertex in part.vertices():
-                            #koord = {'x': part.vertexAt(i).x(), 'y': part.vertexAt(i).y(),
-                            #         'z': part.vertexAt(i).z()}
-                            koord = {'x': vertex.x(), 'y': vertex.y(), 'z': vertex.z()}
-                            #QgsMessageLog.logMessage('', 'T2G Archäologie', Qgis.Info)
-                            QgsMessageLog.logMessage(str(koord), 'T2G Archäologie', Qgis.Info)
-                            pass
-                        QgsMessageLog.logMessage(str(len(geom.get())), 'T2G Archäologie', Qgis.Info)
-
-
-
-                    # from 2nd to last part create a new features using their
-                    # single geometry and the attributes of the original feature
-                    for i in range(1, len(parts)):
-                        #QgsMessageLog.logMessage(str(parts[i].geometry().get()),'T2G Archäologie', Qgis.Info)
-
-                        n_new_feats += 1
-                        #new_feat = QgsVectorLayerUtils.createFeature(layer,
-                                                                     #parts[i],
-                                                                     #attributes)
-                        #layer.addFeature(new_feat)
-                    # update feature geometry to hold first part of geometry
-                    # (this way one of the output features keeps the original Id)
-                    #feature.setGeometry(parts[0])
-                    #layer.updateFeature(feature)
-
-    def file2temp(self):
-        fileFunc().directory_del('C:/temp/#T2G-Arch#')
-        QApplication.processEvents()
-        layer = self.iface.mapCanvas().currentLayer()
-        input_raster = str(unicode(layer.source()))
-        input_raster_wld = str(unicode(layer.source()))[:-4] + '.wld'
-        input_raster_jgw = str(unicode(layer.source()))[:-4] + '.jgw'
-        os.makedirs('C:/temp/#T2G-Arch#')
-        #QgsMessageLog.logMessage(input_raster [-4:], 'T2G Archäologie', Qgis.Info)
-        fileFunc().file_copy(input_raster, 'C:/temp/#T2G-Arch#/temp' + input_raster [-4:])
-        fileFunc().file_copy(input_raster_wld, 'C:/temp/#T2G-Arch#/temp' + input_raster_wld [-4:])
-        fileFunc().file_copy(input_raster_jgw, 'C:/temp/#T2G-Arch#/temp' + input_raster_jgw [-4:])
-        pass
 
     def setCutMask(self):
         cutlayer = QgsProject.instance().mapLayersByName('Schnittmaske')[0]
@@ -737,20 +718,15 @@ class T2G_Arch:
                                        level=Qgis.Info)
 
     def rasterCut(self):
-        layer = self.iface.mapCanvas().currentLayer()#Picturelayer to cut
+        # Layer des zu schneidenden Bildes
+        layer = self.iface.mapCanvas().currentLayer()
 
-        if layer.type() == QgsMapLayer.RasterLayer:
-            #if layer.source()[-3:] == 'tif':
-            #    iface.messageBar().pushMessage(u"T2G Archäologie: ", u"Diese Funktion geht nicht mit GeoTiffs!",
-            #                                   level=Qgis.Critical)
-            #    return
-            pass
-        else:
+        if layer.type() != QgsMapLayer.RasterLayer:
             iface.messageBar().pushMessage(u"T2G Archäologie: ",
                                            u"Layer ist kein Rasterlayer!",
                                            level=Qgis.Critical)
             return
-        self.file2temp()
+
         box = QMessageBox()
         box.setIcon(QMessageBox.Question)
         box.setWindowTitle('Frage')
@@ -763,93 +739,114 @@ class T2G_Arch:
         buttonN.setText('vorh. Maske')
         buttonN.setToolTip('Nutzt die Objekte im Layer Schnittmaske')
         box.exec_()
-
+        # Layer mit Schnittmaske/n in Variable speichern und activ setzen
         cutlayer = QgsProject.instance().mapLayersByName('Schnittmaske')[0]
         iface.setActiveLayer(cutlayer)
-
-
-        if box.clickedButton() == buttonY: #neu
+        # Auswahl neue Schnittmaske
+        if box.clickedButton() == buttonY:
+            #Schnittmasken Layer zum editing öffnen
             cutlayer.startEditing()
+            # alle Geometrien löschen
             listOfIds = [feat.id() for feat in cutlayer.getFeatures()]
             cutlayer.deleteFeatures(listOfIds)
+            # Qgis Kartenfenster aktuallisieren
             self.iface.mapCanvas().refresh()
+            # Aktion Neues Objekt auslösen
             iface.actionAddFeature().trigger()
+            # Warten bis ein neues Objekt gezeichnet wurde
             while cutlayer.featureCount() < 1:
                 QApplication.processEvents()
+            # Änderungen übernehmen
             cutlayer.commitChanges()
-            QgsMessageLog.logMessage('Neues Objekt', 'T2G Archäologie', Qgis.Info)
-            pass
-        elif box.clickedButton() == buttonN: #Geometrie
+        # Auswahl Vorhandene Schnittmaske
+        elif box.clickedButton() == buttonN:
             if cutlayer.featureCount() == 0:
                 iface.messageBar().pushMessage(u"T2G Archäologie: ",
                                                u"Keine Objekte auf Maskenlayer vorhanden! Abbruch",
                                                level=Qgis.Critical)
                 return
         else:
+            # Bei keiner Auswahl Abbruch
             return
+        # Layer des zu schneidenden Bildes aktiv setzen
         iface.setActiveLayer(layer)
-        input = str(unicode(layer.source()))
 
-
+        # Layerpfad in Variable speichern
+        input = os.path.abspath(str(unicode(layer.source())))
+        # Programmteil zum schneideen des Bildes
         try:
-            layername = layer.name()
-            masklayerpfad = str(cutlayer.source())
+            # Maskenlayerpfad in Variable speichern
+            masklayerpfad = str(cutlayer.source()).split("|")[0]
             masklayername = 'Schnittmaske'
+            # Layer Koordinatensysteme in Variable speichern
             inputsrs = layer.crs().authid()
             outputsrs = layer.crs().authid()
-            temp_input_raster = None
-            for file in os.listdir('C:/temp/#T2G-Arch#'):
-                if file == 'temp.jpg':
-                    temp_input_raster = 'C:/temp/#T2G-Arch#/temp.jpg'
-                elif file == 'temp.tif':
-                    temp_input_raster = 'C:/temp/#T2G-Arch#/temp.tif'
-            temp_output_raster = 'C:/temp/#T2G-Arch#/temp_cut.tif'
-            item = ("keine","100", "75", "50", "25")
 
+            temp_input_raster = None
+            temp_output_raster = None
+            # Pfad Eingaberaster in Variable speichern
+            temp_input_raster =  input
+            # Pfad Ausgaberaster in Variable speichern
+            temp_output_raster = os.path.splitext(input)[0] + '_cut' + os.path.splitext(input)[1]
+
+            items = ("keine", "75", "50", "25")
             kompress = None
-            kompressv, ok = QInputDialog.getItem(None, 'Kompression', 'JPEG-Qualität eingeben', item, 1, False)
+            kompressv, ok = QInputDialog.getItem(None, 'Kompression', 'JPEG-Qualität eingeben', items, 0, False)
             if ok != True:
+                # Abbruch
                 return
             else:
+                # Kompressionsvariable setzen
                 if kompressv == 'keine':
                     kompress = ''
                 else:
                     kompress = '-co COMPRESS=JPEG -co JPEG_QUALITY=' + kompressv
-
-            string = r'gdalwarp -s_srs ' + inputsrs + ' -t_srs ' + outputsrs + \
+            # Gdal Komandozeile zusammensetzen
+            string = r'gdalwarp' + \
+                     ' -s_srs ' + inputsrs + \
+                     ' -t_srs ' + outputsrs + \
                      ' -of GTiff -cutline "' + masklayerpfad + '" -cl ' + masklayername + \
                      ' -crop_to_cutline -dstalpha ' + kompress + ' "' + temp_input_raster + '" "' + temp_output_raster + '"'
+            # Komandozeile an System senden
             os.system(string)
-            QgsMessageLog.logMessage(str(string), 'T2G Archäologie', Qgis.Info)
+            # Speicherdialog aufrufen
             dlg = QFileDialog()
-            output_file = dlg.getSaveFileName(None, "Speicherpfad", os.path.abspath(input),
-                                                      "GeoTif (*.tif);;Jpeg mit World (*.jpg);;Alle (*.*)",initialFilter='Jpeg mit World (*.jpg)')
-            QgsMessageLog.logMessage(str(output_file[0]), 'T2G Archäologie', Qgis.Info)
-            if output_file[0] == '':
-                fileFunc().directory_del('C:/temp/#T2G-Arch#')
-                return
+            initFilter = ''
+            if temp_input_raster[:3]=='jpg':
+                initFilter = 'Jpeg mit World (*.jpg)'
+            elif temp_input_raster[:3]=='tif':
+                initFilter = 'GeoTif (*.tif)'
 
+            output_file = dlg.getSaveFileName(None, "Speicherpfad", input,
+                                                      "GeoTif (*.tif);;Jpeg mit World (*.jpg);;Alle (*.*)",initialFilter=initFilter)
+            # Ausgewähltes Ausgabeformat auswerten
             if output_file[1] == 'GeoTif (*.tif)':
                 s = os.path.splitext(output_file[0])[0]
-                fileFunc().file_copy('C:/temp/#T2G-Arch#/temp_cut.tif', s + '.tif')
+                # temp. geschnittenes Bild unter neuen Namen speichern
+                fileFunc().file_copy(temp_output_raster, s + '.tif')
+                # Bild als neuen Layer einfügen
                 iface.addRasterLayer(s + '.tif', os.path.basename(output_file[0])[:-4])
 
             elif output_file[1] == 'Jpeg mit World (*.jpg)':
                 s = os.path.splitext(output_file[0])[0]
                 temp_input_raster = temp_output_raster
-                temp_output_raster = temp_output_raster[:-4] + '_trans.jpg'
-                layer.crs().authid()
-                string = r'gdal_translate -of Jpeg -co worldfile=yes -mask 4 "' + temp_input_raster + '" "' + temp_output_raster + '"'
-                #string = r'gdal_translate -of Jpeg -scale -co worldfile=yes "' + temp_input_raster + '" "' + temp_output_raster + '"'
+                temp_output_raster_transl = s + '.jpg'
+                # Gdal Komandozeile zusammensetzen umwandlung zu Jpeg
+                string = r'gdal_translate -of Jpeg -co worldfile=yes -mask 4 "' + temp_input_raster + '" "' + temp_output_raster_transl + '"'
+                # Komandozeile an System senden
                 os.system(string)
-                fileFunc().file_copy('C:/temp/#T2G-Arch#/temp_cut_trans.jpg', s + '.jpg')
-                fileFunc().file_copy('C:/temp/#T2G-Arch#/temp_cut_trans.wld', s + '.wld')
-                iface.addRasterLayer(s + '.jpg', os.path.basename(output_file[0])[:-4])
-            fileFunc().directory_del('C:/temp/#T2G-Arch#')
+                # Bild als neuen Layer einfügen
+                rasterlayer = iface.addRasterLayer(s + '.jpg', os.path.basename(output_file[0])[:-4])
+                # Layer Koordinatensystem setzen
+                rasterlayer.setCrs(QgsCoordinateReferenceSystem(outputsrs))
         except Exception as e:
             QgsMessageLog.logMessage(str(e), 'T2G Archäologie', Qgis.Info)
-            fileFunc().directory_del('C:/temp/#T2G-Arch#')
-            pass
+            # temp. geschnittenes Bild löschen
+            fileFunc().file_del(temp_output_raster)
+        finally:
+            QgsMessageLog.logMessage('datei löschen', 'T2G Archäologie', Qgis.Info)
+            # temp. geschnittenes Bild löschen
+            fileFunc().file_del(temp_output_raster)
 
         box = QMessageBox()
         box.setIcon(QMessageBox.Question)
@@ -891,67 +888,74 @@ class T2G_Arch:
     def gtiff2jpg(self):
         layer = self.iface.mapCanvas().currentLayer()
         if layer.type() == QgsMapLayer.RasterLayer and layer.source()[-3:] == 'tif':
-            self.file2temp()
+            #self.file2temp()
+            input = os.path.abspath(str(unicode(layer.source())))
+            outputsrs = layer.crs().authid()
+            QgsMessageLog.logMessage(input, 'T2G Archäologie', Qgis.Info)
+
             try:
                 layername = layer.name()
                 input = str(unicode(layer.source()))
 
-                inputtemp = r'C:/temp/#T2G-Arch#/temp.tif'
-                outputtemp = r'C:/temp/#T2G-Arch#/temp_transf.jpg'
+                inputtemp = input #r'C:/temp/#T2G-Arch#/temp.tif'
+                outputtemp = os.path.splitext(input)[0] + '_transf' + os.path.splitext(input)[1]#r'C:/temp/#T2G-Arch#/temp_transf.jpg'
 
                 string = r"gdal_translate -of JPEG -scale -co worldfile=yes " + '"' + inputtemp + '" "' + outputtemp + '"'
                 os.system(string)
 
                 output_file = QFileDialog.getSaveFileName(None, 'Speicherpfad',
-                                                          os.path.abspath(input),
+                                                          os.path.splitext(input)[0],
                                                           'Jpeg mit World (*.jpg);;Alle (*.*)')
-                if output_file[0] == '':
-                    fileFunc().directory_del('C:/temp/#T2G-Arch#')
-                    return
-                QgsMessageLog.logMessage(output_file[0][:-4] + '.jpg', 'T2G Archäologie', Qgis.Info)
+                if output_file[0] != '':
+                    fileFunc().file_copy(outputtemp, output_file[0][:-4] + '.jpg')
+                    fileFunc().file_copy(outputtemp[:-4]+'.wld', output_file[0][:-4] + '.wld')
 
-                fileFunc().file_copy('C:/temp/#T2G-Arch#/temp_transf.jpg', output_file[0][:-4] + '.jpg')
-                fileFunc().file_copy('C:/temp/#T2G-Arch#/temp_transf.wld', output_file[0][:-4] + '.wld')
-                iface.addRasterLayer(output_file[0][:-4] + '.jpg', os.path.basename(output_file[0])[:-4])
-                fileFunc().directory_del('C:/temp/#T2G-Arch#')
-            except:
-                fileFunc().directory_del('C:/temp/#T2G-Arch#')
+                    rasterlayer = iface.addRasterLayer(output_file[0][:-4] + '.jpg', os.path.basename(output_file[0])[:-4])
+                    rasterlayer.setCrs(QgsCoordinateReferenceSystem(outputsrs))
 
-            box = QMessageBox()
-            box.setIcon(QMessageBox.Question)
-            box.setWindowTitle('Frage')
-            box.setText('Datei löschen?')
-            box.setStandardButtons(QMessageBox.Yes | QMessageBox.No |QMessageBox.Abort)
-            buttonY = box.button(QMessageBox.Yes)
-            buttonY.setText('GeoTIF')
-            buttonY.setToolTip('Löscht GeoTiff und Layer')
-            buttonN = box.button(QMessageBox.No)
-            buttonN.setText('Layer')
-            buttonN.setToolTip('Löscht denn Layer')
-            buttonA = box.button(QMessageBox.Abort)
-            buttonA.setText('Behalten')
-            buttonA.setToolTip('Löscht keins von beiden')
-            buttonA.setFocus()
-            box.exec_()
+                    box = QMessageBox()
+                    box.setIcon(QMessageBox.Question)
+                    box.setWindowTitle('Frage')
+                    box.setText('Datei löschen?')
+                    box.setStandardButtons(QMessageBox.Yes | QMessageBox.No |QMessageBox.Abort)
+                    buttonY = box.button(QMessageBox.Yes)
+                    buttonY.setText('GeoTIF')
+                    buttonY.setToolTip('Löscht GeoTiff und Layer')
+                    buttonN = box.button(QMessageBox.No)
+                    buttonN.setText('Layer')
+                    buttonN.setToolTip('Löscht denn Layer')
+                    buttonA = box.button(QMessageBox.Abort)
+                    buttonA.setText('Behalten')
+                    buttonA.setToolTip('Löscht keins von beiden')
+                    buttonA.setFocus()
+                    box.exec_()
 
-            if box.clickedButton() == buttonY:
-                QgsProject.instance().removeMapLayer(layer.id())
-                a=0
-                for layer in QgsProject.instance().mapLayers().values():
-                    QgsMessageLog.logMessage(layer.source(), 'T2G Archäologie', Qgis.Info)
-                    if input in layer.source():
-                        a=a+1
-                if a == 0:
-                    fileFunc().file_del(input)
-                else:
-                    iface.messageBar().pushMessage(u"T2G Archäologie: ",
-                                               u"Datei ist mehrfach als Layer eingefügt und kann nicht gelöscht werden.",
-                                               level=Qgis.Critical)
-            elif box.clickedButton() == buttonN:
-                QgsProject.instance().removeMapLayer(layer.id())
-                pass
-            elif box.clickedButton() == buttonA:
-                pass
+                    if box.clickedButton() == buttonY:
+                        QgsProject.instance().removeMapLayer(layer.id())
+                        a=0
+                        for layer in QgsProject.instance().mapLayers().values():
+                            QgsMessageLog.logMessage(layer.source(), 'T2G Archäologie', Qgis.Info)
+                            if input in layer.source():
+                                a=a+1
+                        if a == 0:
+                            fileFunc().file_del(input)
+                            fileFunc().file_del(input[:-4] + '.wld')
+                        else:
+                            iface.messageBar().pushMessage(u"T2G Archäologie: ",
+                                                       u"Datei ist mehrfach als Layer eingefügt und kann nicht gelöscht werden.",
+                                                       level=Qgis.Critical)
+                    elif box.clickedButton() == buttonN:
+                        QgsProject.instance().removeMapLayer(layer.id())
+
+                    elif box.clickedButton() == buttonA:
+                        pass
+
+            except Exception as e:
+                QgsMessageLog.logMessage(str(e), 'T2G Archäologie', Qgis.Info)
+            finally:
+                fileFunc().file_del(outputtemp)
+                fileFunc().file_del(outputtemp[:-4] + '.wld')
+                fileFunc().file_del(outputtemp[:-4] + '.tif.aux.xml')
         else:
             iface.messageBar().pushMessage(u"T2G Archäologie: ",
                                            u"Layer ist kein Rasterlayer oder eine GeoTif!",
@@ -960,107 +964,63 @@ class T2G_Arch:
 
     def eventEditingStarted(self):
         #QgsMessageLog.logMessage('Änderung Start', 'T2G Archäologie', Qgis.Info)
-        self.valueTemp1 = int(getCustomProjectVariable('nextBefNr'))
+        #self.valueTemp1 = int(getCustomProjectVariable('nextBefNr'))
         #setCustomProjectVariable('maxWerteAktualisieren', 'False')
-        QgsMessageLog.logMessage(str(self.valueTemp1), 'T2G Archäologie', Qgis.Info)
+        QgsMessageLog.logMessage('Beginne Änderung', 'T2G Archäologie', Qgis.Info)
+        self.__lastMaxNumber = []
+        self.__lastMaxNumber.append(self.dockwidget.txtNextBef.text())
+        self.__lastMaxNumber.append(self.dockwidget.txtNextFund.text())
+        self.__lastMaxNumber.append(self.dockwidget.txtNextProf.text())
+        self.__lastMaxNumber.append(self.dockwidget.txtNextProb.text())
         pass
-
-    def eventEditingEnded(self):
-        setCustomProjectVariable('maxWerteAktualisieren', 'True')
-        self.iface.mapCanvas().refreshAllLayers()
-        self.getMaxValues()
 
     def eventeFatureAdded(self, fid):
         QgsMessageLog.logMessage(str(fid) + 'Geometrie+neu', 'T2G Archäologie', Qgis.Info)
 
-    def eventFeaturesDeleted(self, fid):
+    def __eventFeaturesDeleted(self, fid):
+        setCustomProjectVariable('maxWerteAktualisieren', 'True')
         self.getMaxValues()
+        setCustomProjectVariable('maxWerteAktualisieren', 'False')
+        self.iface.mapCanvas().refreshAllLayers()
         pass
 
-    def eventAttributeValueChanged(self,fid,idx,value):
-        #if self.myDlgAutoAttribut.groupBox_2.isChecked() == True:
-        #    self.autoNummer()
-
-        lay =  self.iface.activeLayer()
+    def __eventAttributeValueChanged(self,fid,idx,value):
+        lay = self.iface.activeLayer()
+        QgsMessageLog.logMessage('Wert Änderung', 'T2G Archäologie', Qgis.Info)
         try:
             field = lay.fields()[idx]
             QgsMessageLog.logMessage(str(fid) + ' ' + str(field.name()) + ' ' + str(value), 'T2G Archäologie',
                                      Qgis.Info)
         except IndexError:
-            return
+            #return
             pass
-        #QgsMessageLog.logMessage(str(fid)+' '+str(field.name())+' '+ str(value), 'T2G Archäologie', Qgis.Info)
-        setCustomProjectVariable('maxWerteAktualisieren', 'True')
-        # >Zahl aus String extrahieren
-        index = 0
-        a=0
-        zahl = ''
-        while index < len(str(value)):
-            letter = str(value)[index]
-            if isNumber(letter):
-                a=1
-                zahl = zahl + letter
-            else:
-                if a==1:
-                    break
-            index = index + 1
-        value = zahl
-        # <Zahl aus String extrahieren
+
         if isNumber(str(value)):
             if field.name() == "bef_nr":
-                if  int(value) >= int(getCustomProjectVariable('nextBefNr')):
-                    setCustomProjectVariable('nextBefNr', str(int(value) + 1))
+                if  int(value) >= int(self.__lastMaxNumber [0]):
                     self.dockwidget.txtNextBef.setText(str(int(value) + 1))
+                else:
+                    self.dockwidget.txtNextBef.setText(str(self.__lastMaxNumber[0]))
             elif field.name() == "fund_nr":
-                if int(value) >= int(getCustomProjectVariable('nextFundNr')):
-                    setCustomProjectVariable('nextFundNr', str(int(value) + 1))
+                if int(value) >= int(self.__lastMaxNumber[1]):
                     self.dockwidget.txtNextFund.setText(str(int(value) + 1))
+                else:
+                    self.dockwidget.txtNextFund.setText(str(self.__lastMaxNumber[1]))
             elif field.name() == "prof_nr":
-                if int(value) >= int(getCustomProjectVariable('nextProfNr')):
-                    setCustomProjectVariable('nextProfNr', str(int(value) + 1))
+                if int(value) >= int(self.__lastMaxNumber[2]):
                     self.dockwidget.txtNextProf.setText(str(int(value) + 1))
+                else:
+                    self.dockwidget.txtNextProf.setText(str(self.__lastMaxNumber[2]))
             elif field.name() == "prob_nr":
-                if int(value) >= int(getCustomProjectVariable('nextProbNr')):
-                    setCustomProjectVariable('nextProbNr', str(int(value) + 1))
+                if int(value) >= int(self.__lastMaxNumber[3]):
                     self.dockwidget.txtNextProb.setText(str(int(value) + 1))
+                else:
+                    self.dockwidget.txtNextProb.setText(str(self.__lastMaxNumber[3]))
         else:
             pass
             #iface.messageBar().pushMessage(u"T2G Archäologie: ", u"Nächste freihe Nummer konnte nicht ermittelt werden.",
             #                               level=Qgis.Critical)
 
-
-    def autoNummer(self):
-        QgsMessageLog.logMessage('Auto Num', 'T2G Archäologie', Qgis.Info)
-        if self.myDlgAutoAttribut.chkBefZahl.isChecked() == True:
-            try:
-                wert = int(getCustomProjectVariable('bef_nr'))
-                setCustomProjectVariable('bef_nr', str(wert + 1))
-            except:
-                pass
-        if self.myDlgAutoAttribut.chkProfZahl.isChecked() == True:
-            try:
-                wert = int(getCustomProjectVariable('prof_nr'))
-                setCustomProjectVariable('prof_nr', str(wert + 1))
-            except:
-                pass
-        if self.myDlgAutoAttribut.chkFundZahl.isChecked() == True:
-            try:
-                wert = int(getCustomProjectVariable('fund_nr'))
-                setCustomProjectVariable('fund_nr', str(wert + 1))
-            except:
-                pass
-        if self.myDlgAutoAttribut.chkProbZahl.isChecked() == True:
-            try:
-                wert = int(getCustomProjectVariable('prob_nr'))
-                setCustomProjectVariable('prob_nr', str(wert + 1))
-            except:
-                pass
-        if self.myDlgAutoAttribut.chkptnrZahl.isChecked() == True:
-            try:
-                wert = int(getCustomProjectVariable('ptnr'))
-                setCustomProjectVariable('ptnr', str(wert + 1))
-            except:
-                pass
 
     def currentLayerChanged(self):
         setCustomProjectVariable('obj_type', '')
@@ -1078,39 +1038,10 @@ class T2G_Arch:
         setCustomProjectVariable('maxWerteAktualisieren', 'True')
         setCustomProjectVariable('SignalGeometrieNeu', 'False')
 
-    def customVariablesChanged(self):
-
-        #if getCustomProjectVariable('maxWerteAktualisieren') == 'False':
-        #    return
-
-        QgsMessageLog.logMessage(('Variable geändert'), 'T2G Archäologie', Qgis.Info)
-        self.dockwidget.labAtt.setText('')
-        self.dockwidget.txtAkt.setText(getCustomProjectVariable('aktcode'))
-        self.dockwidget.cboArchGeo.setCurrentText(getCustomProjectVariable('geo-arch'))
-
-        if getCustomProjectVariable('autoAttribute') == 'True':
-            self.dockwidget.labAtt.show()
-            self.dockwidget.labAtt.setText('Auto  Attribute! ')
-            self.dockwidget.labAtt.setStyleSheet("QLabel { Background-color : rgb(255, 99, 79) ; }")
-        else:
-            self.dockwidget.labAtt.hide()
-            self.dockwidget.labAtt.setText('')
-            self.dockwidget.labAtt.setStyleSheet("QLabel { Background-color : rgb(240, 240, 240) ; }")
-        if getCustomProjectVariable('autoZahl') == 'True':
-            self.dockwidget.labZahl.show()
-            self.dockwidget.labZahl.setText('Auto Nummer! ')
-            self.dockwidget.labZahl.setStyleSheet("QLabel { Background-color : rgb(255, 99, 79) ; }")
-        else:
-            self.dockwidget.labZahl.hide()
-            self.dockwidget.labZahl.setText('')
-            self.dockwidget.labZahl.setStyleSheet("QLabel { Background-color : rgb(240, 240, 240) ; }")
-
-
-    def setStatAttribute (self):
-        setCustomProjectVariable('aktcode', str(self.dockwidget.txtAkt.text()))
-        setCustomProjectVariable('geo-arch', str(self.dockwidget.cboArchGeo.currentText()))
-
     def pointExp(self):
+        # Exportpfad aus Configfile setzen
+        exportpfad = self.config.getValue("Punkte Export","pfad Exportordner",'./../Jobs')
+
         self.toolButton1.setDefaultAction(self.action5)
         layer = iface.activeLayer()
 
@@ -1118,7 +1049,7 @@ class T2G_Arch:
             QMessageBox.critical(None, "Meldung", u"Es sind keine Punkte selektiert oder es ist kein Punktlayer ausgewählt!", QMessageBox.Abort)
         else:
             output_file = QFileDialog.getSaveFileName(None, 'Speicherpfad',
-                                                      QgsProject.instance().readPath('./../Jobs'),
+                                                      QgsProject.instance().readPath(exportpfad),
                                                       'Text (*.txt);;Excel (*.csv);;Alle Dateien (*.*)')
             if output_file[0] != '':
                 output_file = open(output_file[0], 'w')
@@ -1157,22 +1088,29 @@ class T2G_Arch:
                 QMessageBox.information(None, "Meldung", u"Fertig!")
 
     def pointImp(self):
+        # Importpfad aus Configfile setzen
+        importpfad = self.config.getValue("Punkte Import","pfad Importordner",'./../Jobs')
+
         self.toolButton1.setDefaultAction(self.action4)
+        layer = QgsProject.instance().mapLayersByName('E_Point')[0]
         result = QMessageBox.information(None, 'WICHTIG',
-                                         'Dateiformat' + '\n' + 'ptnr , x , y , z' + '\n' + 'Möchten Sie fortfahren?            ',
+                                         'Dateiformat' + '\n' + 'ptnr  x  y  z' + '\n' + 'Möchten Sie fortfahren?            ',
                                          QMessageBox.Ok | QMessageBox.Cancel)
         layer = QgsProject.instance().mapLayersByName('E_Point')[0]
         if result == QMessageBox.Ok:
+
             input_file = QFileDialog.getOpenFileName(None, 'Quellpfad',
-                                                     QgsProject.instance().readPath('./../Jobs'),
-                                                     'Text (*.txt);;Excel (*.csv);;Alle Dateien (*.*)')
+                                                     QgsProject.instance().readPath(importpfad),
+                                                     'Vermessung (*.txt);;Text mit Komma (*.txt);;Text mit Tab (*.txt);;Excel (*.csv);;Alle Dateien (*.*)')
 
             dateiErw = os.path.splitext(input_file [0])[-1].lower()
+            #try:
             if input_file[0] != '':
                 progress = progressBar('Fortschritt')
                 QCoreApplication.processEvents()
                 QgsExpressionContextUtils.setProjectVariable(QgsProject.instance(), 'maxWerteAktualisieren', 'False')
                 lineid = 0
+                objCount = 0
                 if dateiErw == '.csv':
                     file = open(input_file[0])
                     linecount = fileLineCount(input_file[0])
@@ -1180,6 +1118,8 @@ class T2G_Arch:
                     progress.setMaximum(linecount)
                     for line in file:
                         progress.setValue(lineid)
+                        line = [string.strip() for string in line.splitlines()]
+                        QgsMessageLog.logMessage(('Punkt importiert'), 'T2G Archäologie', Qgis.Info)
                         a = str(line).split(',')[0].lstrip()
                         b = str(line).split(',')[1].lstrip()
                         c = str(line).split(',')[2].lstrip()
@@ -1191,41 +1131,62 @@ class T2G_Arch:
                     file.close()
                 elif dateiErw == '.txt':
                     file = open(input_file[0])
-                    linecount = fileLineCount(input_file[0])
+                    lines = file.readlines()
+                    file.close()
+                    linecount = len(lines) #fileLineCount(input_file[0]) #
                     progress.setText(str(linecount) + ' Punkte werden importiert')
                     progress.setMaximum(linecount)
-                    for  line in file:
+
+                    if 'Komma' in input_file [1]:
+                        sep = ","
+                    if 'Tab' in input_file [1]:
+                        sep = "\t"
+                    if 'Vermessung' in input_file [1]:
+                        sep = "V"
+
+                    for line in lines:
                         progress.setValue(lineid)
-                        a = str(line)[0:15].lstrip()
-                        b = str(line)[16:32].lstrip()
-                        c = str(line)[33:44].lstrip()
-                        d = str(line)[45:53].lstrip()
-                        QgsMessageLog.logMessage(d, 'T2G Archäologie', Qgis.Info)
+                        #if "." in line.split(sep)[1].lstrip():
+                        if sep != 'V':
+                            try:
+                                #if len(line.split(sep)) > 1:
+                                if "." in line:
+                                    a = str(line).split(sep)[0].lstrip()
+                                    b = str(line).split(sep)[1].lstrip()
+                                    c = str(line).split(sep)[2].lstrip()
+                                    d = str(line).split(sep)[3].lstrip()
+                                else:
+                                    continue
+                            except:
+                                iface.messageBar().pushMessage(u"T2G Archäologie: ", u"Fehler! Falscher Spaltentrenner oder vorhandene Kopfzeile.", level=Qgis.Critical)
+                                return
+                        else:
+                            a = str(line)[0:15].lstrip()
+                            b = str(line)[16:32].lstrip()
+                            c = str(line)[33:44].lstrip()
+                            d = str(line)[45:53].lstrip()
                         pt = QgsPoint(float(b), float(c), float(d))
                         attL = {'ptnr': a}
                         addPoint3D(layer, pt, attL)
+                        objCount = objCount + 1
                         lineid = lineid + 1
                     file.close()
                 QgsExpressionContextUtils.setProjectVariable(QgsProject.instance(), 'maxWerteAktualisieren', 'True')
+                if  objCount>0:
+                    iface.messageBar().pushMessage(u"T2G Archäologie: ", u"Punkte eingetragen.", level=Qgis.Info)
+                else:
+                    iface.messageBar().pushMessage(u"T2G Archäologie: ", u"Keine Punkte eingetragen.", level=Qgis.Critical)
 
-                iface.messageBar().pushMessage(u"T2G Archäologie: ", u"Messpunkte eingetragen.",
-                                   level=Qgis.Info)
-
-    ### profEntzpointExp_ergaenzt.py
-    ### Erweiterung der Funktion für maximale Kkomaptibilität der expotierten .csv mit ProfileAAR:
-    ### 1. Bestimmung der Ausrichtung des Profils "view" (dazu muss zunächst die zu den Punkten passende Profillinie gesucht werden,
-    ###    anschließend wird die Blickrichtung auf das Profil bestimmt: N = von Norden, E = von Osten, S = von Süden, W = von Westen)
-    ###    und Hinzufügen des Werts in die csv
-    ### 2. Hinzufügen der Profilnummer in die csv
-    ### 3. Hinzufügen einer Spalte "use" (bestimmt in ProfileAAR, ob der Punkt für die Berechnung der Profillinie verwendet werden soll)
-    ###    in die csv. Standardmäßig wird der Wert "1" vergeben
-    ### Ergänzungen: C. Schubert (Landesamt für Archäologie Sachsen), 07.04.2020
 
     def profEntzpointExp(self):
-
-        FN_PROFILNUMMER = 'prof_nr'  # Feldname in der die Profilnummer steht
-        FN_DEF_FOTOENTZERRPUNKT = 'obj_type'  # Feldname in der die Entzerrpunkt-definition steht
-        AW_FOTOENTZERRPUNKT = 'Fotoentzerrpunkt'  # Entzerrpunkt-definition
+        # Exportpfad aus Configfile setzen
+        exportpfad = self.config.getValue("Profilentzerrung","pfad Exportordner")
+        FN_PROFILNUMMER = self.config.getValue("Profilentzerrung","feldNProfNr")
+        FN_DEF_FOTOENTZERRPUNKT = self.config.getValue("Profilentzerrung","feldNFEP")
+        AW_FOTOENTZERRPUNKT = self.config.getValue("Profilentzerrung","attFEP")
+        #FN_PROFILNUMMER = 'prof_nr'  # Feldname in der die Profilnummer steht
+        #FN_DEF_FOTOENTZERRPUNKT = 'obj_type'  # Feldname in der die Entzerrpunkt-definition steht
+        #AW_FOTOENTZERRPUNKT = 'Fotoentzerrpunkt'  # Entzerrpunkt-definition
 
         self.toolButton1.setDefaultAction(self.action6)
         profnr, ok = QInputDialog.getText(None, 'Profil', 'Profilnummer eingeben')
@@ -1382,7 +1343,7 @@ class T2G_Arch:
             if box.clickedButton() == buttonN or box.clickedButton() == buttonA:
                 # csv-Datei
                 output_file = QFileDialog.getSaveFileName(None, 'Speicherpfad',
-                                                          QgsProject.instance().readPath('./../Jobs'),
+                                                          QgsProject.instance().readPath(exportpfad),
                                                           'Excel (*.csv);;Excel (*.txt);;Alle Dateien (*.*)')
                 if output_file[0] != '':
                     # write to csv
@@ -1438,24 +1399,30 @@ class T2G_Arch:
             ProbNrMax = 0
 
             for layer in layerlist:
+                if len([feat["bef_nr"] for feat in layer.getFeatures()]) > 0:
+                    max1 = maxValue(layer, 'bef_nr')
+                    #QgsMessageLog.logMessage(str(max1), 'T2G Archäologie', Qgis.Info)
+                    if BefNrMax < max1:
+                        BefNrMax = max1
+                if len([feat["fund_nr"] for feat in layer.getFeatures()]) > 0:
+                    max2 = maxValue(layer, 'fund_nr')
+                    if FundNrMax < max2:
+                        FundNrMax = max2
+                try:
+                    if len([feat["prob_nr"] for feat in layer.getFeatures()]) > 0:
+                        max3 = maxValue(layer, 'prob_nr')
+                        if ProbNrMax < max3:
+                            ProbNrMax = max3
+                except Exception as e:
+                    QgsMessageLog.logMessage(str(e), 'T2G Archäologie', Qgis.Info)
 
-                max1 = maxValue(layer, 'bef_nr')
-
-                #QgsMessageLog.logMessage(str(max1), 'T2G Archäologie', Qgis.Info)
-                if BefNrMax < max1:
-                    BefNrMax = max1
-
-                max2 = maxValue(layer, 'fund_nr')
-                if FundNrMax < max2:
-                    FundNrMax = max2
-
-                max3 = maxValue(layer, 'prob_nr')
-                if ProbNrMax < max3:
-                    ProbNrMax = max3
-
-                max4 = maxValue(layer, 'prof_nr')
-                if ProfNrMax < max4:
-                    ProfNrMax = max4
+                try:
+                    if len([feat["prof_nr"] for feat in layer.getFeatures()]) > 0:
+                        max4 = maxValue(layer, 'prof_nr')
+                        if ProfNrMax < max4:
+                            ProfNrMax = max4
+                except Exception as e:
+                    QgsMessageLog.logMessage(str(e), 'T2G Archäologie', Qgis.Info)
 
                 self.dockwidget.txtNextBef.setText(str(BefNrMax + 1))
                 self.dockwidget.txtNextFund.setText(str(FundNrMax + 1))
@@ -1723,8 +1690,9 @@ class T2G_Arch:
                 layer.setSubsetString(query)
 
     def addProfil(self):
-        my_plugin = plugins.get('Tachy2GIS-master')#Tachy2GIS-master
-        my_plugin.run()
+        #self.T2G = plugins.get('Tachy2GIS-3D_viewer')#Tachy2GIS-master
+        if self.T2G.pluginIsActive==False:
+            self.T2G.run()
         #my_plugin.exec_()
         #iface.showOptionsDialog()#.trigger()
         #for item in (plugins['Tachy2GIS-master'].iface.pluginMenu()).actions():
@@ -1732,12 +1700,6 @@ class T2G_Arch:
         #    if item.text() == '&Tachy2GIS':
         #        item.menu().actions()[0].activate(QAction.Trigger)
         #        break
-
-    def myDlgAutoAttributShow(self):
-            self.toolButton.setDefaultAction(self.action1)
-            dialog = self.myDlgAutoAttribut
-            dialog.show()
-            dialog.setup()
 
     def myDlgDrucklayoutShow(self):
             dialog = dlgDrucklayout(self.iface)
@@ -1781,23 +1743,11 @@ class T2G_Arch:
         QMessageBox.information(None, 'Hilfe', os.path.join(self.ProjPfad, 'Hinweise.pdf'), QMessageBox.Cancel)
         subprocess.Popen(os.path.join(self.ProjPfad, 'Hinweise.pdf'),shell=True)
 
-    def writeAutoAttribute(self):
-        QgsMessageLog.logMessage("schreibe auto Attribute", 'T2G Archäologie', Qgis.Info)
-
-
-    def enableAutoSave(self):
-        if self.dockwidget.chbautoSave.isChecked():
-            self.dockwidget.txtautoSave.setDisabled(False)
-            self.watch.start(int(self.dockwidget.txtautoSave.text()) * 60000)
-            QgsMessageLog.logMessage("Auto Backup: An, " + "Takt " + self.dockwidget.txtautoSave.text() + " min" , 'T2G Archäologie', Qgis.Info)
-            iface.messageBar().pushMessage(u"T2G Archäologie: ", u"Auto Backup: An, " + "Takt " + self.dockwidget.txtautoSave.text() + " min",
-                                           level=Qgis.Info)
-        else:
-            self.dockwidget.txtautoSave.setDisabled(True)
-            self.watch.stop()
-            QgsMessageLog.logMessage("Auto Backup: Aus", 'T2G Archäologie', Qgis.Info)
-            iface.messageBar().pushMessage(u"T2G Archäologie: ", u"Auto Backup: Aus.",
-                                           level=Qgis.Info)
+    def myDlgSettingsShow(self):
+        myDlgSettingsView = DlgSettings(self, self.config)  # mainWindow()
+        #myDlgSettingsView.setAutoFillBackground(True)
+        myDlgSettingsView.show()
+        pass
 
     def watchEvent(self):
         projectSaveFunc().shapesSave()
@@ -1845,31 +1795,6 @@ class T2G_Arch:
                                            level=Qgis.Info)
             QgsMessageLog.logMessage("Speicherung Tagesdatei: Erfolgreich.", 'T2G Archäologie', Qgis.Info)
 
-    def featureFirst(self):
-        layer = iface.activeLayer()
-        attL = {'anz_rei': 20}
-        layer.startEditing()
-        for feat in layer.selectedFeatures():
-            featureAttributEdit(layer, feat, attL)
-        layer.updateExtents()
-        layer.commitChanges()
-
-
-    def featureUp(self):
-        pass
-
-    def featureDown(self):
-        pass
-
-    def featureLast(self):
-        layer = iface.activeLayer()
-        attL = {'anz_rei': 0}
-        layer.startEditing()
-        for feat in layer.selectedFeatures():
-            featureAttributEdit(layer, feat, attL)
-        layer.updateExtents()
-        layer.commitChanges()
-
     def featureQuestion(self):
         self.iface.mapCanvas().setMapTool(self.mapTool)
 
@@ -1897,17 +1822,17 @@ class T2G_Arch:
                 koordlist = []
                 for part in parts:
                     for vertex in part.vertices():
-                        koordlist.append({'x': vertex.x(), 'y': vertex.y(),'z': vertex.z()})
+                        koordlist.append({0: vertex.x(), 1: vertex.y(),2: vertex.z()})
                         z.append(vertex.z())
                     r = self.rubberBand
-                    r.setRubberBandPoly(koordlist)
+                    r.setRubberBandPoly(koordlist,3)
 
             contextMenu.addAction('Z min:  ' + str(round(min(z), 2)))
             contextMenu.addAction('Z max:  ' + str(round(max(z), 2)))
         else:
         #singlepart
             if self.selectedLayer.geometryType() == QgsWkbTypes.PointGeometry:
-                self.pointMaker.setMarker(self.selectedFeature.geometry().get().x(), self.selectedFeature.geometry().get().y())
+                self.pointMaker.setMarker(self.selectedFeature.geometry().get().x(), self.selectedFeature.geometry().get().y(),12,2)
                 contextMenu.addAction('X: ' + str(self.selectedFeature.geometry().get().x()))
                 contextMenu.addAction('Y: ' + str(self.selectedFeature.geometry().get().y()))
                 contextMenu.addAction('Z: ' + str(self.selectedFeature.geometry().get().z()))
@@ -1920,7 +1845,7 @@ class T2G_Arch:
                     koordlist.append({'x': self.selectedFeature.geometry().vertexAt(i).x(),
                                       'y': self.selectedFeature.geometry().vertexAt(i).y(),
                                       'z': self.selectedFeature.geometry().vertexAt(i).z()})
-                self.rubberBand.setRubberBandPoly(koordlist)
+                self.rubberBand.setRubberBandPoly(koordlist,3)
                 contextMenu.addAction('Z min:  ' + str(round(min(z), 2)))
                 contextMenu.addAction('Z max:  ' + str(round(max(z), 2)))
 
@@ -1935,7 +1860,7 @@ class T2G_Arch:
                                       'y': self.selectedFeature.geometry().vertexAt(i).y(),
                                       'z': self.selectedFeature.geometry().vertexAt(i).z()})
                     z.append(float(self.selectedFeature.geometry().vertexAt(i).z()))
-                self.rubberBand.setRubberBandPoly(koordlist)
+                self.rubberBand.setRubberBandPoly(koordlist,3)
 
                 contextMenu.addAction('Z min:  ' + str(round(min(z), 2)))
                 contextMenu.addAction('Z max:  ' + str(round(max(z), 2)))
@@ -2008,9 +1933,9 @@ class T2G_Arch:
         query = "id = " + str(int(self.selectedFeature.attributes()[0]))
         self.iface.showAttributeTable(self.selectedLayer,query)
 
-    def klickPointLabel(self):
-        self.toolButton.setDefaultAction(self.action3)
-        self.iface.mapCanvas().setMapTool(self.dockwidget.canvas_clicked)
+    #def klickPointLabel(self):
+    #    self.toolButton.setDefaultAction(self.action3)
+    #    self.iface.mapCanvas().setMapTool(self.dockwidget.canvas_clicked)
 
     def befundLabel(self):
         if self.dockwidget.txtPointTemp.text()=='':
@@ -2275,6 +2200,16 @@ class T2G_Arch:
         event.accept()
         self.redrawActions()
 
+    def pluginSichtbarkeit(self):
+        if self.dockwidget is None:
+            return
+        if self.actionPluginSichtbarkeit.isChecked():
+            self.dockwidget.hide()
+            self.actionPluginSichtbarkeit.setIcon(QIcon(os.path.join(self.iconpfad, 'Sichtbar_aus.gif')))
+        else:
+            self.dockwidget.show()
+            self.actionPluginSichtbarkeit.setIcon(QIcon(os.path.join(self.iconpfad, 'Sichtbar_an.gif')))
+
 
 class PrintClickedPoint(QgsMapToolEmitPoint):
     geomPoint = pyqtSignal()
@@ -2289,7 +2224,7 @@ class PrintClickedPoint(QgsMapToolEmitPoint):
             point = e.originalMapPoint()
             point = e.snapPoint()
             self.dlg.activateWindow()
-            self.dlg.txtPoint_2.setText(str(point.x())+','+str(point.y()))
+            #self.dlg.txtPoint_2.setText(str(point.x())+','+str(point.y()))
         except:
             pass
     def canvasPressEvent( self, e ):
@@ -2300,3 +2235,51 @@ class PrintClickedPoint(QgsMapToolEmitPoint):
         except:
             pass
 
+class MyWnd(QMainWindow):
+
+    def __init__(self, iface):
+        QMainWindow.__init__(self)
+
+        self.canvas = QgsMapCanvas(iface.mapCanvas())
+        self.canvas.setCanvasColor(QtCore.Qt.white)
+        #self.canvas.setExtent(iface.activeLayer().extent())
+        self.canvas.setParallelRenderingEnabled(True)
+        self.canvas.setLayers(iface.mapCanvas().layers())
+        self.setCentralWidget(self.canvas)
+        #self.canvas.zoomToFullExtent()
+        ex = iface.mapCanvas().extent()
+        self.canvas.setExtent(QgsRectangle(ex.xMaximum(), ex.yMaximum(), ex.xMinimum(),ex.yMinimum()))
+
+        actionZoomIn = QAction("Zoom in", self)
+        actionZoomOut = QAction("Zoom out", self)
+        actionPan = QAction("Pan", self)
+        actionZoomIn.setCheckable(True)
+        actionZoomOut.setCheckable(True)
+        actionPan.setCheckable(True)
+
+        #self.connect(actionZoomIn, QtCore.SIGNAL("triggered()"), self.zoomIn)
+        #self.connect(actionZoomOut, QtCore.SIGNAL("triggered()"), self.zoomOut)
+        #self.connect(actionPan, QtCore.SIGNAL("triggered()"), self.pan)
+
+        self.toolbar = self.addToolBar("Canvas actions")
+        self.toolbar.addAction(actionZoomIn)
+        self.toolbar.addAction(actionZoomOut)
+        self.toolbar.addAction(actionPan)
+
+        # create the map tools
+        self.toolPan = QgsMapToolPan(self.canvas)
+        self.toolPan.setAction(actionPan)
+        self.toolZoomIn = QgsMapToolZoom(self.canvas, False) # false = in
+        self.toolZoomIn.setAction(actionZoomIn)
+        self.toolZoomOut = QgsMapToolZoom(self.canvas, True) # true = out
+        self.toolZoomOut.setAction(actionZoomOut)
+        self.pan()
+
+    def zoomIn(self):
+        self.canvas.setMapTool(self.toolZoomIn)
+
+    def zoomOut(self):
+        self.canvas.setMapTool(self.toolZoomOut)
+
+    def pan(self):
+        self.canvas.setMapTool(self.toolPan)

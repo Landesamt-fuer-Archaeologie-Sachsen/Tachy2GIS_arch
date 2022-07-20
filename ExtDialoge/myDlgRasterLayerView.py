@@ -33,7 +33,7 @@ from qgis.gui import *
 from ..functions import *
 from ..t2g_arch_dockwidget import T2G_ArchDockWidget
 #from .showPicture import *
-import os, csv, subprocess, re
+import os, csv, subprocess, re, sys
 
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
@@ -255,7 +255,7 @@ class RasterLayerViewDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         pfad = pfad.replace('/','\\')[:-1] #+ '"'
         QgsMessageLog.logMessage(str(pfad), 'T2G Archäologie', Qgis.Info)
         subprocess.Popen("explorer.exe /e, /select, " + pfad)
-        #subprocess.Popen(r"C:\Windows\System32\rundl32.exe C:\Program Files (x86)\Windows Photo Viewer\PhotoViewer.dll " + pfad)
+        subprocess.Popen(r"C:\Windows\System32\rundll32.exe C:\Programme (x86)\Windows Photo Viewer\PhotoViewer.dll " + pfad)
 
     def openApp(self):
         for item in self.tableWidget.selectedIndexes():
@@ -287,7 +287,6 @@ class RasterLayerViewDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             #QgsMessageLog.logMessage(str(e), 'T2G Archäologie', Qgis.Info)
 
     def on_itemClicked(self,item):
-        self.currentItem = {'row': item.row(), 'column': item.column()}
         try:
             if item.column() == 0 or self.singleView == True:
                 id = self.tableWidget.item(item.row(), 4).text()

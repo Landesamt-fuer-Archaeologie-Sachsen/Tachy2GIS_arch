@@ -113,7 +113,7 @@ class FeatureQuestionDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             parts = self.feature.geometry().asGeometryCollection()
             for part in parts:
                 for vertex in part.vertices():
-                    koord = {'x': vertex.x(), 'y': vertex.y(), 'z': vertex.z()}
+                    koord = {0: vertex.x(), 1: vertex.y(), 2: vertex.z()}
                     self.koordList.append(koord)
                     QgsMessageLog.logMessage(str(koord), 'T2G Archäologie', Qgis.Info)
                     pass
@@ -123,32 +123,32 @@ class FeatureQuestionDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         else:
             if self.layer.geometryType() == QgsWkbTypes.PointGeometry:
                 self.ui.labFeatType.setText('Typ:  Punkt')
-                koord = {'x': self.feature.geometry().get().x(), 'y': self.feature.geometry().get().y(),
-                         'z': self.feature.geometry().get().z()}
+                koord = {0: self.feature.geometry().get().x(), 1: self.feature.geometry().get().y(),
+                         2: self.feature.geometry().get().z()}
                 self.koordList.append(koord)
                 # self.ui.txtGrabung.setText(str(self.koordList[0]['x']))
                 self.setMarker(None)
             elif self.layer.geometryType() == QgsWkbTypes.LineGeometry:
                 self.ui.labFeatType.setText('Typ:  Linie')
                 for i in range(len(self.feature.geometry().asPolyline()[0])):
-                    koord = {'x': self.feature.geometry().vertexAt(i).x(), 'y': self.feature.geometry().vertexAt(i).y(),
-                             'z': self.feature.geometry().vertexAt(i).z()}
+                    koord = {0: self.feature.geometry().vertexAt(i).x(), 1: self.feature.geometry().vertexAt(i).y(),
+                             2: self.feature.geometry().vertexAt(i).z()}
                     self.koordList.append(koord)
 
             elif self.layer.geometryType() == QgsWkbTypes.PolygonGeometry:
                 self.ui.labFeatType.setText('Typ:  Polygon')
                 for i in range(len(self.feature.geometry().asPolygon()[0])):
-                    koord = {'x': self.feature.geometry().vertexAt(i).x(), 'y': self.feature.geometry().vertexAt(i).y(),
-                             'z': self.feature.geometry().vertexAt(i).z()}
+                    koord = {0: self.feature.geometry().vertexAt(i).x(), 1: self.feature.geometry().vertexAt(i).y(),
+                             2: self.feature.geometry().vertexAt(i).z()}
                     self.koordList.append(koord)
 
         for i in range(len(self.koordList)):
             self.tableWidget.insertRow(i)
-            self.tableWidget.setItem(i, 0, QTableWidgetItem(str(self.koordList[i]['x'])))
-            self.tableWidget.setItem(i, 1, QTableWidgetItem(str(self.koordList[i]['y'])))
-            self.tableWidget.setItem(i, 2, QTableWidgetItem(str(self.koordList[i]['z'])))
+            self.tableWidget.setItem(i, 0, QTableWidgetItem(str(self.koordList[i][0])))
+            self.tableWidget.setItem(i, 1, QTableWidgetItem(str(self.koordList[i][1])))
+            self.tableWidget.setItem(i, 2, QTableWidgetItem(str(self.koordList[i][2])))
         self.ui.labPunktcount.setText(str(len(self.koordList)) + ' Punkte')
-        self.rubberBand.setRubberBandPoly(self.koordList)
+        self.rubberBand.setRubberBandPoly(self.koordList,3)
         self.setVertexMarker()
         self.maker.makerClean()
         self.koordholen()
@@ -156,7 +156,7 @@ class FeatureQuestionDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     def setVertexMarker(self):
          for row in range(self.ui.tableWidget.rowCount()):
             # QgsMessageLog.logMessage(str(item.text()), 'T2G Archäologie', Qgis.Info)
-            self.vertexMaker.setMarker(self.koordList[row]['x'], self.koordList[row]['y'])
+            self.vertexMaker.setMarker(self.koordList[row][0], self.koordList[row][1], 10,2)
 
 
     def test(self):
@@ -204,7 +204,7 @@ class FeatureQuestionDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         else:
             row = item.row()
             #col = item.column()
-        self.maker.setMarker(self.koordList[row]['x'], self.koordList[row]['y'])
+        self.maker.setMarker(self.koordList[row][0], self.koordList[row][1],10,2)
 
     def setMarker2(self):
         self.makerTemp.makerClean()
@@ -212,7 +212,7 @@ class FeatureQuestionDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.x = text[0]
         self.y = text[1]
 
-        self.makerTemp.setMarker(self.x, self.y)
+        self.makerTemp.setMarker(self.x, self.y,10,2)
 
     def vertexEdit(self, item):
         # self.ui.lineEdit.setText(str(item.row()))
@@ -220,20 +220,20 @@ class FeatureQuestionDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         # QgsMessageLog.logMessage(str(item.text()), 'T2G Archäologie', Qgis.Info)
         if isNumber(item.text()):
             if item.column() == 0:
-                self.koordList[item.row()]['x'] = item.text()
+                self.koordList[item.row()][0] = item.text()
             if item.column() == 1:
-                self.koordList[item.row()]['y'] = item.text()
+                self.koordList[item.row()][1] = item.text()
             if item.column() == 2:
-                self.koordList[item.row()]['z'] = item.text()
+                self.koordList[item.row()][2] = item.text()
             self.rubberBand.rubberBandClean()
-            self.rubberBand.setRubberBandPoly(self.koordList)
+            self.rubberBand.setRubberBandPoly(self.koordList,3)
             #self.setMarker(item)
 
 
     def featureUpdate(self):
         ptList = []
         for a in self.koordList:
-            item = QgsPoint(float(a['x']), float(a['y']), float(a['z']))
+            item = QgsPoint(float(a[0]), float(a[1]), float(a[2]))
             ptList.append(item)
         self.layer.startEditing()
         if self.layer.geometryType() == QgsWkbTypes.PointGeometry:
@@ -331,4 +331,3 @@ class FeatureQuestionDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
     def koordholen(self):
         self.iface.mapCanvas().setMapTool(self.ui.canvas_clicked)
-
