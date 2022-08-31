@@ -112,7 +112,7 @@ class Plan():
             with open(metaFileName) as json_file:
                 data = json.load(json_file)
 
-                if data['aar_direction'] == 'horizontal':
+                if data['aar_direction'] == 'horizontal' or data['aar_direction'] == 'absolute height':
 
                     self.dataStorePlan.addProfileNumber(data['profilnummer'])
                     self.dataStorePlan.addProfile(data['profil'])
@@ -123,7 +123,7 @@ class Plan():
                     self.dataStorePlan.addTransformParams(data['transform_params'])
 
                 else:
-                    raise ValueError('AAR direction muss horizontal sein!')
+                    raise ValueError('AAR direction muss horizontal oder absolute height sein!')
 
         else:
             raise ValueError("Keine .meta Datei zum Profil vorhanden!")

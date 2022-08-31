@@ -96,6 +96,7 @@ class DataStoreGeoref():
 
             self.aarPointsHorizontal = []
 
+            min_x_array = []
             #Punkte
             for pointObj in aarList['coord_trans']:
 
@@ -110,6 +111,8 @@ class DataStoreGeoref():
                     'usage': pointObj[6]
                 })
 
+                min_x_array.append(pointObj[0])
+
             #Transformationsparameter
             transformationParams = aarList['transformationParams']
             z_slope = aarList['linegress'][0]
@@ -117,6 +120,9 @@ class DataStoreGeoref():
             transformationParams['z_slope'] = z_slope
             transformationParams['z_intercept'] = z_intercept
             transformationParams['ns_error'] = aarList['ns_error']
+
+            transformationParams['min_x'] = min(min_x_array)
+
 
             self.updateAarTransformationParams(transformationParams)
 
