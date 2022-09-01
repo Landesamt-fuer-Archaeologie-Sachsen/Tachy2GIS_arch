@@ -24,18 +24,32 @@ class RotationCoords():
         center_x = self.transformationParams['center_x']
         center_y = self.transformationParams['center_y']
         center_z = self.transformationParams['center_z']
+        min_x = self.transformationParams['min_x']
 
         x_trans = center_x + (x - center_x) * cos(slope_deg / 180 * pi) - sin(slope_deg / 180 * pi) * (y - center_y)
 
         y_trans = center_y + (x - center_x) * sin(slope_deg / 180 * pi) + (y - center_y) * cos(slope_deg / 180 * pi)
+        
+        if self.transformationParams['aar_direction'] == 'horizontal':
 
+            if zAdaption is True:
+                z_trans = z + center_y - center_z
+            else:
+                z_trans = z
 
-        if zAdaption is True:
-            z_trans = z + center_y - center_z
-        else:
+        elif self.transformationParams['aar_direction'] == 'absolute height':
+       
             z_trans = z
 
+            #Anpassung absolute height - verschieben nach x
+            x_trans = x_trans - min_x
+
+        else:
+            print('Wrong AAR-Direction')
+
+        
         return {'x_trans': x_trans, 'y_trans': y_trans ,'z_trans': z_trans}
+
 
     #Profil zu Karte
     def rotationReverse(self, x, z, zAdaption):
@@ -45,18 +59,29 @@ class RotationCoords():
         center_y = self.transformationParams['center_y']
         z_slope = 1 #self.transformationParams['z_slope'] -- geht nicht mit dem Neigungswinkel
         z_intercept = self.transformationParams['z_intercept']
+        min_x = self.transformationParams['min_x']
 
-        x_trans = center_x + (x - center_x) * cos(slope_deg / 180 * pi) - sin(slope_deg / 180 * pi) * 0
+        if self.transformationParams['aar_direction'] == 'horizontal':
 
-        y_trans = center_y + (x - center_x) * sin(slope_deg / 180 * pi) + 0 * cos(slope_deg / 180 * pi)
+            if zAdaption is True:
+                z_trans = z_slope * z - z_intercept
+            else:
+                z_trans = z            
 
-        if zAdaption is True:
-            z_trans = z_slope * z - z_intercept
-        else:
+        elif self.transformationParams['aar_direction'] == 'absolute height':
+
+            #Anpassung absolute height - verschieben nach x
+            x = x + min_x
+
             z_trans = z
 
-        return {'x_trans': x_trans, 'y_trans': y_trans ,'z_trans': z_trans}
+        else:
+            raise ValueError('Wrong AAR-Direction')
 
+        x_trans = center_x + (x - center_x) * cos(slope_deg / 180 * pi) - sin(slope_deg / 180 * pi) * 0
+        y_trans = center_y + (x - center_x) * sin(slope_deg / 180 * pi) + 0 * cos(slope_deg / 180 * pi)
+
+        return {'x_trans': x_trans, 'y_trans': y_trans ,'z_trans': z_trans}
 
     def rotatePointFeature(self, feature):
 

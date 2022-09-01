@@ -26,6 +26,8 @@ class Digitize():
         self.__dockwidget = t2gArchInstance.dockwidget
         self.__iface = iFace
 
+        self.digitizeDialog = None
+        
         self.dataStoreDigitize = DataStoreDigitize()
         self.rotationCoords = rotationCoords
 
@@ -62,10 +64,14 @@ class Digitize():
 
             if metaChecker == True:
 
+                if self.digitizeDialog:
+
+                    if self.digitizeDialog.isVisible():
+                        
+                        self.digitizeDialog.close()
+                        
                 self.digitizeDialog = DigitizeDialog(self.dataStoreDigitize, self.rotationCoords, self.__iface)
-
                 self.dataStoreDigitize.triggerAarTransformationParams()
-
                 self.digitizeDialog.showDigitizeDialog(refData)
 
     ## \brief get meta data to profile
@@ -81,7 +87,7 @@ class Digitize():
             with open(metaFileName) as json_file:
                 data = json.load(json_file)
 
-                if data['aar_direction'] == 'horizontal':
+                if data['aar_direction'] == 'horizontal' or data['aar_direction'] == 'absolute height':
 
                     self.dataStoreDigitize.addProfileNumber(data['profilnummer'])
                     self.dataStoreDigitize.addProfile(data['profil'])
@@ -92,12 +98,10 @@ class Digitize():
                     self.dataStoreDigitize.addTransformParams(data['transform_params'])
 
                 else:
-                    raise ValueError('AAR direction muss horizontal sein!')
+                    raise ValueError('AAR direction muss horizontal oder absolute height sein!')
 
         else:
             raise ValueError("Keine .meta Datei zum Profil vorhanden!")
-
-
 
 
     def __validateInputLayers(self, layerArray):
