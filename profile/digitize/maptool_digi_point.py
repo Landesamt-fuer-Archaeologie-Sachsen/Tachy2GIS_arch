@@ -71,6 +71,19 @@ class MapToolDigiPoint(QgsMapTool, MapToolMixin):
         self.clearVertexMarker()
         self.refData['pointLayer'].commitChanges()
 
+    def writeToTable(self, fields, feature):
+
+        dataObj = {}
+
+        for item in fields:
+
+            if item.name() == 'uuid' or item.name() == 'id' or item.name() == 'obj_type' or item.name() == 'obj_art' or item.name() == 'zeit' or item.name() == 'material' or item.name() == 'bemerkung' or item.name() == 'bef_nr' or item.name() == 'fund_nr' or item.name() == 'prob_nr':
+                dataObj[item.name()] = feature[item.name()]
+
+        dataObj['layer'] = self.refData['pointLayer'].sourceName()
+
+        self.pup.publish('pointFeatureAttr', dataObj)
+
     def acceptedAttributeDialog(self):
 
         print('acceptedAttributeDialog')
@@ -86,19 +99,13 @@ class MapToolDigiPoint(QgsMapTool, MapToolMixin):
         self.clearVertexMarker()
 
         dialogFeature = self.dialogAttributes.feature()
-        dataObj = {}
 
-        for item in self.feat.fields():
-            if item.name() == 'uuid' or item.name() == 'id' or item.name() == 'obj_type' or item.name() == 'obj_art' or item.name() == 'zeit' or item.name() == 'material' or item.name() == 'bemerkung':
-                dataObj[item.name()] = dialogFeature[item.name()]
-
-        dataObj['layer'] = self.refData['pointLayer'].sourceName()
+        #write to table
+        self.writeToTable(self.feat.fields(), dialogFeature)
 
         self.digiPointLayer.updateExtents()
-
         self.canvas.refresh()
 
-        self.pup.publish('pointFeatureAttr', dataObj)
 
 
     def clearVertexMarker(self):
@@ -223,15 +230,8 @@ class MapToolDigiPoint(QgsMapTool, MapToolMixin):
                             selFeatures.append(rotFeature)
 
                         #write to table
-                        dataObj = {}
-                        for item in feature.fields():
-                            if item.name() == 'uuid' or item.name() == 'id' or item.name() == 'obj_type' or item.name() == 'obj_art' or item.name() == 'zeit' or item.name() == 'material' or item.name() == 'bemerkung':
-                                dataObj[item.name()] = feature[item.name()]
-
-                        dataObj['layer'] = self.refData['pointLayer'].sourceName()
-
-                        self.pup.publish('pointFeatureAttr', dataObj)
-
+                        self.writeToTable(feature.fields(), feature)
+                       
         pr.addFeatures(selFeatures)
 
         self.digiPointLayer.commitChanges()

@@ -87,6 +87,24 @@ class MapToolDigiLine(QgsMapTool, MapToolMixin):
         self.clearRubberband()
         self.refData['lineLayer'].commitChanges()
 
+    def writeToTable(self, fields, feature):
+
+        dataObj = {}
+
+        for item in fields:
+            if item.name() == 'uuid' or item.name() == 'id' or item.name() == 'obj_type' or item.name() == 'obj_art' or item.name() == 'zeit' or item.name() == 'material' or item.name() == 'bemerkung' or item.name() == 'benerkung' or item.name() == 'bef_nr' or item.name() == 'fund_nr' or item.name() == 'prob_nr':
+
+                #Workaround - In Line Shapedatei hat das Feld "Bemerkung" den Namen benerkung
+                if item.name() == 'benerkung':
+                    dataObj['bemerkung'] = feature[item.name()]
+                else:
+                    dataObj[item.name()] = feature[item.name()]
+
+        dataObj['layer'] = self.refData['lineLayer'].sourceName()
+
+        self.pup.publish('lineFeatureAttr', dataObj)
+
+
     def acceptedAttributeDialog(self):
 
         print('acceptedAttributeDialog')
@@ -101,22 +119,13 @@ class MapToolDigiLine(QgsMapTool, MapToolMixin):
         self.clearRubberband()
 
         dialogFeature = self.dialogAttributes.feature()
-        dataObj = {}
 
-        for item in self.feat.fields():
-            if item.name() == 'uuid' or item.name() == 'id' or item.name() == 'obj_type' or item.name() == 'obj_art' or item.name() == 'zeit' or item.name() == 'material' or item.name() == 'bemerkung' or item.name() == 'benerkung':
-
-                #Workaround - In Line Shapedatei hat das Feld "Bemerkung" den Namen benerkung
-                if item.name() == 'benerkung':
-                    dataObj['bemerkung'] = dialogFeature[item.name()]
-                else:
-                    dataObj[item.name()] = dialogFeature[item.name()]
-
-        dataObj['layer'] = self.refData['lineLayer'].sourceName()
+        #write to table
+        self.writeToTable(self.feat.fields(), dialogFeature)
 
         self.digiLineLayer.updateExtents()
         self.canvas.refresh()
-        self.pup.publish('lineFeatureAttr', dataObj)
+
 
     def clearRubberband(self):
         self.rubberband.reset(QgsWkbTypes.LineGeometry)
@@ -177,19 +186,8 @@ class MapToolDigiLine(QgsMapTool, MapToolMixin):
                         selFeatures.append(rotFeature)
 
                         #write to table
-                        dataObj = {}
-                        for item in feature.fields():
-                            if item.name() == 'uuid' or item.name() == 'id' or item.name() == 'obj_type' or item.name() == 'obj_art' or item.name() == 'zeit' or item.name() == 'material' or item.name() == 'bemerkung' or item.name() == 'benerkung':
-
-                                #Workaround - In Line Shapedatei hat das Feld "Bemerkung" den Namen benerkung
-                                if item.name() == 'benerkung':
-                                    dataObj['bemerkung'] = feature[item.name()]
-                                else:
-                                    dataObj[item.name()] = feature[item.name()]
-
-                        dataObj['layer'] = self.refData['lineLayer'].sourceName()
-
-                        self.pup.publish('lineFeatureAttr', dataObj)
+                        self.writeToTable(feature.fields(), feature)
+                        
 
         pr.addFeatures(selFeatures)
 
