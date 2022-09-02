@@ -33,11 +33,11 @@ class DigitizeTable(QTableWidget):
 
         self.dialogInstance = dialogInstance
 
-        self.colHeaders = ['ID', 'Objekttyp', 'Objektart', 'Zeit', 'Material', 'Bemerkung', 'Layer', 'Löschen']
+        self.colHeaders = ['ID', 'Objekttyp', 'Objektart', 'Befundnr.', 'Probennr.', 'Fundnr.', 'Bemerkung', 'Layer', 'Löschen']
 
         self.setObjectName("georefTable")
         self.setRowCount(0)
-        self.setColumnCount(8)
+        self.setColumnCount(len(self.colHeaders))
         self.setHorizontalHeaderLabels(self.colHeaders)
 
         palette = self.palette()
@@ -47,12 +47,6 @@ class DigitizeTable(QTableWidget):
 
         palette.setColor(QPalette.HighlightedText, (QColor('black')))
         self.setPalette(palette)
-        #self.setStyleSheet("QTableWidget::item { padding: 4px } QTableWidget::item:selected{ background-color: rgba(255, 255, 255, 100%) }");
-
-        #click in Tabellenzelle
-        #self.clicked.connect(self.georefTableCellClick)
-        #click auf row
-        #self.verticalHeader().sectionClicked.connect(self.georefTableRowClick)
 
     def showDialog(self):
 
@@ -78,12 +72,9 @@ class DigitizeTable(QTableWidget):
     # @returns
     def insertFeature(self, dataObj):
 
-
-        #self.colHeaders = ['ID', 'Objekttyp', 'Objektart', 'Zeit', 'Material', 'Bemerkung', 'Layer', 'Löschen']
+        #self.colHeaders = ['ID', 'Objekttyp', 'Objektart', 'Befundnr.', 'Probennr.', 'Fundnr.', 'Bemerkung', 'Layer', 'Löschen']
 
         tableHeader = self.horizontalHeader()
-
-        #for item in dataObj:
 
         rowPosition = self.rowCount()
         self.insertRow(rowPosition)
@@ -104,31 +95,37 @@ class DigitizeTable(QTableWidget):
         else:
             self.setItem(rowPosition, 2, QTableWidgetItem('NULL'))
         tableHeader.setSectionResizeMode(2, QHeaderView.Stretch)
-        # Zeit
-        if "zeit" in dataObj:
-            self.setItem(rowPosition, 3, QTableWidgetItem(str(dataObj['zeit'])))
+        # Befundnr.
+        if "bef_nr" in dataObj:
+            self.setItem(rowPosition, 3, QTableWidgetItem(str(dataObj['bef_nr'])))
         else:
             self.setItem(rowPosition, 3, QTableWidgetItem('NULL'))
         tableHeader.setSectionResizeMode(3, QHeaderView.Stretch)
-        # Material
-        if "material" in dataObj:
-            self.setItem(rowPosition, 4, QTableWidgetItem(str(dataObj['material'])))
+        # Probennr.
+        if "prob_nr" in dataObj:
+            self.setItem(rowPosition, 4, QTableWidgetItem(str(dataObj['prob_nr'])))
         else:
             self.setItem(rowPosition, 4, QTableWidgetItem('NULL'))
         tableHeader.setSectionResizeMode(4, QHeaderView.Stretch)
-        # Bemerkung
-        if "bemerkung" in dataObj:
-            self.setItem(rowPosition, 5, QTableWidgetItem(str(dataObj['bemerkung'])))
+        # Fundnr..
+        if "fund_nr" in dataObj:
+            self.setItem(rowPosition, 5, QTableWidgetItem(str(dataObj['fund_nr'])))
         else:
             self.setItem(rowPosition, 5, QTableWidgetItem('NULL'))
         tableHeader.setSectionResizeMode(5, QHeaderView.Stretch)
-
         # Bemerkung
-        if "layer" in dataObj:
-            self.setItem(rowPosition, 6, QTableWidgetItem(str(dataObj['layer'])))
+        if "bemerkung" in dataObj:
+            self.setItem(rowPosition, 6, QTableWidgetItem(str(dataObj['bemerkung'])))
         else:
             self.setItem(rowPosition, 6, QTableWidgetItem('NULL'))
         tableHeader.setSectionResizeMode(6, QHeaderView.Stretch)
+
+        # Layer
+        if "layer" in dataObj:
+            self.setItem(rowPosition, 7, QTableWidgetItem(str(dataObj['layer'])))
+        else:
+            self.setItem(rowPosition, 7, QTableWidgetItem('NULL'))
+        tableHeader.setSectionResizeMode(7, QHeaderView.Stretch)
 
         #Löschen
         iconDel = QIcon(os.path.join(self.iconpath, 'trash_icon.png'))
@@ -137,6 +134,6 @@ class DigitizeTable(QTableWidget):
         deleteBtn.setIcon(iconDel)
         deleteBtn.uuid = dataObj['uuid']
         deleteBtn.setStyleSheet("margin-left:50%; margin-right:50%; bsckground-color:transparent; border:none;");
-        self.setCellWidget(rowPosition, 7, deleteBtn)
+        self.setCellWidget(rowPosition, 8, deleteBtn)
         deleteBtn.clicked.connect(self.showDialog)
-        tableHeader.setSectionResizeMode(7, QHeaderView.ResizeToContents)
+        tableHeader.setSectionResizeMode(8, QHeaderView.ResizeToContents)
