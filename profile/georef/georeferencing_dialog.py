@@ -127,10 +127,11 @@ class GeoreferencingDialog(QMainWindow):
         self.canvasImage.pup.register('imagePointCoordinates', self.georefTable.updateErrorValues)
 
         self.georefTable.pup.register('dataChanged', self.profileAAR.run)
-
+    
         self.profileAAR.pup.register('aarPointsChanged', self.dataStoreGeoref.addAarPoints)
 
         self.dataStoreGeoref.pup.register('pushTransformationParams', self.rotationCoords.setAarTransformationParams)
+        self.dataStoreGeoref.pup.register('pushAarPoints', self.canvasImage.updateAarPoints)
 
         self.canvasGcp.pup.register('moveCoordinate',self.gcpParambar.updateCoordinate)
         self.canvasImage.pup.register('moveCoordinate',self.imageParambar.updateCoordinate)
