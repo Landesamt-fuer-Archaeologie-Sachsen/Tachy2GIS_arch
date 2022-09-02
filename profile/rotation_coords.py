@@ -21,10 +21,13 @@ class RotationCoords():
     def rotation(self, x, y, z, zAdaption):
 
         slope_deg = self.transformationParams['slope_deg']
+        slope_deg_rev = self.transformationParams['slope_deg'] * (-1)
         center_x = self.transformationParams['center_x']
         center_y = self.transformationParams['center_y']
         center_z = self.transformationParams['center_z']
         min_x = self.transformationParams['min_x']
+        center_x_trans = self.transformationParams['center_x_trans']
+        center_z_trans = self.transformationParams['center_z_trans']
 
         x_trans = center_x + (x - center_x) * cos(slope_deg / 180 * pi) - sin(slope_deg / 180 * pi) * (y - center_y)
 
@@ -44,6 +47,14 @@ class RotationCoords():
             #Anpassung absolute height - verschieben nach x
             x_trans = x_trans - min_x
 
+        elif self.transformationParams['aar_direction'] == 'original':
+
+            x_trans = center_x_trans + (x - center_x_trans) * cos(slope_deg_rev / 180 * pi) - (z - center_z_trans) * sin(slope_deg_rev / 180 * pi)
+
+            z_trans = center_z_trans + (x - center_x_trans) * sin(slope_deg_rev / 180 * pi) + (z - center_z_trans) * cos(slope_deg_rev / 180 * pi)
+
+            y_trans = y
+
         else:
             print('Wrong AAR-Direction')
 
@@ -60,13 +71,18 @@ class RotationCoords():
         z_slope = 1 #self.transformationParams['z_slope'] -- geht nicht mit dem Neigungswinkel
         z_intercept = self.transformationParams['z_intercept']
         min_x = self.transformationParams['min_x']
+        center_x_trans = self.transformationParams['center_x_trans']
+        center_z_trans = self.transformationParams['center_z_trans']
 
         if self.transformationParams['aar_direction'] == 'horizontal':
 
             if zAdaption is True:
                 z_trans = z_slope * z - z_intercept
             else:
-                z_trans = z            
+                z_trans = z         
+
+            x_trans = center_x + (x - center_x) * cos(slope_deg / 180 * pi) - sin(slope_deg / 180 * pi) * 0
+            y_trans = center_y + (x - center_x) * sin(slope_deg / 180 * pi) + 0 * cos(slope_deg / 180 * pi)   
 
         elif self.transformationParams['aar_direction'] == 'absolute height':
 
@@ -75,11 +91,28 @@ class RotationCoords():
 
             z_trans = z
 
+            x_trans = center_x + (x - center_x) * cos(slope_deg / 180 * pi) - sin(slope_deg / 180 * pi) * 0
+            y_trans = center_y + (x - center_x) * sin(slope_deg / 180 * pi) + 0 * cos(slope_deg / 180 * pi)
+
+        elif self.transformationParams['aar_direction'] == 'original':
+
+            x_trans_test = center_x_trans + (x - center_x_trans) * cos(slope_deg / 180 * pi) * sin(slope_deg / 180 * pi)
+            z_trans_test = center_z_trans + (x - center_x_trans) * sin(slope_deg / 180 * pi) * cos(slope_deg / 180 * pi)
+
+            y_trans_test = z
+
+            print('x', x)
+            print('y', z)
+            print('x_trans_test', x_trans_test)
+            print('z_trans_test', z_trans_test)
+            print('y_trans_test', y_trans_test)
+
+            x_trans = 1
+            y_trans = 1
+            z_trans = 1
         else:
             raise ValueError('Wrong AAR-Direction')
 
-        x_trans = center_x + (x - center_x) * cos(slope_deg / 180 * pi) - sin(slope_deg / 180 * pi) * 0
-        y_trans = center_y + (x - center_x) * sin(slope_deg / 180 * pi) + 0 * cos(slope_deg / 180 * pi)
 
         return {'x_trans': x_trans, 'y_trans': y_trans ,'z_trans': z_trans}
 

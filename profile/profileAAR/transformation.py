@@ -113,7 +113,11 @@ def rotation (self, coord_proc, slope_deg, zAdaption):
 
             z_trans.append(coord_proc[i][2])
 
-    return {'x_trans': x_trans, 'y_trans': y_trans ,'z_trans': z_trans, 'transformationParams': {'center_x': center_x, 'center_y': center_y, 'center_z': center_z, 'slope_deg': slope_deg}}
+        #Fuer die Transformation im AAR-Original Modus
+        center_x_trans = np.mean(x_trans)
+        center_z_trans = np.mean(z_trans)
+
+    return {'x_trans': x_trans, 'y_trans': y_trans ,'z_trans': z_trans, 'transformationParams': {'center_x_trans': center_x_trans, 'center_z_trans': center_z_trans, 'center_x': center_x, 'center_y': center_y, 'center_z': center_z, 'slope_deg': slope_deg}}
 
 
 def listToList(coord_proc, position):

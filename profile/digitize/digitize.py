@@ -87,7 +87,7 @@ class Digitize():
             with open(metaFileName) as json_file:
                 data = json.load(json_file)
 
-                if data['aar_direction'] == 'horizontal' or data['aar_direction'] == 'absolute height':
+                if data['aar_direction'] == 'horizontal' or data['aar_direction'] == 'absolute height' or data['aar_direction'] == 'original':
 
                     self.dataStoreDigitize.addProfileNumber(data['profilnummer'])
                     self.dataStoreDigitize.addProfile(data['profil'])
@@ -98,7 +98,7 @@ class Digitize():
                     self.dataStoreDigitize.addTransformParams(data['transform_params'])
 
                 else:
-                    raise ValueError('AAR direction muss horizontal oder absolute height sein!')
+                    raise ValueError('AAR direction muss horizontal, absolute height oder original sein!')
 
         else:
             raise ValueError("Keine .meta Datei zum Profil vorhanden!")
