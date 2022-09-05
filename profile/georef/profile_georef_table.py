@@ -380,6 +380,7 @@ class GeorefTable(QTableWidget):
 
     def pointUsageChanged(self):
 
+        #print('checkObj', checkObj.isChecked())
         tableData = self.__getTableData()
 
         data = self.prepareData(tableData, 'horizontal')

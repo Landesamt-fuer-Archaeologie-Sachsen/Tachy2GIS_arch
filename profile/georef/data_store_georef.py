@@ -90,75 +90,41 @@ class DataStoreGeoref():
     def addAarPoints(self, aarList):
         print('jetzt_addAarPoints', aarList)
 
-        aarDirection = aarList['aar_direction']
+        aarArray = []
+        min_x_array = []
+        #Punkte
+        for pointObj in aarList['coord_trans']:
 
-        if aarDirection == 'horizontal':
+            aarArray.append({
+                'uuid': pointObj[8],
+                'ptnr': str(pointObj[7]),
+                'x': pointObj[0],
+                'y': pointObj[1],
+                'z': pointObj[2],
+                'z_org': pointObj[4],
+                'distance': pointObj[5],
+                'usage': pointObj[6]
+            })
 
-            self.aarPointsHorizontal = []
+            min_x_array.append(pointObj[0])
 
-            min_x_array = []
-            #Punkte
-            for pointObj in aarList['coord_trans']:
+        self.pup.publish('pushAarPoints', aarArray)
 
-                self.aarPointsHorizontal.append({
-                    'uuid': pointObj[8],
-                    'ptnr': str(pointObj[7]),
-                    'x': pointObj[0],
-                    'y': pointObj[1],
-                    'z': pointObj[2],
-                    'z_org': pointObj[4],
-                    'distance': pointObj[5],
-                    'usage': pointObj[6]
-                })
+        self.aarPointsOriginal = aarArray
+        self.aarPointsAbsolute = aarArray
+        self.aarPointsHorizontal = aarArray
 
-                min_x_array.append(pointObj[0])
+        #Transformationsparameter
+        transformationParams = aarList['transformationParams']
+        z_slope = aarList['linegress'][0]
+        z_intercept = aarList['linegress'][1]
+        transformationParams['z_slope'] = z_slope
+        transformationParams['z_intercept'] = z_intercept
+        transformationParams['ns_error'] = aarList['ns_error']
 
-            #Transformationsparameter
-            transformationParams = aarList['transformationParams']
-            z_slope = aarList['linegress'][0]
-            z_intercept = aarList['linegress'][1]
-            transformationParams['z_slope'] = z_slope
-            transformationParams['z_intercept'] = z_intercept
-            transformationParams['ns_error'] = aarList['ns_error']
+        transformationParams['min_x'] = min(min_x_array)
 
-            transformationParams['min_x'] = min(min_x_array)
-
-
-            self.updateAarTransformationParams(transformationParams)
-
-        if aarDirection == 'original':
-        
-            self.aarPointsOriginal = []
-
-            for pointObj in aarList['coord_trans']:
-
-                self.aarPointsOriginal.append({
-                    'uuid': pointObj[8],
-                    'ptnr': str(pointObj[7]),
-                    'x': pointObj[0],
-                    'y': pointObj[1],
-                    'z': pointObj[2],
-                    'z_org': pointObj[4],
-                    'distance': pointObj[5],
-                    'usage': pointObj[6]
-                })
-
-        if aarDirection == 'absolute height':
-        
-            self.aarPointsAbsolute = []
-
-            for pointObj in aarList['coord_trans']:
-
-                self.aarPointsAbsolute.append({
-                    'uuid': pointObj[8],
-                    'ptnr': str(pointObj[7]),
-                    'x': pointObj[0],
-                    'y': pointObj[1],
-                    'z': pointObj[2],
-                    'z_org': pointObj[4],
-                    'distance': pointObj[5],
-                    'usage': pointObj[6]
-                })
+        self.updateAarTransformationParams(transformationParams)            
 
 
     def updateAarTransformationParams(self, params):
