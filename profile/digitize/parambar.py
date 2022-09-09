@@ -79,8 +79,12 @@ class Parambar(QWidget):
         self.toolbarCoord = QToolBar("Coordinates", self)
         self.coordLineEdit = QLineEdit()
         self.coordLineEdit.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
+
+        self.coordLineEdit.setAlignment(Qt.AlignCenter)
         self.coordLineEdit.setReadOnly(True)
-        self.coordLineEdit.setMinimumWidth(200);
+        self.coordLineEditFm = self.coordLineEdit.fontMetrics()
+        width_text = self.coordLineEditFm.width('xxxxxx.xxx,xxxxxxx.xxx,xxxx.xxx')
+        self.coordLineEdit.setMinimumWidth(width_text + 10)
         self.toolbarCoord.addWidget(self.coordLineEdit)
 
 
@@ -507,7 +511,7 @@ class Parambar(QWidget):
 
         retObj = self.rotationCoords.rotationReverse(coordObj['x'], coordObj['y'], True)
 
-        self.coordLineEdit.setText(str(round(retObj['x_trans'], 3))+','+str(round(retObj['y_trans'], 3))+','+str(round(retObj['z_trans'], 3)))
+        self.coordLineEdit.setText(str('{:.3f}'.format(round(retObj['x_trans'], 3)))+','+str('{:.3f}'.format(round(retObj['y_trans'], 3)))+','+str('{:.3f}'.format(round(retObj['z_trans'], 3))))
 
     ## \brief Create a splitter (vertical line to separate labels in the parambar)
     #
