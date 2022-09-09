@@ -112,19 +112,19 @@ class Parambar(QWidget):
     def takeLayerObjects(self):
 
         try:
-            layer_id = self.activeLayerCombo.currentData()
-            if self.refData['pointLayer'].id() == layer_id:
-                self.toolDigiPoint.reverseRotation2Eingabelayer(layer_id)
-            if self.refData['lineLayer'].id() == layer_id:
-                self.toolDigiLine.reverseRotation2Eingabelayer(layer_id)
-            if self.refData['polygonLayer'].id() == layer_id:
-                self.toolDigiPolygon.reverseRotation2Eingabelayer(layer_id)
+            #layer_id = self.activeLayerCombo.currentData()
+            #if self.refData['pointLayer'].id() == layer_id:
+            self.toolDigiPoint.reverseRotation2Eingabelayer(self.refData['pointLayer'].id())
+            #if self.refData['lineLayer'].id() == layer_id:
+            self.toolDigiLine.reverseRotation2Eingabelayer(self.refData['lineLayer'].id())
+            #if self.refData['polygonLayer'].id() == layer_id:
+            self.toolDigiPolygon.reverseRotation2Eingabelayer(self.refData['polygonLayer'].id())
 
-            infoText = "Objekte wurden erfolgreich in den Eingabelayer geschrieben."
+            infoText = "Objekte wurden erfolgreich in die Eingabelayer geschrieben."
             titleText = "Info"
 
         except Exception as e:
-            infoText = f"Achtung! Die Datenwurden nicht in den Eingabelayer geschrieben. ({e})"
+            infoText = f"Achtung! Die Daten wurden nicht in die Eingabelayer geschrieben. ({e})"
             titleText = "Fehler"
 
         #Info message
