@@ -79,17 +79,7 @@ class DigitizeCanvas(QgsMapCanvas):
         self.digiPointLayer.setCrs(crs)
 
         #Label Layer
-        palSettings  = QgsPalLayerSettings()
-        textFormat = QgsTextFormat()
-        textFormat.setFont(QFont("Arial", 10))
-        textFormat.setSize(10)
-        palSettings.setFormat(textFormat)
-
-        palSettings.fieldName = "id"
-        palSettings.placement = 4
-        palSettings.enabled = True
-
-        labelSettings = QgsVectorLayerSimpleLabeling(palSettings)
+        labelSettings = self.createLabelSettings('bef_nr')
         self.digiPointLayer.setLabelsEnabled(True)
         self.digiPointLayer.setLabeling(labelSettings)
 
@@ -134,18 +124,7 @@ class DigitizeCanvas(QgsMapCanvas):
         self.digiLineLayer.setCrs(crs)
 
         #Label Layer
-        palSettings  = QgsPalLayerSettings()
-        textFormat = QgsTextFormat()
-
-        textFormat.setFont(QFont("Arial", 10))
-        textFormat.setSize(10)
-        palSettings.setFormat(textFormat)
-
-        palSettings.fieldName = "id"
-        palSettings.placement = 4
-        palSettings.enabled = True
-
-        labelSettings = QgsVectorLayerSimpleLabeling(palSettings)
+        labelSettings = self.createLabelSettings('bef_nr')
         self.digiLineLayer.setLabelsEnabled(True)
         self.digiLineLayer.setLabeling(labelSettings)
 
@@ -191,6 +170,11 @@ class DigitizeCanvas(QgsMapCanvas):
         self.digiPolygonLayer.setCrs(crs)
 
         #Label Layer
+        labelSettings = self.createLabelSettings('bef_nr')
+        self.digiPolygonLayer.setLabelsEnabled(True)
+        self.digiPolygonLayer.setLabeling(labelSettings)
+
+    def createLabelSettings(self, label_field):
         palSettings  = QgsPalLayerSettings()
         textFormat = QgsTextFormat()
 
@@ -198,13 +182,14 @@ class DigitizeCanvas(QgsMapCanvas):
         textFormat.setSize(10)
         palSettings.setFormat(textFormat)
 
-        palSettings.fieldName = "id"
+        palSettings.fieldName = label_field
         palSettings.placement = 4
         palSettings.enabled = True
 
         labelSettings = QgsVectorLayerSimpleLabeling(palSettings)
-        self.digiPolygonLayer.setLabelsEnabled(True)
-        self.digiPolygonLayer.setLabeling(labelSettings)
+
+        return labelSettings
+
 
     ## \brief Set coordinates on the statusbar in dialog instance TransformationDialog.setCoordinatesOnStatusBar() . Depends on mouse move on the map element
     #
