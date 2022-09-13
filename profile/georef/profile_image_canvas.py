@@ -22,7 +22,7 @@ class ProfileImageCanvas(QgsMapCanvas):
     # @param dialogInstance pointer to the dialogInstance
 
     def __init__(self, dialogInstance):
-
+        print('init ProfileImageCanvas')
         super(ProfileImageCanvas, self).__init__()
 
         self.pup = Publisher()
@@ -99,7 +99,7 @@ class ProfileImageCanvas(QgsMapCanvas):
 
     def updateMarkerPoints(self):
 
-        print('updateMarkerPoints')
+        print('updateMarkerPoints', self.markerPoints)
 
         for point in self.aarPoints:
             for mark in self.markerPoints:

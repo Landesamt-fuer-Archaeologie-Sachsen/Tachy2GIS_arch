@@ -5,7 +5,6 @@ import pathlib
 
 from qgis.core import QgsProject, QgsVectorLayer, QgsLayerTreeGroup, QgsLayerTreeLayer, QgsWkbTypes
 
-from .data_store_georef import DataStoreGeoref
 from .georeferencing_dialog import GeoreferencingDialog
 
 ## @brief The class is used to implement functionalities for work with profiles within the dock widget of the Tachy2GIS_arch plugin
@@ -24,7 +23,6 @@ class Georef():
         self.__dockwidget = t2gArchInstance.dockwidget
         self.__iface = iFace
 
-        self.dataStoreGeoref = DataStoreGeoref()
         self.rotationCoords = rotationCoords
 
     ## @brief Initializes the functionality for profile modul
@@ -77,7 +75,7 @@ class Georef():
         refData = self.__getSelectedValues()
         self.__createFolders(refData)
         
-        self.georeferencingDialog = GeoreferencingDialog(self, self.dataStoreGeoref, self.rotationCoords, self.__iface)
+        self.georeferencingDialog = GeoreferencingDialog(self, self.rotationCoords, self.__iface)
         self.georeferencingDialog.showGeoreferencingDialog(refData)
 
     ## \brief SaveComboBox is clicked
