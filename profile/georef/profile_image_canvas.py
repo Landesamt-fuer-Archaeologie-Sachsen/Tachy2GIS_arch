@@ -90,8 +90,6 @@ class ProfileImageCanvas(QgsMapCanvas):
 
     def updateAarPoints(self, aarPoints):
 
-        print('updateAarPoints', aarPoints)
-
         self.aarPoints = aarPoints
 
         self.updateMarkerPoints()
@@ -99,14 +97,10 @@ class ProfileImageCanvas(QgsMapCanvas):
 
     def updateMarkerPoints(self):
 
-        print('updateMarkerPoints', self.markerPoints)
-
         for point in self.aarPoints:
             for mark in self.markerPoints:
                 if point['uuid'] == mark["uuid"]:
                     if point['usage'] == 1:
-                        #self.scene().removeItem(mark["marker"])
-                        #self.scene().removeItem(mark["annotation"])
                         mark['marker'].setColor(QColor(0, 255, 0))
                     if point['usage'] == 0:
                         mark['marker'].setColor(QColor(100, 100, 100))
