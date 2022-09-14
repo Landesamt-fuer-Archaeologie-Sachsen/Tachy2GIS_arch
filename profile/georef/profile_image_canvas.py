@@ -22,7 +22,7 @@ class ProfileImageCanvas(QgsMapCanvas):
     # @param dialogInstance pointer to the dialogInstance
 
     def __init__(self, dialogInstance):
-
+        print('init ProfileImageCanvas')
         super(ProfileImageCanvas, self).__init__()
 
         self.pup = Publisher()
@@ -90,8 +90,6 @@ class ProfileImageCanvas(QgsMapCanvas):
 
     def updateAarPoints(self, aarPoints):
 
-        print('updateAarPoints', aarPoints)
-
         self.aarPoints = aarPoints
 
         self.updateMarkerPoints()
@@ -99,14 +97,10 @@ class ProfileImageCanvas(QgsMapCanvas):
 
     def updateMarkerPoints(self):
 
-        print('updateMarkerPoints')
-
         for point in self.aarPoints:
             for mark in self.markerPoints:
                 if point['uuid'] == mark["uuid"]:
                     if point['usage'] == 1:
-                        #self.scene().removeItem(mark["marker"])
-                        #self.scene().removeItem(mark["annotation"])
                         mark['marker'].setColor(QColor(0, 255, 0))
                     if point['usage'] == 0:
                         mark['marker'].setColor(QColor(100, 100, 100))

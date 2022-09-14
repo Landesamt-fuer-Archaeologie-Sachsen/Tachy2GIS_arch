@@ -37,7 +37,10 @@ class MapToolDigiPolygon(QgsMapTool, MapToolMixin):
         if event.button() == Qt.RightButton:
 
             self.featGeometry = self.rubberband.asGeometry()
-            self.showdialog()
+
+            if self.featGeometry:
+                if len(self.points) > 2:
+                    self.showdialog()
 
         else:
 

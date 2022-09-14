@@ -26,10 +26,10 @@ class MapToolDigiPoint(QgsMapTool, MapToolMixin):
     def canvasPressEvent(self, event):
 
         if event.button() == Qt.RightButton:
-            self.featGeometry = QgsGeometry.fromPointXY(self.vertexMarker.center())
+            if self.vertexMarker:
 
-            self.showdialog()
-
+                self.featGeometry = QgsGeometry.fromPointXY(self.vertexMarker.center())
+                self.showdialog()
 
         else:
             self.active = True
@@ -110,6 +110,7 @@ class MapToolDigiPoint(QgsMapTool, MapToolMixin):
 
     def clearVertexMarker(self):
         self.canvas.scene().removeItem(self.vertexMarker)
+        self.vertexMarker = None
 
     def createFeature(self):
 
