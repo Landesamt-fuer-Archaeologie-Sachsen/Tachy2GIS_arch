@@ -84,7 +84,7 @@ class Parambar(QWidget):
         self.coordLineEdit.setReadOnly(True)
         self.coordLineEditFm = self.coordLineEdit.fontMetrics()
         width_text = self.coordLineEditFm.width('xxxxxx.xxx,xxxxxxx.xxx,xxxx.xxx')
-        self.coordLineEdit.setMinimumWidth(width_text + 10)
+        self.coordLineEdit.setMinimumWidth(width_text + 20)
         self.toolbarCoord.addWidget(self.coordLineEdit)
 
 
