@@ -1180,10 +1180,10 @@ class T2G_Arch:
 
     def profEntzpointExp(self):
         # Exportpfad aus Configfile setzen
-        exportpfad = self.config.getValue("Profilentzerrung","pfad Exportordner")
-        FN_PROFILNUMMER = self.config.getValue("Profilentzerrung","feldNProfNr")
-        FN_DEF_FOTOENTZERRPUNKT = self.config.getValue("Profilentzerrung","feldNFEP")
-        AW_FOTOENTZERRPUNKT = self.config.getValue("Profilentzerrung","attFEP")
+        exportpfad = self.config.getValue("Profilentzerrung","pfad Exportordner","./../Jobs")
+        FN_PROFILNUMMER = self.config.getValue("Profilentzerrung","feldNProfNr","prof_nr")
+        FN_DEF_FOTOENTZERRPUNKT = self.config.getValue("Profilentzerrung","feldNFEP","obj_type")
+        AW_FOTOENTZERRPUNKT = self.config.getValue("Profilentzerrung","attFEP","Fotoentzerrpunkt")
         #FN_PROFILNUMMER = 'prof_nr'  # Feldname in der die Profilnummer steht
         #FN_DEF_FOTOENTZERRPUNKT = 'obj_type'  # Feldname in der die Entzerrpunkt-definition steht
         #AW_FOTOENTZERRPUNKT = 'Fotoentzerrpunkt'  # Entzerrpunkt-definition
