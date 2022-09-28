@@ -26,7 +26,7 @@ from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt,
 from PyQt5.QtGui import *#QIcon, QPixmap
 from PyQt5.QtWidgets import *#QAction, QMessageBox, QFileDialog, QTreeWidgetItem, QInputDialog
 from qgis.core import QgsProject, QgsExpressionContextUtils, QgsMessageLog, QgsVectorLayer, QgsFeature,QgsWkbTypes, QgsField, QgsCoordinateReferenceSystem
-from qgis.utils import iface, plugins
+from qgis.utils import iface, plugins, active_plugins
 from qgis.gui import QgisInterface
 from PyQt5.QtWidgets import QApplication as qApp
 from .t2g_arch_dockwidget import T2G_ArchDockWidget
@@ -412,7 +412,7 @@ class T2G_Arch:
         #    self.actions[0].setEnabled(True)
         #    for action in self.myactions:
         #        action.setEnabled(True)
-        if plugins.get('Tachy2GIS-3D_viewer') == None:
+        if plugins.get([s for s in active_plugins if "Tachy2GIS" in s][0]) == None:
             box = QMessageBox()
             box.setText('Tachy2Gis 3D Viewer ist nicht installiert. Wird aber für die Messfunktion benötigt!')
             box.exec_()
@@ -654,7 +654,7 @@ class T2G_Arch:
             layer.commitChanges()
         # <uuid ereugen wenn Feld uuid leer
 
-        self.T2G = plugins.get('Tachy2GIS-3D_viewer')
+        self.T2G = plugins.get([s for s in active_plugins if "Tachy2GIS" in s][0])
         self.dockwidget.tabWidget_2.setCurrentIndex(0)
         self.dockwidget.setFixedWidth(233)
         self.iface.actionSelectRectangle().trigger()
@@ -662,7 +662,7 @@ class T2G_Arch:
         self.FilterGesetzt()
 
         self.eventReadProject()
-
+        self.watchEvent()
     def eventFeatureAdded(self, fid):
         self.newFeaturesIds.append(fid)
         QgsMessageLog.logMessage(str(fid) + ' neu', 'T2G Archäologie', Qgis.Info)
@@ -1180,10 +1180,10 @@ class T2G_Arch:
 
     def profEntzpointExp(self):
         # Exportpfad aus Configfile setzen
-        exportpfad = self.config.getValue("Profilentzerrung","pfad Exportordner","./../Jobs")
-        FN_PROFILNUMMER = self.config.getValue("Profilentzerrung","feldNProfNr","prof_nr")
-        FN_DEF_FOTOENTZERRPUNKT = self.config.getValue("Profilentzerrung","feldNFEP","obj_type")
-        AW_FOTOENTZERRPUNKT = self.config.getValue("Profilentzerrung","attFEP","Fotoentzerrpunkt")
+        exportpfad = self.config.getValue("Profilentzerrung","pfad Exportordner")
+        FN_PROFILNUMMER = self.config.getValue("Profilentzerrung","feldNProfNr")
+        FN_DEF_FOTOENTZERRPUNKT = self.config.getValue("Profilentzerrung","feldNFEP")
+        AW_FOTOENTZERRPUNKT = self.config.getValue("Profilentzerrung","attFEP")
         #FN_PROFILNUMMER = 'prof_nr'  # Feldname in der die Profilnummer steht
         #FN_DEF_FOTOENTZERRPUNKT = 'obj_type'  # Feldname in der die Entzerrpunkt-definition steht
         #AW_FOTOENTZERRPUNKT = 'Fotoentzerrpunkt'  # Entzerrpunkt-definition
@@ -1690,7 +1690,7 @@ class T2G_Arch:
                 layer.setSubsetString(query)
 
     def addProfil(self):
-        #self.T2G = plugins.get('Tachy2GIS-3D_viewer')#Tachy2GIS-master
+        #self.T2G = plugins.get('Tachy2GIS')#Tachy2GIS-master
         if self.T2G.pluginIsActive==False:
             self.T2G.run()
         #my_plugin.exec_()
