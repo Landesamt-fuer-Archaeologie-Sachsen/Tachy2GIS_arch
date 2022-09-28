@@ -7,6 +7,7 @@ from qgis.gui import QgsMessageBar
 from .parambar import Parambar
 from .digitize_canvas import DigitizeCanvas
 from .digitize_table import DigitizeTable
+from .maptool_identify import MapToolIdentify
 from .maptool_digi_point import MapToolDigiPoint
 from .maptool_digi_line import MapToolDigiLine
 from .maptool_digi_polygon import MapToolDigiPolygon
@@ -84,6 +85,7 @@ class DigitizeDialog(QMainWindow):
         self.canvasDigitize = DigitizeCanvas(self, self.__iface)
 
         #MapTools
+        self.toolIdentify = MapToolIdentify(self.canvasDigitize, self.__iface)
         self.toolDigiPoint = MapToolDigiPoint(self.canvasDigitize, self.__iface, self.rotationCoords, self.dataStoreDigitize)
         self.toolDigiLine = MapToolDigiLine(self.canvasDigitize, self.__iface, self.rotationCoords, self.dataStoreDigitize)
         self.toolDigiPolygon = MapToolDigiPolygon(self.canvasDigitize, self.__iface, self.rotationCoords, self.dataStoreDigitize)
@@ -93,7 +95,7 @@ class DigitizeDialog(QMainWindow):
         self.toolEditPolygon = MapToolEditPolygon(self.canvasDigitize, self.__iface, self.rotationCoords)
 
         #paramsBar
-        self.parambar = Parambar(self, self.canvasDigitize, self.toolDigiPoint, self.toolDigiLine, self.toolDigiPolygon, self.toolEditPoint, self.toolEditLine, self.toolEditPolygon, self.rotationCoords)
+        self.parambar = Parambar(self, self.canvasDigitize, self.toolIdentify, self.toolDigiPoint, self.toolDigiLine, self.toolDigiPolygon, self.toolEditPoint, self.toolEditLine, self.toolEditPolygon, self.rotationCoords)
 
         #Table
         self.tableDigitize = DigitizeTable(self)
@@ -109,6 +111,10 @@ class DigitizeDialog(QMainWindow):
         self.canvasDigitize.pup.register('setDigiPointLayer', self.toolDigiPoint.setDigiPointLayer)
         self.canvasDigitize.pup.register('setDigiLineLayer', self.toolDigiLine.setDigiLineLayer)
         self.canvasDigitize.pup.register('setDigiPolygonLayer', self.toolDigiPolygon.setDigiPolygonLayer)
+
+        self.canvasDigitize.pup.register('setDigiPointLayer', self.toolIdentify.setDigiPointLayer)
+        self.canvasDigitize.pup.register('setDigiLineLayer', self.toolIdentify.setDigiLineLayer)
+        self.canvasDigitize.pup.register('setDigiPolygonLayer', self.toolIdentify.setDigiPolygonLayer)
 
         self.canvasDigitize.pup.register('setDigiPointLayer', self.toolEditPoint.setDigiPointLayer)
         self.canvasDigitize.pup.register('setDigiLineLayer', self.toolEditLine.setDigiLineLayer)
@@ -127,6 +133,9 @@ class DigitizeDialog(QMainWindow):
         self.tableDigitize.pup.register('removeFeatureByUuid', self.toolDigiLine.removeFeatureInEingabelayerByUuid)
         self.tableDigitize.pup.register('removeFeatureByUuid', self.toolDigiPolygon.removeFeatureInEingabelayerByUuid)
 
+
+        self.toolIdentify.pup.register('removeHoverFeatures', self.canvasDigitize.removeHoverFeatures)
+        self.toolIdentify.pup.register('addHoverFeatures', self.canvasDigitize.addHoverFeatures)
 
     ## \brief Creates the layout for the window and assigns the created components
     #
