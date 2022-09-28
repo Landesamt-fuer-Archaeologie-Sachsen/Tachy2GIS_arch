@@ -9,7 +9,7 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QMessageBox, QTableWidget, QTableWidgetItem, QMainWindow, QVBoxLayout
 from PyQt5.QtCore import QCoreApplication, QTimer
 from qgis.core import Qgis, QgsSnappingUtils, QgsMessageLog, QgsProject, QgsCircle, QgsGeometry, QgsWkbTypes, QgsVectorLayer, QgsApplication, QgsLayerTreeGroup, QgsLayerTreeLayer, QgsRectangle, QgsVectorFileWriter
-from qgis.utils import plugins
+from qgis.utils import plugins, active_plugins
 from qgis.gui import QgsMapToolIdentify,QgsMapTip
 from ..functions import *
 from ..geoEdit.geo_edit_calculations import GeoEditCalculations
@@ -92,7 +92,7 @@ class Measurement():
         self.__dockwidget.butClear.clicked.connect(self.__koordtableClear)
         self.__dockwidget.tabWidget_2.currentChanged.connect(self.__watchEventStop)
 
-        self.__t2gInstance = plugins.get('Tachy2GIS-3D_viewer')
+        self.__t2gInstance = plugins.get([s for s in active_plugins if "Tachy2GIS" in s][0])
         self.__t2gInstance.dlg.closingPlugin.connect(self.__t2gInstanceClose)
 
         self.__vertices = []#self.__t2gInstance.vtk_mouse_interactor_style.vertices
