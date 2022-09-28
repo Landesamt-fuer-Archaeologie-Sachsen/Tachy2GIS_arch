@@ -187,7 +187,7 @@
        <enum>QTabWidget::East</enum>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>6</number>
       </property>
       <widget class="QWidget" name="tab_0">
        <attribute name="title">
@@ -3371,19 +3371,6 @@
        <attribute name="title">
         <string>Drucklayout</string>
        </attribute>
-       <widget class="QPushButton" name="pushButton_8">
-        <property name="geometry">
-         <rect>
-          <x>4</x>
-          <y>42</y>
-          <width>197</width>
-          <height>29</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>Test</string>
-        </property>
-       </widget>
        <widget class="QPushButton" name="butSchriftfeld">
         <property name="geometry">
          <rect>
