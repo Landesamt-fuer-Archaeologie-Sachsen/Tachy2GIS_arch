@@ -49,7 +49,7 @@ class ImageParambar(QWidget):
         self.coordLineEdit.setReadOnly(True)
         self.coordLineEditFm = self.coordLineEdit.fontMetrics()
         width_text = self.coordLineEditFm.width('xxxxxx.xx,xxxxxx.xx')
-        self.coordLineEdit.setMinimumWidth(width_text + 20)
+        self.coordLineEdit.setMinimumWidth(width_text + 30)
 
         self.toolbarCoord.addWidget(self.coordLineEdit)
 
