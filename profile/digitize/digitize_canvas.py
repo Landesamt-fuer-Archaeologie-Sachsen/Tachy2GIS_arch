@@ -39,6 +39,10 @@ class DigitizeCanvas(QgsMapCanvas):
         self.digiLineLayer = None
         self.digiPolygonLayer = None
 
+        self.digiPolygonHoverLayer = None
+        self.digiPointHoverLayer = None
+        self.digiLineHoverLayer = None
+
         self.createMapToolPan()
         self.createMapToolZoomIn()
         self.createMapToolZoomOut()
@@ -82,6 +86,37 @@ class DigitizeCanvas(QgsMapCanvas):
         labelSettings = self.createLabelSettings('bef_nr')
         self.digiPointLayer.setLabelsEnabled(True)
         self.digiPointLayer.setLabeling(labelSettings)
+
+    def createDigiPointHoverLayer(self, refData):
+        refData['pointLayer'].selectAll()
+        self.digiPointHoverLayer = processing.run("native:saveselectedfeatures", {'INPUT': refData['pointLayer'], 'OUTPUT': 'memory:'})['OUTPUT']
+        refData['pointLayer'].removeSelection()
+
+        #Layer leeren
+        pr = self.digiPointHoverLayer.dataProvider()
+        pr.truncate()
+
+        #Renderer
+        symbol_profile = QgsMarkerSymbol.createSimple({'name': 'circle', 'color': 'green', 'size': '3'})
+        symbol_tachy = QgsMarkerSymbol.createSimple({'name': 'circle', 'color': 'grey', 'size': '3'})
+
+        categorized_renderer = QgsCategorizedSymbolRenderer()
+
+        categorized_renderer.setClassAttribute('geo_quelle')
+
+        field = self.digiPointHoverLayer.fields().lookupField('geo_quelle')
+        unique_values = self.digiPointHoverLayer.uniqueValues(field)
+        # Add a few categories
+        cat1 = QgsRendererCategory('profile_object', symbol_profile, 'profile')
+        cat2 = QgsRendererCategory(None, symbol_tachy, 'tachy')
+        categorized_renderer.addCategory(cat1)
+        categorized_renderer.addCategory(cat2)
+
+        self.digiPointHoverLayer.setRenderer(categorized_renderer)
+
+        #Projection
+        crs = refData['pointLayer'].sourceCrs()
+        self.digiPointHoverLayer.setCrs(crs)
 
     def createDigiLineLayer(self, refData):
 
@@ -128,6 +163,33 @@ class DigitizeCanvas(QgsMapCanvas):
         self.digiLineLayer.setLabelsEnabled(True)
         self.digiLineLayer.setLabeling(labelSettings)
 
+    def createDigiLineHoverLayer(self, refData):
+
+        refData['lineLayer'].selectAll()
+        self.digiLineHoverLayer = processing.run("native:saveselectedfeatures", {'INPUT': refData['lineLayer'], 'OUTPUT': 'memory:'})['OUTPUT']
+        refData['lineLayer'].removeSelection()
+
+        #Layer leeren
+        pr = self.digiLineHoverLayer.dataProvider()
+        pr.truncate()
+
+        #Renderer
+        symbol_profile = QgsLineSymbol.createSimple({'line_style': 'dash', 'color': 'green', 'width': '2'})
+        symbol_tachy = QgsLineSymbol.createSimple({'line_style': 'dash', 'color': 'grey', 'width': '2'})
+
+        # Add a few categories
+        categorized_renderer = QgsCategorizedSymbolRenderer()
+        categorized_renderer.setClassAttribute('geo_quelle')
+        cat1 = QgsRendererCategory('profile_object', symbol_profile, 'profile')
+        cat2 = QgsRendererCategory(None, symbol_tachy, 'tachy')
+        categorized_renderer.addCategory(cat1)
+        categorized_renderer.addCategory(cat2)
+
+        self.digiLineHoverLayer.setRenderer(categorized_renderer)
+
+        crs = refData['lineLayer'].sourceCrs()
+
+        self.digiLineHoverLayer.setCrs(crs)
 
     def createDigiPolygonLayer(self, refData):
 
@@ -173,6 +235,79 @@ class DigitizeCanvas(QgsMapCanvas):
         labelSettings = self.createLabelSettings('bef_nr')
         self.digiPolygonLayer.setLabelsEnabled(True)
         self.digiPolygonLayer.setLabeling(labelSettings)
+
+    def createDigiPolygonHoverLayer(self, refData):
+
+        refData['polygonLayer'].selectAll()
+        self.digiPolygonHoverLayer = processing.run("native:saveselectedfeatures", {'INPUT': refData['polygonLayer'], 'OUTPUT': 'memory:'})['OUTPUT']
+        refData['polygonLayer'].removeSelection()
+
+        #Layer leeren
+        pr = self.digiPolygonHoverLayer.dataProvider()
+        pr.truncate()
+
+        #Renderer
+        symbol_profile = QgsFillSymbol.createSimple({'style':'no', 'outline_style': 'dash', 'outline_color': 'green', 'outline_width': '2'})
+        symbol_tachy = QgsFillSymbol.createSimple({'style':'no', 'outline_style': 'dash', 'outline_color': 'grey', 'outline_width': '2'})
+
+        # Add a few categories
+        categorized_renderer = QgsCategorizedSymbolRenderer()
+        categorized_renderer.setClassAttribute('geo_quelle')
+        cat1 = QgsRendererCategory('profile_object', symbol_profile, 'profile')
+        cat2 = QgsRendererCategory(None, symbol_tachy, 'tachy')
+        categorized_renderer.addCategory(cat1)
+        categorized_renderer.addCategory(cat2)
+
+        self.digiPolygonHoverLayer.setRenderer(categorized_renderer)
+
+        crs = refData['polygonLayer'].sourceCrs()
+
+        self.digiPolygonHoverLayer.setCrs(crs)
+
+    def addHoverFeatures(self, linkObj):
+
+        layer = linkObj['layer']
+        features = linkObj['features']
+
+        if layer == self.digiPolygonLayer:
+            self.digiPolygonHoverLayer.startEditing()
+            pr = self.digiPolygonHoverLayer.dataProvider()
+            pr.addFeatures(features)
+            self.digiPolygonHoverLayer.commitChanges()
+
+        if layer == self.digiLineLayer:
+            self.digiLineHoverLayer.startEditing()
+            pr = self.digiLineHoverLayer.dataProvider()
+            pr.addFeatures(features)
+            self.digiLineHoverLayer.commitChanges()
+
+        if layer == self.digiPointLayer:
+            self.digiPointHoverLayer.startEditing()
+            pr = self.digiPointHoverLayer.dataProvider()
+            pr.addFeatures(features)
+            self.digiPointHoverLayer.commitChanges()
+
+        self.refresh()
+
+    def removeHoverFeatures(self, linkObj):
+
+        self.digiPolygonHoverLayer.startEditing()
+        pr = self.digiPolygonHoverLayer.dataProvider()
+        pr.truncate()
+        self.digiPolygonHoverLayer.commitChanges()
+
+        self.digiLineHoverLayer.startEditing()
+        pr = self.digiLineHoverLayer.dataProvider()
+        pr.truncate()
+        self.digiLineHoverLayer.commitChanges()
+
+        self.digiPointHoverLayer.startEditing()
+        pr = self.digiPointHoverLayer.dataProvider()
+        pr.truncate()
+        self.digiPointHoverLayer.commitChanges()
+
+        self.refresh()
+
 
     def createLabelSettings(self, label_field):
         palSettings  = QgsPalLayerSettings()
@@ -290,6 +425,14 @@ class DigitizeCanvas(QgsMapCanvas):
         self.createDigiPointLayer(refData)
         self.createDigiLineLayer(refData)
         self.createDigiPolygonLayer(refData)
+
+        self.createDigiPointHoverLayer(refData)
+        self.createDigiLineHoverLayer(refData)
+        self.createDigiPolygonHoverLayer(refData)
+
+        listLayers.append(self.digiPointHoverLayer)
+        listLayers.append(self.digiLineHoverLayer)
+        listLayers.append(self.digiPolygonHoverLayer)
 
         listLayers.append(self.digiPointLayer)
         listLayers.append(self.digiLineLayer)
