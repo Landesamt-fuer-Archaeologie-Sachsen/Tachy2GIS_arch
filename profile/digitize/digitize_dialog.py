@@ -120,6 +120,8 @@ class DigitizeDialog(QMainWindow):
         self.canvasDigitize.pup.register('setDigiLineLayer', self.toolEditLine.setDigiLineLayer)
         self.canvasDigitize.pup.register('setDigiPolygonLayer', self.toolEditPolygon.setDigiPolygonLayer)
 
+        self.canvasDigitize.pup.register('updateFeatureAttr', self.tableDigitize.updateFeature)
+
         #self.parambar.pup.register('triggerAarTransformationParams', self.dataStoreDigitize.triggerAarTransformationParams)
         self.dataStoreDigitize.pup.register('pushTransformationParams', self.rotationCoords.setAarTransformationParams)
 
@@ -128,6 +130,7 @@ class DigitizeDialog(QMainWindow):
         self.toolDigiPolygon.pup.register('polygonFeatureAttr', self.tableDigitize.insertFeature)
 
         self.tableDigitize.pup.register('removeFeatureByUuid', self.canvasDigitize.removeFeatureByUuid)
+        self.tableDigitize.pup.register('editFeatureAttributes', self.canvasDigitize.editFeatureAttributes)
 
         self.tableDigitize.pup.register('removeFeatureByUuid', self.toolDigiPoint.removeFeatureInEingabelayerByUuid)
         self.tableDigitize.pup.register('removeFeatureByUuid', self.toolDigiLine.removeFeatureInEingabelayerByUuid)

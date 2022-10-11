@@ -3,7 +3,7 @@ import os
 import processing
 from PyQt5.QtGui import QFont
 from qgis.core import QgsRasterLayer, QgsMarkerSymbol, QgsPalLayerSettings, QgsTextFormat, QgsVectorLayerSimpleLabeling, QgsMarkerLineSymbolLayer, QgsLineSymbol, QgsFillSymbol, QgsCategorizedSymbolRenderer, QgsRendererCategory
-from qgis.gui import QgsMapCanvas, QgsMapToolPan, QgsMapToolZoom
+from qgis.gui import QgsMapCanvas, QgsMapToolPan, QgsMapToolZoom, QgsAttributeDialog, QgsAttributeEditorContext
 
 from ..publisher import Publisher
 
@@ -43,12 +43,18 @@ class DigitizeCanvas(QgsMapCanvas):
         self.digiPointHoverLayer = None
         self.digiLineHoverLayer = None
 
+        self.featForm = None
+
         self.createMapToolPan()
         self.createMapToolZoomIn()
         self.createMapToolZoomOut()
 
         self.createConnects()
 
+    ## \brief Create a point layer from Point-Eingabelayer
+    #
+    # \param refData
+    # @returns
     def createDigiPointLayer(self, refData):
         refData['pointLayer'].selectAll()
         self.digiPointLayer = processing.run("native:saveselectedfeatures", {'INPUT': refData['pointLayer'], 'OUTPUT': 'memory:'})['OUTPUT']
@@ -87,6 +93,10 @@ class DigitizeCanvas(QgsMapCanvas):
         self.digiPointLayer.setLabelsEnabled(True)
         self.digiPointLayer.setLabeling(labelSettings)
 
+    ## \brief Create a hover point layer from Point-Eingabelayer
+    #
+    # \param refData
+    # @returns
     def createDigiPointHoverLayer(self, refData):
         refData['pointLayer'].selectAll()
         self.digiPointHoverLayer = processing.run("native:saveselectedfeatures", {'INPUT': refData['pointLayer'], 'OUTPUT': 'memory:'})['OUTPUT']
@@ -118,6 +128,10 @@ class DigitizeCanvas(QgsMapCanvas):
         crs = refData['pointLayer'].sourceCrs()
         self.digiPointHoverLayer.setCrs(crs)
 
+    ## \brief Create a line layer from Line-Eingabelayer
+    #
+    # \param refData
+    # @returns
     def createDigiLineLayer(self, refData):
 
         refData['lineLayer'].selectAll()
@@ -163,6 +177,10 @@ class DigitizeCanvas(QgsMapCanvas):
         self.digiLineLayer.setLabelsEnabled(True)
         self.digiLineLayer.setLabeling(labelSettings)
 
+    ## \brief Create a hover line layer from Line-Eingabelayer
+    #
+    # \param refData
+    # @returns
     def createDigiLineHoverLayer(self, refData):
 
         refData['lineLayer'].selectAll()
@@ -191,6 +209,10 @@ class DigitizeCanvas(QgsMapCanvas):
 
         self.digiLineHoverLayer.setCrs(crs)
 
+    ## \brief Create a polygon layer from Polygon-Eingabelayer
+    #
+    # \param refData
+    # @returns
     def createDigiPolygonLayer(self, refData):
 
         refData['polygonLayer'].selectAll()
@@ -236,6 +258,11 @@ class DigitizeCanvas(QgsMapCanvas):
         self.digiPolygonLayer.setLabelsEnabled(True)
         self.digiPolygonLayer.setLabeling(labelSettings)
 
+    ## \brief Create a hover polygon layer from Polygon-Eingabelayer
+    #
+    # \param refData
+    # @returns
+
     def createDigiPolygonHoverLayer(self, refData):
 
         refData['polygonLayer'].selectAll()
@@ -264,6 +291,11 @@ class DigitizeCanvas(QgsMapCanvas):
 
         self.digiPolygonHoverLayer.setCrs(crs)
 
+    ## \brief Add features to a hover layer
+    #
+    # \param linkObj
+    # @returns
+
     def addHoverFeatures(self, linkObj):
 
         layer = linkObj['layer']
@@ -289,6 +321,11 @@ class DigitizeCanvas(QgsMapCanvas):
 
         self.refresh()
 
+    ## \brief Remove features from a hover layer
+    #
+    # \param linkObj
+    # @returns
+
     def removeHoverFeatures(self, linkObj):
 
         self.digiPolygonHoverLayer.startEditing()
@@ -308,6 +345,10 @@ class DigitizeCanvas(QgsMapCanvas):
 
         self.refresh()
 
+    ## \brief Create settings for label
+    #
+    # \param label_field
+    # @returns labelSettings
 
     def createLabelSettings(self, label_field):
         palSettings  = QgsPalLayerSettings()
@@ -362,6 +403,69 @@ class DigitizeCanvas(QgsMapCanvas):
         self.setExtent(self.imageLayer.extent())
         self.refresh()
 
+    ## \brief Edit Attributes of a feature
+    #
+    def editFeatureAttributes(self, uuid):
+
+        if isinstance(self.featForm, QgsAttributeDialog):
+            self.featForm.close()
+
+        featuresPoly = self.digiPolygonLayer.getFeatures()
+
+        for feature in featuresPoly:
+            if feature['uuid'] == uuid:
+                self.digiPolygonLayer.startEditing()
+                self.openAttributeDialog(self.digiPolygonLayer, feature)
+
+        featuresLine = self.digiLineLayer.getFeatures()
+
+        for feature in featuresLine:
+            if feature['uuid'] == uuid:
+                self.digiLineLayer.startEditing()
+                self.openAttributeDialog(self.digiLineLayer, feature)
+
+        featuresPoint = self.digiPointLayer.getFeatures()
+
+        for feature in featuresPoint:
+            if feature['uuid'] == uuid:
+                self.digiPointLayer.startEditing()
+                self.openAttributeDialog(self.digiPointLayer, feature)
+
+    ## \brief Open attribute dialog for a feature
+    #
+    def openAttributeDialog(self, layer, feature):
+        self.featForm = QgsAttributeDialog(vl=layer, thepFeature=feature, parent=self, featureOwner=False, showDialogButtons=True)
+        self.featForm.closeEvent = self.closeFeatForm
+        self.featForm.setWindowTitle("Feature Eigenschaften")
+        self.featForm.accepted.connect(self.acceptFeatForm)
+        self.featForm.show()
+
+    ## \brief Accept function on attribute dialog
+    #
+    def updateObjectTable(self, fields, feature):
+
+        dataObj = {}
+
+        for item in fields:
+
+            if item.name() == 'uuid' or item.name() == 'id' or item.name() == 'obj_type' or item.name() == 'obj_art' or item.name() == 'zeit' or item.name() == 'material' or item.name() == 'bemerkung' or item.name() == 'bef_nr' or item.name() == 'fund_nr' or item.name() == 'prob_nr':
+                dataObj[item.name()] = feature[item.name()]
+
+        self.pup.publish('updateFeatureAttr', dataObj)
+
+    ## \brief If the 'ok'-button of the self.featForm was clicked
+    #
+    def acceptFeatForm(self):
+        fields = self.featForm.feature().fields()
+        self.updateObjectTable(fields, self.featForm.feature())
+
+    ## \brief Close function on attribute dialog
+    #
+    def closeFeatForm(self, event):
+        print('closeFeatForm')
+        self.digiPolygonLayer.commitChanges()
+        self.digiLineLayer.commitChanges()
+        self.digiPointLayer.commitChanges()
 
     def removeFeatureByUuid(self, uuid):
         featuresPoly = self.digiPolygonLayer.getFeatures()
