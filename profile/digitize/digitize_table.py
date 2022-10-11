@@ -5,23 +5,12 @@ from PyQt5.QtGui import QIcon, QPalette, QColor
 from PyQt5.QtCore import Qt
 
 from ..publisher import Publisher
-## @brief With the TransformationDialogTable class a table based on QTableWidget is realized
+## @brief With the DigitizeTable class a table based on QTableWidget is realized
 #
 # @author Mario Uhlig, VisDat geodatentechnologie GmbH, mario.uhlig@visdat.de
-# @date 2020-10-19
+# @date 2022-10-11
 
 class DigitizeTable(QTableWidget):
-
-    ## The constructor.
-    # Defines attributes for the table
-    # - Tableheaders
-    # - The number of columns
-    #
-    #  Event connections
-    # - click in cell of the table
-    # - click on row
-    #
-    #  @param dialogInstance pointer to the dialogInstance
 
     def __init__(self, dialogInstance):
 
@@ -33,7 +22,7 @@ class DigitizeTable(QTableWidget):
 
         self.dialogInstance = dialogInstance
 
-        self.colHeaders = ['ID', 'Objekttyp', 'Objektart', 'Befundnr.', 'Probennr.', 'Fundnr.', 'Bemerkung', 'Layer', 'Löschen']
+        self.colHeaders = ['UUID', 'ID', 'Objekttyp', 'Objektart', 'Befundnr.', 'Probennr.', 'Fundnr.', 'Bemerkung', 'Layer', 'Bearbeiten', 'Löschen']
 
         self.setObjectName("georefTable")
         self.setRowCount(0)
@@ -48,6 +37,12 @@ class DigitizeTable(QTableWidget):
         palette.setColor(QPalette.HighlightedText, (QColor('black')))
         self.setPalette(palette)
 
+        self.featForm = None
+
+    ## \brief Dialog with question: Delete object?
+    #
+    # \param 
+    # @returns
     def showDialog(self):
 
         print('removeFeature')
@@ -66,66 +61,115 @@ class DigitizeTable(QTableWidget):
                 self.removeRow(row)
                 self.pup.publish('removeFeatureByUuid', button.uuid)
 
-    ## \brief Update der Tabelle
+    ## \brief Start edit dialog
+    #
+    # \param 
+    # @returns
+    def editDialog(self):
+
+        print('edit attributes of feature')
+
+        button = self.sender()
+        self.pup.publish('editFeatureAttributes', button.uuid)
+
+    ## \brief Insert into table
     #
     # \param dataObj
     # @returns
     def insertFeature(self, dataObj):
 
-        #self.colHeaders = ['ID', 'Objekttyp', 'Objektart', 'Befundnr.', 'Probennr.', 'Fundnr.', 'Bemerkung', 'Layer', 'Löschen']
-
         tableHeader = self.horizontalHeader()
 
         rowPosition = self.rowCount()
         self.insertRow(rowPosition)
+
+        # UUID
+        self.setItem(rowPosition, 0, QTableWidgetItem(str(dataObj['uuid'])))
+        self.setColumnHidden(0, True)
+
         # ID
         if "id" in dataObj:
-            self.setItem(rowPosition, 0, QTableWidgetItem(str(dataObj['id'])))
+            idItem = QTableWidgetItem(str(dataObj['id']))
         else:
-            self.setItem(rowPosition, 0, QTableWidgetItem('NULL'))
+            idItem = QTableWidgetItem('NULL')
+
+        idItem.setFlags(Qt.ItemIsEnabled)
+        self.setItem(rowPosition, 1, idItem)
         # Objekttyp
         if "obj_type" in dataObj:
-            self.setItem(rowPosition, 1, QTableWidgetItem(str(dataObj['obj_type'])))
+            typeItem = QTableWidgetItem(str(dataObj['obj_type']))
         else:
-            self.setItem(rowPosition, 1, QTableWidgetItem('NULL'))
-        tableHeader.setSectionResizeMode(1, QHeaderView.Stretch)
+            typeItem = QTableWidgetItem('NULL')
+
+        typeItem.setFlags(Qt.ItemIsEnabled)
+        self.setItem(rowPosition, 2, typeItem)
+        tableHeader.setSectionResizeMode(2, QHeaderView.Stretch)
         # Objektart
         if "obj_art" in dataObj:
-            self.setItem(rowPosition, 2, QTableWidgetItem(str(dataObj['obj_art'])))
+            artItem = QTableWidgetItem(str(dataObj['obj_art']))
         else:
-            self.setItem(rowPosition, 2, QTableWidgetItem('NULL'))
-        tableHeader.setSectionResizeMode(2, QHeaderView.Stretch)
+            artItem = QTableWidgetItem('NULL')
+
+        artItem.setFlags(Qt.ItemIsEnabled)
+        self.setItem(rowPosition, 3, artItem)
+        tableHeader.setSectionResizeMode(3, QHeaderView.Stretch)
         # Befundnr.
         if "bef_nr" in dataObj:
-            self.setItem(rowPosition, 3, QTableWidgetItem(str(dataObj['bef_nr'])))
+            befItem = QTableWidgetItem(str(dataObj['bef_nr']))
         else:
-            self.setItem(rowPosition, 3, QTableWidgetItem('NULL'))
-        tableHeader.setSectionResizeMode(3, QHeaderView.Stretch)
+            befItem = QTableWidgetItem('NULL')
+
+        befItem.setFlags(Qt.ItemIsEnabled)
+        self.setItem(rowPosition, 4, befItem)
+        tableHeader.setSectionResizeMode(4, QHeaderView.Stretch)
         # Probennr.
         if "prob_nr" in dataObj:
-            self.setItem(rowPosition, 4, QTableWidgetItem(str(dataObj['prob_nr'])))
+            probItem = QTableWidgetItem(str(dataObj['prob_nr']))
         else:
-            self.setItem(rowPosition, 4, QTableWidgetItem('NULL'))
-        tableHeader.setSectionResizeMode(4, QHeaderView.Stretch)
+            probItem = QTableWidgetItem('NULL')
+
+        probItem.setFlags(Qt.ItemIsEnabled)
+        self.setItem(rowPosition, 5, probItem)
+        tableHeader.setSectionResizeMode(5, QHeaderView.Stretch)
         # Fundnr..
         if "fund_nr" in dataObj:
-            self.setItem(rowPosition, 5, QTableWidgetItem(str(dataObj['fund_nr'])))
+            fundItem = QTableWidgetItem(str(dataObj['fund_nr']))
         else:
-            self.setItem(rowPosition, 5, QTableWidgetItem('NULL'))
-        tableHeader.setSectionResizeMode(5, QHeaderView.Stretch)
+            fundItem = QTableWidgetItem('NULL')
+
+        fundItem.setFlags(Qt.ItemIsEnabled)
+        self.setItem(rowPosition, 6, fundItem)
+        tableHeader.setSectionResizeMode(6, QHeaderView.Stretch)
         # Bemerkung
         if "bemerkung" in dataObj:
-            self.setItem(rowPosition, 6, QTableWidgetItem(str(dataObj['bemerkung'])))
+            bemerkungItem = QTableWidgetItem(str(dataObj['bemerkung']))
         else:
-            self.setItem(rowPosition, 6, QTableWidgetItem('NULL'))
-        tableHeader.setSectionResizeMode(6, QHeaderView.Stretch)
+            bemerkungItem = QTableWidgetItem('NULL')
+
+        bemerkungItem.setFlags(Qt.ItemIsEnabled)
+        self.setItem(rowPosition, 7, bemerkungItem)            
+        tableHeader.setSectionResizeMode(7, QHeaderView.Stretch)
 
         # Layer
         if "layer" in dataObj:
-            self.setItem(rowPosition, 7, QTableWidgetItem(str(dataObj['layer'])))
+            layerItem = QTableWidgetItem(str(dataObj['layer']))
         else:
-            self.setItem(rowPosition, 7, QTableWidgetItem('NULL'))
-        tableHeader.setSectionResizeMode(7, QHeaderView.Stretch)
+            layerItem = QTableWidgetItem('NULL')
+
+        layerItem.setFlags(Qt.ItemIsEnabled)
+        self.setItem(rowPosition, 8, layerItem)   
+        tableHeader.setSectionResizeMode(8, QHeaderView.Stretch)
+
+        #Bearbeiten
+        iconEdit = QIcon(os.path.join(self.iconpath, 'mActionToggleEditing.png'))
+
+        editBtn = QPushButton()
+        editBtn.setIcon(iconEdit)
+        editBtn.uuid = dataObj['uuid']
+        editBtn.setStyleSheet("margin-left:50%; margin-right:50%; bsckground-color:transparent; border:none;");
+        self.setCellWidget(rowPosition, 9, editBtn)
+        editBtn.clicked.connect(self.editDialog)
+        tableHeader.setSectionResizeMode(9, QHeaderView.ResizeToContents)
 
         #Löschen
         iconDel = QIcon(os.path.join(self.iconpath, 'trash_icon.png'))
@@ -134,6 +178,62 @@ class DigitizeTable(QTableWidget):
         deleteBtn.setIcon(iconDel)
         deleteBtn.uuid = dataObj['uuid']
         deleteBtn.setStyleSheet("margin-left:50%; margin-right:50%; bsckground-color:transparent; border:none;");
-        self.setCellWidget(rowPosition, 8, deleteBtn)
+        self.setCellWidget(rowPosition, 10, deleteBtn)
         deleteBtn.clicked.connect(self.showDialog)
-        tableHeader.setSectionResizeMode(8, QHeaderView.ResizeToContents)
+        tableHeader.setSectionResizeMode(10, QHeaderView.ResizeToContents)
+
+    ## \brief Update feature attributes in table
+    #
+    # \param dataObj
+    # @returns
+
+    def updateFeature(self, dataObj):
+
+        self.hide()
+
+        rowCount = self.rowCount()
+        columnCount = self.columnCount()
+
+        for i in range(0, rowCount):
+
+            tblUuid = None
+
+            for j in range(0, columnCount):
+
+                head = self.horizontalHeaderItem(j).text()
+
+                if head == 'UUID':
+                    tblUuid = self.item(i, j).text()
+
+            #in Zelle der Tabelle eintragen
+            for j in range(0, columnCount):
+                head = self.horizontalHeaderItem(j).text()
+
+                if dataObj['uuid'] == tblUuid:
+
+                    if head == 'Objekttyp':
+                        if "obj_type" in dataObj:
+                            self.item(i, j).setText(str(dataObj['obj_type']))
+
+                    if head == 'Objektart':
+                        if "obj_art" in dataObj:
+                            self.item(i, j).setText(str(dataObj['obj_art']))
+
+                    if head == 'Befundnr.':
+                        if "bef_nr" in dataObj:
+                            self.item(i, j).setText(str(dataObj['bef_nr']))
+
+                    if head == 'Probennr.':
+                        if "prob_nr" in dataObj:
+                            self.item(i, j).setText(str(dataObj['prob_nr']))
+
+                    if head == 'Fundnr.':
+                        if "fund_nr" in dataObj:
+                            self.item(i, j).setText(str(dataObj['fund_nr']))
+
+                    if head == 'Bemerkung':
+                        if "bemerkung" in dataObj:
+                            self.item(i, j).setText(str(dataObj['bemerkung']))
+
+        self.show()
+
