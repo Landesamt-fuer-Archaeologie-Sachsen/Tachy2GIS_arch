@@ -3,6 +3,7 @@ import os
 import math
 import pathlib
 
+from PyQt5.QtWidgets import QMessageBox
 from qgis.core import QgsProject, QgsVectorLayer, QgsLayerTreeGroup, QgsLayerTreeLayer, QgsWkbTypes
 
 from .georeferencing_dialog import GeoreferencingDialog
@@ -59,6 +60,8 @@ class Georef():
             self.__dockwidget.layerProfileGeoref.currentIndexChanged.connect(self.__calculateViewDirection)
 
             profil_start_idx = self.__dockwidget.profileIdsComboGeoref.currentIndex()
+
+            self.__dockwidget.profileInfoBtn.clicked.connect(self.__openInfoMessageBox)
 
             # Calculate initial profile view
             self.__calculateViewDirection(profil_start_idx)
@@ -369,3 +372,17 @@ class Georef():
 
 
 
+    ## \brief Opens a message box with background informations
+    #
+
+    def __openInfoMessageBox(self):
+
+        infoText = "Ein archäologisches Profil ist ein (nahezu) vertikaler Schnitt durch einen oder mehrere archäologische Befunde und bietet daher gute Voraussetzungen zur dreidimensionalen Dokumentation von Grabungsszenen. \n\nDas Profiltool bietet die Möglichkeit Profilfotos anhand von Messpunkten zu georeferenzieren. Weiterhin können im erstellten Profil geometische Strukturen digitalisiert werden und die Daten für Profilpläne erzeugt werden."
+        self.infoTranssformMsgBox = QMessageBox()
+        self.infoTranssformMsgBox.setText(infoText)
+
+        #self.validityMsgBox.setWidget(scroll)
+        #self.validityMsgBox.setStyleSheet("QScrollArea{min-width:300 px; min-height: 400px}")
+        self.infoTranssformMsgBox.setWindowTitle("Hintergrundinformationen")
+        self.infoTranssformMsgBox.setStandardButtons((QMessageBox.Ok))
+        self.infoTranssformMsgBox.exec_()
