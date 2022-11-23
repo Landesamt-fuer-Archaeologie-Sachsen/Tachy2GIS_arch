@@ -47,9 +47,6 @@ class Georef():
             self.__dockwidget.profileFotosComboGeoref.fileChanged.connect(self.__changedProfileImage)
             #Preselection View direction
             self.__preselectViewDirection()
-            #set datatype filter and save mode to profileSaveComboGeoref
-            #self.__dockwidget.profileSaveComboGeoref.setFilter('Images (*.jpg)')
-            #self.__dockwidget.profileSaveComboGeoref.setStorageMode(3)
 
             self.__dockwidget.startGeoreferencingBtn.clicked.connect(self.__startGeoreferencingDialog)
 
@@ -61,6 +58,7 @@ class Georef():
 
             profil_start_idx = self.__dockwidget.profileIdsComboGeoref.currentIndex()
 
+            #Connection to info messagebox
             self.__dockwidget.profileInfoBtn.clicked.connect(self.__openInfoMessageBox)
 
             # Calculate initial profile view
@@ -381,8 +379,6 @@ class Georef():
         self.infoTranssformMsgBox = QMessageBox()
         self.infoTranssformMsgBox.setText(infoText)
 
-        #self.validityMsgBox.setWidget(scroll)
-        #self.validityMsgBox.setStyleSheet("QScrollArea{min-width:300 px; min-height: 400px}")
         self.infoTranssformMsgBox.setWindowTitle("Hintergrundinformationen")
         self.infoTranssformMsgBox.setStandardButtons((QMessageBox.Ok))
         self.infoTranssformMsgBox.exec_()
