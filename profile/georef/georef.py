@@ -3,6 +3,7 @@ import os
 import math
 import pathlib
 
+from PyQt5.QtWidgets import QMessageBox
 from qgis.core import QgsProject, QgsVectorLayer, QgsLayerTreeGroup, QgsLayerTreeLayer, QgsWkbTypes
 
 from .georeferencing_dialog import GeoreferencingDialog
@@ -46,9 +47,6 @@ class Georef():
             self.__dockwidget.profileFotosComboGeoref.fileChanged.connect(self.__changedProfileImage)
             #Preselection View direction
             self.__preselectViewDirection()
-            #set datatype filter and save mode to profileSaveComboGeoref
-            #self.__dockwidget.profileSaveComboGeoref.setFilter('Images (*.jpg)')
-            #self.__dockwidget.profileSaveComboGeoref.setStorageMode(3)
 
             self.__dockwidget.startGeoreferencingBtn.clicked.connect(self.__startGeoreferencingDialog)
 
@@ -59,6 +57,9 @@ class Georef():
             self.__dockwidget.layerProfileGeoref.currentIndexChanged.connect(self.__calculateViewDirection)
 
             profil_start_idx = self.__dockwidget.profileIdsComboGeoref.currentIndex()
+
+            #Connection to info messagebox
+            self.__dockwidget.profileInfoBtn.clicked.connect(self.__openInfoMessageBox)
 
             # Calculate initial profile view
             self.__calculateViewDirection(profil_start_idx)
@@ -369,3 +370,15 @@ class Georef():
 
 
 
+    ## \brief Opens a message box with background informations
+    #
+
+    def __openInfoMessageBox(self):
+
+        infoText = "Ein archäologisches Profil ist ein (nahezu) vertikaler Schnitt durch einen oder mehrere archäologische Befunde und bietet daher gute Voraussetzungen zur dreidimensionalen Dokumentation von Grabungsszenen. \n\nDas Profiltool bietet die Möglichkeit Profilfotos anhand von Messpunkten zu georeferenzieren. Weiterhin können im erstellten Profil geometische Strukturen digitalisiert werden und die Daten für Profilpläne erzeugt werden."
+        self.infoTranssformMsgBox = QMessageBox()
+        self.infoTranssformMsgBox.setText(infoText)
+
+        self.infoTranssformMsgBox.setWindowTitle("Hintergrundinformationen")
+        self.infoTranssformMsgBox.setStandardButtons((QMessageBox.Ok))
+        self.infoTranssformMsgBox.exec_()
