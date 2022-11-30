@@ -55,6 +55,7 @@ class Textadjustment(object):
         w.label_8.setFont(QFont('MS Shell Dlg 2', 8*f))
         w.label_6.setFont(QFont('MS Shell Dlg 2', 8*f))
         w.label_7.setFont(QFont('MS Shell Dlg 2', 8*f))
+        w.butSchriftfeld.setFont(QFont('MS Shell Dlg 2', 8*f))
 
         w.txtPoint_2.hide()
         w.txtPointTemp_2.hide()

@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
-from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QHeaderView, QCheckBox, QRadioButton
+from typing import List
+from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QHeaderView, QCheckBox, QRadioButton, QMessageBox
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QColor, QBrush
 import numpy as np
+from operator import itemgetter
 
 from ..publisher import Publisher
 from .residuals import Residuals
@@ -57,8 +60,113 @@ class GeorefTable(QTableWidget):
 
         self.res = Residuals()
 
+        #Default error colors
+        errorColorsIn = [
+                            {'order': 1, 'min': 0, 'max': 0.02, 'color': [0,255,0]},
+                            {'order': 2, 'min': 0.02, 'max': 0.04, 'color': [255,122,0]},
+                            {'order': 3, 'min': 0.04, 'max': 1, 'color': [255,0,0]}        
+                        ]
 
-    def __getTableData(self):
+        self.errorColors = self.__createErrorColors(errorColorsIn)
+
+        self.whiteBrush = QBrush(QColor(255,255,255))
+
+        #errorColorsIn2 = [
+        #                    {'order': 1, 'min': 0, 'max': 0.01, 'color': [0,255,0]},
+        #                    {'order': 2, 'min': 0.01, 'max': 0.02, 'color': [255,122,0]},
+        #                    {'order': 3, 'min': 0.02, 'max': 0.03, 'color': [200,122,70]},
+        #                    {'order': 4, 'min': 0.03, 'max': 1, 'color': [255,0,0]}    
+        #                ]
+        #self.updateErrorColors(errorColorsIn2)
+
+    ## \brief Create a error colors list
+    #
+    # - sorting of the incomming error color list
+    # - set first and last object
+    # - cast rgb values to QBrush object 
+    #
+    # If an error occurs the default errorColors list is still active
+    #
+    def __createErrorColors(self, errorColorsIn):
+        
+        try:
+            errorColors = sorted(errorColorsIn, key=itemgetter('order'), reverse=False)
+
+            for i, obj in enumerate(errorColors):
+                if i == 0:
+                    obj['first'] = True
+                    obj['last'] = False
+                else:
+                    obj['first'] = False
+                    obj['last'] = False
+
+                obj['color'] = QBrush(QColor(obj['color'][0],obj['color'][1],obj['color'][2]))
+                
+            errorColors[-1]['last'] = True
+
+            return errorColors
+
+        except:
+            infoText = "Fehler beim Import der errorColorsIn List!"
+            self.__openInfoMessageBox(infoText)
+
+    ## \brief Update the error colors list 
+    #
+    #
+
+    def updateErrorColors(self, errorColorsIn: List):
+
+        validationValue = self.__validateErrorColorsIn(errorColorsIn)
+
+        if validationValue is True:
+            self.errorColors = self.__createErrorColors(errorColorsIn)
+        else:
+            infoText = "ValidationError - errorColorsIn-List hat nicht das richtige Format! Siehe: [{'order': 1, 'min': 0, 'max': 0.02, 'color': [0,255,0]}, {'order': 3, 'min': 0.04, 'max': 1, 'color': [255,0,0]}, {'order': 2, 'min': 0.02, 'max': 0.04, 'color': [255,122,0]}]"
+            self.__openInfoMessageBox(infoText)
+
+
+    ## \brief Update the error colors list 
+    #
+    # \param errorColorsIn required format is:
+    #
+    #   [
+    #        {'order': 1, 'min': 0, 'max': 0.02, 'color': [0,255,0]},
+    #        {'order': 2, 'min': 0.02, 'max': 0.04, 'color': [255,122,0]},
+    #        {'order': 3, 'min': 0.04, 'max': 1, 'color': [255,0,0]}        
+    #    ]
+    #
+
+    def __validateErrorColorsIn(self, errorColorsIn: List):
+
+        validationValue = True
+
+        #Check object in list should be min one
+        if len(errorColorsIn) < 1:
+            validationValue = False
+
+        #Check keys in objects
+        requiredKeys = ['order', 'min', 'max', 'color']
+        for errorObject in errorColorsIn:
+            for key in requiredKeys:
+                if key in errorObject:
+                    pass
+                else:
+                    print('key is missing:', key)
+                    validationValue = False
+
+        return validationValue
+
+    ## \brief Opens a message box with background informations
+    #
+    def __openInfoMessageBox(self, infoText):
+
+        self.__infoTranssformMsgBox = QMessageBox()
+        self.__infoTranssformMsgBox.setText(infoText)
+        self.__infoTranssformMsgBox.setWindowTitle("Hintergrundinformationen")
+        self.__infoTranssformMsgBox.setStandardButtons((QMessageBox.Ok))
+        self.__infoTranssformMsgBox.exec_()
+
+    def __getTableData(self): 
 
         tableData = []
 
@@ -179,6 +287,11 @@ class GeorefTable(QTableWidget):
             georefTableHeader.setSectionResizeMode(8, QHeaderView.Stretch)
 
             # Punkt verwenden
+            usageCheckItem = QTableWidgetItem()
+            usageCheckItem.setFlags(Qt.ItemIsEnabled)
+            self.setItem(rowPosition, 9, usageCheckItem)
+            georefTableHeader.setSectionResizeMode(9, QHeaderView.ResizeToContents)
+
             usageCheck = QCheckBox()
             usageCheck.setChecked(True)
             usageCheck.setStyleSheet("margin-left:50%; margin-right:50%;");
@@ -188,6 +301,11 @@ class GeorefTable(QTableWidget):
             usageCheck.stateChanged.connect(self.pointUsageChanged)
 
             # Punkt setzen
+            setPointRadioItem = QTableWidgetItem()
+            setPointRadioItem.setFlags(Qt.ItemIsEnabled)
+            self.setItem(rowPosition, 10, setPointRadioItem)
+            georefTableHeader.setSectionResizeMode(10, QHeaderView.ResizeToContents)
+
             setPointRadio = QRadioButton()
             setPointRadio.pointUUID = pointObj['uuid']
             #usageCheck.setChecked(True)
@@ -304,14 +422,6 @@ class GeorefTable(QTableWidget):
 
             V_X, V_Y, V_XY, V_XY_uuid, mo, mox, moy = self.res.projective_trans(np.array(gcpArray))
 
-            #print('V_X', V_X)
-            #print('V_Y', V_Y)
-            #print('V_XY', V_XY)
-            #print('V_XY_uuid', V_XY_uuid)
-            #print('mo', mo)
-            #print('mox', mox)
-            #print('moy', moy)
-
             for i in range(0, rowCount):
 
                 tblPointUuid = None
@@ -329,9 +439,22 @@ class GeorefTable(QTableWidget):
 
                     if head == 'Error':
                         self.item(i, j).setText(str(-99999))
+                        self.setRowColor(i, self.whiteBrush)
                         for errorObj in V_XY_uuid:
                             if errorObj['uuid'] == tblPointUuid:
                                 self.item(i, j).setText(str(round(errorObj['v_xy'], 4)))
+
+                                for cat in self.errorColors:
+                                    
+                                    if cat['last'] is False and cat['first'] is False and cat['min'] < errorObj['v_xy'] <= cat['max']:
+                                        self.setRowColor(i, cat['color'])
+
+                                    if cat['last'] is True and errorObj['v_xy'] > cat['min']:
+                                        self.setRowColor(i, cat['color'])
+
+                                    if cat['first'] is True and errorObj['v_xy'] < cat['max']:
+                                        self.setRowColor(i, cat['color'])
+
         else:
             for i in range(0, rowCount):
                 #in Zelle der Tabelle eintragen
@@ -341,7 +464,15 @@ class GeorefTable(QTableWidget):
                     if head == 'Error':
                         self.item(i, j).setText(str(-99999))
 
+                        self.setRowColor(i, self.whiteBrush)
+
         self.show()
+
+    #Hintergrundfarbe für Zeile in Tabelle setzen
+    def setRowColor(self, rowIndex, color):
+        for j in range(self.columnCount()):
+            if isinstance(self.item(rowIndex, j), QTableWidgetItem):
+                self.item(rowIndex, j).setBackground(color)
 
 
     ## \brief Update image coordinates for a specific point (uuid)
@@ -380,6 +511,7 @@ class GeorefTable(QTableWidget):
 
     def pointUsageChanged(self):
 
+        #print('checkObj', checkObj.isChecked())
         tableData = self.__getTableData()
 
         data = self.prepareData(tableData, 'horizontal')

@@ -6,13 +6,13 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>235</width>
+    <width>500</width>
     <height>898</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>235</width>
+    <width>365</width>
     <height>635</height>
    </size>
   </property>
@@ -187,7 +187,7 @@
        <enum>QTabWidget::East</enum>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>4</number>
       </property>
       <widget class="QWidget" name="tab_0">
        <attribute name="title">
@@ -1656,265 +1656,249 @@
        <attribute name="title">
         <string>Transformation</string>
        </attribute>
-       <widget class="QGroupBox" name="groupBox_4">
-        <property name="geometry">
-         <rect>
-          <x>4</x>
-          <y>342</y>
-          <width>400</width>
-          <height>214</height>
-         </rect>
-        </property>
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="whatsThis">
-         <string comment="1"/>
-        </property>
-        <property name="title">
-         <string>Sonstiges</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-        </property>
-        <property name="flat">
-         <bool>false</bool>
-        </property>
-        <layout class="QFormLayout" name="formLayout_3">
-         <property name="sizeConstraint">
-          <enum>QLayout::SetDefaultConstraint</enum>
-         </property>
-         <property name="fieldGrowthPolicy">
-          <enum>QFormLayout::ExpandingFieldsGrow</enum>
-         </property>
-         <property name="rowWrapPolicy">
-          <enum>QFormLayout::DontWrapRows</enum>
-         </property>
-         <property name="labelAlignment">
-          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-         </property>
-         <property name="formAlignment">
-          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-         </property>
-         <property name="topMargin">
-          <number>9</number>
-         </property>
-         <item row="1" column="1">
-          <widget class="QLabel" name="transformationStateText">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
+       <layout class="QVBoxLayout" name="verticalLayout">
+        <item>
+         <widget class="QGroupBox" name="calcParametersGroupBox">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="title">
+           <string>1: Transformationsparameter berechnen</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+          </property>
+          <property name="flat">
+           <bool>false</bool>
+          </property>
+          <property name="checkable">
+           <bool>false</bool>
+          </property>
+          <layout class="QFormLayout" name="formLayout">
+           <property name="fieldGrowthPolicy">
+            <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
            </property>
-           <property name="text">
-            <string>Es wurde bisher keine Transformation ausgeführt.</string>
+           <property name="verticalSpacing">
+            <number>6</number>
            </property>
-           <property name="alignment">
-            <set>Qt::AlignCenter</set>
+           <property name="bottomMargin">
+            <number>9</number>
            </property>
-          </widget>
-         </item>
-         <item row="3" column="0" colspan="2">
-          <widget class="QPushButton" name="transformResetBtn">
-           <property name="text">
-            <string>Zurücksetzen der Transformation</string>
+           <item row="1" column="0">
+            <widget class="QLabel" name="tf_label_eingabelayer">
+             <property name="text">
+              <string>Eingabelayer</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QgsMapLayerComboBox" name="comboEingabelayerTransform"/>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="label_14">
+             <property name="text">
+              <string>KBS</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QgsProjectionSelectionWidget" name="projectionSelectionTransform"/>
+           </item>
+           <item row="4" column="0">
+            <widget class="QLabel" name="label_17">
+             <property name="text">
+              <string>GCP Datei</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="1">
+            <widget class="QgsFileWidget" name="fileWidgetTargetCoordinates"/>
+           </item>
+           <item row="6" column="0" colspan="2">
+            <widget class="QPushButton" name="btnOpenTransformDlg">
+             <property name="autoFillBackground">
+              <bool>false</bool>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">background-color : green</string>
+             </property>
+             <property name="text">
+              <string>Berechnen</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="layerTransformGroupBox">
+          <property name="enabled">
+           <bool>true</bool>
+          </property>
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="title">
+           <string>2: Layer transformieren</string>
+          </property>
+          <layout class="QFormLayout" name="formLayout_2">
+           <item row="0" column="0">
+            <widget class="QLabel" name="label_18">
+             <property name="text">
+              <string>X-Translation</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QLineEdit" name="xTranslationText">
+             <property name="readOnly">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="label_19">
+             <property name="text">
+              <string>Y-Translation</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QLineEdit" name="yTranslationText">
+             <property name="readOnly">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="label_20">
+             <property name="text">
+              <string>Z-Translation</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QLineEdit" name="zTranslationText">
+             <property name="readOnly">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="0">
+            <widget class="QLabel" name="label_21">
+             <property name="text">
+              <string>Rotatation</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="1">
+            <widget class="QLineEdit" name="rotationText"/>
+           </item>
+           <item row="5" column="0" colspan="2">
+            <widget class="QPushButton" name="btnTransformInputLayers">
+             <property name="styleSheet">
+              <string notr="true">background-color: green</string>
+             </property>
+             <property name="text">
+              <string>Transformieren</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="groupBox_4">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="whatsThis">
+           <string comment="1"/>
+          </property>
+          <property name="title">
+           <string>Sonstiges</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+          </property>
+          <property name="flat">
+           <bool>false</bool>
+          </property>
+          <layout class="QFormLayout" name="formLayout_3">
+           <property name="sizeConstraint">
+            <enum>QLayout::SetDefaultConstraint</enum>
            </property>
-          </widget>
-         </item>
-         <item row="4" column="0" colspan="2">
-          <widget class="QPushButton" name="transformValidityBtn">
-           <property name="text">
-            <string>Gültigkeit der Geometrien prüfen</string>
+           <property name="fieldGrowthPolicy">
+            <enum>QFormLayout::ExpandingFieldsGrow</enum>
            </property>
-          </widget>
-         </item>
-         <item row="5" column="0" colspan="2">
-          <widget class="QPushButton" name="transformInfoBtn">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Minimum" vsizetype="MinimumExpanding">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
+           <property name="rowWrapPolicy">
+            <enum>QFormLayout::DontWrapRows</enum>
            </property>
-           <property name="text">
-            <string>Infos</string>
+           <property name="labelAlignment">
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
            </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-       <widget class="QGroupBox" name="layerTransformGroupBox">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
-        <property name="geometry">
-         <rect>
-          <x>4</x>
-          <y>170</y>
-          <width>400</width>
-          <height>166</height>
-         </rect>
-        </property>
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="title">
-         <string>2: Layer transformieren</string>
-        </property>
-        <layout class="QFormLayout" name="formLayout_2">
-         <item row="0" column="0">
-          <widget class="QLabel" name="label_18">
-           <property name="text">
-            <string>X-Translation</string>
+           <property name="formAlignment">
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
            </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="QLineEdit" name="xTranslationText">
-           <property name="readOnly">
-            <bool>true</bool>
+           <property name="topMargin">
+            <number>9</number>
            </property>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="label_19">
-           <property name="text">
-            <string>Y-Translation</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QLineEdit" name="yTranslationText">
-           <property name="readOnly">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="0">
-          <widget class="QLabel" name="label_20">
-           <property name="text">
-            <string>Z-Translation</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="1">
-          <widget class="QLineEdit" name="zTranslationText">
-           <property name="readOnly">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="0">
-          <widget class="QLabel" name="label_21">
-           <property name="text">
-            <string>Rotatation</string>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="1">
-          <widget class="QLineEdit" name="rotationText"/>
-         </item>
-         <item row="5" column="0" colspan="2">
-          <widget class="QPushButton" name="btnTransformInputLayers">
-           <property name="styleSheet">
-            <string notr="true">background-color: green</string>
-           </property>
-           <property name="text">
-            <string>Transformieren</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-       <widget class="QGroupBox" name="calcParametersGroupBox">
-        <property name="geometry">
-         <rect>
-          <x>4</x>
-          <y>8</y>
-          <width>400</width>
-          <height>156</height>
-         </rect>
-        </property>
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="title">
-         <string>1: Transformationsparameter berechnen</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-        </property>
-        <property name="flat">
-         <bool>false</bool>
-        </property>
-        <property name="checkable">
-         <bool>false</bool>
-        </property>
-        <layout class="QFormLayout" name="formLayout">
-         <property name="fieldGrowthPolicy">
-          <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
-         </property>
-         <property name="verticalSpacing">
-          <number>6</number>
-         </property>
-         <property name="bottomMargin">
-          <number>9</number>
-         </property>
-         <item row="1" column="0">
-          <widget class="QLabel" name="tf_label_eingabelayer">
-           <property name="text">
-            <string>Eingabelayer</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QgsMapLayerComboBox" name="comboEingabelayerTransform"/>
-         </item>
-         <item row="2" column="0">
-          <widget class="QLabel" name="label_14">
-           <property name="text">
-            <string>KBS</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="1">
-          <widget class="QgsProjectionSelectionWidget" name="projectionSelectionTransform"/>
-         </item>
-         <item row="4" column="0">
-          <widget class="QLabel" name="label_17">
-           <property name="text">
-            <string>GCP Datei</string>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="1">
-          <widget class="QgsFileWidget" name="fileWidgetTargetCoordinates"/>
-         </item>
-         <item row="6" column="0" colspan="2">
-          <widget class="QPushButton" name="btnOpenTransformDlg">
-           <property name="autoFillBackground">
-            <bool>false</bool>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">background-color : green</string>
-           </property>
-           <property name="text">
-            <string>Berechnen</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
+           <item row="1" column="1">
+            <widget class="QLabel" name="transformationStateText">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>Es wurde bisher keine Transformation ausgeführt.</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="0" colspan="2">
+            <widget class="QPushButton" name="transformResetBtn">
+             <property name="text">
+              <string>Zurücksetzen der Transformation</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="0" colspan="2">
+            <widget class="QPushButton" name="transformValidityBtn">
+             <property name="text">
+              <string>Gültigkeit der Geometrien prüfen</string>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="0" colspan="2">
+            <widget class="QPushButton" name="transformInfoBtn">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>Infos</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
       </widget>
       <widget class="QWidget" name="tab_2">
        <attribute name="title">
@@ -2545,705 +2529,697 @@
        <attribute name="title">
         <string>Tools Geometrie</string>
        </attribute>
-       <widget class="QTabWidget" name="geometryEditMainTabWidget">
-        <property name="geometry">
-         <rect>
-          <x>4</x>
-          <y>6</y>
-          <width>400</width>
-          <height>548</height>
-         </rect>
-        </property>
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">#geometryEditMainTabWidget{
+       <layout class="QVBoxLayout" name="verticalLayout_2">
+        <item>
+         <widget class="QTabWidget" name="geometryEditMainTabWidget">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">#geometryEditMainTabWidget{
 	background-color:  rgb(240,240,240)
 }</string>
-        </property>
-        <property name="currentIndex">
-         <number>0</number>
-        </property>
-        <widget class="QWidget" name="lfaWidgetVerschieben">
-         <property name="styleSheet">
-          <string notr="true">#lfaWidgetVerschieben{
+          </property>
+          <property name="currentIndex">
+           <number>0</number>
+          </property>
+          <widget class="QWidget" name="lfaWidgetVerschieben">
+           <property name="styleSheet">
+            <string notr="true">#lfaWidgetVerschieben{
 	background-color:  rgb(240,240,240)
 }</string>
-         </property>
-         <attribute name="title">
-          <string>Verschieben</string>
-         </attribute>
-         <layout class="QFormLayout" name="formLayout_4">
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_15">
-            <property name="text">
-             <string>Eingabelayer</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QgsMapLayerComboBox" name="layerGeometryMove"/>
-          </item>
-          <item row="3" column="1">
-           <widget class="QLabel" name="label_16">
-            <property name="text">
-             <string>Es werden nur selektierte Objekte verschoben!</string>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="0">
-           <widget class="QLabel" name="label_22">
-            <property name="text">
-             <string>Typ</string>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="1">
-           <layout class="QHBoxLayout" name="horizontalLayout">
-            <item>
-             <widget class="QRadioButton" name="radioGeometryMoveRelativ">
+           </property>
+           <attribute name="title">
+            <string>Verschieben</string>
+           </attribute>
+           <layout class="QFormLayout" name="formLayout_4">
+            <item row="1" column="0">
+             <widget class="QLabel" name="label_15">
               <property name="text">
-               <string>relativ</string>
-              </property>
-              <property name="checked">
-               <bool>true</bool>
+               <string>Eingabelayer</string>
               </property>
              </widget>
             </item>
-            <item>
-             <widget class="QRadioButton" name="radioGeometryMoveAbsolut">
+            <item row="1" column="1">
+             <widget class="QgsMapLayerComboBox" name="layerGeometryMove"/>
+            </item>
+            <item row="3" column="1">
+             <widget class="QLabel" name="label_16">
               <property name="text">
-               <string>absolut</string>
+               <string>Es werden nur selektierte Objekte verschoben!</string>
               </property>
              </widget>
             </item>
-           </layout>
-          </item>
-          <item row="6" column="0">
-           <widget class="QLabel" name="label_23">
-            <property name="text">
-             <string>Z - Versatz</string>
-            </property>
-           </widget>
-          </item>
-          <item row="6" column="1">
-           <widget class="QgsDoubleSpinBox" name="spinBoxGeometryMoveZ">
-            <property name="decimals">
-             <number>3</number>
-            </property>
-            <property name="minimum">
-             <double>-10000.000000000000000</double>
-            </property>
-            <property name="maximum">
-             <double>10000.000000000000000</double>
-            </property>
-           </widget>
-          </item>
-          <item row="8" column="0">
-           <widget class="QLabel" name="label_24">
-            <property name="text">
-             <string>Y - Versatz</string>
-            </property>
-           </widget>
-          </item>
-          <item row="8" column="1">
-           <widget class="QgsDoubleSpinBox" name="spinBoxGeometryMoveY">
-            <property name="decimals">
-             <number>3</number>
-            </property>
-            <property name="minimum">
-             <double>-100000.000000000000000</double>
-            </property>
-            <property name="maximum">
-             <double>100000.000000000000000</double>
-            </property>
-           </widget>
-          </item>
-          <item row="11" column="0">
-           <widget class="QLabel" name="label_25">
-            <property name="text">
-             <string>X - Versatz</string>
-            </property>
-           </widget>
-          </item>
-          <item row="11" column="1">
-           <widget class="QgsDoubleSpinBox" name="spinBoxGeometryMoveX">
-            <property name="decimals">
-             <number>3</number>
-            </property>
-            <property name="minimum">
-             <double>-100000.000000000000000</double>
-            </property>
-            <property name="maximum">
-             <double>100000.000000000000000</double>
-            </property>
-           </widget>
-          </item>
-          <item row="14" column="1">
-           <layout class="QHBoxLayout" name="horizontalLayout_2">
-            <property name="leftMargin">
-             <number>0</number>
-            </property>
-            <property name="topMargin">
-             <number>0</number>
-            </property>
-            <property name="rightMargin">
-             <number>0</number>
-            </property>
-            <property name="bottomMargin">
-             <number>0</number>
-            </property>
-            <item>
-             <widget class="QPushButton" name="btnGeometryMoveRun">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="toolTip">
-               <string/>
-              </property>
-              <property name="styleSheet">
-               <string notr="true">background-color : green</string>
-              </property>
+            <item row="4" column="0">
+             <widget class="QLabel" name="label_22">
               <property name="text">
-               <string>Ausführen</string>
+               <string>Typ</string>
               </property>
              </widget>
             </item>
-            <item>
-             <widget class="QPushButton" name="btnGeometryMoveReverse">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
+            <item row="4" column="1">
+             <layout class="QHBoxLayout" name="horizontalLayout">
+              <item>
+               <widget class="QRadioButton" name="radioGeometryMoveRelativ">
+                <property name="text">
+                 <string>relativ</string>
+                </property>
+                <property name="checked">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QRadioButton" name="radioGeometryMoveAbsolut">
+                <property name="text">
+                 <string>absolut</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item row="6" column="0">
+             <widget class="QLabel" name="label_23">
               <property name="text">
-               <string>Rückgängig</string>
+               <string>Z - Versatz</string>
               </property>
              </widget>
             </item>
-           </layout>
-          </item>
-          <item row="16" column="1">
-           <spacer name="verticalSpacer">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeType">
-             <enum>QSizePolicy::Maximum</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>1000</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item row="18" column="1">
-           <layout class="QHBoxLayout" name="horizontalLayout_3">
-            <property name="topMargin">
-             <number>0</number>
-            </property>
-            <property name="rightMargin">
-             <number>0</number>
-            </property>
-            <property name="bottomMargin">
-             <number>0</number>
-            </property>
-            <item>
-             <spacer name="horizontalSpacer_4">
+            <item row="6" column="1">
+             <widget class="QgsDoubleSpinBox" name="spinBoxGeometryMoveZ">
+              <property name="decimals">
+               <number>3</number>
+              </property>
+              <property name="minimum">
+               <double>-10000.000000000000000</double>
+              </property>
+              <property name="maximum">
+               <double>10000.000000000000000</double>
+              </property>
+             </widget>
+            </item>
+            <item row="8" column="0">
+             <widget class="QLabel" name="label_24">
+              <property name="text">
+               <string>Y - Versatz</string>
+              </property>
+             </widget>
+            </item>
+            <item row="8" column="1">
+             <widget class="QgsDoubleSpinBox" name="spinBoxGeometryMoveY">
+              <property name="decimals">
+               <number>3</number>
+              </property>
+              <property name="minimum">
+               <double>-100000.000000000000000</double>
+              </property>
+              <property name="maximum">
+               <double>100000.000000000000000</double>
+              </property>
+             </widget>
+            </item>
+            <item row="11" column="0">
+             <widget class="QLabel" name="label_25">
+              <property name="text">
+               <string>X - Versatz</string>
+              </property>
+             </widget>
+            </item>
+            <item row="11" column="1">
+             <widget class="QgsDoubleSpinBox" name="spinBoxGeometryMoveX">
+              <property name="decimals">
+               <number>3</number>
+              </property>
+              <property name="minimum">
+               <double>-100000.000000000000000</double>
+              </property>
+              <property name="maximum">
+               <double>100000.000000000000000</double>
+              </property>
+             </widget>
+            </item>
+            <item row="14" column="1">
+             <layout class="QHBoxLayout" name="horizontalLayout_2">
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
+               <number>0</number>
+              </property>
+              <property name="bottomMargin">
+               <number>0</number>
+              </property>
+              <item>
+               <widget class="QPushButton" name="btnGeometryMoveRun">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="toolTip">
+                 <string/>
+                </property>
+                <property name="styleSheet">
+                 <string notr="true">background-color : green</string>
+                </property>
+                <property name="text">
+                 <string>Ausführen</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btnGeometryMoveReverse">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="text">
+                 <string>Rückgängig</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item row="18" column="1">
+             <layout class="QHBoxLayout" name="horizontalLayout_3">
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
+               <number>0</number>
+              </property>
+              <property name="bottomMargin">
+               <number>0</number>
+              </property>
+              <item>
+               <spacer name="horizontalSpacer_4">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeType">
+                 <enum>QSizePolicy::Expanding</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btnGeometryMoveInfo">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="text">
+                 <string>Infos</string>
+                </property>
+                <property name="default">
+                 <bool>false</bool>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item row="16" column="1">
+             <spacer name="verticalSpacer">
               <property name="orientation">
-               <enum>Qt::Horizontal</enum>
+               <enum>Qt::Vertical</enum>
               </property>
               <property name="sizeType">
-               <enum>QSizePolicy::Expanding</enum>
+               <enum>QSizePolicy::Maximum</enum>
               </property>
               <property name="sizeHint" stdset="0">
                <size>
-                <width>40</width>
-                <height>20</height>
+                <width>20</width>
+                <height>1000</height>
                </size>
               </property>
              </spacer>
             </item>
-            <item>
-             <widget class="QPushButton" name="btnGeometryMoveInfo">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="text">
-               <string>Infos</string>
-              </property>
-              <property name="default">
-               <bool>false</bool>
-              </property>
-             </widget>
-            </item>
            </layout>
-          </item>
-         </layout>
-        </widget>
-        <widget class="QWidget" name="lfaWidgetVerschneiden">
-         <property name="styleSheet">
-          <string notr="true">#lfaWidgetVerschneiden{
+          </widget>
+          <widget class="QWidget" name="lfaWidgetVerschneiden">
+           <property name="styleSheet">
+            <string notr="true">#lfaWidgetVerschneiden{
 	background-color: rgb(240,240,240)
 }</string>
-         </property>
-         <attribute name="title">
-          <string>Verschneiden</string>
-         </attribute>
-         <widget class="QPushButton" name="butContactClip">
-          <property name="geometry">
-           <rect>
-            <x>7</x>
-            <y>10</y>
-            <width>32</width>
-            <height>28</height>
-           </rect>
-          </property>
-          <property name="autoFillBackground">
-           <bool>false</bool>
-          </property>
-          <property name="styleSheet">
-           <string notr="true"/>
-          </property>
-          <property name="text">
-           <string/>
-          </property>
-          <property name="icon">
-           <iconset>
-            <normaloff>Icons/butContactClip.gif</normaloff>Icons/butContactClip.gif</iconset>
-          </property>
-          <property name="iconSize">
-           <size>
-            <width>20</width>
-            <height>20</height>
-           </size>
-          </property>
-         </widget>
-         <widget class="QPushButton" name="butInsideClip">
-          <property name="geometry">
-           <rect>
-            <x>73</x>
-            <y>10</y>
-            <width>32</width>
-            <height>28</height>
-           </rect>
-          </property>
-          <property name="autoFillBackground">
-           <bool>false</bool>
-          </property>
-          <property name="styleSheet">
-           <string notr="true"/>
-          </property>
-          <property name="text">
-           <string/>
-          </property>
-          <property name="icon">
-           <iconset>
-            <normaloff>Icons/butInsideClip.gif</normaloff>Icons/butInsideClip.gif</iconset>
-          </property>
-          <property name="iconSize">
-           <size>
-            <width>20</width>
-            <height>20</height>
-           </size>
-          </property>
-         </widget>
-         <widget class="QPushButton" name="butOutsideClip">
-          <property name="geometry">
-           <rect>
-            <x>40</x>
-            <y>10</y>
-            <width>32</width>
-            <height>28</height>
-           </rect>
-          </property>
-          <property name="autoFillBackground">
-           <bool>false</bool>
-          </property>
-          <property name="styleSheet">
-           <string notr="true"/>
-          </property>
-          <property name="text">
-           <string/>
-          </property>
-          <property name="icon">
-           <iconset>
-            <normaloff>Icons/butOutsideClip.gif</normaloff>Icons/butOutsideClip.gif</iconset>
-          </property>
-          <property name="iconSize">
-           <size>
-            <width>20</width>
-            <height>20</height>
-           </size>
-          </property>
-         </widget>
-        </widget>
-        <widget class="QWidget" name="lfaWidgetSonstiges">
-         <property name="styleSheet">
-          <string notr="true">#lfaWidgetSonstiges{
+           </property>
+           <attribute name="title">
+            <string>Verschneiden</string>
+           </attribute>
+           <widget class="QPushButton" name="butContactClip">
+            <property name="geometry">
+             <rect>
+              <x>7</x>
+              <y>10</y>
+              <width>32</width>
+              <height>28</height>
+             </rect>
+            </property>
+            <property name="autoFillBackground">
+             <bool>false</bool>
+            </property>
+            <property name="styleSheet">
+             <string notr="true"/>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset>
+              <normaloff>Icons/butContactClip.gif</normaloff>Icons/butContactClip.gif</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>20</width>
+              <height>20</height>
+             </size>
+            </property>
+           </widget>
+           <widget class="QPushButton" name="butInsideClip">
+            <property name="geometry">
+             <rect>
+              <x>73</x>
+              <y>10</y>
+              <width>32</width>
+              <height>28</height>
+             </rect>
+            </property>
+            <property name="autoFillBackground">
+             <bool>false</bool>
+            </property>
+            <property name="styleSheet">
+             <string notr="true"/>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset>
+              <normaloff>Icons/butInsideClip.gif</normaloff>Icons/butInsideClip.gif</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>20</width>
+              <height>20</height>
+             </size>
+            </property>
+           </widget>
+           <widget class="QPushButton" name="butOutsideClip">
+            <property name="geometry">
+             <rect>
+              <x>40</x>
+              <y>10</y>
+              <width>32</width>
+              <height>28</height>
+             </rect>
+            </property>
+            <property name="autoFillBackground">
+             <bool>false</bool>
+            </property>
+            <property name="styleSheet">
+             <string notr="true"/>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset>
+              <normaloff>Icons/butOutsideClip.gif</normaloff>Icons/butOutsideClip.gif</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>20</width>
+              <height>20</height>
+             </size>
+            </property>
+           </widget>
+          </widget>
+          <widget class="QWidget" name="lfaWidgetSonstiges">
+           <property name="styleSheet">
+            <string notr="true">#lfaWidgetSonstiges{
 	background-color: rgb(240,240,240)
 }</string>
-         </property>
-         <attribute name="title">
-          <string>Sonstiges</string>
-         </attribute>
-         <widget class="QPushButton" name="butLineRes">
-          <property name="geometry">
-           <rect>
-            <x>10</x>
-            <y>10</y>
-            <width>32</width>
-            <height>28</height>
-           </rect>
-          </property>
-          <property name="autoFillBackground">
-           <bool>false</bool>
-          </property>
-          <property name="styleSheet">
-           <string notr="true"/>
-          </property>
-          <property name="text">
-           <string/>
-          </property>
-          <property name="icon">
-           <iconset>
-            <normalon>Icons/LineRe.gif</normalon>
-           </iconset>
-          </property>
-          <property name="iconSize">
-           <size>
-            <width>20</width>
-            <height>20</height>
-           </size>
-          </property>
+           </property>
+           <attribute name="title">
+            <string>Sonstiges</string>
+           </attribute>
+           <widget class="QPushButton" name="butLineRes">
+            <property name="geometry">
+             <rect>
+              <x>10</x>
+              <y>10</y>
+              <width>32</width>
+              <height>28</height>
+             </rect>
+            </property>
+            <property name="autoFillBackground">
+             <bool>false</bool>
+            </property>
+            <property name="styleSheet">
+             <string notr="true"/>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset>
+              <normalon>Icons/LineRe.gif</normalon>
+             </iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>20</width>
+              <height>20</height>
+             </size>
+            </property>
+           </widget>
+          </widget>
          </widget>
-        </widget>
-       </widget>
+        </item>
+       </layout>
       </widget>
       <widget class="QWidget" name="tab_8">
        <attribute name="title">
         <string>Profile</string>
        </attribute>
-       <widget class="QTabWidget" name="profileMainTabWidget">
-        <property name="geometry">
-         <rect>
-          <x>3</x>
-          <y>6</y>
-          <width>400</width>
-          <height>589</height>
-         </rect>
-        </property>
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">#profileMainTabWidget{
+       <layout class="QVBoxLayout" name="verticalLayout_3">
+        <item>
+         <widget class="QTabWidget" name="profileMainTabWidget">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">#profileMainTabWidget{
 	background-color:  rgb(240,240,240)
 }</string>
-        </property>
-        <property name="currentIndex">
-         <number>1</number>
-        </property>
-        <widget class="QWidget" name="profileGeoreferencing">
-         <property name="styleSheet">
-          <string notr="true">#profileGeoreferencing{
+          </property>
+          <property name="currentIndex">
+           <number>0</number>
+          </property>
+          <widget class="QWidget" name="profileGeoreferencing">
+           <property name="styleSheet">
+            <string notr="true">#profileGeoreferencing{
 	background-color:  rgb(240,240,240)
 }</string>
-         </property>
-         <attribute name="title">
-          <string>Georeferenzierung</string>
-         </attribute>
-         <layout class="QFormLayout" name="formLayout_5">
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_36">
-            <property name="text">
-             <string>Profillayer</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QgsMapLayerComboBox" name="layerProfileGeoref"/>
-          </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="label_40">
-            <property name="text">
-             <string>Profilnummer</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QComboBox" name="profileIdsComboGeoref"/>
-          </item>
-          <item row="4" column="0">
-           <widget class="QLabel" name="label_41">
-            <property name="text">
-             <string>Punktlayer</string>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="1">
-           <widget class="QgsMapLayerComboBox" name="layerGcpGeoref"/>
-          </item>
-          <item row="5" column="0">
-           <widget class="QLabel" name="label_42">
-            <property name="text">
-             <string>Profilfoto</string>
-            </property>
-           </widget>
-          </item>
-          <item row="5" column="1">
-           <widget class="QgsFileWidget" name="profileFotosComboGeoref"/>
-          </item>
-          <item row="6" column="0">
-           <widget class="QLabel" name="label_43">
-            <property name="text">
-             <string>Blickrichtung auf das Profil</string>
-            </property>
-           </widget>
-          </item>
-          <item row="6" column="1">
-           <widget class="QComboBox" name="profileViewDirectionComboGeoref"/>
-          </item>
-          <item row="8" column="0">
-           <widget class="QLabel" name="label_44">
-            <property name="text">
-             <string>Entzerrungsebene</string>
-            </property>
-           </widget>
-          </item>
-          <item row="8" column="1">
-           <layout class="QHBoxLayout" name="horizontalLayout_5">
-            <item>
-             <widget class="QRadioButton" name="radioDirectionHorizontal">
+           </property>
+           <attribute name="title">
+            <string>Georeferenzierung</string>
+           </attribute>
+           <layout class="QFormLayout" name="formLayout_5">
+            <item row="0" column="0">
+             <widget class="QLabel" name="label_36">
               <property name="text">
-               <string>Vertikal</string>
-              </property>
-              <property name="checked">
-               <bool>true</bool>
+               <string>Profillayer</string>
               </property>
              </widget>
             </item>
-            <item>
-             <widget class="QRadioButton" name="radioDirectionOriginal">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
+            <item row="0" column="1">
+             <widget class="QgsMapLayerComboBox" name="layerProfileGeoref"/>
+            </item>
+            <item row="2" column="0">
+             <widget class="QLabel" name="label_40">
               <property name="text">
-               <string>Geneigt</string>
+               <string>Profilnummer</string>
               </property>
              </widget>
             </item>
-           </layout>
-          </item>
-          <item row="10" column="0">
-           <widget class="QLabel" name="label_45">
-            <property name="text">
-             <string>Speichern unter</string>
-            </property>
-           </widget>
-          </item>
-          <item row="10" column="1">
-           <widget class="QLineEdit" name="profileTargetName"/>
-          </item>
-          <item row="11" column="1">
-           <widget class="QPushButton" name="startGeoreferencingBtn">
-            <property name="styleSheet">
-             <string notr="true">background-color : green</string>
-            </property>
-            <property name="text">
-             <string>Start</string>
-            </property>
-           </widget>
-          </item>
-          <item row="12" column="1">
-           <spacer name="verticalSpacer_4">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeType">
-             <enum>QSizePolicy::Maximum</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>1000</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item row="13" column="1">
-           <layout class="QHBoxLayout" name="horizontalLayout_6">
-            <property name="topMargin">
-             <number>9</number>
-            </property>
-            <property name="bottomMargin">
-             <number>9</number>
-            </property>
-            <item>
-             <spacer name="horizontalSpacer_6">
+            <item row="2" column="1">
+             <widget class="QComboBox" name="profileIdsComboGeoref"/>
+            </item>
+            <item row="4" column="0">
+             <widget class="QLabel" name="label_41">
+              <property name="text">
+               <string>Punktlayer</string>
+              </property>
+             </widget>
+            </item>
+            <item row="4" column="1">
+             <widget class="QgsMapLayerComboBox" name="layerGcpGeoref"/>
+            </item>
+            <item row="5" column="0">
+             <widget class="QLabel" name="label_42">
+              <property name="text">
+               <string>Profilfoto</string>
+              </property>
+             </widget>
+            </item>
+            <item row="5" column="1">
+             <widget class="QgsFileWidget" name="profileFotosComboGeoref"/>
+            </item>
+            <item row="6" column="0">
+             <widget class="QLabel" name="label_43">
+              <property name="text">
+               <string>Blickrichtung auf das Profil</string>
+              </property>
+             </widget>
+            </item>
+            <item row="6" column="1">
+             <widget class="QComboBox" name="profileViewDirectionComboGeoref"/>
+            </item>
+            <item row="8" column="0">
+             <widget class="QLabel" name="label_44">
+              <property name="text">
+               <string>Entzerrungsebene</string>
+              </property>
+             </widget>
+            </item>
+            <item row="8" column="1">
+             <layout class="QHBoxLayout" name="horizontalLayout_5">
+              <item>
+               <widget class="QRadioButton" name="radioDirectionHorizontal">
+                <property name="text">
+                 <string>Vertikal</string>
+                </property>
+                <property name="checked">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QRadioButton" name="radioDirectionOriginal">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="text">
+                 <string>Geneigt</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item row="10" column="0">
+             <widget class="QLabel" name="label_45">
+              <property name="text">
+               <string>Speichern unter</string>
+              </property>
+             </widget>
+            </item>
+            <item row="10" column="1">
+             <widget class="QLineEdit" name="profileTargetName"/>
+            </item>
+            <item row="11" column="1">
+             <widget class="QPushButton" name="startGeoreferencingBtn">
+              <property name="styleSheet">
+               <string notr="true">background-color : green</string>
+              </property>
+              <property name="text">
+               <string>Start</string>
+              </property>
+             </widget>
+            </item>
+            <item row="12" column="1">
+             <spacer name="verticalSpacer_4">
               <property name="orientation">
-               <enum>Qt::Horizontal</enum>
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeType">
+               <enum>QSizePolicy::Maximum</enum>
               </property>
               <property name="sizeHint" stdset="0">
                <size>
-                <width>40</width>
-                <height>20</height>
+                <width>20</width>
+                <height>1000</height>
                </size>
               </property>
              </spacer>
             </item>
-            <item>
-             <widget class="QPushButton" name="profileInfoBtn">
+            <item row="13" column="1">
+             <layout class="QHBoxLayout" name="horizontalLayout_6">
+              <property name="topMargin">
+               <number>9</number>
+              </property>
+              <property name="bottomMargin">
+               <number>0</number>
+              </property>
+              <item>
+               <spacer name="horizontalSpacer_6">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item>
+               <widget class="QPushButton" name="profileInfoBtn">
+                <property name="text">
+                 <string>Infos</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </widget>
+          <widget class="QWidget" name="profileDigitalization">
+           <property name="styleSheet">
+            <string notr="true">#profileDigitalization{
+	background-color:  rgb(240,240,240)
+}</string>
+           </property>
+           <attribute name="title">
+            <string>Digitalisierung</string>
+           </attribute>
+           <layout class="QFormLayout" name="formLayout_6">
+            <item row="1" column="0">
+             <widget class="QLabel" name="label_46">
               <property name="text">
-               <string>Info</string>
+               <string>Profilbild</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="0">
+             <widget class="QLabel" name="label_47">
+              <property name="text">
+               <string>Punktlayer</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="1">
+             <widget class="QgsMapLayerComboBox" name="pointLayerDigitize"/>
+            </item>
+            <item row="3" column="0">
+             <widget class="QLabel" name="label_48">
+              <property name="text">
+               <string>Linienlayer</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="1">
+             <widget class="QgsMapLayerComboBox" name="lineLayerDigitize"/>
+            </item>
+            <item row="7" column="1">
+             <widget class="QPushButton" name="startDigitizeBtn">
+              <property name="styleSheet">
+               <string notr="true">background-color : green</string>
+              </property>
+              <property name="text">
+               <string>Start</string>
+              </property>
+             </widget>
+            </item>
+            <item row="5" column="0">
+             <widget class="QLabel" name="label_49">
+              <property name="text">
+               <string>Polygonlayer</string>
+              </property>
+             </widget>
+            </item>
+            <item row="5" column="1">
+             <widget class="QgsMapLayerComboBox" name="polygonLayerDigitize"/>
+            </item>
+            <item row="1" column="1">
+             <widget class="QgsFileWidget" name="profileDigitize"/>
+            </item>
+           </layout>
+          </widget>
+          <widget class="QWidget" name="profilePlan">
+           <property name="styleSheet">
+            <string notr="true">#profilePlan{
+	background-color:  rgb(240,240,240)
+}</string>
+           </property>
+           <attribute name="title">
+            <string>Profilplan</string>
+           </attribute>
+           <layout class="QFormLayout" name="formLayout_7">
+            <item row="0" column="0">
+             <widget class="QLabel" name="label_50">
+              <property name="text">
+               <string>Profilbild</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QgsFileWidget" name="profilePlanSelect">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="styleSheet">
+               <string notr="true"/>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="1">
+             <widget class="QPushButton" name="startPlanBtn">
+              <property name="styleSheet">
+               <string notr="true">background-color : green</string>
+              </property>
+              <property name="text">
+               <string>Start</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QDoubleSpinBox" name="profileBufferSpinBox">
+              <property name="maximum">
+               <double>5.000000000000000</double>
+              </property>
+              <property name="singleStep">
+               <double>0.010000000000000</double>
+              </property>
+              <property name="value">
+               <double>1.000000000000000</double>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QLabel" name="label_51">
+              <property name="text">
+               <string>Profilbuffer [m]</string>
               </property>
              </widget>
             </item>
            </layout>
-          </item>
-         </layout>
-        </widget>
-        <widget class="QWidget" name="profileDigitalization">
-         <property name="styleSheet">
-          <string notr="true">#profileDigitalization{
-	background-color:  rgb(240,240,240)
-}</string>
-         </property>
-         <attribute name="title">
-          <string>Digitalisierung</string>
-         </attribute>
-         <layout class="QFormLayout" name="formLayout_6">
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_46">
-            <property name="text">
-             <string>Profilbild</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="label_47">
-            <property name="text">
-             <string>Punktlayer</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QgsMapLayerComboBox" name="pointLayerDigitize"/>
-          </item>
-          <item row="3" column="0">
-           <widget class="QLabel" name="label_48">
-            <property name="text">
-             <string>Linienlayer</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="1">
-           <widget class="QgsMapLayerComboBox" name="lineLayerDigitize"/>
-          </item>
-          <item row="7" column="1">
-           <widget class="QPushButton" name="startDigitizeBtn">
-            <property name="styleSheet">
-             <string notr="true">background-color : green</string>
-            </property>
-            <property name="text">
-             <string>Start</string>
-            </property>
-           </widget>
-          </item>
-          <item row="5" column="0">
-           <widget class="QLabel" name="label_49">
-            <property name="text">
-             <string>Polygonlayer</string>
-            </property>
-           </widget>
-          </item>
-          <item row="5" column="1">
-           <widget class="QgsMapLayerComboBox" name="polygonLayerDigitize"/>
-          </item>
-          <item row="1" column="1">
-           <widget class="QgsFileWidget" name="profileDigitize"/>
-          </item>
-         </layout>
-        </widget>
-        <widget class="QWidget" name="profilePlan">
-         <property name="styleSheet">
-          <string notr="true">#profilePlan{
-	background-color:  rgb(240,240,240)
-}</string>
-         </property>
-         <attribute name="title">
-          <string>Profilplan</string>
-         </attribute>
-         <layout class="QFormLayout" name="formLayout_7">
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_50">
-            <property name="text">
-             <string>Profilbild</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QgsFileWidget" name="profilePlanSelect">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="styleSheet">
-             <string notr="true"/>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QPushButton" name="startPlanBtn">
-            <property name="styleSheet">
-             <string notr="true">background-color : green</string>
-            </property>
-            <property name="text">
-             <string>Start</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QDoubleSpinBox" name="profileBufferSpinBox">
-            <property name="maximum">
-             <double>5.000000000000000</double>
-            </property>
-            <property name="singleStep">
-             <double>0.010000000000000</double>
-            </property>
-            <property name="value">
-             <double>1.000000000000000</double>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_51">
-            <property name="text">
-             <string>Profilbuffer [m]</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </widget>
+          </widget>
+         </widget>
+        </item>
+       </layout>
       </widget>
       <widget class="QWidget" name="tab_4">
        <attribute name="title">
@@ -3371,19 +3347,6 @@
        <attribute name="title">
         <string>Drucklayout</string>
        </attribute>
-       <widget class="QPushButton" name="pushButton_8">
-        <property name="geometry">
-         <rect>
-          <x>4</x>
-          <y>42</y>
-          <width>197</width>
-          <height>29</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>Test</string>
-        </property>
-       </widget>
        <widget class="QPushButton" name="butSchriftfeld">
         <property name="geometry">
          <rect>

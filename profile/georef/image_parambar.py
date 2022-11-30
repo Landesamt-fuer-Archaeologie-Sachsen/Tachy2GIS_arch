@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
+from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QLabel, QFrame, QSizePolicy, QToolBar, QAction, QLineEdit
 
@@ -42,13 +43,14 @@ class ImageParambar(QWidget):
         self.createActionExtent()
 
         self.toolbarCoord = QToolBar("Coordinates", self)
-        self.coordLabel = QLabel("Koordinate ")
         self.coordLineEdit = QLineEdit()
+        self.coordLineEdit.setAlignment(Qt.AlignCenter)
         self.coordLineEdit.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
         self.coordLineEdit.setReadOnly(True)
-        self.coordLineEdit.setMinimumWidth(150);
+        self.coordLineEditFm = self.coordLineEdit.fontMetrics()
+        width_text = self.coordLineEditFm.width('xxxxxx.xx,xxxxxx.xx')
+        self.coordLineEdit.setMinimumWidth(width_text + 30)
 
-        self.toolbarCoord.addWidget(self.coordLabel)
         self.toolbarCoord.addWidget(self.coordLineEdit)
 
 

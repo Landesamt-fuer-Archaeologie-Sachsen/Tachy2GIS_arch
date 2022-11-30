@@ -14,6 +14,7 @@ from .profile_georef_table import GeorefTable
 from .image_parambar import ImageParambar
 from .gcp_parambar import GcpParambar
 from .image_georef import ImageGeoref
+from .data_store_georef import DataStoreGeoref
 
 from ..profileAAR.profileAAR import profileAAR
 
@@ -26,8 +27,8 @@ from ..profileAAR.profileAAR import profileAAR
 
 class GeoreferencingDialog(QMainWindow):
 
-    def __init__(self, t2GArchInstance, dataStoreGeoref, rotationCoords, iFace):
-
+    def __init__(self, t2GArchInstance, rotationCoords, iFace):
+        print('Start GeoreferencingDialog')
         super(GeoreferencingDialog, self).__init__()
         self.iconpath = os.path.join(os.path.dirname(__file__), '...', 'Icons')
         self.t2GArchInstance = t2GArchInstance
@@ -36,7 +37,7 @@ class GeoreferencingDialog(QMainWindow):
         self.__iface = iFace
         self.aarDirection = 'horizontal'
         #DataStore
-        self.dataStoreGeoref = dataStoreGeoref
+        self.dataStoreGeoref = DataStoreGeoref()
         self.rotationCoords = rotationCoords
 
         self.createMenu()
@@ -57,7 +58,7 @@ class GeoreferencingDialog(QMainWindow):
     # creates the menuBar at upper part of the window and statusBar in the lower part
     #
     def createMenu(self):
-
+        print('Start createMenu')
         self.statusBar()
 
         self.statusBar().reformat()
@@ -68,7 +69,7 @@ class GeoreferencingDialog(QMainWindow):
 
         exitAct.setShortcut('Ctrl+Q')
         exitAct.setStatusTip('Anwendung schließen')
-        exitAct.triggered.connect(self.close)
+        exitAct.triggered.connect(self.destroyDialog)
 
         menubar = self.menuBar()
         fileMenu = menubar.addMenu('&Datei')
@@ -85,7 +86,7 @@ class GeoreferencingDialog(QMainWindow):
 
     # @returns
     def createComponents(self):
-
+        print('Start createComponents')
         #messageBar
         self.messageBar = QgsMessageBar()
 
@@ -118,7 +119,7 @@ class GeoreferencingDialog(QMainWindow):
     #
 
     def createConnects(self):
-
+        print('Start createConnects')
         self.georefTable.pup.register('activatePoint', self.canvasGcp.setActivePoint)
         self.georefTable.pup.register('activatePoint', self.canvasImage.setActivePoint)
         self.georefTable.pup.register('activatePoint', self.imageParambar.activateMapToolMove)
@@ -126,16 +127,19 @@ class GeoreferencingDialog(QMainWindow):
         self.canvasImage.pup.register('imagePointCoordinates', self.dataStoreGeoref.addImagePoint)
         self.canvasImage.pup.register('imagePointCoordinates', self.georefTable.updateErrorValues)
 
-        self.georefTable.pup.register('dataChanged', self.profileAAR.run)
+        self.startGeorefBtn.clicked.connect(self.startGeoreferencing)
 
+        self.georefTable.pup.register('dataChanged', self.profileAAR.run)
+    
         self.profileAAR.pup.register('aarPointsChanged', self.dataStoreGeoref.addAarPoints)
 
         self.dataStoreGeoref.pup.register('pushTransformationParams', self.rotationCoords.setAarTransformationParams)
+        self.dataStoreGeoref.pup.register('pushAarPoints', self.canvasImage.updateAarPoints)
 
         self.canvasGcp.pup.register('moveCoordinate',self.gcpParambar.updateCoordinate)
         self.canvasImage.pup.register('moveCoordinate',self.imageParambar.updateCoordinate)
 
-        self.startGeorefBtn.clicked.connect(self.startGeoreferencing)
+        
 
     ## \brief create actions
     #
@@ -260,6 +264,8 @@ class GeoreferencingDialog(QMainWindow):
 
     def startGeoreferencing(self):
 
+        print('huhu_startGeoreferencing')
+
         aarDirections = ['horizontal', 'original', 'absolute height']
 
         for aarDirection in aarDirections:
@@ -285,5 +291,10 @@ class GeoreferencingDialog(QMainWindow):
                 fileName = self.writeMetafile(aarDirection, metaFileOut)
                 self.__iface.messageBar().pushMessage("Hinweis", "Das Profil wurde unter "+str(imageFileOut)+" referenziert", level=3, duration=5)
 
+        self.destroyDialog()
+
+    def destroyDialog(self):
+        print('ich werde geschlossen')
         self.close()
         self.destroy()
+        

@@ -92,15 +92,56 @@ class DataStoreGeoref():
 
         aarDirection = aarList['aar_direction']
 
+        if aarDirection == 'original':
+
+            aarArray = []
+            #Punkte
+            for pointObj in aarList['coord_trans']:
+
+                aarArray.append({
+                    'uuid': pointObj[8],
+                    'ptnr': str(pointObj[7]),
+                    'x': pointObj[0],
+                    'y': pointObj[1],
+                    'z': pointObj[2],
+                    'z_org': pointObj[4],
+                    'distance': pointObj[5],
+                    'usage': pointObj[6]
+                })
+
+            self.pup.publish('pushAarPoints', aarArray)
+
+            self.aarPointsOriginal = aarArray
+            
+        if aarDirection == 'absolute height':
+
+            aarArray = []
+            #Punkte
+            for pointObj in aarList['coord_trans']:
+
+                aarArray.append({
+                    'uuid': pointObj[8],
+                    'ptnr': str(pointObj[7]),
+                    'x': pointObj[0],
+                    'y': pointObj[1],
+                    'z': pointObj[2],
+                    'z_org': pointObj[4],
+                    'distance': pointObj[5],
+                    'usage': pointObj[6]
+                })
+
+            self.pup.publish('pushAarPoints', aarArray)
+
+            self.aarPointsAbsolute = aarArray
+
         if aarDirection == 'horizontal':
 
-            self.aarPointsHorizontal = []
-
+            aarArray = []
             min_x_array = []
             #Punkte
             for pointObj in aarList['coord_trans']:
 
-                self.aarPointsHorizontal.append({
+                aarArray.append({
                     'uuid': pointObj[8],
                     'ptnr': str(pointObj[7]),
                     'x': pointObj[0],
@@ -113,6 +154,10 @@ class DataStoreGeoref():
 
                 min_x_array.append(pointObj[0])
 
+            self.pup.publish('pushAarPoints', aarArray)
+
+            self.aarPointsHorizontal = aarArray   
+
             #Transformationsparameter
             transformationParams = aarList['transformationParams']
             z_slope = aarList['linegress'][0]
@@ -123,42 +168,7 @@ class DataStoreGeoref():
 
             transformationParams['min_x'] = min(min_x_array)
 
-
-            self.updateAarTransformationParams(transformationParams)
-
-        if aarDirection == 'original':
-        
-            self.aarPointsOriginal = []
-
-            for pointObj in aarList['coord_trans']:
-
-                self.aarPointsOriginal.append({
-                    'uuid': pointObj[8],
-                    'ptnr': str(pointObj[7]),
-                    'x': pointObj[0],
-                    'y': pointObj[1],
-                    'z': pointObj[2],
-                    'z_org': pointObj[4],
-                    'distance': pointObj[5],
-                    'usage': pointObj[6]
-                })
-
-        if aarDirection == 'absolute height':
-        
-            self.aarPointsAbsolute = []
-
-            for pointObj in aarList['coord_trans']:
-
-                self.aarPointsAbsolute.append({
-                    'uuid': pointObj[8],
-                    'ptnr': str(pointObj[7]),
-                    'x': pointObj[0],
-                    'y': pointObj[1],
-                    'z': pointObj[2],
-                    'z_org': pointObj[4],
-                    'distance': pointObj[5],
-                    'usage': pointObj[6]
-                })
+            self.updateAarTransformationParams(transformationParams)        
 
 
     def updateAarTransformationParams(self, params):

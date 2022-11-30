@@ -37,7 +37,10 @@ class MapToolDigiPolygon(QgsMapTool, MapToolMixin):
         if event.button() == Qt.RightButton:
 
             self.featGeometry = self.rubberband.asGeometry()
-            self.showdialog()
+
+            if self.featGeometry:
+                if len(self.points) > 2:
+                    self.showdialog()
 
         else:
 
@@ -85,6 +88,20 @@ class MapToolDigiPolygon(QgsMapTool, MapToolMixin):
         self.clearRubberband()
         self.refData['polygonLayer'].commitChanges()
 
+
+    def writeToTable(self, fields, feature):
+
+        dataObj = {}
+
+        for item in fields:
+
+            if item.name() == 'uuid' or item.name() == 'id' or item.name() == 'obj_type' or item.name() == 'obj_art' or item.name() == 'zeit' or item.name() == 'material' or item.name() == 'bemerkung' or item.name() == 'bef_nr' or item.name() == 'fund_nr' or item.name() == 'prob_nr':
+                dataObj[item.name()] = feature[item.name()]
+
+        dataObj['layer'] = self.refData['polygonLayer'].sourceName()
+
+        self.pup.publish('polygonFeatureAttr', dataObj)
+
     def acceptedAttributeDialog(self):
 
         print('acceptedAttributeDialog')
@@ -99,18 +116,13 @@ class MapToolDigiPolygon(QgsMapTool, MapToolMixin):
         self.clearRubberband()
 
         dialogFeature = self.dialogAttributes.feature()
-        dataObj = {}
 
-        for item in self.feat.fields():
-
-            if item.name() == 'uuid' or item.name() == 'id' or item.name() == 'obj_type' or item.name() == 'obj_art' or item.name() == 'zeit' or item.name() == 'material' or item.name() == 'bemerkung':
-                dataObj[item.name()] = dialogFeature[item.name()]
-
-        dataObj['layer'] = self.refData['polygonLayer'].sourceName()
-
+        #write to table
+        self.writeToTable(self.feat.fields(), dialogFeature)
+        
         self.digiPolygonLayer.updateExtents()
         self.canvas.refresh()
-        self.pup.publish('polygonFeatureAttr', dataObj)
+        
 
     def clearRubberband(self):
         self.rubberband.reset(QgsWkbTypes.PolygonGeometry)
@@ -171,14 +183,7 @@ class MapToolDigiPolygon(QgsMapTool, MapToolMixin):
                         selFeatures.append(rotFeature)
 
                         #write to table
-                        dataObj = {}
-                        for item in feature.fields():
-                            if item.name() == 'uuid' or item.name() == 'id' or item.name() == 'obj_type' or item.name() == 'obj_art' or item.name() == 'zeit' or item.name() == 'material' or item.name() == 'bemerkung':
-                                dataObj[item.name()] = feature[item.name()]
-
-                        dataObj['layer'] = self.refData['polygonLayer'].sourceName()
-
-                        self.pup.publish('polygonFeatureAttr', dataObj)
+                        self.writeToTable(feature.fields(), feature)
 
 
         pr.addFeatures(selFeatures)

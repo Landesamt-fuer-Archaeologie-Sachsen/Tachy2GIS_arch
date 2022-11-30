@@ -19,7 +19,7 @@ class Parambar(QWidget):
     # Creates labels with styles
     # @param dialogInstance pointer to the dialogInstance
 
-    def __init__(self, dialogInstance, canvasDigitize, toolDigiPoint, toolDigiLine, toolDigiPolygon, toolEditPoint, toolEditLine, toolEditPolygon, rotationCoords):
+    def __init__(self, dialogInstance, canvasDigitize, toolIdentify, toolDigiPoint, toolDigiLine, toolDigiPolygon, toolEditPoint, toolEditLine, toolEditPolygon, rotationCoords):
 
         super(Parambar, self).__init__()
 
@@ -32,6 +32,7 @@ class Parambar(QWidget):
         self.toolDigiPoint = toolDigiPoint
         self.toolDigiLine = toolDigiLine
         self.toolDigiPolygon = toolDigiPolygon
+        self.toolIdentify = toolIdentify
 
         self.toolEditPoint = toolEditPoint
         self.toolEditLine = toolEditLine
@@ -56,6 +57,7 @@ class Parambar(QWidget):
         self.createActionZoomIn()
         self.createActionZoomOut()
         self.createActionExtent()
+        self.createIdentifyAction()
 
         self.createGetObjectsAction()
 
@@ -73,14 +75,20 @@ class Parambar(QWidget):
 
         self.createTakeLayerAction()
 
+        
+
         self.activatePan()
 
         #Koordinatenanzeige
         self.toolbarCoord = QToolBar("Coordinates", self)
         self.coordLineEdit = QLineEdit()
         self.coordLineEdit.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
+
+        self.coordLineEdit.setAlignment(Qt.AlignCenter)
         self.coordLineEdit.setReadOnly(True)
-        self.coordLineEdit.setMinimumWidth(200);
+        self.coordLineEditFm = self.coordLineEdit.fontMetrics()
+        width_text = self.coordLineEditFm.width('xxxxxx.xxx,xxxxxxx.xxx,xxxx.xxx')
+        self.coordLineEdit.setMinimumWidth(width_text + 30)
         self.toolbarCoord.addWidget(self.coordLineEdit)
 
 
@@ -112,19 +120,19 @@ class Parambar(QWidget):
     def takeLayerObjects(self):
 
         try:
-            layer_id = self.activeLayerCombo.currentData()
-            if self.refData['pointLayer'].id() == layer_id:
-                self.toolDigiPoint.reverseRotation2Eingabelayer(layer_id)
-            if self.refData['lineLayer'].id() == layer_id:
-                self.toolDigiLine.reverseRotation2Eingabelayer(layer_id)
-            if self.refData['polygonLayer'].id() == layer_id:
-                self.toolDigiPolygon.reverseRotation2Eingabelayer(layer_id)
+            #layer_id = self.activeLayerCombo.currentData()
+            #if self.refData['pointLayer'].id() == layer_id:
+            self.toolDigiPoint.reverseRotation2Eingabelayer(self.refData['pointLayer'].id())
+            #if self.refData['lineLayer'].id() == layer_id:
+            self.toolDigiLine.reverseRotation2Eingabelayer(self.refData['lineLayer'].id())
+            #if self.refData['polygonLayer'].id() == layer_id:
+            self.toolDigiPolygon.reverseRotation2Eingabelayer(self.refData['polygonLayer'].id())
 
-            infoText = "Objekte wurden erfolgreich in den Eingabelayer geschrieben."
+            infoText = "Objekte wurden erfolgreich in die Eingabelayer geschrieben."
             titleText = "Info"
 
         except Exception as e:
-            infoText = f"Achtung! Die Datenwurden nicht in den Eingabelayer geschrieben. ({e})"
+            infoText = f"Achtung! Die Daten wurden nicht in die Eingabelayer geschrieben. ({e})"
             titleText = "Fehler"
 
         #Info message
@@ -182,6 +190,11 @@ class Parambar(QWidget):
     #
     def activateZoomIn(self):
         self.canvasDigitize.setMapTool(self.canvasDigitize.toolZoomIn)
+
+    ## \brief Create identify action
+    #
+    def activateIdentify(self):
+        self.canvasDigitize.setMapTool(self.toolIdentify)
 
     ## \brief Create snap action
     #
@@ -245,10 +258,9 @@ class Parambar(QWidget):
         self.canvasDigitize.setMapTool(self.toolEditPolygon)
         self.toolDigiPolygon.clearRubberband()
 
-    ## \brief Create pan action
+    ## \brief Create take layer action
     #
     def createTakeLayerAction(self):
-
 
         #Button in Eingabelayer übernehmen
         self.canvasToolbar.addSeparator()
@@ -256,10 +268,6 @@ class Parambar(QWidget):
         self.takeLayerButton = QAction(iconPan, "Objekte in Eingabelayer schreiben", self)
         self.canvasToolbar.addAction(self.takeLayerButton)
 
-        #self.takeLayerButton = QPushButton(self)
-        #self.takeLayerButton.setText("Objekte in Eingabelayer schreiben")
-        #self.takeLayerButton.setStyleSheet("background-color: green; width: 200px")
-        #self.toolbarLayer.addWidget(self.takeLayerButton)
 
     ## \brief Create pan action
     #
@@ -275,6 +283,22 @@ class Parambar(QWidget):
         self.canvasToolbar.addAction(self.actionPan)
         self.canvasDigitize.setMapTool(self.canvasDigitize.toolPan)
         self.actionPan.triggered.connect(self.activatePan)
+
+    ## \brief Create identify action
+    #
+    def createIdentifyAction(self):
+
+        #Point
+        iconIdentify = QIcon(os.path.join(self.iconpath, 'mActionIdentify.png'))
+        self.actionIdentify = QAction(iconIdentify, "Objekte abfragen", self)
+        self.actionIdentify.setCheckable(True)
+
+        self.toolIdentify.setAction(self.actionIdentify)
+
+        self.canvasToolbar.addAction(self.actionIdentify)
+        print('toolIdentify.type():', type(self.toolIdentify))
+        self.canvasDigitize.setMapTool(self.toolIdentify)
+        self.actionIdentify.triggered.connect(self.activateIdentify)
 
 
     def createActionZoomIn(self):
@@ -335,6 +359,7 @@ class Parambar(QWidget):
         self.toolDigiPoint.setAction(self.actionDigiPoint)
 
         self.canvasToolbar.addAction(self.actionDigiPoint)
+        print('toolDigiPoint.type():', type(self.toolDigiPoint))
         self.canvasDigitize.setMapTool(self.toolDigiPoint)
         self.actionDigiPoint.triggered.connect(self.activateDigiPoint)
 
@@ -460,6 +485,9 @@ class Parambar(QWidget):
         self.actionDigiPoint.setVisible(True)
         self.actionEditPoint.setVisible(True)
 
+    #def enableIdentifyAction(self):
+    #    self.actionIdentify.setVisible(True)
+
     def enableDigiLineAction(self):
         self.actionDigiLine.setVisible(True)
         self.actionEditLine.setVisible(True)
@@ -472,6 +500,9 @@ class Parambar(QWidget):
         self.actionDigiPoint.setVisible(False)
         self.actionEditPoint.setVisible(False)
         self.toolDigiPoint.clearVertexMarker()
+
+    #def disableIdentifyAction(self):
+    #    self.actionIdentify.setVisible(False)
 
     def disableDigiLineAction(self):
         self.actionDigiLine.setVisible(False)
@@ -507,7 +538,7 @@ class Parambar(QWidget):
 
         retObj = self.rotationCoords.rotationReverse(coordObj['x'], coordObj['y'], True)
 
-        self.coordLineEdit.setText(str(round(retObj['x_trans'], 3))+','+str(round(retObj['y_trans'], 3))+','+str(round(retObj['z_trans'], 3)))
+        self.coordLineEdit.setText(str('{:.3f}'.format(round(retObj['x_trans'], 3)))+','+str('{:.3f}'.format(round(retObj['y_trans'], 3)))+','+str('{:.3f}'.format(round(retObj['z_trans'], 3))))
 
     ## \brief Create a splitter (vertical line to separate labels in the parambar)
     #
