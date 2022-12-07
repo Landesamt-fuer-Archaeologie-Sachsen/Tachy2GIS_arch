@@ -28,7 +28,6 @@ class MapToolIdentify(QgsMapToolIdentify, MapToolMixin):
     # Identify features and displays the related attributes in a QgsAttributeDialog
     #            
     def canvasPressEvent(self, event):
-        print('press event identify tool')
 
         results = self.identify(event.x(), event.y(), [self.digiPointLayer, self.digiLineLayer, self.digiPolygonLayer], QgsMapToolIdentify.TopDownAll)
         for i in range(len(results)):

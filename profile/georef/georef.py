@@ -35,7 +35,6 @@ class Georef():
         #Tooltip
         self.__dockwidget.profileTargetName.setToolTip("Die Ergebnisdateien werden in Unterverzeichnissen vom Profilfoto abgelegt, die Dateinamen beginnen so wie hier angegeben.")
         #Preselection profilenumber
-        print(type(preselectedLineLayer))
         if isinstance(preselectedLineLayer, QgsVectorLayer):
 
             self.__preselectProfileNumbers(preselectedLineLayer)
@@ -71,7 +70,6 @@ class Georef():
     #
     #
     def __startGeoreferencingDialog(self):
-        print('__startGeoreferencingDialog')
         refData = self.__getSelectedValues()
         self.__createFolders(refData)
         

@@ -19,12 +19,14 @@ class Parambar(QWidget):
     # Creates labels with styles
     # @param dialogInstance pointer to the dialogInstance
 
-    def __init__(self, dialogInstance, canvasDigitize, toolIdentify, toolDigiPoint, toolDigiLine, toolDigiPolygon, toolEditPoint, toolEditLine, toolEditPolygon, rotationCoords):
+    def __init__(self, dialogInstance, canvasDigitize, toolIdentify, toolDigiPoint, toolDigiLine, toolDigiPolygon, toolEditPoint, toolEditLine, toolEditPolygon, rotationCoords, aar_direction):
 
         super(Parambar, self).__init__()
 
         self.iconpath = os.path.join(os.path.dirname(__file__), '..', 'Icons')
         self.dialogInstance = dialogInstance
+
+        self.aar_direction = aar_direction
 
         self.pup = Publisher()
 
@@ -122,11 +124,11 @@ class Parambar(QWidget):
         try:
             #layer_id = self.activeLayerCombo.currentData()
             #if self.refData['pointLayer'].id() == layer_id:
-            self.toolDigiPoint.reverseRotation2Eingabelayer(self.refData['pointLayer'].id())
+            self.toolDigiPoint.reverseRotation2Eingabelayer(self.refData['pointLayer'].id(), self.aar_direction)
             #if self.refData['lineLayer'].id() == layer_id:
-            self.toolDigiLine.reverseRotation2Eingabelayer(self.refData['lineLayer'].id())
+            self.toolDigiLine.reverseRotation2Eingabelayer(self.refData['lineLayer'].id(), self.aar_direction)
             #if self.refData['polygonLayer'].id() == layer_id:
-            self.toolDigiPolygon.reverseRotation2Eingabelayer(self.refData['polygonLayer'].id())
+            self.toolDigiPolygon.reverseRotation2Eingabelayer(self.refData['polygonLayer'].id(), self.aar_direction)
 
             infoText = "Objekte wurden erfolgreich in die Eingabelayer geschrieben."
             titleText = "Info"
@@ -144,11 +146,11 @@ class Parambar(QWidget):
 
             iconImport = QIcon(os.path.join(self.iconpath, 'Sichtbar_an.gif'))
             self.getObjectsAction.setIcon(iconImport)
-            bufferGeometry = self.rotationCoords.profileBuffer(self.bufferSpin.value())
+            bufferGeometry = self.rotationCoords.profileBuffer(self.bufferSpin.value(), self.aar_direction)
 
-            self.toolDigiPoint.getFeaturesFromEingabelayer(bufferGeometry, 'tachy')
-            self.toolDigiLine.getFeaturesFromEingabelayer(bufferGeometry, 'tachy')
-            self.toolDigiPolygon.getFeaturesFromEingabelayer(bufferGeometry, 'tachy')
+            self.toolDigiPoint.getFeaturesFromEingabelayer(bufferGeometry, 'tachy', self.aar_direction)
+            self.toolDigiLine.getFeaturesFromEingabelayer(bufferGeometry, 'tachy', self.aar_direction)
+            self.toolDigiPolygon.getFeaturesFromEingabelayer(bufferGeometry, 'tachy', self.aar_direction)
         else:
             iconImport = QIcon(os.path.join(self.iconpath, 'Sichtbar_aus.gif'))
             self.getObjectsAction.setIcon(iconImport)
@@ -201,8 +203,6 @@ class Parambar(QWidget):
     def activateSnap(self):
 
         if self.actionSnap.isChecked():
-            print('snapping on')
-
             self.toolDigiPoint.setSnapping(True)
             self.toolDigiLine.setSnapping(True)
             self.toolDigiPolygon.setSnapping(True)
@@ -211,7 +211,6 @@ class Parambar(QWidget):
             self.toolEditPolygon.setSnapping(True)
 
         else:
-            print('snapping off')
             self.toolDigiPoint.setSnapping(False)
             self.toolDigiLine.setSnapping(False)
             self.toolDigiPolygon.setSnapping(False)
@@ -296,7 +295,6 @@ class Parambar(QWidget):
         self.toolIdentify.setAction(self.actionIdentify)
 
         self.canvasToolbar.addAction(self.actionIdentify)
-        print('toolIdentify.type():', type(self.toolIdentify))
         self.canvasDigitize.setMapTool(self.toolIdentify)
         self.actionIdentify.triggered.connect(self.activateIdentify)
 
@@ -359,7 +357,6 @@ class Parambar(QWidget):
         self.toolDigiPoint.setAction(self.actionDigiPoint)
 
         self.canvasToolbar.addAction(self.actionDigiPoint)
-        print('toolDigiPoint.type():', type(self.toolDigiPoint))
         self.canvasDigitize.setMapTool(self.toolDigiPoint)
         self.actionDigiPoint.triggered.connect(self.activateDigiPoint)
 
@@ -536,7 +533,7 @@ class Parambar(QWidget):
     #
     def updateCoordinate(self, coordObj):
 
-        retObj = self.rotationCoords.rotationReverse(coordObj['x'], coordObj['y'], True)
+        retObj = self.rotationCoords.rotationReverse(coordObj['x'], coordObj['y'], True, self.aar_direction)
 
         self.coordLineEdit.setText(str('{:.3f}'.format(round(retObj['x_trans'], 3)))+','+str('{:.3f}'.format(round(retObj['y_trans'], 3)))+','+str('{:.3f}'.format(round(retObj['z_trans'], 3))))
 

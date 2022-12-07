@@ -21,8 +21,6 @@ class Digitize():
     #  @param iFace pointer to the iface class
     def __init__(self, t2gArchInstance, iFace, rotationCoords):
 
-        self.__iconpath = os.path.join(os.path.dirname(__file__), '...', 'Icons')
-        self.__t2gArchInstance = t2gArchInstance
         self.__dockwidget = t2gArchInstance.dockwidget
         self.__iface = iFace
 
@@ -30,6 +28,8 @@ class Digitize():
         
         self.dataStoreDigitize = DataStoreDigitize()
         self.rotationCoords = rotationCoords
+
+        self.aar_direction = None
 
     ## @brief Initializes the functionality for profile modul
     #
@@ -70,8 +70,8 @@ class Digitize():
                         
                         self.digitizeDialog.close()
                         
-                self.digitizeDialog = DigitizeDialog(self.dataStoreDigitize, self.rotationCoords, self.__iface)
-                self.dataStoreDigitize.triggerAarTransformationParams()
+                self.digitizeDialog = DigitizeDialog(self.dataStoreDigitize, self.rotationCoords, self.__iface, self.aar_direction)
+                self.dataStoreDigitize.triggerAarTransformationParams(self.aar_direction)
                 self.digitizeDialog.showDigitizeDialog(refData)
 
     ## \brief get meta data to profile
@@ -96,6 +96,8 @@ class Digitize():
                     self.dataStoreDigitize.addEntzerrungsebene(data['entzerrungsebene'])
                     self.dataStoreDigitize.addGcps(data['gcps'])
                     self.dataStoreDigitize.addTransformParams(data['transform_params'])
+
+                    self.aar_direction = data['aar_direction']
 
                 else:
                     raise ValueError('AAR direction muss horizontal, absolute height oder original sein!')
@@ -146,8 +148,6 @@ class Digitize():
             return refData
         else:
         	return 'error'
-
-
 
     ## \brief Preselection of Point-Inputlayers
     #

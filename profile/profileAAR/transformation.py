@@ -358,9 +358,7 @@ class Magic_Box():
         fehler_check = False
 
         ns_fehler_vorhanden = ns_error_determination(self, coord_proc)
-        print('ns_fehler_vorhanden check', ns_fehler_vorhanden)
         if ns_fehler_vorhanden:
-            print('ns_fehler_vorhanden', ns_fehler_vorhanden)
             # Profil um 45 Grad drehen
 
             rotationresult = rotation(self, coord_proc, 45, False)
@@ -434,14 +432,8 @@ class Magic_Box():
         # To solve this, it is nessecary to change the input values of the regression
 
         # Calculate the regression for both directions
-        #print(' xw,yw', xw,yw)
-
-        #linegress_x = scipy.stats.linregress(scipy.array(xw), scipy.array(yw))
-
         xw_t = np.vstack([xw, np.ones(len(xw))]).T
         linegress_x = np.linalg.lstsq(xw_t, yw, rcond=None)[0]
-
-        #linegress_y = scipy.stats.linregress(scipy.array(yw), scipy.array(xw))
 
         yw_t = np.vstack([yw, np.ones(len(yw))]).T
         linegress_y = np.linalg.lstsq(yw_t, xw, rcond=None)[0]
@@ -449,10 +441,6 @@ class Magic_Box():
         # get the sum of residuals for both direction
 
         # We like to use the regression with less sum of the residuals
-
-        #res_x = self.calculateResidual(linegress_x, scipy.array(xw), scipy.array(yw))
-        #res_y = self.calculateResidual(linegress_y, scipy.array(yw), scipy.array(xw))
-
         res_x= self.calculateResidual(linegress_x, xw, yw)
         res_y = self.calculateResidual(linegress_y, yw, xw)
 
@@ -542,8 +530,6 @@ class Magic_Box():
 
         if direction == "absolute height":
 
-            print('absolute height in aar')
-
             # To get an export for the absolute height it is necessary to rotate the profile like the horizontal way
 
             # and move it on the y-axis
@@ -561,6 +547,8 @@ class Magic_Box():
             mean_y = np.mean(y_coord_proc)
 
             mean_z = np.mean(z_coord_proc)
+
+            transformationParams['min_x'] = min(x_trans)
 
             for i in range(len(x_trans)):
 
@@ -606,8 +594,6 @@ class Magic_Box():
                 z_zw.append(z_trans[i] - min(y_trans + z_trans))
 
             # actual calculation of the slope using the linear regression again
-
-            #z_slope = scipy.stats.linregress(scipy.array(z_yw), scipy.array(z_zw))[0]
             
             z_yw_t = np.vstack([z_yw, np.ones(len(z_yw))]).T
             linegress = np.linalg.lstsq(z_yw_t, z_zw, rcond=None)[0]
@@ -691,6 +677,8 @@ class Magic_Box():
 
             z_trans = []
 
+            transformationParams['y_slope_deg'] = y_slope_deg
+            
             for i in range(len(coord_trans)):
 
                 x_trans.append(y_center_x + (coord_trans[i][0] - y_center_x) * cos(y_slope_deg / 180 * pi)

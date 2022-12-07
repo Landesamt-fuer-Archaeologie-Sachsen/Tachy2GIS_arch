@@ -3,7 +3,7 @@ import os
 import processing
 from PyQt5.QtGui import QFont
 from qgis.core import QgsRasterLayer, QgsMarkerSymbol, QgsPalLayerSettings, QgsTextFormat, QgsVectorLayerSimpleLabeling, QgsMarkerLineSymbolLayer, QgsLineSymbol, QgsFillSymbol, QgsCategorizedSymbolRenderer, QgsRendererCategory
-from qgis.gui import QgsMapCanvas, QgsMapToolPan, QgsMapToolZoom, QgsAttributeDialog, QgsAttributeEditorContext
+from qgis.gui import QgsMapCanvas, QgsMapToolPan, QgsMapToolZoom, QgsAttributeDialog
 
 from ..publisher import Publisher
 
@@ -68,10 +68,7 @@ class DigitizeCanvas(QgsMapCanvas):
         symbol_profile = QgsMarkerSymbol.createSimple({'name': 'circle', 'color': 'green', 'size': '2'})
         symbol_tachy = QgsMarkerSymbol.createSimple({'name': 'circle', 'color': 'grey', 'size': '2'})
 
-        #self.digiPointLayer.setRenderer(QgsSingleSymbolRenderer(symbol))
-
         categorized_renderer = QgsCategorizedSymbolRenderer()
-
         categorized_renderer.setClassAttribute('geo_quelle')
 
         field = self.digiPointLayer.fields().lookupField('geo_quelle')
@@ -462,7 +459,7 @@ class DigitizeCanvas(QgsMapCanvas):
     ## \brief Close function on attribute dialog
     #
     def closeFeatForm(self, event):
-        print('closeFeatForm')
+        
         self.digiPolygonLayer.commitChanges()
         self.digiLineLayer.commitChanges()
         self.digiPointLayer.commitChanges()

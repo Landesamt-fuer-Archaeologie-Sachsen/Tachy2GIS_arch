@@ -24,13 +24,15 @@ from .maptool_edit_polygon import MapToolEditPolygon
 
 class DigitizeDialog(QMainWindow):
 
-    def __init__(self, dataStoreDigitize, rotationCoords, iFace):
+    def __init__(self, dataStoreDigitize, rotationCoords, iFace, aar_direction):
 
         super(DigitizeDialog, self).__init__()
 
         self.__iface = iFace
 
         self.iconpath = os.path.join(os.path.dirname(__file__), '...', 'Icons')
+
+        self.aar_direction = aar_direction
 
         self.dataStoreDigitize = dataStoreDigitize
         self.rotationCoords = rotationCoords
@@ -95,12 +97,10 @@ class DigitizeDialog(QMainWindow):
         self.toolEditPolygon = MapToolEditPolygon(self.canvasDigitize, self.__iface, self.rotationCoords)
 
         #paramsBar
-        self.parambar = Parambar(self, self.canvasDigitize, self.toolIdentify, self.toolDigiPoint, self.toolDigiLine, self.toolDigiPolygon, self.toolEditPoint, self.toolEditLine, self.toolEditPolygon, self.rotationCoords)
+        self.parambar = Parambar(self, self.canvasDigitize, self.toolIdentify, self.toolDigiPoint, self.toolDigiLine, self.toolDigiPolygon, self.toolEditPoint, self.toolEditLine, self.toolEditPolygon, self.rotationCoords, self.aar_direction)
 
         #Table
         self.tableDigitize = DigitizeTable(self)
-
-
 
     ## \brief Event connections
     #
@@ -135,7 +135,6 @@ class DigitizeDialog(QMainWindow):
         self.tableDigitize.pup.register('removeFeatureByUuid', self.toolDigiPoint.removeFeatureInEingabelayerByUuid)
         self.tableDigitize.pup.register('removeFeatureByUuid', self.toolDigiLine.removeFeatureInEingabelayerByUuid)
         self.tableDigitize.pup.register('removeFeatureByUuid', self.toolDigiPolygon.removeFeatureInEingabelayerByUuid)
-
 
         self.toolIdentify.pup.register('removeHoverFeatures', self.canvasDigitize.removeHoverFeatures)
         self.toolIdentify.pup.register('addHoverFeatures', self.canvasDigitize.addHoverFeatures)
@@ -180,8 +179,8 @@ class DigitizeDialog(QMainWindow):
     def showDigitizeDialog(self, refData):
         self.restore(refData)
 
-        bufferGeometry = self.rotationCoords.profileBuffer(1)
+        bufferGeometry = self.rotationCoords.profileBuffer(1, self.aar_direction)
 
-        self.toolDigiPoint.getFeaturesFromEingabelayer(bufferGeometry, 'profile')
-        self.toolDigiLine.getFeaturesFromEingabelayer(bufferGeometry, 'profile')
-        self.toolDigiPolygon.getFeaturesFromEingabelayer(bufferGeometry, 'profile')
+        self.toolDigiPoint.getFeaturesFromEingabelayer(bufferGeometry, 'profile', self.aar_direction)
+        self.toolDigiLine.getFeaturesFromEingabelayer(bufferGeometry, 'profile', self.aar_direction)
+        self.toolDigiPolygon.getFeaturesFromEingabelayer(bufferGeometry, 'profile', self.aar_direction)

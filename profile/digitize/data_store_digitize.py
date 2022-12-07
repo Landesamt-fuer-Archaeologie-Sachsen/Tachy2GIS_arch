@@ -27,7 +27,9 @@ class DataStoreDigitize():
         self.view = None
         self.ebene = None
         self.gcps = None
-        self.aarTransformationParams = None
+        self.aarTransformationParamsHorizontal = None
+        self.aarTransformationParamsAbsolute = None
+        self.aarTransformationParamsOriginal = None
         self.epsg = None
 
 
@@ -57,15 +59,25 @@ class DataStoreDigitize():
         self.gcps = gcps
 
     def addTransformParams(self, aarTransformationParams):
-        self.aarTransformationParams = aarTransformationParams
+        if aarTransformationParams['aar_direction'] == 'horizontal':
+            self.aarTransformationParamsHorizontal = aarTransformationParams
+        if aarTransformationParams['aar_direction'] == 'absolute height':
+            self.aarTransformationParamsAbsolute = aarTransformationParams
+        if aarTransformationParams['aar_direction'] == 'original':
+            self.aarTransformationParamsOriginal = aarTransformationParams
 
     def getGcps(self):
         return self.gcps
 
-    def getAarTransformationParams(self):
+    def getAarTransformationParams(self, aar_direction):
 
-        return self.aarTransformationParams
+        if aar_direction == 'horizontal':
+            return self.aarTransformationParamsHorizontal
+        if aar_direction == 'absolute height':
+            return self.aarTransformationParamsAbsolute
+        if aar_direction == 'original':
+            return self.aarTransformationParamsOriginal
 
-    def triggerAarTransformationParams(self):
-        print('wurde getriggert',  self.getAarTransformationParams())
-        self.pup.publish('pushTransformationParams', self.getAarTransformationParams())
+    def triggerAarTransformationParams(self, aar_direction):
+        print('wurde getriggert',  self.getAarTransformationParams(aar_direction))
+        self.pup.publish('pushTransformationParams', self.getAarTransformationParams(aar_direction))

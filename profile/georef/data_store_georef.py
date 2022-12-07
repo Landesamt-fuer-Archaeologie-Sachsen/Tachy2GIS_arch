@@ -17,22 +17,15 @@ class DataStoreGeoref():
 
     def __init__(self):
 
-        print('init_dataStore_georef')
-
         self.pup = Publisher()
-
         self.imagePoints = []
-
         self.targetPoints = []
-
         self.aarPointsHorizontal = []
-
         self.aarPointsOriginal = []
-
         self.aarPointsAbsolute = []
-
-        self.aarTransformationParams = {}
-
+        self.aarTransformationParamsHorizontal = {}
+        self.aarTransformationParamsAbsolute = {}
+        self.aarTransformationParamsOriginal = {}
 
     ## \brief Add image point
     #
@@ -46,8 +39,6 @@ class DataStoreGeoref():
     #  \endcode
     #
     def addImagePoint(self, pointObj):
-
-        print('pointObj', pointObj)
 
         if len(self.imagePoints) == 0:
 
@@ -88,7 +79,6 @@ class DataStoreGeoref():
 
 
     def addAarPoints(self, aarList):
-        print('jetzt_addAarPoints', aarList)
 
         aarDirection = aarList['aar_direction']
 
@@ -112,6 +102,16 @@ class DataStoreGeoref():
             self.pup.publish('pushAarPoints', aarArray)
 
             self.aarPointsOriginal = aarArray
+
+            #Transformationsparameter
+            transformationParams = aarList['transformationParams']
+            z_slope = aarList['linegress'][0]
+            z_intercept = aarList['linegress'][1]
+            transformationParams['z_slope'] = z_slope
+            transformationParams['z_intercept'] = z_intercept
+            transformationParams['ns_error'] = aarList['ns_error']
+
+            self.updateAarTransformationParams(transformationParams)   
             
         if aarDirection == 'absolute height':
 
@@ -134,10 +134,19 @@ class DataStoreGeoref():
 
             self.aarPointsAbsolute = aarArray
 
+            #Transformationsparameter
+            transformationParams = aarList['transformationParams']
+            z_slope = aarList['linegress'][0]
+            z_intercept = aarList['linegress'][1]
+            transformationParams['z_slope'] = z_slope
+            transformationParams['z_intercept'] = z_intercept
+            transformationParams['ns_error'] = aarList['ns_error']
+
+            self.updateAarTransformationParams(transformationParams)    
+
         if aarDirection == 'horizontal':
 
             aarArray = []
-            min_x_array = []
             #Punkte
             for pointObj in aarList['coord_trans']:
 
@@ -152,8 +161,6 @@ class DataStoreGeoref():
                     'usage': pointObj[6]
                 })
 
-                min_x_array.append(pointObj[0])
-
             self.pup.publish('pushAarPoints', aarArray)
 
             self.aarPointsHorizontal = aarArray   
@@ -166,19 +173,27 @@ class DataStoreGeoref():
             transformationParams['z_intercept'] = z_intercept
             transformationParams['ns_error'] = aarList['ns_error']
 
-            transformationParams['min_x'] = min(min_x_array)
-
             self.updateAarTransformationParams(transformationParams)        
 
 
     def updateAarTransformationParams(self, params):
-        self.aarTransformationParams = params
+        if params['aar_direction'] == 'horizontal':
+            self.aarTransformationParamsHorizontal = params
+        if params['aar_direction'] == 'absolute height':
+            self.aarTransformationParamsAbsolute = params
+        if params['aar_direction'] == 'original':
+            self.aarTransformationParamsOriginal = params
 
-        self.pup.publish('pushTransformationParams', self.getAarTransformationParams())
+        self.pup.publish('pushTransformationParams', self.getAarTransformationParams(params['aar_direction']))
 
-    def getAarTransformationParams(self):
+    def getAarTransformationParams(self, aar_direction):
 
-        return self.aarTransformationParams
+        if aar_direction == 'horizontal':
+            return self.aarTransformationParamsHorizontal
+        if aar_direction == 'absolute height':
+            return self.aarTransformationParamsAbsolute
+        if aar_direction == 'original':
+            return self.aarTransformationParamsOriginal
 
     def getGeorefData(self, aarDirection):
 
@@ -218,4 +233,6 @@ class DataStoreGeoref():
         self.aarPointsHorizontal = []
         self.aarPointsOriginal = []
         self.aarPointsAbsolute = []
-        self.aarTransformationParams = {}
+        self.aarTransformationParamsHorizontal = {}
+        self.aarTransformationParamsAbsolute = {}
+        self.aarTransformationParamsOriginal = {}
