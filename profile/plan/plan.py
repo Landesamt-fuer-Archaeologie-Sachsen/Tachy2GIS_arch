@@ -29,6 +29,8 @@ class Plan():
         self.__dockwidget = t2gArchInstance.dockwidget
         self.__iface = iFace
 
+        self.aar_direction = None
+
         self.dataStorePlan = DataStorePlan()
         self.rotationCoords = RotationCoords()
 
@@ -75,7 +77,7 @@ class Plan():
 
         if metaChecker == True:
 
-            self.dataStorePlan.triggerAarTransformationParams()
+            self.dataStorePlan.triggerAarTransformationParams(self.aar_direction)
 
             refData = self.__getInputlayers(True)
 
@@ -112,7 +114,7 @@ class Plan():
             with open(metaFileName) as json_file:
                 data = json.load(json_file)
 
-                if data['aar_direction'] == 'horizontal' or data['aar_direction'] == 'absolute height':
+                if data['aar_direction'] == 'horizontal' or data['aar_direction'] == 'absolute height' or data['aar_direction'] == 'original':
 
                     self.dataStorePlan.addProfileNumber(data['profilnummer'])
                     self.dataStorePlan.addProfile(data['profil'])
@@ -122,8 +124,10 @@ class Plan():
                     self.dataStorePlan.addGcps(data['gcps'])
                     self.dataStorePlan.addTransformParams(data['transform_params'])
 
+                    self.aar_direction = data['aar_direction']
+
                 else:
-                    raise ValueError('AAR direction muss horizontal oder absolute height sein!')
+                    raise ValueError('AAR direction muss horizontal, absolute height oder original sein!')
 
         else:
             raise ValueError("Keine .meta Datei zum Profil vorhanden!")
@@ -176,7 +180,7 @@ class Plan():
     def __exportPlanLayers(self, refData, baseFilePath):
         
         #Flexible buffersize from gui
-        bufferGeometry = self.rotationCoords.profileBuffer(self.__dockwidget.profileBufferSpinBox.value())
+        bufferGeometry = self.rotationCoords.profileBuffer(self.__dockwidget.profileBufferSpinBox.value(), self.aar_direction)
         #epsg from pointLayer - Todo search better solution (from meta file)
         epsgCode = refData['pointLayer'].crs().authid()
 
@@ -218,7 +222,7 @@ class Plan():
 
                         rotFeature = QgsFeature(pointLayer.fields())
 
-                        rotateGeom = self.rotationCoords.rotatePointFeatureFromOrg(feature)
+                        rotateGeom = self.rotationCoords.rotatePointFeatureFromOrg(feature, self.aar_direction)
 
                         zPoint = QgsPoint(rotateGeom['x_trans'], rotateGeom['z_trans'], rotateGeom['z_trans'])
 
@@ -251,7 +255,7 @@ class Plan():
 
                         rotFeature = QgsFeature(lineLayer.fields())
 
-                        rotateGeom = self.rotationCoords.rotateLineFeatureFromOrg(feature)
+                        rotateGeom = self.rotationCoords.rotateLineFeatureFromOrg(feature, self.aar_direction)
 
                         rotFeature.setGeometry(rotateGeom)
 
@@ -282,7 +286,7 @@ class Plan():
 
                         rotFeature = QgsFeature(polygonLayer.fields())
 
-                        rotateGeom = self.rotationCoords.rotatePolygonFeatureFromOrg(feature)
+                        rotateGeom = self.rotationCoords.rotatePolygonFeatureFromOrg(feature, self.aar_direction)
 
                         rotFeature.setGeometry(rotateGeom)
 
@@ -344,7 +348,6 @@ class Plan():
 
         # Rename fields
         for field in gcpLayer.fields():
-            print('fieldname', field.name())
             if field.name() == 'aar_x':
                 gcpLayer.startEditing()
                 idx = gcpLayer.fields().indexFromName(field.name())

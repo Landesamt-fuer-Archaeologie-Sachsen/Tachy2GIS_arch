@@ -336,7 +336,6 @@ class GeorefTable(QTableWidget):
         radioButton = self.sender()
         if radioButton.isChecked():
             activeUUID = radioButton.pointUUID
-            print("UUID is %s" % (activeUUID))
             self.setActivePoint(activeUUID)
 
             tableData = self.__getTableData()
@@ -388,7 +387,6 @@ class GeorefTable(QTableWidget):
                 tblObj['targetPoints'][0], tblObj['targetPoints'][1], tblObj['targetPoints'][2], self.viewDirection, self.profileNumber, int(tblObj['usage']), tblObj['uuid']
             ])
 
-        print('self.directionAAR', aarDirection)
         metaInfos = {
         	'method': 'projected',
         	'direction': aarDirection 
@@ -511,7 +509,6 @@ class GeorefTable(QTableWidget):
 
     def pointUsageChanged(self):
 
-        #print('checkObj', checkObj.isChecked())
         tableData = self.__getTableData()
 
         data = self.prepareData(tableData, 'horizontal')

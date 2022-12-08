@@ -86,7 +86,6 @@ class MapToolDigiPoint(QgsMapTool, MapToolMixin):
 
     def acceptedAttributeDialog(self):
 
-        print('acceptedAttributeDialog')
         self.refData['pointLayer'].commitChanges()
 
         atrObj = self.dialogAttributes.feature().attributes()
@@ -125,9 +124,8 @@ class MapToolDigiPoint(QgsMapTool, MapToolMixin):
 
         self.digiPointLayer.endEditCommand()
 
-    def reverseRotation2Eingabelayer(self, layer_id):
+    def reverseRotation2Eingabelayer(self, layer_id, aar_direction):
         #in Ergebnislayer schreiben
-        print('reverseRotation', layer_id)
 
         self.refData['pointLayer'].startEditing()
         
@@ -142,7 +140,7 @@ class MapToolDigiPoint(QgsMapTool, MapToolMixin):
             rotFeature = QgsFeature(self.refData['pointLayer'].fields())
 
             #Geometrie in Kartenebene umrechnen
-            rotateGeom = self.rotationCoords.rotatePointFeature(feature)
+            rotateGeom = self.rotationCoords.rotatePointFeature(feature, aar_direction)
 
             #Zielpunktgeometrie erzeugen und zum Zielfeature hinzufügen
             zPoint = QgsPoint(rotateGeom['x_trans'], rotateGeom['y_trans'], rotateGeom['z_trans'])
@@ -173,7 +171,7 @@ class MapToolDigiPoint(QgsMapTool, MapToolMixin):
         self.refData['pointLayer'].endEditCommand()
 
 
-    def getFeaturesFromEingabelayer(self, bufferGeometry, geoType):
+    def getFeaturesFromEingabelayer(self, bufferGeometry, geoType, aar_direction):
         #aus Eingabelayer holen
         self.digiPointLayer.startEditing()
         pr = self.digiPointLayer.dataProvider()
@@ -193,7 +191,7 @@ class MapToolDigiPoint(QgsMapTool, MapToolMixin):
 
                         rotFeature = QgsFeature(self.digiPointLayer.fields())
 
-                        rotateGeom = self.rotationCoords.rotatePointFeatureFromOrg(feature)
+                        rotateGeom = self.rotationCoords.rotatePointFeatureFromOrg(feature, aar_direction)
 
                         zPoint = QgsPoint(rotateGeom['x_trans'], rotateGeom['z_trans'], rotateGeom['z_trans'])
 
@@ -214,7 +212,7 @@ class MapToolDigiPoint(QgsMapTool, MapToolMixin):
 
                         rotFeature = QgsFeature(self.digiPointLayer.fields())
 
-                        rotateGeom = self.rotationCoords.rotatePointFeatureFromOrg(feature)
+                        rotateGeom = self.rotationCoords.rotatePointFeatureFromOrg(feature, aar_direction)
 
                         zPoint = QgsPoint(rotateGeom['x_trans'], rotateGeom['z_trans'], rotateGeom['z_trans'])
 

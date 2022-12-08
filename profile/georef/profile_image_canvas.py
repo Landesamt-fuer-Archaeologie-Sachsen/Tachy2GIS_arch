@@ -22,7 +22,6 @@ class ProfileImageCanvas(QgsMapCanvas):
     # @param dialogInstance pointer to the dialogInstance
 
     def __init__(self, dialogInstance):
-        print('init ProfileImageCanvas')
         super(ProfileImageCanvas, self).__init__()
 
         self.pup = Publisher()
@@ -45,7 +44,6 @@ class ProfileImageCanvas(QgsMapCanvas):
         self.createMapToolZoomIn()
         self.createMapToolZoomOut()
         self.createMapToolMoveMarker()
-
         self.createConnects()
 
 

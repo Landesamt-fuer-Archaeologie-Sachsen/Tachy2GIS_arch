@@ -189,7 +189,7 @@ class ProfileGcpCanvas(QgsMapCanvas):
 
             rotFeature = QgsFeature(self.gcpLayer.fields())
 
-            rotateGeom = self.rotationCoords.rotatePointFeatureFromOrg(feature)
+            rotateGeom = self.rotationCoords.rotatePointFeatureFromOrg(feature, 'horizontal')
 
             zPoint = QgsPoint(rotateGeom['x_trans'], rotateGeom['z_trans'], rotateGeom['z_trans'])
 

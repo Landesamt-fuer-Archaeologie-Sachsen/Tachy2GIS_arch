@@ -45,7 +45,6 @@ class DigitizeTable(QTableWidget):
     # @returns
     def showDialog(self):
 
-        print('removeFeature')
         button = self.sender()
         if button:
             row = self.indexAt(button.pos()).row()
@@ -66,8 +65,6 @@ class DigitizeTable(QTableWidget):
     # \param 
     # @returns
     def editDialog(self):
-
-        print('edit attributes of feature')
 
         button = self.sender()
         self.pup.publish('editFeatureAttributes', button.uuid)

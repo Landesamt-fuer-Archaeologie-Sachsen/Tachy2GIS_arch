@@ -84,7 +84,6 @@ class MapToolDigiPolygon(QgsMapTool, MapToolMixin):
         self.dialogAttributes.accepted.connect(self.acceptedAttributeDialog)
 
     def closeAttributeDialog(self):
-        print('closeAttributeDialog')
         self.clearRubberband()
         self.refData['polygonLayer'].commitChanges()
 
@@ -104,7 +103,6 @@ class MapToolDigiPolygon(QgsMapTool, MapToolMixin):
 
     def acceptedAttributeDialog(self):
 
-        print('acceptedAttributeDialog')
         self.refData['polygonLayer'].commitChanges()
 
         atrObj = self.dialogAttributes.feature().attributes()
@@ -142,7 +140,7 @@ class MapToolDigiPolygon(QgsMapTool, MapToolMixin):
 
         self.digiPolygonLayer.endEditCommand()
 
-    def getFeaturesFromEingabelayer(self, bufferGeometry, geoType):
+    def getFeaturesFromEingabelayer(self, bufferGeometry, geoType, aar_direction):
 
         self.digiPolygonLayer.startEditing()
         pr = self.digiPolygonLayer.dataProvider()
@@ -162,7 +160,7 @@ class MapToolDigiPolygon(QgsMapTool, MapToolMixin):
 
                         rotFeature = QgsFeature(self.digiPolygonLayer.fields())
 
-                        rotateGeom = self.rotationCoords.rotatePolygonFeatureFromOrg(feature)
+                        rotateGeom = self.rotationCoords.rotatePolygonFeatureFromOrg(feature, aar_direction)
 
                         rotFeature.setGeometry(rotateGeom)
 
@@ -172,10 +170,9 @@ class MapToolDigiPolygon(QgsMapTool, MapToolMixin):
 
                 if geoType == 'profile':
                     if feature['geo_quelle'] == 'profile_object':
-                        print('getFeaturesFromEingabelayer')
                         rotFeature = QgsFeature(self.digiPolygonLayer.fields())
 
-                        rotateGeom = self.rotationCoords.rotatePolygonFeatureFromOrg(feature)
+                        rotateGeom = self.rotationCoords.rotatePolygonFeatureFromOrg(feature, aar_direction)
                         rotFeature.setGeometry(rotateGeom)
 
                         rotFeature.setAttributes(feature.attributes())
@@ -212,7 +209,7 @@ class MapToolDigiPolygon(QgsMapTool, MapToolMixin):
         self.digiPolygonLayer.endEditCommand()
 
     #in den Eingabelayer schreiben
-    def reverseRotation2Eingabelayer(self, layer_id):
+    def reverseRotation2Eingabelayer(self, layer_id, aar_direction):
  
         self.refData['polygonLayer'].startEditing()
 
@@ -229,7 +226,7 @@ class MapToolDigiPolygon(QgsMapTool, MapToolMixin):
             rotFeature = QgsFeature(self.refData['polygonLayer'].fields())
 
             #Geometrie in Kartenebene umrechnen
-            rotateGeom = self.rotationCoords.rotatePolygonFeature(feature, emptyTargetGeometry)
+            rotateGeom = self.rotationCoords.rotatePolygonFeature(feature, emptyTargetGeometry, aar_direction)
             rotFeature.setGeometry(rotateGeom)
             rotFeature.setAttributes(feature.attributes())
 

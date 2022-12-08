@@ -62,19 +62,17 @@ class ImageParambar(QWidget):
         self.paramsBarLayout.setContentsMargins(0, 0, 0, 0)
         self.paramsBarLayout.setSpacing(0)
         self.setLayout(self.paramsBarLayout)
-        #self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.paramsBarLayout.addWidget(self.imageToolbar)
 
-        spacer = QWidget();
-        spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred);
-        self.paramsBarLayout.addWidget(spacer);
+        spacer = QWidget()
+        spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        self.paramsBarLayout.addWidget(spacer)
 
         self.paramsBarLayout.addWidget(self.toolbarCoord)
 
     ## \brief Create move action
     #
     def activateMove(self):
-        print('activateMove')
         self.canvasImage.setMapTool(self.canvasImage.toolMove)
 
     ## \brief Create pan action
@@ -92,21 +90,6 @@ class ImageParambar(QWidget):
     def activateZoomOut(self):
         self.canvasImage.setMapTool(self.canvasImage.toolZoomOut)
 
-    '''
-    ## \brief Create click action
-    #
-    def createClickAction(self):
-
-        #Click
-        iconClick = QIcon(os.path.join(self.iconpath, 'mActionAddGCPPoint.png'))
-        self.actionClick = QAction(iconClick, "Click", self)
-        self.actionClick.setCheckable(True)
-
-        self.canvasImage.toolClick.setAction(self.actionClick)
-
-        self.imageToolbar.addAction(self.actionClick)
-        self.canvasImage.setMapTool(self.canvasImage.toolClick)
-        self.actionClick.triggered.connect(self.activateClick)'''
 
     ## \brief Create move action
     #

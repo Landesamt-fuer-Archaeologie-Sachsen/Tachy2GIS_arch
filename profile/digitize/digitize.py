@@ -21,8 +21,6 @@ class Digitize():
     #  @param iFace pointer to the iface class
     def __init__(self, t2gArchInstance, iFace, rotationCoords):
 
-        self.__iconpath = os.path.join(os.path.dirname(__file__), '...', 'Icons')
-        self.__t2gArchInstance = t2gArchInstance
         self.__dockwidget = t2gArchInstance.dockwidget
         self.__iface = iFace
 
@@ -30,6 +28,8 @@ class Digitize():
         
         self.dataStoreDigitize = DataStoreDigitize()
         self.rotationCoords = rotationCoords
+
+        self.aar_direction = None
 
     ## @brief Initializes the functionality for profile modul
     #
@@ -70,8 +70,8 @@ class Digitize():
                         
                         self.digitizeDialog.close()
                         
-                self.digitizeDialog = DigitizeDialog(self.dataStoreDigitize, self.rotationCoords, self.__iface)
-                self.dataStoreDigitize.triggerAarTransformationParams()
+                self.digitizeDialog = DigitizeDialog(self.dataStoreDigitize, self.rotationCoords, self.__iface, self.aar_direction)
+                self.dataStoreDigitize.triggerAarTransformationParams(self.aar_direction)
                 self.digitizeDialog.showDigitizeDialog(refData)
 
     ## \brief get meta data to profile
@@ -87,7 +87,7 @@ class Digitize():
             with open(metaFileName) as json_file:
                 data = json.load(json_file)
 
-                if data['aar_direction'] == 'horizontal' or data['aar_direction'] == 'absolute height':
+                if data['aar_direction'] == 'horizontal' or data['aar_direction'] == 'absolute height' or data['aar_direction'] == 'original':
 
                     self.dataStoreDigitize.addProfileNumber(data['profilnummer'])
                     self.dataStoreDigitize.addProfile(data['profil'])
@@ -97,8 +97,10 @@ class Digitize():
                     self.dataStoreDigitize.addGcps(data['gcps'])
                     self.dataStoreDigitize.addTransformParams(data['transform_params'])
 
+                    self.aar_direction = data['aar_direction']
+
                 else:
-                    raise ValueError('AAR direction muss horizontal oder absolute height sein!')
+                    raise ValueError('AAR direction muss horizontal, absolute height oder original sein!')
 
         else:
             raise ValueError("Keine .meta Datei zum Profil vorhanden!")
@@ -146,8 +148,6 @@ class Digitize():
             return refData
         else:
         	return 'error'
-
-
 
     ## \brief Preselection of Point-Inputlayers
     #

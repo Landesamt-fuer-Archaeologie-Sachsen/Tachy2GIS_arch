@@ -45,7 +45,6 @@ class MapToolDigiLine(QgsMapTool, MapToolMixin):
                     self.showdialog()
 
         else:
-            print('canvasPressEvent')
             self.active = True
 
             if self.snapping is True:
@@ -87,7 +86,6 @@ class MapToolDigiLine(QgsMapTool, MapToolMixin):
         self.dialogAttributes.accepted.connect(self.acceptedAttributeDialog)
 
     def closeAttributeDialog(self):
-        print('closeAttributeDialog')
         self.clearRubberband()
         self.refData['lineLayer'].commitChanges()
 
@@ -111,7 +109,6 @@ class MapToolDigiLine(QgsMapTool, MapToolMixin):
 
     def acceptedAttributeDialog(self):
 
-        print('acceptedAttributeDialog')
         self.refData['lineLayer'].commitChanges()
 
         atrObj = self.dialogAttributes.feature().attributes()
@@ -148,7 +145,7 @@ class MapToolDigiLine(QgsMapTool, MapToolMixin):
         self.digiLineLayer.updateExtents()
         self.digiLineLayer.endEditCommand()
 
-    def getFeaturesFromEingabelayer(self, bufferGeometry, geoType):
+    def getFeaturesFromEingabelayer(self, bufferGeometry, geoType, aar_direction):
 
         self.digiLineLayer.startEditing()
         pr = self.digiLineLayer.dataProvider()
@@ -168,7 +165,7 @@ class MapToolDigiLine(QgsMapTool, MapToolMixin):
 
                         rotFeature = QgsFeature(self.digiLineLayer.fields())
 
-                        rotateGeom = self.rotationCoords.rotateLineFeatureFromOrg(feature)
+                        rotateGeom = self.rotationCoords.rotateLineFeatureFromOrg(feature, aar_direction)
 
                         rotFeature.setGeometry(rotateGeom)
 
@@ -178,10 +175,9 @@ class MapToolDigiLine(QgsMapTool, MapToolMixin):
 
                 if geoType == 'profile':
                     if feature['geo_quelle'] == 'profile_object':
-                        print('getFeaturesFromEingabelayer')
                         rotFeature = QgsFeature(self.digiLineLayer.fields())
 
-                        rotateGeom = self.rotationCoords.rotateLineFeatureFromOrg(feature)
+                        rotateGeom = self.rotationCoords.rotateLineFeatureFromOrg(feature, aar_direction)
 
                         rotFeature.setGeometry(rotateGeom)
 
@@ -218,9 +214,7 @@ class MapToolDigiLine(QgsMapTool, MapToolMixin):
         self.digiLineLayer.updateExtents()
         self.digiLineLayer.endEditCommand()
 
-    def reverseRotation2Eingabelayer(self, layer_id):
-        print('reverseRotation', layer_id)
-
+    def reverseRotation2Eingabelayer(self, layer_id, aar_direction):
         self.refData['lineLayer'].startEditing()
 
         pr = self.refData['lineLayer'].dataProvider()
@@ -237,7 +231,7 @@ class MapToolDigiLine(QgsMapTool, MapToolMixin):
             rotFeature = QgsFeature(self.refData['lineLayer'].fields())
 
             #Geometrie in Kartenebene umrechnen
-            rotateGeom = self.rotationCoords.rotateLineFeature(feature, emptyTargetGeometry)
+            rotateGeom = self.rotationCoords.rotateLineFeature(feature, emptyTargetGeometry, aar_direction)
             rotFeature.setGeometry(rotateGeom)
 
             rotFeature.setAttributes(feature.attributes())

@@ -151,7 +151,7 @@ class GcpParambar(QWidget):
     def updateCoordinate(self, coordObj):
         #self.coordLineEdit.setText(str(round(coordObj['x'], 2))+','+str(round(coordObj['y'], 2)))
 
-        retObj = self.rotationCoords.rotationReverse(coordObj['x'], coordObj['y'], True)
+        retObj = self.rotationCoords.rotationReverse(coordObj['x'], coordObj['y'], True, 'horizontal')
 
         self.coordLineEdit.setText(str(round(retObj['x_trans'], 3))+','+str(round(retObj['y_trans'], 3))+','+str(round(retObj['z_trans'], 3)))
 

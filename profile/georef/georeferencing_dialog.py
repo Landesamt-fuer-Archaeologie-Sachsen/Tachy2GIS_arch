@@ -86,7 +86,6 @@ class GeoreferencingDialog(QMainWindow):
 
     # @returns
     def createComponents(self):
-        print('Start createComponents')
         #messageBar
         self.messageBar = QgsMessageBar()
 
@@ -113,13 +112,10 @@ class GeoreferencingDialog(QMainWindow):
         #Bildgeoreferenzierung
         self.imageGeoref = ImageGeoref(self, self.dataStoreGeoref, self.__iface)
 
-
-
     ## \brief Event connections
     #
 
     def createConnects(self):
-        print('Start createConnects')
         self.georefTable.pup.register('activatePoint', self.canvasGcp.setActivePoint)
         self.georefTable.pup.register('activatePoint', self.canvasImage.setActivePoint)
         self.georefTable.pup.register('activatePoint', self.imageParambar.activateMapToolMove)
@@ -225,15 +221,15 @@ class GeoreferencingDialog(QMainWindow):
     #
     def writeMetafile(self, aarDirection, metaFileOut):
 
-        transformation_params = self.dataStoreGeoref.getAarTransformationParams()
-        transformation_params['aar_direction'] = aarDirection
+        transformation_params = self.dataStoreGeoref.getAarTransformationParams(aarDirection)
 
         # Wenn die AAR-Berechnung aufgrund geringer Genauigkeit (O-W- oder N-S-Profile) 
         # einen Fehler bringt (ns_error is True) wird in AAR der slope_deg Winkel um 45 Grad reduziert.
         # Die 45 Grad müssen hier wieder dazu addiert werden damit die Digitalisierung von Objekten im Profil funktioniert
         
-        if transformation_params['ns_error'] is True:
-            transformation_params['slope_deg'] = transformation_params['slope_deg'] + 45
+        if 'ns_error' in transformation_params:
+            if transformation_params['ns_error'] is True:
+                transformation_params['slope_deg'] = transformation_params['slope_deg'] + 45
 
         data = {
         	"profilnummer": self.refData['profileNumber'],
@@ -264,8 +260,6 @@ class GeoreferencingDialog(QMainWindow):
 
     def startGeoreferencing(self):
 
-        print('huhu_startGeoreferencing')
-
         aarDirections = ['horizontal', 'original', 'absolute height']
 
         for aarDirection in aarDirections:
@@ -294,7 +288,6 @@ class GeoreferencingDialog(QMainWindow):
         self.destroyDialog()
 
     def destroyDialog(self):
-        print('ich werde geschlossen')
         self.close()
         self.destroy()
         

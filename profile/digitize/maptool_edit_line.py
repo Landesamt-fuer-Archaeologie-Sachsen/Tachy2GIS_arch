@@ -11,10 +11,8 @@ class MapToolEditLine(QgsMapToolIdentifyFeature, MapToolMixin):
         self.__iface = iFace
 
         self.pup = Publisher()
-
-        #self.setCursor(Qt.CrossCursor)
+        
         self.digiLineLayer = None
-        #self.onGeometryChanged = onGeometryChanged
         self.dragging = False
         self.feature = None
         self.vertex = None
