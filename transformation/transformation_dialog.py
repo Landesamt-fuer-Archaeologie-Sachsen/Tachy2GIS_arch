@@ -43,6 +43,8 @@ class TransformationDialog(QMainWindow):
         self.targetCrs = None
         self.gcpTarget = None
 
+        self.rememberExportTxtFolder = '.'
+
         self.createMenu()
         self.createComponents()
         self.createLayout()
@@ -348,8 +350,11 @@ class TransformationDialog(QMainWindow):
     def exportTxt(self):
 
         dialog = QFileDialog(self)
-        dialog.setNameFilter("Text Files (*.txt)")
-        saveFileName = dialog.getSaveFileName()[0]
+        saveFile = QFileDialog.getSaveFileName(dialog, "Speichern unter", self.rememberExportTxtFolder, "Textdatei(*.txt)")
+        saveFileName = saveFile[0]
+
+        #Just to remember last loacation of the last saved file
+        self.rememberExportTxtFolder = os.path.dirname(saveFileName)
 
         GcpData = self.gcpTable.getGcpTableData()
 
