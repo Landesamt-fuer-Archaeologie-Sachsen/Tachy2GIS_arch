@@ -91,7 +91,37 @@ class Georef():
 
     ## \brief get selected values
     #
+    #refData
+    #{
+    #    'lineLayer': < QgsVectorLayer: 'E_Line'(ogr) > ,
+    #    'pointLayer': < QgsVectorLayer: 'E_Point'(ogr) > ,
+    #    'crs': < QgsCoordinateReferenceSystem: EPSG: 31468 > ,
+    #    'profileNumber': '131',
+    #    'imagePath': 'path\\to\\AZB-16_Pr_132.jpg',
+    #    'viewDirection': 'E',
+    #    'horizontal': True,
+    #    'profileTargetName': 'AZB-16_Pr_132_entz',
+    #    'savePath': 'path\\to\\Profil_132',
+    #    'profileDirs': {
+    #        'dirPa': 'path\\to\\pa',
+    #        'dirPo': 'path\\to\\po',
+    #        'dirPh': 'path\\to\\ph',
+    #        'dir3d': 'path\\to\\3d'
+    #    },
+    #    'saveMetadata': True,
+    #    'targetGCP': {
+    #        'points': [{
+    #            'uuid': '{f9a241b4-1a9b-4695-a493-5262efa1857c}',
+    #            'ptnr': '1',
+    #            'id': 745,
+    #            'x': 4577275.697,
+    #            'y': 5710099.149,
+    #            'z': 84.729
+    #        }, {...}]
+    #    }
+    #}
     #
+    # @return refData
     def __getSelectedValues(self):
 
         #lineLayer
