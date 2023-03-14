@@ -210,15 +210,16 @@ class GeorefTable(QTableWidget):
 
     ## \brief Update der GCP-Tabelle
     #
-    # \param gcpTarget
+    # \param refData
+    # \param aarDirection
     # @returns
-    def updateGeorefTable(self, gcpTarget, aarDirection):
+    def updateGeorefTable(self, refData, aarDirection):
 
-        self.viewDirection = gcpTarget['viewDirection']
-        self.profileNumber = gcpTarget['profileNumber']
-        self.targetGCP = gcpTarget['targetGCP']['points']
+        self.viewDirection = refData['viewDirection']
+        self.profileNumber = refData['profileNumber']
+        self.targetGCP = refData['targetGCP']['points']
 
-        horizontal = gcpTarget['horizontal']
+        horizontal = refData['horizontal']
 
         self.directionAAR = aarDirection
 
@@ -234,7 +235,7 @@ class GeorefTable(QTableWidget):
 
         georefTableHeader = self.horizontalHeader()
 
-        for pointObj in gcpTarget['targetGCP']['points']:
+        for pointObj in refData['targetGCP']['points']:
 
             rowPosition = self.rowCount()
             self.insertRow(rowPosition)
@@ -267,7 +268,6 @@ class GeorefTable(QTableWidget):
             self.setItem(rowPosition, 5, txItem)
             georefTableHeader.setSectionResizeMode(5, QHeaderView.Stretch)
 
-
             # Ziel Y
             tyItem = QTableWidgetItem(str(round(pointObj['y'], 3)))
             tyItem.setFlags(Qt.ItemIsEnabled)
@@ -294,7 +294,7 @@ class GeorefTable(QTableWidget):
 
             usageCheck = QCheckBox()
             usageCheck.setChecked(True)
-            usageCheck.setStyleSheet("margin-left:50%; margin-right:50%;");
+            usageCheck.setStyleSheet("margin-left:50%; margin-right:50%;")
             self.setCellWidget(rowPosition, 9, usageCheck)
             georefTableHeader.setSectionResizeMode(9, QHeaderView.ResizeToContents)
 
@@ -309,7 +309,7 @@ class GeorefTable(QTableWidget):
             setPointRadio = QRadioButton()
             setPointRadio.pointUUID = pointObj['uuid']
             #usageCheck.setChecked(True)
-            setPointRadio.setStyleSheet("margin-left:50%; margin-right:50%;");
+            setPointRadio.setStyleSheet("margin-left:50%; margin-right:50%;")
             self.setCellWidget(rowPosition, 10, setPointRadio)
             setPointRadio.toggled.connect(self.onActivePoint)
             georefTableHeader.setSectionResizeMode(10, QHeaderView.ResizeToContents)
