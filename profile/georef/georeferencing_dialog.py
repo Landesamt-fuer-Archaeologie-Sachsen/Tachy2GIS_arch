@@ -257,7 +257,11 @@ class GeoreferencingDialog(QMainWindow):
 
         self.restore(refData)
 
-
+    ## \brief Start georeferencing process
+    #
+    # Do georeferencing for every aarDirection
+    # Write Metadatafile
+    #
     def startGeoreferencing(self):
 
         aarDirections = ['horizontal', 'original', 'absolute height']
