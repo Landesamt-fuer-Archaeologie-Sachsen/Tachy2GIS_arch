@@ -4,6 +4,7 @@ import math
 import pathlib
 
 from PyQt5.QtWidgets import QMessageBox
+from PyQt5.QtCore import Qt
 from qgis.core import QgsProject, QgsVectorLayer, QgsLayerTreeGroup, QgsLayerTreeLayer, QgsWkbTypes
 
 from .georeferencing_dialog import GeoreferencingDialog
@@ -63,6 +64,11 @@ class Georef():
             # Calculate initial profile view
             self.__calculateViewDirection(profil_start_idx)
 
+            #Initial hide Kreutzprofilselection
+            self.__showKreutzprofilSelection(False)
+
+            self.__dockwidget.checkboxKreutzprofil.stateChanged.connect(self.__handleKreutzprofil)
+
         else:
             print('preselectedLineLayer is kein QgsVectorLayer')
 
@@ -88,6 +94,38 @@ class Georef():
         suggestTargetName = shortFileName + '_entz'
         self.__dockwidget.profileTargetName.setText(suggestTargetName)
 
+    ## \brief Handler Checkbox Kreutzprofile is clicked
+    #
+    #
+    def __handleKreutzprofil(self, state):
+        if state == Qt.Checked:
+            print('Checked')
+            self.__showKreutzprofilSelection(True)
+
+        else:
+            print('Unchecked')
+            self.__showKreutzprofilSelection(False)
+
+
+    ## \brief Show or hide Selection of Kreutzprofile
+    #
+    #@param vis
+    def __showKreutzprofilSelection(self, vis):
+        print(vis)
+        if vis == False:
+            self.__dockwidget.kreutzLabelProfilnummer.hide()
+            self.__dockwidget.kreutzLabelProfilfoto.hide()
+            self.__dockwidget.kreutzLabelRichtung.hide()
+            self.__dockwidget.profileIdsComboGeoref_2.hide()
+            self.__dockwidget.profileFotosComboGeoref_2.hide()
+            self.__dockwidget.profileViewDirectionComboGeoref_2.hide()
+        else:
+            self.__dockwidget.kreutzLabelProfilnummer.show()
+            self.__dockwidget.kreutzLabelProfilfoto.show()
+            self.__dockwidget.kreutzLabelRichtung.show()
+            self.__dockwidget.profileIdsComboGeoref_2.show()
+            self.__dockwidget.profileFotosComboGeoref_2.show()
+            self.__dockwidget.profileViewDirectionComboGeoref_2.show()
 
     ## \brief get selected values
     #
