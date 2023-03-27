@@ -177,7 +177,7 @@ class Georef():
         if viewDirLong == 'West':
             viewDirection = 'W'
         #horizontal true/false
-        horizontalCheck = self.__dockwidget.radioDirectionHorizontal.isChecked()
+        #horizontalCheck = self.__dockwidget.radioDirectionHorizontal.isChecked()
 
         #profileTargetName
         profileTargetName = self.__dockwidget.profileTargetName.text()
