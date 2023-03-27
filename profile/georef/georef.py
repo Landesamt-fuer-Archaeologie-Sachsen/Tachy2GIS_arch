@@ -3,9 +3,10 @@ import os
 import math
 import pathlib
 
-from PyQt5.QtWidgets import QMessageBox
+from PyQt5.QtWidgets import QMessageBox, QComboBox, QLabel
 from PyQt5.QtCore import Qt
 from qgis.core import QgsProject, QgsVectorLayer, QgsLayerTreeGroup, QgsLayerTreeLayer, QgsWkbTypes
+from qgis.gui import QgsFileWidget
 
 from .georeferencing_dialog import GeoreferencingDialog
 
@@ -65,7 +66,7 @@ class Georef():
             self.__calculateViewDirection(profil_start_idx)
 
             #Initial hide Kreutzprofilselection
-            self.__showKreutzprofilSelection(False)
+            #self.__showKreutzprofilSelection(False)
 
             self.__dockwidget.checkboxKreutzprofil.stateChanged.connect(self.__handleKreutzprofil)
 
@@ -108,24 +109,31 @@ class Georef():
 
 
     ## \brief Show or hide Selection of Kreutzprofile
-    #
+    # siehe https://stackoverflow.com/questions/70859955/some-blank-space-remains-in-qvboxlayout-after-hiding-widgets-qt
     #@param vis
     def __showKreutzprofilSelection(self, vis):
         print(vis)
         if vis == False:
-            self.__dockwidget.kreutzLabelProfilnummer.hide()
-            self.__dockwidget.kreutzLabelProfilfoto.hide()
-            self.__dockwidget.kreutzLabelRichtung.hide()
-            self.__dockwidget.profileIdsComboGeoref_2.hide()
-            self.__dockwidget.profileFotosComboGeoref_2.hide()
-            self.__dockwidget.profileViewDirectionComboGeoref_2.hide()
+            self.__dockwidget.kreutzLabelProfilnummer.deleteLater()
+            self.__dockwidget.kreutzLabelProfilfoto.deleteLater()
+            self.__dockwidget.kreutzLabelRichtung.deleteLater()
+            self.__dockwidget.profileIdsComboGeoref_2.deleteLater()
+            self.__dockwidget.profileFotosComboGeoref_2.deleteLater()
+            self.__dockwidget.profileViewDirectionComboGeoref_2.deleteLater()
+
         else:
-            self.__dockwidget.kreutzLabelProfilnummer.show()
-            self.__dockwidget.kreutzLabelProfilfoto.show()
-            self.__dockwidget.kreutzLabelRichtung.show()
-            self.__dockwidget.profileIdsComboGeoref_2.show()
-            self.__dockwidget.profileFotosComboGeoref_2.show()
-            self.__dockwidget.profileViewDirectionComboGeoref_2.show()
+
+            self.__dockwidget.kreutzLabelProfilnummer = QLabel('Proifilnummer 2', objectName='kreutzLabelProfilnummer')
+            self.__dockwidget.profileIdsComboGeoref_2 = QComboBox(objectName='profileIdsComboGeoref_2')
+            self.__dockwidget.profileGeoreferencing.layout().addRow(self.__dockwidget.kreutzLabelProfilnummer, self.__dockwidget.profileIdsComboGeoref_2)
+
+            self.__dockwidget.kreutzLabelProfilfoto = QLabel('Profilfoto 2', objectName='kreutzLabelProfilfoto')
+            self.__dockwidget.profileFotosComboGeoref_2 = QgsFileWidget(objectName='profileFotosComboGeoref_2')
+            self.__dockwidget.profileGeoreferencing.layout().addRow(self.__dockwidget.kreutzLabelProfilfoto, self.__dockwidget.profileFotosComboGeoref_2)
+
+            self.__dockwidget.kreutzLabelRichtung = QLabel('Blickrichtung auf das Profil 2', objectName='kreutzLabelRichtung')
+            self.__dockwidget.profileViewDirectionComboGeoref_2 = QComboBox(objectName='profileViewDirectionComboGeoref_2')
+            self.__dockwidget.profileGeoreferencing.layout().addRow(self.__dockwidget.kreutzLabelRichtung, self.__dockwidget.profileViewDirectionComboGeoref_2)
 
     ## \brief get selected values
     #
