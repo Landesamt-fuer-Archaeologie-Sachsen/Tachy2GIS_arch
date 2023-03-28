@@ -80,14 +80,14 @@ class Georef():
     def __startGeoreferencingDialog(self):
         refData = self.__getSelectedValues()
         self.__createFolders(refData)
-        
+
         self.georeferencingDialog = GeoreferencingDialog(self, self.rotationCoords, self.__iface)
         self.georeferencingDialog.showGeoreferencingDialog(refData)
 
     ## \brief SaveComboBox is clicked
     #
     # suggest profileTargetName
-    
+
     def __changedProfileImage(self):
 
         imageFilePath = self.__dockwidget.profileFotosComboGeoref.filePath()
@@ -191,7 +191,7 @@ class Georef():
 
             org_geom = feature.geometry()
             orgGeomType = org_geom.wkbType()
-            
+
             g = self.rotationCoords.castMultipointGeometry(org_geom)
 
             geoType = g.wkbType()
@@ -234,7 +234,7 @@ class Georef():
 
         profileDirs = {
             "dirPa": str(savePath / 'pa'), "dirPo": str(savePath / 'po'),  "dirPh": str(savePath / 'ph'),  "dir3d": str(savePath / '3d')
-        }     
+        }
 
         #Metadaten
         metadataCheck = True #self.__dockwidget.metaProfileCheckbox.isChecked()
@@ -246,7 +246,7 @@ class Georef():
     ## \brief Blickrichtung bestimmen
     #
     #
-    def __calculateViewDirection(self, idx):	
+    def __calculateViewDirection(self, idx):
 
         if isinstance(idx, int) and idx >= 0:
 
@@ -438,7 +438,7 @@ class Georef():
 
         profileDirs = refData['profileDirs']
 
-        for key, value in profileDirs.items():        
+        for key, value in profileDirs.items():
             if not os.path.exists(value):
                 os.makedirs(value)
 

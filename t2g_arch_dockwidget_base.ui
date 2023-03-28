@@ -2944,6 +2944,21 @@
             <string>Georeferenzierung</string>
            </attribute>
            <layout class="QFormLayout" name="formLayout_5">
+            <property name="fieldGrowthPolicy">
+             <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+            </property>
+            <property name="labelAlignment">
+             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+            </property>
+            <property name="horizontalSpacing">
+             <number>6</number>
+            </property>
+            <property name="verticalSpacing">
+             <number>6</number>
+            </property>
+            <property name="leftMargin">
+             <number>9</number>
+            </property>
             <item row="0" column="0">
              <widget class="QLabel" name="label_36">
               <property name="text">
@@ -2987,7 +3002,7 @@
             <item row="6" column="0">
              <widget class="QLabel" name="label_43">
               <property name="text">
-               <string>Blickrichtung auf das Profil</string>
+               <string>Blickrichtung auf das Profil    </string>
               </property>
              </widget>
             </item>
@@ -2997,33 +3012,22 @@
             <item row="8" column="0">
              <widget class="QLabel" name="label_44">
               <property name="text">
-               <string>Entzerrungsebene</string>
+               <string>Kreutzprofil</string>
               </property>
              </widget>
             </item>
             <item row="8" column="1">
-             <layout class="QHBoxLayout" name="horizontalLayout_5">
-              <item>
-               <widget class="QRadioButton" name="radioDirectionHorizontal">
-                <property name="text">
-                 <string>Vertikal</string>
-                </property>
-                <property name="checked">
-                 <bool>true</bool>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QRadioButton" name="radioDirectionOriginal">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-                <property name="text">
-                 <string>Geneigt</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
+             <widget class="QCheckBox" name="checkboxKreutzprofil">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+             </widget>
             </item>
             <item row="10" column="0">
              <widget class="QLabel" name="label_45">
@@ -3063,6 +3067,9 @@
             </item>
             <item row="13" column="1">
              <layout class="QHBoxLayout" name="horizontalLayout_6">
+              <property name="spacing">
+               <number>6</number>
+              </property>
               <property name="topMargin">
                <number>9</number>
               </property>
