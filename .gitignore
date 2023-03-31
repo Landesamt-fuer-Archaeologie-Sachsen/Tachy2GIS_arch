@@ -1,5 +1,2 @@
 *.pyc
 __pycache__
-# pycharm
-.idea/
-/.venv/
