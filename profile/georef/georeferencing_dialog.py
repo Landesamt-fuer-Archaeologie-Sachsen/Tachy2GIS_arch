@@ -18,13 +18,13 @@ from .data_store_georef import DataStoreGeoref
 
 from ..profileAAR.profileAAR import profileAAR
 
-
 ## @brief With the GeoreferencingDialog class a dialog window for the georeferencing of profiles is realized
 #
 # The class inherits form QMainWindow
 #
 # @author Mario Uhlig, VisDat geodatentechnologie GmbH, mario.uhlig@visdat.de
 # @date 2021-25-05
+
 class GeoreferencingDialog(QMainWindow):
 
     def __init__(self, t2GArchInstance, rotationCoords, iFace):
@@ -36,7 +36,7 @@ class GeoreferencingDialog(QMainWindow):
         self.refData = None
         self.__iface = iFace
         self.aarDirection = 'horizontal'
-        # DataStore
+        #DataStore
         self.dataStoreGeoref = DataStoreGeoref()
         self.rotationCoords = rotationCoords
 
@@ -48,9 +48,9 @@ class GeoreferencingDialog(QMainWindow):
     def closeEvent(self, event):
         print('close')
         self.dataStoreGeoref.clearStore()
-        # self.georefTable.cleanGeorefTable()
+        #self.georefTable.cleanGeorefTable()
 
-        # self.canvasImage
+        #self.canvasImage
 
     ## \brief Create different menus
     #
@@ -65,7 +65,7 @@ class GeoreferencingDialog(QMainWindow):
         self.statusBar().setStyleSheet('background-color: #FFF8DC;')
         self.statusBar().setStyleSheet("QStatusBar::item {border: none;}")
 
-        exitAct = QAction(QIcon(os.path.join(self.iconpath, 'Ok_grau.png')), 'Exit', self)
+        exitAct = QAction(QIcon(os.path.join(self.iconpath , 'Ok_grau.png')), 'Exit', self)
 
         exitAct.setShortcut('Ctrl+Q')
         exitAct.setStatusTip('Anwendung schließen')
@@ -78,48 +78,47 @@ class GeoreferencingDialog(QMainWindow):
     ## \brief ECreates the components of the window
     #
     # - MessageBar to give hints
-    # - Parameterbar to show the results of the transformation, instantiate class GeoreferencingDialogParambar()
-    #   as self.transformationParamsBar
+    # - Parameterbar to show the results of the transformation, instantiate class GeoreferencingDialogParambar() as self.transformationParamsBar
     # - Canvas component for layer display, instantiate class GeoreferencingDialogCanvas as self.canvasTransform
     # - Table with the GCPs, instantiate class GeoreferencingDialogTable() as self.georefTable
     # - Coordinates in statusBar
     # - instantiate class GeoreferencingCalculations as self.paramCalc
+
     # @returns
     def createComponents(self):
-        # messageBar
+        #messageBar
         self.messageBar = QgsMessageBar()
 
-        # Canvas Elemente
+        #Canvas Elemente
         self.canvasImage = ProfileImageCanvas(self)
         self.canvasGcp = ProfileGcpCanvas(self, self.rotationCoords)
 
-        # paramsBar
+        #paramsBar
         self.imageParambar = ImageParambar(self, self.canvasImage)
         self.gcpParambar = GcpParambar(self, self.canvasGcp, self.rotationCoords)
 
-        # Actions
+        #Actions
         self.createActions()
 
-        # Toolbars
+        #Toolbars
         self.createToolbars()
 
-        # GcpTable
+        #GcpTable
         self.georefTable = GeorefTable(self, self.dataStoreGeoref)
 
-        # profileAAR
+        #profileAAR
         self.profileAAR = profileAAR()
 
-        # Bildgeoreferenzierung
+        #Bildgeoreferenzierung
         self.imageGeoref = ImageGeoref(self, self.dataStoreGeoref, self.__iface)
 
     ## \brief Event connections
     #
+
     def createConnects(self):
         self.georefTable.pup.register('activatePoint', self.canvasGcp.setActivePoint)
         self.georefTable.pup.register('activatePoint', self.canvasImage.setActivePoint)
         self.georefTable.pup.register('activatePoint', self.imageParambar.activateMapToolMove)
-        self.georefTable.my_signal.connect(self.canvasGcp.testSlot)
-
         self.canvasImage.pup.register('imagePointCoordinates', self.georefTable.updateImageCoordinates)
         self.canvasImage.pup.register('imagePointCoordinates', self.dataStoreGeoref.addImagePoint)
         self.canvasImage.pup.register('imagePointCoordinates', self.georefTable.updateErrorValues)
@@ -127,24 +126,26 @@ class GeoreferencingDialog(QMainWindow):
         self.startGeorefBtn.clicked.connect(self.startGeoreferencing)
 
         self.georefTable.pup.register('dataChanged', self.profileAAR.run)
-
+    
         self.profileAAR.pup.register('aarPointsChanged', self.dataStoreGeoref.addAarPoints)
 
         self.dataStoreGeoref.pup.register('pushTransformationParams', self.rotationCoords.setAarTransformationParams)
         self.dataStoreGeoref.pup.register('pushAarPoints', self.canvasImage.updateAarPoints)
 
-        self.canvasGcp.pup.register('moveCoordinate', self.gcpParambar.updateCoordinate)
-        self.canvasImage.pup.register('moveCoordinate', self.imageParambar.updateCoordinate)
+        self.canvasGcp.pup.register('moveCoordinate',self.gcpParambar.updateCoordinate)
+        self.canvasImage.pup.register('moveCoordinate',self.imageParambar.updateCoordinate)
+
+        
 
     ## \brief create actions
     #
     def createActions(self):
 
-        # Export
+        #Export
         iconExport = QIcon(os.path.join(self.iconpath, 'mActionSaveGCPpointsAs.png'))
         self.actionExport = QAction(iconExport, "Export data", self)
 
-        # Import
+        #Import
         iconImport = QIcon(os.path.join(self.iconpath, 'mActionLoadGCPpoints.png'))
         self.actionImport = QAction(iconImport, "Import data", self)
 
@@ -153,7 +154,7 @@ class GeoreferencingDialog(QMainWindow):
     # - toolbarMap
     def createToolbars(self):
 
-        # Toolbar Kartennavigation
+        #Toolbar Kartennavigation
         self.toolbarMap = self.addToolBar("Kartennavigation")
 
         self.startGeorefBtn = QPushButton("Profil entzerren", self)
@@ -164,12 +165,13 @@ class GeoreferencingDialog(QMainWindow):
 
     ## \brief Creates the layout for the window and assigns the created components
     #
+
     def createLayout(self):
 
         widgetCentral = QWidget()
 
         verticalLayout = QVBoxLayout()
-        verticalLayout.setContentsMargins(0, 0, 0, 0)
+        verticalLayout.setContentsMargins(0,0,0,0)
         verticalLayout.setSpacing(0)
         widgetCentral.setLayout(verticalLayout)
         self.setCentralWidget(widgetCentral)
@@ -204,7 +206,7 @@ class GeoreferencingDialog(QMainWindow):
 
         validImageLayer = self.canvasImage.updateCanvas(refData['imagePath'])
 
-        if validImageLayer:
+        if validImageLayer == True:
             self.canvasGcp.updateCanvas(refData)
 
             self.dataStoreGeoref.addTargetPoints(refData)
@@ -213,12 +215,7 @@ class GeoreferencingDialog(QMainWindow):
             self.show()
             self.resize(1000, 700)
         else:
-            self.__iface.messageBar().pushMessage(
-                "Error",
-                "Rasterlayer konnte nicht gelesen werden",
-                level=1,
-                duration=3
-            )
+            self.__iface.messageBar().pushMessage("Error", "Rasterlayer konnte nicht gelesen werden", level=1, duration=3)
 
     ## \brief Export GCP-Data in a textfile
     #
@@ -226,24 +223,23 @@ class GeoreferencingDialog(QMainWindow):
 
         transformation_params = self.dataStoreGeoref.getAarTransformationParams(aarDirection)
 
-        # Wenn die AAR-Berechnung aufgrund geringer Genauigkeit (O-W- oder N-S-Profile)
+        # Wenn die AAR-Berechnung aufgrund geringer Genauigkeit (O-W- oder N-S-Profile) 
         # einen Fehler bringt (ns_error is True) wird in AAR der slope_deg Winkel um 45 Grad reduziert.
-        # Die 45 Grad müssen hier wieder dazu addiert werden
-        # damit die Digitalisierung von Objekten im Profil funktioniert
-
+        # Die 45 Grad müssen hier wieder dazu addiert werden damit die Digitalisierung von Objekten im Profil funktioniert
+        
         if 'ns_error' in transformation_params:
             if transformation_params['ns_error'] is True:
                 transformation_params['slope_deg'] = transformation_params['slope_deg'] + 45
 
         data = {
-            "profilnummer": self.refData['profileNumber'],
-            "profil": self.refData['savePath'],
-            "profilfoto": self.refData['imagePath'],
-            "blickrichtung": self.refData['viewDirection'],
-            "entzerrungsebene": 'vertikal',
+        	"profilnummer": self.refData['profileNumber'],
+        	"profil": self.refData['savePath'],
+        	"profilfoto": self.refData['imagePath'],
+        	"blickrichtung": self.refData['viewDirection'],
+        	"entzerrungsebene": 'vertikal',
             "aar_direction": aarDirection,
-            "gcps": self.dataStoreGeoref.getGeorefData(aarDirection),
-            "transform_params": transformation_params
+        	"gcps": self.dataStoreGeoref.getGeorefData(aarDirection),
+        	"transform_params": transformation_params
         }
 
         with open(str(metaFileOut), 'w') as outfile:
@@ -256,15 +252,12 @@ class GeoreferencingDialog(QMainWindow):
     # calls the funcion restore()
     #
     # \param refData
+
     def showGeoreferencingDialog(self, refData):
 
         self.restore(refData)
 
-    ## \brief Start georeferencing process
-    #
-    # Do georeferencing for every aarDirection
-    # Write Metadatafile
-    #
+
     def startGeoreferencing(self):
 
         aarDirections = ['horizontal', 'original', 'absolute height']
@@ -275,7 +268,7 @@ class GeoreferencingDialog(QMainWindow):
 
             imageFileIn = self.refData['imagePath']
             profileTargetName = self.refData['profileTargetName']
-
+            
             if aarDirection == 'horizontal':
                 base_path = pathlib.Path(self.refData['profileDirs']['dirPh'])
             if aarDirection == 'original':
@@ -287,18 +280,14 @@ class GeoreferencingDialog(QMainWindow):
             metaFileOut = base_path / f'{profileTargetName}.meta'
 
             georefChecker = self.imageGeoref.runGeoref(georefData, self.refData['crs'], imageFileIn, str(imageFileOut))
-
+            
             if georefChecker == 'ok':
                 fileName = self.writeMetafile(aarDirection, metaFileOut)
-                self.__iface.messageBar().pushMessage(
-                    "Hinweis",
-                    "Das Profil wurde unter " + str(imageFileOut) + " referenziert",
-                    level=3,
-                    duration=5
-                )
+                self.__iface.messageBar().pushMessage("Hinweis", "Das Profil wurde unter "+str(imageFileOut)+" referenziert", level=3, duration=5)
 
         self.destroyDialog()
 
     def destroyDialog(self):
         self.close()
         self.destroy()
+        
