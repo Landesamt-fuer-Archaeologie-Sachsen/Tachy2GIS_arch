@@ -1,19 +1,24 @@
 # -*- coding: utf-8 -*-
 from typing import List
 from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QHeaderView, QCheckBox, QRadioButton, QMessageBox
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QColor, QBrush
 import numpy as np
 from operator import itemgetter
 
 from ..publisher import Publisher
 from .residuals import Residuals
+
+
 ## @brief With the TransformationDialogTable class a table based on QTableWidget is realized
 #
 # @author Mario Uhlig, VisDat geodatentechnologie GmbH, mario.uhlig@visdat.de
 # @date 2020-10-19
 
 class GeorefTable(QTableWidget):
+
+    # darf nicht in den Konstruktor:
+    my_signal = pyqtSignal(dict)
 
     ## The constructor.
     # Defines attributes for the table
@@ -36,7 +41,7 @@ class GeorefTable(QTableWidget):
 
         self.dataStoreGeoref = dataStoreGeoref
 
-        #allows selection of image coordinates in canvasImage
+        # allows selection of image coordinates in canvasImage
         self.activePoint = ''
 
         self.viewDirection = None
@@ -45,50 +50,54 @@ class GeorefTable(QTableWidget):
         self.methodAAR = None
         self.profileNumber = None
 
-        self.colHeaders = ['UUID', 'PTNR', 'ID', 'Quelle X', 'Quelle Z', 'Ziel X', 'Ziel Y', 'Ziel Z', 'Error', 'Punkt verwenden', 'Punkt setzen']
+        self.colHeaders = ['UUID', 'PTNR', 'ID', 'Quelle X', 'Quelle Z', 'Ziel X', 'Ziel Y', 'Ziel Z', 'Error',
+                           'Punkt verwenden', 'Punkt setzen']
 
         self.setObjectName("georefTable")
         self.setRowCount(0)
         self.setColumnCount(11)
         self.setHorizontalHeaderLabels(self.colHeaders)
-        self.setStyleSheet("QTableWidget::item { padding: 4px } QTableWidget::item:selected{ background-color: rgba(255, 255, 255, 100%) }");
+        self.setStyleSheet(
+            "QTableWidget::item { padding: 4px } "
+            "QTableWidget::item:selected{ background-color: rgba(255, 255, 255, 100%) }"
+        )
 
-        #click in Tabellenzelle
+        # click in Tabellenzelle
         self.clicked.connect(self.georefTableCellClick)
-        #click auf row
+        # click auf row
         self.verticalHeader().sectionClicked.connect(self.georefTableRowClick)
 
         self.res = Residuals()
 
-        #Default error colors
+        # Default error colors
         errorColorsIn = [
-                            {'order': 1, 'min': 0, 'max': 0.02, 'color': [0,255,0]},
-                            {'order': 2, 'min': 0.02, 'max': 0.04, 'color': [255,122,0]},
-                            {'order': 3, 'min': 0.04, 'max': 1, 'color': [255,0,0]}        
-                        ]
+            {'order': 1, 'min': 0, 'max': 0.02, 'color': [0, 255, 0]},
+            {'order': 2, 'min': 0.02, 'max': 0.04, 'color': [255, 122, 0]},
+            {'order': 3, 'min': 0.04, 'max': 1, 'color': [255, 0, 0]}
+        ]
 
         self.errorColors = self.__createErrorColors(errorColorsIn)
 
-        self.whiteBrush = QBrush(QColor(255,255,255))
+        self.whiteBrush = QBrush(QColor(255, 255, 255))
 
-        #errorColorsIn2 = [
+        # errorColorsIn2 = [
         #                    {'order': 1, 'min': 0, 'max': 0.01, 'color': [0,255,0]},
         #                    {'order': 2, 'min': 0.01, 'max': 0.02, 'color': [255,122,0]},
         #                    {'order': 3, 'min': 0.02, 'max': 0.03, 'color': [200,122,70]},
-        #                    {'order': 4, 'min': 0.03, 'max': 1, 'color': [255,0,0]}    
+        #                    {'order': 4, 'min': 0.03, 'max': 1, 'color': [255,0,0]}
         #                ]
-        #self.updateErrorColors(errorColorsIn2)
+        # self.updateErrorColors(errorColorsIn2)
 
     ## \brief Create a error colors list
     #
     # - sorting of the incomming error color list
     # - set first and last object
-    # - cast rgb values to QBrush object 
+    # - cast rgb values to QBrush object
     #
     # If an error occurs the default errorColors list is still active
     #
     def __createErrorColors(self, errorColorsIn):
-        
+
         try:
             errorColors = sorted(errorColorsIn, key=itemgetter('order'), reverse=False)
 
@@ -100,8 +109,8 @@ class GeorefTable(QTableWidget):
                     obj['first'] = False
                     obj['last'] = False
 
-                obj['color'] = QBrush(QColor(obj['color'][0],obj['color'][1],obj['color'][2]))
-                
+                obj['color'] = QBrush(QColor(obj['color'][0], obj['color'][1], obj['color'][2]))
+
             errorColors[-1]['last'] = True
 
             return errorColors
@@ -110,7 +119,7 @@ class GeorefTable(QTableWidget):
             infoText = "Fehler beim Import der errorColorsIn List!"
             self.__openInfoMessageBox(infoText)
 
-    ## \brief Update the error colors list 
+    ## \brief Update the error colors list
     #
     #
 
@@ -121,18 +130,22 @@ class GeorefTable(QTableWidget):
         if validationValue is True:
             self.errorColors = self.__createErrorColors(errorColorsIn)
         else:
-            infoText = "ValidationError - errorColorsIn-List hat nicht das richtige Format! Siehe: [{'order': 1, 'min': 0, 'max': 0.02, 'color': [0,255,0]}, {'order': 3, 'min': 0.04, 'max': 1, 'color': [255,0,0]}, {'order': 2, 'min': 0.02, 'max': 0.04, 'color': [255,122,0]}]"
+            infoText = (
+                "ValidationError - errorColorsIn-List hat nicht das richtige Format! Siehe: ["
+                "{'order': 1, 'min': 0, 'max': 0.02, 'color': [0,255,0]}, "
+                "{'order': 3, 'min': 0.04, 'max': 1, 'color': [255,0,0]}, "
+                "{'order': 2, 'min': 0.02, 'max': 0.04, 'color': [255,122,0]}]"
+            )
             self.__openInfoMessageBox(infoText)
 
-
-    ## \brief Update the error colors list 
+    ## \brief Update the error colors list
     #
     # \param errorColorsIn required format is:
     #
     #   [
     #        {'order': 1, 'min': 0, 'max': 0.02, 'color': [0,255,0]},
     #        {'order': 2, 'min': 0.02, 'max': 0.04, 'color': [255,122,0]},
-    #        {'order': 3, 'min': 0.04, 'max': 1, 'color': [255,0,0]}        
+    #        {'order': 3, 'min': 0.04, 'max': 1, 'color': [255,0,0]}
     #    ]
     #
 
@@ -140,11 +153,11 @@ class GeorefTable(QTableWidget):
 
         validationValue = True
 
-        #Check object in list should be min one
+        # Check object in list should be min one
         if len(errorColorsIn) < 1:
             validationValue = False
 
-        #Check keys in objects
+        # Check keys in objects
         requiredKeys = ['order', 'min', 'max', 'color']
         for errorObject in errorColorsIn:
             for key in requiredKeys:
@@ -163,10 +176,10 @@ class GeorefTable(QTableWidget):
         self.__infoTranssformMsgBox = QMessageBox()
         self.__infoTranssformMsgBox.setText(infoText)
         self.__infoTranssformMsgBox.setWindowTitle("Hintergrundinformationen")
-        self.__infoTranssformMsgBox.setStandardButtons((QMessageBox.Ok))
+        self.__infoTranssformMsgBox.setStandardButtons(QMessageBox.Ok)
         self.__infoTranssformMsgBox.exec_()
 
-    def __getTableData(self): 
+    def __getTableData(self):
 
         tableData = []
 
@@ -187,16 +200,16 @@ class GeorefTable(QTableWidget):
                 if head == 'ID':
                     pointObj['id'] = int(self.item(i, j).text())
                 if head == 'Quelle X':
-                    pointArraySource [0] = float(self.item(i, j).text())
+                    pointArraySource[0] = float(self.item(i, j).text())
                 if head == 'Quelle Z':
-                    pointArraySource [1] = float(self.item(i, j).text())
+                    pointArraySource[1] = float(self.item(i, j).text())
 
                 if head == 'Ziel X':
-                    pointArrayTarget [0] = float(self.item(i, j).text())
+                    pointArrayTarget[0] = float(self.item(i, j).text())
                 if head == 'Ziel Y':
-                    pointArrayTarget [1] = float(self.item(i, j).text())
+                    pointArrayTarget[1] = float(self.item(i, j).text())
                 if head == 'Ziel Z':
-                    pointArrayTarget [2] = float(self.item(i, j).text())
+                    pointArrayTarget[2] = float(self.item(i, j).text())
                 if head == 'Error':
                     pointObj['error'] = float(self.item(i, j).text())
                 if head == 'Punkt verwenden':
@@ -223,12 +236,15 @@ class GeorefTable(QTableWidget):
 
         self.directionAAR = aarDirection
 
-        #if horizontal == True:
+        # if horizontal == True:
         #    self.directionAAR = 'horizontal'
-        #else:
+        # else:
         #    self.directionAAR = 'original'
 
-        #self.colHeaders = ['UUID', 'PTNR', 'ID', 'Quelle X', 'Quelle Z', 'Ziel X', 'Ziel Y', 'Ziel Z', 'Error', 'Punkt verwenden', 'Punkt setzen']
+        # self.colHeaders = [
+        #     'UUID', 'PTNR', 'ID', 'Quelle X', 'Quelle Z', 'Ziel X', 'Ziel Y', 'Ziel Z',
+        #     'Error', 'Punkt verwenden', 'Punkt setzen'
+        # ]
         targetX = []
         targetY = []
         targetZ = []
@@ -236,7 +252,6 @@ class GeorefTable(QTableWidget):
         georefTableHeader = self.horizontalHeader()
 
         for pointObj in refData['targetGCP']['points']:
-
             rowPosition = self.rowCount()
             self.insertRow(rowPosition)
             # UUID
@@ -280,7 +295,7 @@ class GeorefTable(QTableWidget):
             self.setItem(rowPosition, 7, tzItem)
             georefTableHeader.setSectionResizeMode(7, QHeaderView.Stretch)
 
-            #Error XY
+            # Error XY
             errorXyItem = QTableWidgetItem(str(-99999))
             errorXyItem.setFlags(Qt.ItemIsEnabled)
             self.setItem(rowPosition, 8, errorXyItem)
@@ -308,25 +323,24 @@ class GeorefTable(QTableWidget):
 
             setPointRadio = QRadioButton()
             setPointRadio.pointUUID = pointObj['uuid']
-            #usageCheck.setChecked(True)
+            # usageCheck.setChecked(True)
             setPointRadio.setStyleSheet("margin-left:50%; margin-right:50%;")
             self.setCellWidget(rowPosition, 10, setPointRadio)
             setPointRadio.toggled.connect(self.onActivePoint)
             georefTableHeader.setSectionResizeMode(10, QHeaderView.ResizeToContents)
 
-        #hide column with ugly uuid
+        # hide column with ugly uuid
         self.setColumnHidden(0, True)
 
     ## \brief Remove all cells in table
     #
     # \param
     # @returns
-
     def cleanGeorefTable(self):
 
-        #georefTable
+        # georefTable
         rowTotal = self.rowCount()
-        for row in range(rowTotal,-1, -1):
+        for row in range(rowTotal, -1, -1):
             self.removeRow(row)
 
     ## \brief If radiobutton "Punkt setzen" in the table is checked, the activePoint ist set by UUID
@@ -341,11 +355,12 @@ class GeorefTable(QTableWidget):
             tableData = self.__getTableData()
 
             pointNr = ''
-            for tblObj in tableData:    
+            for tblObj in tableData:
                 if tblObj['uuid'] == activeUUID:
                     pointNr = tblObj['ptnr']
 
             self.pup.publish('activatePoint', {'uuid': activeUUID, 'ptnr': pointNr})
+            self.my_signal.emit({'uuid': activeUUID, 'ptnr': pointNr})
 
     ## \brief The activePoint ist set by UUID
     #
@@ -353,19 +368,19 @@ class GeorefTable(QTableWidget):
     def setActivePoint(self, pointUUID):
         self.activePoint = pointUUID
 
-
-    ## \brief If a cell in the table is clicked the corresponding uuid value is searched to used in highlight sourcelayer feature
+    ## \brief If a cell in the table is clicked the corresponding uuid value is searched to used in highlight
+    # sourcelayer feature
     #
     # the Function TransformationDialogCanvas.highlightSourceLayer(uuidValue) is called
     #
     def georefTableCellClick(self):
-
-        index=(self.selectionModel().currentIndex())
-        uuidValue=index.sibling(index.row(),0).data()
+        index = (self.selectionModel().currentIndex())
+        uuidValue = index.sibling(index.row(), 0).data()
 
         self.dialogInstance.canvasGcp.highlightSourceLayer(uuidValue)
 
-    ## \brief If a row in the table is clicked the corresponding uuid value is searched to used in highlight sourcelayer feature
+    ## \brief If a row in the table is clicked the corresponding uuid value is searched to used in highlight
+    # sourcelayer feature
     #
     # the Function TransformationDialogCanvas.highlightSourceLayer(uuidValue) is called
     #
@@ -373,8 +388,8 @@ class GeorefTable(QTableWidget):
     #
     def georefTableRowClick(self, rowId):
 
-        index=(self.selectionModel().currentIndex())
-        uuidValue=index.sibling(rowId,0).data()
+        index = (self.selectionModel().currentIndex())
+        uuidValue = index.sibling(rowId, 0).data()
 
         self.dialogInstance.canvasGcp.highlightSourceLayer(uuidValue)
 
@@ -384,17 +399,16 @@ class GeorefTable(QTableWidget):
         points = []
         for tblObj in tableData:
             points.append([
-                tblObj['targetPoints'][0], tblObj['targetPoints'][1], tblObj['targetPoints'][2], self.viewDirection, self.profileNumber, int(tblObj['usage']), tblObj['uuid']
+                tblObj['targetPoints'][0], tblObj['targetPoints'][1], tblObj['targetPoints'][2], self.viewDirection,
+                self.profileNumber, int(tblObj['usage']), tblObj['uuid']
             ])
 
         metaInfos = {
-        	'method': 'projected',
-        	'direction': aarDirection 
+            'method': 'projected',
+            'direction': aarDirection
         }
 
         return points, metaInfos
-
-
 
     ## \brief Update error values in the table
     #
@@ -409,7 +423,8 @@ class GeorefTable(QTableWidget):
 
             for targetObj in self.targetGCP:
                 if targetObj['uuid'] == georefObj['uuid']:
-                    gcpArray.append([georefObj['input_x'], georefObj['input_z'], targetObj['x'], targetObj['z'], targetObj['uuid']])
+                    gcpArray.append(
+                        [georefObj['input_x'], georefObj['input_z'], targetObj['x'], targetObj['z'], targetObj['uuid']])
 
         self.hide()
 
@@ -431,7 +446,7 @@ class GeorefTable(QTableWidget):
                     if head == 'UUID':
                         tblPointUuid = self.item(i, j).text()
 
-                #in Zelle der Tabelle eintragen
+                # in Zelle der Tabelle eintragen
                 for j in range(0, columnCount):
                     head = self.horizontalHeaderItem(j).text()
 
@@ -443,8 +458,12 @@ class GeorefTable(QTableWidget):
                                 self.item(i, j).setText(str(round(errorObj['v_xy'], 4)))
 
                                 for cat in self.errorColors:
-                                    
-                                    if cat['last'] is False and cat['first'] is False and cat['min'] < errorObj['v_xy'] <= cat['max']:
+
+                                    if (
+                                            cat['last'] is False and
+                                            cat['first'] is False and
+                                            cat['min'] < errorObj['v_xy'] <= cat['max']
+                                    ):
                                         self.setRowColor(i, cat['color'])
 
                                     if cat['last'] is True and errorObj['v_xy'] > cat['min']:
@@ -455,7 +474,7 @@ class GeorefTable(QTableWidget):
 
         else:
             for i in range(0, rowCount):
-                #in Zelle der Tabelle eintragen
+                # in Zelle der Tabelle eintragen
                 for j in range(0, columnCount):
                     head = self.horizontalHeaderItem(j).text()
 
@@ -466,12 +485,11 @@ class GeorefTable(QTableWidget):
 
         self.show()
 
-    #Hintergrundfarbe für Zeile in Tabelle setzen
+    # Hintergrundfarbe für Zeile in Tabelle setzen
     def setRowColor(self, rowIndex, color):
         for j in range(self.columnCount()):
             if isinstance(self.item(rowIndex, j), QTableWidgetItem):
                 self.item(rowIndex, j).setBackground(color)
-
 
     ## \brief Update image coordinates for a specific point (uuid)
     #
@@ -494,7 +512,7 @@ class GeorefTable(QTableWidget):
                 if head == 'UUID':
                     tblPointUuid = self.item(i, j).text()
 
-            #in Zelle der Tabelle eintragen
+            # in Zelle der Tabelle eintragen
             for j in range(0, columnCount):
                 head = self.horizontalHeaderItem(j).text()
                 if linkObj['uuid'] == tblPointUuid:
@@ -505,7 +523,6 @@ class GeorefTable(QTableWidget):
                         self.item(i, j).setText(str(round(linkObj['z'], 3)))
 
         self.show()
-
 
     def pointUsageChanged(self):
 

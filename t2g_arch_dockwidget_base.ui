@@ -3012,12 +3012,12 @@
             <item row="8" column="0">
              <widget class="QLabel" name="label_44">
               <property name="text">
-               <string>Kreutzprofil</string>
+               <string>Kreuzprofil</string>
               </property>
              </widget>
             </item>
             <item row="8" column="1">
-             <widget class="QCheckBox" name="checkboxKreutzprofil">
+             <widget class="QCheckBox" name="checkboxKreuzprofil">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                 <horstretch>0</horstretch>
