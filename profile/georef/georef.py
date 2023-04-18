@@ -3,9 +3,16 @@ import os
 import math
 import pathlib
 
+from PIL import Image
 from PyQt5.QtWidgets import QMessageBox, QComboBox, QLabel
 from PyQt5.QtCore import Qt
-from qgis.core import QgsProject, QgsVectorLayer, QgsLayerTreeGroup, QgsLayerTreeLayer, QgsWkbTypes
+from qgis.core import (
+    QgsProject,
+    QgsVectorLayer,
+    QgsLayerTreeGroup,
+    QgsLayerTreeLayer,
+    QgsWkbTypes,
+)
 from qgis.gui import QgsFileWidget
 
 from .georeferencing_dialog import GeoreferencingDialog
@@ -17,52 +24,53 @@ from .georeferencing_dialog import GeoreferencingDialog
 # @author Mario Uhlig, VisDat geodatentechnologie GmbH, mario.uhlig@visdat.de
 # @date 2021-05-07
 class Georef:
-
     ## The constructor.
     #  Defines attributes for the Profile
     #
     #  @param dockWidget pointer to the dockwidget
     #  @param iFace pointer to the iface class
     def __init__(self, t2gArchInstance, iFace, rotationCoords):
-
-        self.__dockwidget = t2gArchInstance.dockwidget
-        self.__iface = iFace
+        self.dockwidget = t2gArchInstance.dockwidget
+        self.iface = iFace
 
         self.rotationCoords = rotationCoords
+
+        self.ref_data_pair = []
+        self.geo_referencing_dialogues_list = []
+        self.draw_polygon_window_list = []
+        self.polygon_list = []
 
     ## @brief Initializes the functionality for profile modul
     #
     def setup(self):
-
         # Preselection of Inputlayers (only Layer below "Eingabelayer" are available)
-        preselectedLineLayer = self.__preselectionProfileLayer()
+        preselectedLineLayer = self.preselectionProfileLayer()
         # Tooltip
-        self.__dockwidget.profileTargetName.setToolTip(
+        self.dockwidget.profileTargetName.setToolTip(
             "Die Ergebnisdateien werden in Unterverzeichnissen vom Profilfoto abgelegt, "
             "die Dateinamen beginnen so wie hier angegeben."
         )
         # Preselection profilenumber
         if isinstance(preselectedLineLayer, QgsVectorLayer):
-
-            self.__preselectProfileNumbers(preselectedLineLayer)
+            self.preselectProfileNumbers(preselectedLineLayer)
             # Preselection of Inputlayers (only Layer below "Eingabelayer" are available)
-            self.__preselectionGcpLayer()
+            self.preselectionGcpLayer()
             # set datatype filter to profileFotosComboGeoref
-            self.__dockwidget.profileFotosComboGeoref.setFilter('Images (*.png *.JPG *.jpg *.jpeg *.tif)')
-            self.__dockwidget.profileFotosComboGeoref.fileChanged.connect(self.__changedProfileImage)
+            self.dockwidget.profileFotosComboGeoref.setFilter("Images (*.png *.JPG *.jpg *.jpeg *.tif)")
+            self.dockwidget.profileFotosComboGeoref.fileChanged.connect(self.changedProfileImage)
             # Preselection View direction
-            self.__preselectViewDirection()
+            self.preselectViewDirection()
 
-            self.__dockwidget.startGeoreferencingBtn.clicked.connect(self.__startGeoreferencingDialog)
+            self.dockwidget.startGeoreferencingBtn.clicked.connect(self.startGeoreferencingBtn_clicked)
 
-            self.__dockwidget.layerGcpGeoref.currentIndexChanged.connect(self.calculateViewDirection)
-            self.__dockwidget.layerProfileGeoref.currentIndexChanged.connect(self.calculateViewDirection)
-            self.__dockwidget.profileIdsComboGeoref.currentIndexChanged.connect(self.calculateViewDirection)
+            self.dockwidget.layerGcpGeoref.currentIndexChanged.connect(self.calculateViewDirection)
+            self.dockwidget.layerProfileGeoref.currentIndexChanged.connect(self.calculateViewDirection)
+            self.dockwidget.profileIdsComboGeoref.currentIndexChanged.connect(self.calculateViewDirection)
 
-            profil_start_idx = self.__dockwidget.profileIdsComboGeoref.currentIndex()
+            profil_start_idx = self.dockwidget.profileIdsComboGeoref.currentIndex()
 
             # Connection to info messagebox
-            self.__dockwidget.profileInfoBtn.clicked.connect(self.__openInfoMessageBox)
+            self.dockwidget.profileInfoBtn.clicked.connect(self.openInfoMessageBox)
 
             # Calculate initial profile view
             self.calculateViewDirection(profil_start_idx)
@@ -70,41 +78,109 @@ class Georef:
             # Initial hide Kreuzprofilselection
             # self.__showKreuzprofilSelection(False)
 
-            self.__dockwidget.checkboxKreuzprofil.stateChanged.connect(self.__handleKreuzprofil)
+            self.dockwidget.checkboxKreuzprofil.stateChanged.connect(self.handleKreuzprofil)
 
         else:
-            print('preselectedLineLayer is kein QgsVectorLayer')
+            print("preselectedLineLayer is kein QgsVectorLayer")
+
+    def flip_image_from_image_path(self, refData):
+        opposite_direction = {
+            "S": "N",
+            "W": "E",
+            "N": "S",
+            "E": "W",
+        }
+        refData["viewDirection"] = opposite_direction[refData["viewDirection"]]
+        with Image.open(refData["imagePath"]) as imageObject:
+            imageObject.load()
+        flippedImage = imageObject.transpose(Image.FLIP_LEFT_RIGHT)
+        flipped_image_path = str(
+            pathlib.Path(refData["savePath"]).joinpath("flipped_" + os.path.basename(refData["imagePath"]))
+        )
+        flippedImage.save(flipped_image_path)
+        flippedImage.close()
+        imageObject.close()
+        del flippedImage
+        del imageObject
+        refData["imagePath"] = flipped_image_path
+
+    def startGeoreferencingBtn_clicked(self):
+        # reset old dialogues, windows and ref data:
+        self.geo_referencing_dialogues_list = []
+        self.draw_polygon_window_list = []
+        self.polygon_list = []
+        self.ref_data_pair = []
+        self.ref_data_pair.append(self.getSelectedValues())
+
+        # case no kreuzprofil:
+        if not self.dockwidget.checkboxKreuzprofil.isChecked():
+            self.startGeoreferencingDialog(self.ref_data_pair[0])
+            return
+
+        # case kreuzprofil:
+        if (
+            self.dockwidget.profileIdsComboGeoref.currentIndex()
+            == self.dockwidget.profileIdsComboGeoref_2.currentIndex()
+        ):
+            QMessageBox.critical(
+                self.dockwidget,
+                "Invalide Einstellung",
+                "Profilnummern müssen sich unterscheiden!",
+                QMessageBox.Abort,
+            )
+            return
+
+        self.ref_data_pair.append(self.getSelectedValues(second_set=True))
+
+        # flip second image and viewing direction:
+        self.flip_image_from_image_path(self.ref_data_pair[1])
+
+        # w1 = DrawPolygonWindow()
+        # w1.toolDraw.polygon_drawn.connect(self.polygon_one_drawn)
+        # w1.showWindow(self.ref_data_pair[0]["imagePath"])
+        # self.draw_polygon_window_list.append(w1)
+        #
+        # w2 = DrawPolygonWindow()
+        # w2.toolDraw.polygon_drawn.connect(self.polygon_two_drawn)
+        # w2.showWindow(self.ref_data_pair[1]["imagePath"])
+        # self.draw_polygon_window_list.append(w2)
+
+        self.startGeoreferencingDialog(self.ref_data_pair[0], True)
+        self.startGeoreferencingDialog(self.ref_data_pair[1], True)
 
     ## \brief Start georeferencing dialog
     #
     #
-    def __startGeoreferencingDialog(self):
-        refData = self.__getSelectedValues()
-        self.__createFolders(refData)
-
-        self.georeferencingDialog = GeoreferencingDialog(self, self.rotationCoords, self.__iface)
-        self.georeferencingDialog.showGeoreferencingDialog(refData)
+    def startGeoreferencingDialog(self, refData, set_for_kreuzprofil=False):
+        self.createFolders(refData)
+        georeferencingDialog = GeoreferencingDialog(self, self.rotationCoords, self.iface)
+        if set_for_kreuzprofil:
+            georeferencingDialog.set_for_kreuzprofil(self.ref_data_pair)
+        georeferencingDialog.showGeoreferencingDialog(refData)
+        self.geo_referencing_dialogues_list.append(georeferencingDialog)
 
     ## \brief SaveComboBox is clicked
     #
     # suggest profileTargetName
-    def __changedProfileImage(self):
-
-        imageFilePath = self.__dockwidget.profileFotosComboGeoref.filePath()
+    def changedProfileImage(self):
+        imageFilePath = self.dockwidget.profileFotosComboGeoref.filePath()
         shortFileName = pathlib.Path(imageFilePath).stem
-        suggestTargetName = shortFileName + '_entz'
-        self.__dockwidget.profileTargetName.setText(suggestTargetName)
+        second_profile_name = ""
+        if self.dockwidget.checkboxKreuzprofil.isChecked():
+            second_profile_name = "_" + self.dockwidget.profileIdsComboGeoref_2.currentText()
+        suggestTargetName = shortFileName + f"{second_profile_name}_entz"
+        self.dockwidget.profileTargetName.setText(suggestTargetName)
 
     ## \brief Handler Checkbox Kreuzprofile is clicked
     #
     #
-    def __handleKreuzprofil(self, state):
+    def handleKreuzprofil(self, state):
         if state == Qt.Checked:
-            print('Checked')
+            print("Checked")
             self.show_kreuzprofil_selection(True)
 
         else:
-            print('Unchecked')
+            print("Unchecked")
             self.show_kreuzprofil_selection(False)
 
     ## \brief Show or hide Selection of Kreuzprofile
@@ -112,65 +188,64 @@ class Georef:
     # @param vis
     def show_kreuzprofil_selection(self, vis):
         if not vis:
+            self.dockwidget.layerGcpGeoref.currentIndexChanged.disconnect(self.calculateViewDirection2)
+            self.dockwidget.layerProfileGeoref.currentIndexChanged.disconnect(self.calculateViewDirection2)
+            self.dockwidget.profileIdsComboGeoref_2.currentIndexChanged.disconnect(self.calculateViewDirection2)
+            self.dockwidget.profileIdsComboGeoref_2.currentIndexChanged.disconnect(self.changedProfileImage)
+            self.changedProfileImage()
 
-            self.__dockwidget.layerGcpGeoref.currentIndexChanged.disconnect(self.calculateViewDirection2)
-            self.__dockwidget.layerProfileGeoref.currentIndexChanged.disconnect(self.calculateViewDirection2)
-            self.__dockwidget.profileIdsComboGeoref_2.currentIndexChanged.disconnect(self.calculateViewDirection2)
-
-            self.__dockwidget.kreuzLabelProfilnummer.deleteLater()
-            self.__dockwidget.kreuzLabelProfilfoto.deleteLater()
-            self.__dockwidget.kreuzLabelRichtung.deleteLater()
-            self.__dockwidget.profileIdsComboGeoref_2.deleteLater()
-            self.__dockwidget.profileFotosComboGeoref_2.deleteLater()
-            self.__dockwidget.profileViewDirectionComboGeoref_2.deleteLater()
+            self.dockwidget.kreuzLabelProfilnummer.deleteLater()
+            self.dockwidget.kreuzLabelProfilfoto.deleteLater()
+            self.dockwidget.kreuzLabelRichtung.deleteLater()
+            self.dockwidget.profileIdsComboGeoref_2.deleteLater()
+            self.dockwidget.profileFotosComboGeoref_2.deleteLater()
+            self.dockwidget.profileViewDirectionComboGeoref_2.deleteLater()
         else:
-            self.__dockwidget.layerGcpGeoref.currentIndexChanged.connect(self.calculateViewDirection2)
-            self.__dockwidget.layerProfileGeoref.currentIndexChanged.connect(self.calculateViewDirection2)
+            self.dockwidget.layerGcpGeoref.currentIndexChanged.connect(self.calculateViewDirection2)
+            self.dockwidget.layerProfileGeoref.currentIndexChanged.connect(self.calculateViewDirection2)
 
-            self.__dockwidget.kreuzLabelRichtung = QLabel('2. Blickrichtung auf das Profil')
-            self.__dockwidget.profileViewDirectionComboGeoref_2 = QComboBox()
-            self.__dockwidget.profileViewDirectionComboGeoref_2.addItems(
+            self.dockwidget.kreuzLabelRichtung = QLabel("2. Blickrichtung auf das Profil")
+            self.dockwidget.profileViewDirectionComboGeoref_2 = QComboBox()
+            self.dockwidget.profileViewDirectionComboGeoref_2.addItems(
                 [
-                    self.__dockwidget.profileViewDirectionComboGeoref.itemText(i)
-                    for i in range(self.__dockwidget.profileViewDirectionComboGeoref.count())
+                    self.dockwidget.profileViewDirectionComboGeoref.itemText(i)
+                    for i in range(self.dockwidget.profileViewDirectionComboGeoref.count())
                 ]
             )
 
-            self.__dockwidget.kreuzLabelProfilnummer = QLabel('2. Profilnummer')
-            self.__dockwidget.profileIdsComboGeoref_2 = QComboBox()
-            self.__dockwidget.profileIdsComboGeoref_2.currentIndexChanged.connect(self.calculateViewDirection2)
-            self.__dockwidget.profileIdsComboGeoref_2.addItems(
+            self.dockwidget.kreuzLabelProfilnummer = QLabel("2. Profilnummer")
+            self.dockwidget.profileIdsComboGeoref_2 = QComboBox()
+            self.dockwidget.profileIdsComboGeoref_2.currentIndexChanged.connect(self.calculateViewDirection2)
+            self.dockwidget.profileIdsComboGeoref_2.currentIndexChanged.connect(self.changedProfileImage)
+            self.dockwidget.profileIdsComboGeoref_2.addItems(
                 [
-                    self.__dockwidget.profileIdsComboGeoref.itemText(i)
-                    for i in range(self.__dockwidget.profileIdsComboGeoref.count())
+                    self.dockwidget.profileIdsComboGeoref.itemText(i)
+                    for i in range(self.dockwidget.profileIdsComboGeoref.count())
                 ]
             )
 
-            self.__dockwidget.kreuzLabelProfilfoto = QLabel('2. Profilfoto')
-            self.__dockwidget.profileFotosComboGeoref_2 = QgsFileWidget()
-            self.__dockwidget.profileFotosComboGeoref_2.setFilter(
-                self.__dockwidget.profileFotosComboGeoref.filter()
-            )
+            self.dockwidget.kreuzLabelProfilfoto = QLabel("2. Profilfoto")
+            self.dockwidget.profileFotosComboGeoref_2 = QgsFileWidget()
+            self.dockwidget.profileFotosComboGeoref_2.setFilter(self.dockwidget.profileFotosComboGeoref.filter())
 
-            row, col = self.__dockwidget.profileGeoreferencing.layout().getWidgetPosition(
-                self.__dockwidget.checkboxKreuzprofil
+            row, col = self.dockwidget.profileGeoreferencing.layout().getWidgetPosition(
+                self.dockwidget.checkboxKreuzprofil
             )
-            self.__dockwidget.profileGeoreferencing.layout().insertRow(
+            self.dockwidget.profileGeoreferencing.layout().insertRow(
                 row + 1,
-                self.__dockwidget.kreuzLabelProfilnummer,
-                self.__dockwidget.profileIdsComboGeoref_2
+                self.dockwidget.kreuzLabelProfilnummer,
+                self.dockwidget.profileIdsComboGeoref_2,
             )
-            self.__dockwidget.profileGeoreferencing.layout().insertRow(
+            self.dockwidget.profileGeoreferencing.layout().insertRow(
                 row + 2,
-                self.__dockwidget.kreuzLabelProfilfoto,
-                self.__dockwidget.profileFotosComboGeoref_2
+                self.dockwidget.kreuzLabelProfilfoto,
+                self.dockwidget.profileFotosComboGeoref_2,
             )
-            self.__dockwidget.profileGeoreferencing.layout().insertRow(
+            self.dockwidget.profileGeoreferencing.layout().insertRow(
                 row + 3,
-                self.__dockwidget.kreuzLabelRichtung,
-                self.__dockwidget.profileViewDirectionComboGeoref_2
+                self.dockwidget.kreuzLabelRichtung,
+                self.dockwidget.profileViewDirectionComboGeoref_2,
             )
-
 
     ## \brief get selected values
     #
@@ -205,27 +280,27 @@ class Georef:
     # }
     #
     # @return refData
-    def __getSelectedValues(self):
 
-        # lineLayer
-        lineLayer = self.__dockwidget.layerProfileGeoref.currentLayer().clone()
+    def getSelectedValues(self, second_set=False):
+        lineLayer = self.dockwidget.layerProfileGeoref.currentLayer().clone()
 
-        # Profilnummer
-        profileNumber = self.__dockwidget.profileIdsComboGeoref.currentText()
+        if second_set:
+            profileNumber = self.dockwidget.profileIdsComboGeoref_2.currentText()
+        else:
+            profileNumber = self.dockwidget.profileIdsComboGeoref.currentText()
 
-        # pointLayer
-        pointLayer = self.__dockwidget.layerGcpGeoref.currentLayer().clone()
+        pointLayer = self.dockwidget.layerGcpGeoref.currentLayer().clone()
         pointLayer.setSubsetString(
-            "obj_type = 'Fotoentzerrpunkt' and obj_art = 'Profil' and prof_nr = '" + profileNumber + "'")
+            "obj_type = 'Fotoentzerrpunkt' and " "obj_art = 'Profil' and " "prof_nr = '" + profileNumber + "'"
+        )
 
         # Zielkoordinaten
-        targetGCP = {'points': []}
+        targetGCP = {"points": []}
 
         validGeomCheck = True
-        orgGeomType = ''
+        orgGeomType = ""
 
         for feature in pointLayer.getFeatures():
-
             org_geom = feature.geometry()
             orgGeomType = org_geom.wkbType()
 
@@ -234,63 +309,70 @@ class Georef:
             geoType = g.wkbType()
 
             if geoType == 1001 or geoType == 3001:
-
-                pointObj = {'uuid': feature.attribute("uuid"), 'ptnr': feature.attribute("ptnr"),
-                            'id': feature.attribute("id"), 'x': float(g.get().x()), 'y': float(g.get().y()),
-                            'z': float(g.get().z())}
-                targetGCP['points'].append(pointObj)
+                pointObj = {
+                    "uuid": feature.attribute("uuid"),
+                    "ptnr": feature.attribute("ptnr"),
+                    "id": feature.attribute("id"),
+                    "x": float(g.get().x()),
+                    "y": float(g.get().y()),
+                    "z": float(g.get().z()),
+                }
+                targetGCP["points"].append(pointObj)
 
             else:
                 validGeomCheck = False
 
         if validGeomCheck is False:
-            errorMsg = f'Kann Geometrietyp nicht verarbeiten {orgGeomType}'
-            self.__iface.messageBar().pushMessage("Error", errorMsg, level=1, duration=3)
+            errorMsg = f"Kann Geometrietyp nicht verarbeiten {orgGeomType}"
+            self.iface.messageBar().pushMessage("Error", errorMsg, level=1, duration=3)
 
-        # Foto
-        imagePath = self.__dockwidget.profileFotosComboGeoref.filePath()
-        # Blickrichtung
-        viewDirLong = self.__dockwidget.profileViewDirectionComboGeoref.currentText()
+        if second_set:
+            imagePath = self.dockwidget.profileFotosComboGeoref_2.filePath()
+            viewDirLong = self.dockwidget.profileViewDirectionComboGeoref_2.currentText()
+        else:
+            imagePath = self.dockwidget.profileFotosComboGeoref.filePath()
+            viewDirLong = self.dockwidget.profileViewDirectionComboGeoref.currentText()
 
-        if viewDirLong == 'Nord':
-            viewDirection = 'N'
-        if viewDirLong == 'Ost':
-            viewDirection = 'E'
-        if viewDirLong == 'Süd':
-            viewDirection = 'S'
-        if viewDirLong == 'West':
-            viewDirection = 'W'
+        translate_direction = {
+            "Nord": "N",
+            "Ost": "E",
+            "Süd": "S",
+            "West": "W",
+        }
+        viewDirection = translate_direction[viewDirLong]
+
         # horizontal true/false
-        # horizontalCheck = self.__dockwidget.radioDirectionHorizontal.isChecked()
+        # horizontalCheck = self.dockwidget.radioDirectionHorizontal.isChecked()
 
         # profileTargetName
-        profileTargetName = self.__dockwidget.profileTargetName.text()
+        profileTargetName = self.dockwidget.profileTargetName.text()
         # Speicherpfad
-        fullPath = self.__dockwidget.profileFotosComboGeoref.filePath()
-        p_path = pathlib.Path(fullPath)
+        p_path = pathlib.Path(imagePath)
         savePath = p_path.parent
 
         profileDirs = {
-            "dirPa": str(savePath / 'pa'), "dirPo": str(savePath / 'po'), "dirPh": str(savePath / 'ph'),
-            "dir3d": str(savePath / '3d')
+            "dirPa": str(savePath / "pa"),
+            "dirPo": str(savePath / "po"),
+            "dirPh": str(savePath / "ph"),
+            "dir3d": str(savePath / "3d"),
         }
 
         # Metadaten
-        metadataCheck = True  # self.__dockwidget.metaProfileCheckbox.isChecked()
+        metadataCheck = True  # self.dockwidget.metaProfileCheckbox.isChecked()
 
         refData = {
-            'lineLayer': lineLayer,
-            'pointLayer': pointLayer,
-            'crs': pointLayer.crs(),
-            'profileNumber': profileNumber,
-            'imagePath': imagePath,
-            'viewDirection': viewDirection,
-            'horizontal': True,
-            'profileTargetName': profileTargetName,
-            'savePath': str(savePath),
-            'profileDirs': profileDirs,
-            'saveMetadata': metadataCheck,
-            'targetGCP': targetGCP
+            "lineLayer": lineLayer,
+            "pointLayer": pointLayer,
+            "crs": pointLayer.crs(),
+            "profileNumber": profileNumber,
+            "imagePath": imagePath,
+            "viewDirection": viewDirection,
+            "horizontal": True,
+            "profileTargetName": profileTargetName,
+            "savePath": str(savePath),
+            "profileDirs": profileDirs,
+            "saveMetadata": metadataCheck,
+            "targetGCP": targetGCP,
         }
 
         return refData
@@ -302,9 +384,9 @@ class Georef:
         if not (isinstance(idx, int) and idx >= 0):
             return
 
-        profile_number = self.__dockwidget.profileIdsComboGeoref.currentText()
+        profile_number = self.dockwidget.profileIdsComboGeoref.currentText()
         view_direction = self.calc_view_direction(profile_number)
-        self.__dockwidget.profileViewDirectionComboGeoref.setCurrentText(view_direction)
+        self.dockwidget.profileViewDirectionComboGeoref.setCurrentText(view_direction)
 
     ## \brief Blickrichtung bestimmen
     #
@@ -313,9 +395,9 @@ class Georef:
         if not (isinstance(idx, int) and idx >= 0):
             return
 
-        profile_number = self.__dockwidget.profileIdsComboGeoref_2.currentText()
+        profile_number = self.dockwidget.profileIdsComboGeoref_2.currentText()
         view_direction = self.calc_view_direction(profile_number)
-        self.__dockwidget.profileViewDirectionComboGeoref_2.setCurrentText(view_direction)
+        self.dockwidget.profileViewDirectionComboGeoref_2.setCurrentText(view_direction)
 
     def calc_view_direction(self, profile_number):
         """!
@@ -323,7 +405,7 @@ class Georef:
         """
 
         # lineLayer
-        lineLayer = self.__dockwidget.layerProfileGeoref.currentLayer().clone()
+        lineLayer = self.dockwidget.layerProfileGeoref.currentLayer().clone()
         lineLayer.setSubsetString("prof_nr = '" + profile_number + "'")
 
         if lineLayer.geometryType() != QgsWkbTypes.LineGeometry:
@@ -353,7 +435,8 @@ class Georef:
             v0 = [-1, 1]
 
             # Lösung von hier:
-            # https://stackoverflow.com/questions/14066933/direct-way-of-computing-clockwise-angle-between-2-vectors/16544330#16544330
+            # https://stackoverflow.com/
+            # questions/14066933/direct-way-of-computing-clockwise-angle-between-2-vectors/16544330#16544330
             # angepasst auf Berechnung ohne numpy
             dot = v0[0] * vp[0] + v0[1] * vp[1]  # dot product: x1*x2 + y1*y2
             det = v0[0] * vp[1] - vp[0] * v0[1]  # determinant: x1*y2 - y1*x2
@@ -378,88 +461,83 @@ class Georef:
                 view = "Ost"
         return view
 
-    ## \brief Preselection of __preselectViewDirection
+    ## \brief Preselection of preselectViewDirection
     #
     #
-    def __preselectViewDirection(self):
+    def preselectViewDirection(self):
+        self.dockwidget.profileViewDirectionComboGeoref.addItems(["Nord", "Ost", "Süd", "West"])
 
-        self.__dockwidget.profileViewDirectionComboGeoref.addItems(['Nord', 'Ost', 'Süd', 'West'])
-
-    ## \brief Preselection of __preselectProfileNumbers
+    ## \brief Preselection of preselectProfileNumbers
     #
     #  @param lineLayer
-    def __preselectProfileNumbers(self, lineLayer):
-        profileList = self.__getProfileNumbers(lineLayer)
+    def preselectProfileNumbers(self, lineLayer):
+        profileList = self.getProfileNumbers(lineLayer)
 
-        self.__dockwidget.profileIdsComboGeoref.addItems(profileList)
+        self.dockwidget.profileIdsComboGeoref.addItems(profileList)
 
-    ## \brief Preselection of __getProfileNumbers
+    ## \brief Preselection of getProfileNumbers
     #
     #  @param lineLayer
     # @returns list of profile id's
-    def __getProfileNumbers(self, lineLayer):
-
+    def getProfileNumbers(self, lineLayer):
         profileList = []
         for feat in lineLayer.getFeatures():
-            if feat.attribute('Objekttyp') == 'Profil':
-                if feat.attribute('prof_nr'):
-                    profileList.append(feat.attribute('prof_nr'))
+            if feat.attribute("Objekttyp") == "Profil":
+                if feat.attribute("prof_nr"):
+                    profileList.append(feat.attribute("prof_nr"))
 
         return sorted(profileList, key=str.lower)
 
     ## \brief Preselection of Inputlayers
     #
     # If layer E_Point exists then preselect this
-    def __preselectionGcpLayer(self):
+    def preselectionGcpLayer(self):
+        notInputLayers = self.getNonInputLayers(0)
+        inputLayers = self.getInputlayers(False)
 
-        notInputLayers = self.__getNotInputlayers(0)
-        inputLayers = self.__getInputlayers(False)
-
-        self.__dockwidget.layerGcpGeoref.setExceptedLayerList(notInputLayers)
+        self.dockwidget.layerGcpGeoref.setExceptedLayerList(notInputLayers)
 
         for layer in inputLayers:
-            if layer.name() == 'E_Point':
-                self.__dockwidget.layerGcpGeoref.setLayer(layer)
+            if layer.name() == "E_Point":
+                self.dockwidget.layerGcpGeoref.setLayer(layer)
 
     ## \brief Preselection of Inputlayers
     #
     # If layer E_Line exists then preselect this
-    def __preselectionProfileLayer(self):
+    def preselectionProfileLayer(self):
+        notInputLayers = self.getNonInputLayers(1)
+        inputLayers = self.getInputlayers(False)
 
-        notInputLayers = self.__getNotInputlayers(1)
-        inputLayers = self.__getInputlayers(False)
-
-        self.__dockwidget.layerProfileGeoref.setExceptedLayerList(notInputLayers)
+        self.dockwidget.layerProfileGeoref.setExceptedLayerList(notInputLayers)
 
         for layer in inputLayers:
-            if layer.name() == 'E_Line':
-                self.__dockwidget.layerProfileGeoref.setLayer(layer)
+            if layer.name() == "E_Line":
+                self.dockwidget.layerProfileGeoref.setLayer(layer)
 
-        lineLayer = self.__dockwidget.layerProfileGeoref.currentLayer()
+        lineLayer = self.dockwidget.layerProfileGeoref.currentLayer()
 
         return lineLayer
 
-    ## \brief Get all layers from the layertree exept those from the folder "Eingabelayer"
+    ## \brief Get all layers from the layer tree except those from the folder "Eingabelayer"
     #
-    # layers must be of type vectorlayer
+    # layers must be of type vector layer
     # geomType could be 0 - 'point', 1 - 'line', 2 - 'polygon', 'all'
-    def __getNotInputlayers(self, geomType):
-
+    def getNonInputLayers(self, geomType):
         allLayers = QgsProject.instance().mapLayers().values()
 
         inputLayer = []
-        notInputLayer = []
+        nonInputLayer = []
         root = QgsProject.instance().layerTreeRoot()
 
         for group in root.children():
-            if isinstance(group, QgsLayerTreeGroup) and group.name() == 'Eingabelayer':
+            if isinstance(group, QgsLayerTreeGroup) and group.name() == "Eingabelayer":
                 for child in group.children():
                     if isinstance(child, QgsLayerTreeLayer):
                         if isinstance(child.layer(), QgsVectorLayer):
                             if geomType == 0 or geomType == 1 or geomType == 2:
                                 if child.layer().geometryType() == geomType:
                                     inputLayer.append(child.layer())
-                            if geomType == 'all':
+                            if geomType == "all":
                                 inputLayer.append(child.layer())
 
         for layerA in allLayers:
@@ -469,9 +547,9 @@ class Georef:
                     check = True
 
             if not check:
-                notInputLayer.append(layerA)
+                nonInputLayer.append(layerA)
 
-        return notInputLayer
+        return nonInputLayer
 
     ## \brief Get all inputlayers from the folder "Eingabelayer" of the layertree
     #
@@ -479,17 +557,15 @@ class Georef:
     #
     # \param isClone - should the return a copy of the layers or just a pointer to the layers
     # @returns Array of inputlayers
-    def __getInputlayers(self, isClone):
-
+    def getInputlayers(self, isClone):
         inputLayers = []
         root = QgsProject.instance().layerTreeRoot()
 
         for group in root.children():
-            if isinstance(group, QgsLayerTreeGroup) and group.name() == 'Eingabelayer':
+            if isinstance(group, QgsLayerTreeGroup) and group.name() == "Eingabelayer":
                 for child in group.children():
                     if isinstance(child, QgsLayerTreeLayer):
                         if isClone == True:
-
                             if isinstance(child.layer(), QgsVectorLayer):
                                 inputLayers.append(child.layer().clone())
                         else:
@@ -498,11 +574,10 @@ class Georef:
 
         return inputLayers
 
-    def __createFolders(self, refData):
+    def createFolders(self, refData):
+        print("Create missing folders ...")
 
-        print('Create missing folders ...')
-
-        profileDirs = refData['profileDirs']
+        profileDirs = refData["profileDirs"]
 
         for key, value in profileDirs.items():
             if not os.path.exists(value):
@@ -510,8 +585,7 @@ class Georef:
 
     ## \brief Opens a message box with background information
     #
-    def __openInfoMessageBox(self):
-
+    def openInfoMessageBox(self):
         infoText = (
             "Ein archäologisches Profil ist ein (nahezu) vertikaler Schnitt durch einen oder mehrere archäologische "
             "Befunde und bietet daher gute Voraussetzungen zur dreidimensionalen Dokumentation von Grabungsszenen. "

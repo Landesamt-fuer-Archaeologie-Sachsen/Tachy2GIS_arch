@@ -1,6 +1,13 @@
 # -*- coding: utf-8 -*-
 from typing import List
-from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QHeaderView, QCheckBox, QRadioButton, QMessageBox
+from PyQt5.QtWidgets import (
+    QTableWidget,
+    QTableWidgetItem,
+    QHeaderView,
+    QCheckBox,
+    QRadioButton,
+    QMessageBox,
+)
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QColor, QBrush
 import numpy as np
@@ -15,8 +22,8 @@ from .residuals import Residuals
 # @author Mario Uhlig, VisDat geodatentechnologie GmbH, mario.uhlig@visdat.de
 # @date 2020-10-19
 
-class GeorefTable(QTableWidget):
 
+class GeorefTable(QTableWidget):
     # darf nicht in den Konstruktor:
     my_signal = pyqtSignal(dict)
 
@@ -32,7 +39,6 @@ class GeorefTable(QTableWidget):
     #  @param dialogInstance pointer to the dialogInstance
 
     def __init__(self, dialogInstance, dataStoreGeoref):
-
         super(GeorefTable, self).__init__()
 
         self.pup = Publisher()
@@ -42,7 +48,7 @@ class GeorefTable(QTableWidget):
         self.dataStoreGeoref = dataStoreGeoref
 
         # allows selection of image coordinates in canvasImage
-        self.activePoint = ''
+        self.activePoint = ""
 
         self.viewDirection = None
         self.directionAAR = None
@@ -50,8 +56,19 @@ class GeorefTable(QTableWidget):
         self.methodAAR = None
         self.profileNumber = None
 
-        self.colHeaders = ['UUID', 'PTNR', 'ID', 'Quelle X', 'Quelle Z', 'Ziel X', 'Ziel Y', 'Ziel Z', 'Error',
-                           'Punkt verwenden', 'Punkt setzen']
+        self.colHeaders = [
+            "UUID",
+            "PTNR",
+            "ID",
+            "Quelle X",
+            "Quelle Z",
+            "Ziel X",
+            "Ziel Y",
+            "Ziel Z",
+            "Error",
+            "Punkt verwenden",
+            "Punkt setzen",
+        ]
 
         self.setObjectName("georefTable")
         self.setRowCount(0)
@@ -71,9 +88,9 @@ class GeorefTable(QTableWidget):
 
         # Default error colors
         errorColorsIn = [
-            {'order': 1, 'min': 0, 'max': 0.02, 'color': [0, 255, 0]},
-            {'order': 2, 'min': 0.02, 'max': 0.04, 'color': [255, 122, 0]},
-            {'order': 3, 'min': 0.04, 'max': 1, 'color': [255, 0, 0]}
+            {"order": 1, "min": 0, "max": 0.02, "color": [0, 255, 0]},
+            {"order": 2, "min": 0.02, "max": 0.04, "color": [255, 122, 0]},
+            {"order": 3, "min": 0.04, "max": 1, "color": [255, 0, 0]},
         ]
 
         self.errorColors = self.__createErrorColors(errorColorsIn)
@@ -97,21 +114,20 @@ class GeorefTable(QTableWidget):
     # If an error occurs the default errorColors list is still active
     #
     def __createErrorColors(self, errorColorsIn):
-
         try:
-            errorColors = sorted(errorColorsIn, key=itemgetter('order'), reverse=False)
+            errorColors = sorted(errorColorsIn, key=itemgetter("order"), reverse=False)
 
             for i, obj in enumerate(errorColors):
                 if i == 0:
-                    obj['first'] = True
-                    obj['last'] = False
+                    obj["first"] = True
+                    obj["last"] = False
                 else:
-                    obj['first'] = False
-                    obj['last'] = False
+                    obj["first"] = False
+                    obj["last"] = False
 
-                obj['color'] = QBrush(QColor(obj['color'][0], obj['color'][1], obj['color'][2]))
+                obj["color"] = QBrush(QColor(obj["color"][0], obj["color"][1], obj["color"][2]))
 
-            errorColors[-1]['last'] = True
+            errorColors[-1]["last"] = True
 
             return errorColors
 
@@ -124,7 +140,6 @@ class GeorefTable(QTableWidget):
     #
 
     def updateErrorColors(self, errorColorsIn: List):
-
         validationValue = self.__validateErrorColorsIn(errorColorsIn)
 
         if validationValue is True:
@@ -150,7 +165,6 @@ class GeorefTable(QTableWidget):
     #
 
     def __validateErrorColorsIn(self, errorColorsIn: List):
-
         validationValue = True
 
         # Check object in list should be min one
@@ -158,13 +172,13 @@ class GeorefTable(QTableWidget):
             validationValue = False
 
         # Check keys in objects
-        requiredKeys = ['order', 'min', 'max', 'color']
+        requiredKeys = ["order", "min", "max", "color"]
         for errorObject in errorColorsIn:
             for key in requiredKeys:
                 if key in errorObject:
                     pass
                 else:
-                    print('key is missing:', key)
+                    print("key is missing:", key)
                     validationValue = False
 
         return validationValue
@@ -172,7 +186,6 @@ class GeorefTable(QTableWidget):
     ## \brief Opens a message box with background informations
     #
     def __openInfoMessageBox(self, infoText):
-
         self.__infoTranssformMsgBox = QMessageBox()
         self.__infoTranssformMsgBox.setText(infoText)
         self.__infoTranssformMsgBox.setWindowTitle("Hintergrundinformationen")
@@ -180,7 +193,6 @@ class GeorefTable(QTableWidget):
         self.__infoTranssformMsgBox.exec_()
 
     def __getTableData(self):
-
         tableData = []
 
         rowCount = self.rowCount()
@@ -191,32 +203,31 @@ class GeorefTable(QTableWidget):
             pointArraySource = [0] * 2
             pointArrayTarget = [0] * 3
             for j in range(0, columnCount):
-
                 head = self.horizontalHeaderItem(j).text()
-                if head == 'UUID':
-                    pointObj['uuid'] = self.item(i, j).text()
-                if head == 'PTNR':
-                    pointObj['ptnr'] = self.item(i, j).text()
-                if head == 'ID':
-                    pointObj['id'] = int(self.item(i, j).text())
-                if head == 'Quelle X':
+                if head == "UUID":
+                    pointObj["uuid"] = self.item(i, j).text()
+                if head == "PTNR":
+                    pointObj["ptnr"] = self.item(i, j).text()
+                if head == "ID":
+                    pointObj["id"] = int(self.item(i, j).text())
+                if head == "Quelle X":
                     pointArraySource[0] = float(self.item(i, j).text())
-                if head == 'Quelle Z':
+                if head == "Quelle Z":
                     pointArraySource[1] = float(self.item(i, j).text())
 
-                if head == 'Ziel X':
+                if head == "Ziel X":
                     pointArrayTarget[0] = float(self.item(i, j).text())
-                if head == 'Ziel Y':
+                if head == "Ziel Y":
                     pointArrayTarget[1] = float(self.item(i, j).text())
-                if head == 'Ziel Z':
+                if head == "Ziel Z":
                     pointArrayTarget[2] = float(self.item(i, j).text())
-                if head == 'Error':
-                    pointObj['error'] = float(self.item(i, j).text())
-                if head == 'Punkt verwenden':
-                    pointObj['usage'] = self.cellWidget(i, j).isChecked()
+                if head == "Error":
+                    pointObj["error"] = float(self.item(i, j).text())
+                if head == "Punkt verwenden":
+                    pointObj["usage"] = self.cellWidget(i, j).isChecked()
 
-            pointObj['sourcePoints'] = pointArraySource
-            pointObj['targetPoints'] = pointArrayTarget
+            pointObj["sourcePoints"] = pointArraySource
+            pointObj["targetPoints"] = pointArrayTarget
             tableData.append(pointObj)
 
         return tableData
@@ -226,13 +237,20 @@ class GeorefTable(QTableWidget):
     # \param refData
     # \param aarDirection
     # @returns
-    def updateGeorefTable(self, refData, aarDirection):
+    def updateGeorefTable(self, refData, aarDirection, refData_2=None):
+        self.viewDirection = refData["viewDirection"]
+        self.profileNumber = refData["profileNumber"]
+        self.targetGCP = refData["targetGCP"]["points"].copy()
+        for i in self.targetGCP:
+            i["from_other_profile_number"] = False
 
-        self.viewDirection = refData['viewDirection']
-        self.profileNumber = refData['profileNumber']
-        self.targetGCP = refData['targetGCP']['points']
+        if refData_2:
+            other_points = refData_2["targetGCP"]["points"].copy()
+            for i in other_points:
+                i["from_other_profile_number"] = True
+            self.targetGCP += other_points
 
-        horizontal = refData['horizontal']
+        horizontal = refData["horizontal"]
 
         self.directionAAR = aarDirection
 
@@ -251,18 +269,18 @@ class GeorefTable(QTableWidget):
 
         georefTableHeader = self.horizontalHeader()
 
-        for pointObj in refData['targetGCP']['points']:
+        for pointObj in self.targetGCP:
             rowPosition = self.rowCount()
             self.insertRow(rowPosition)
             # UUID
-            self.setItem(rowPosition, 0, QTableWidgetItem(pointObj['uuid']))
+            self.setItem(rowPosition, 0, QTableWidgetItem(pointObj["uuid"]))
             # PTNR
-            ptnrItem = QTableWidgetItem(str(pointObj['ptnr']))
+            ptnrItem = QTableWidgetItem(str(pointObj["ptnr"]))
             ptnrItem.setFlags(Qt.ItemIsEnabled)
             self.setItem(rowPosition, 1, ptnrItem)
             georefTableHeader.setSectionResizeMode(1, QHeaderView.Stretch)
             # ID
-            idItem = QTableWidgetItem(str(pointObj['id']))
+            idItem = QTableWidgetItem(str(pointObj["id"]))
             idItem.setFlags(Qt.ItemIsEnabled)
             self.setItem(rowPosition, 2, idItem)
             georefTableHeader.setSectionResizeMode(2, QHeaderView.Stretch)
@@ -278,19 +296,19 @@ class GeorefTable(QTableWidget):
             georefTableHeader.setSectionResizeMode(4, QHeaderView.Stretch)
 
             # Ziel X
-            txItem = QTableWidgetItem(str(round(pointObj['x'], 3)))
+            txItem = QTableWidgetItem(str(round(pointObj["x"], 3)))
             txItem.setFlags(Qt.ItemIsEnabled)
             self.setItem(rowPosition, 5, txItem)
             georefTableHeader.setSectionResizeMode(5, QHeaderView.Stretch)
 
             # Ziel Y
-            tyItem = QTableWidgetItem(str(round(pointObj['y'], 3)))
+            tyItem = QTableWidgetItem(str(round(pointObj["y"], 3)))
             tyItem.setFlags(Qt.ItemIsEnabled)
             self.setItem(rowPosition, 6, tyItem)
             georefTableHeader.setSectionResizeMode(6, QHeaderView.Stretch)
 
             # Ziel Z
-            tzItem = QTableWidgetItem(str(round(pointObj['z'], 3)))
+            tzItem = QTableWidgetItem(str(round(pointObj["z"], 3)))
             tzItem.setFlags(Qt.ItemIsEnabled)
             self.setItem(rowPosition, 7, tzItem)
             georefTableHeader.setSectionResizeMode(7, QHeaderView.Stretch)
@@ -322,12 +340,21 @@ class GeorefTable(QTableWidget):
             georefTableHeader.setSectionResizeMode(10, QHeaderView.ResizeToContents)
 
             setPointRadio = QRadioButton()
-            setPointRadio.pointUUID = pointObj['uuid']
+            setPointRadio.pointUUID = pointObj["uuid"]
             # usageCheck.setChecked(True)
             setPointRadio.setStyleSheet("margin-left:50%; margin-right:50%;")
             self.setCellWidget(rowPosition, 10, setPointRadio)
             setPointRadio.toggled.connect(self.onActivePoint)
             georefTableHeader.setSectionResizeMode(10, QHeaderView.ResizeToContents)
+
+            if pointObj["from_other_profile_number"]:
+                usageCheck.setEnabled(False)
+                setPointRadio.setEnabled(False)
+                for j in range(self.columnCount()):
+                    self.item(rowPosition, j).setForeground(QColor(170, 170, 170))
+            elif refData_2:
+                # case kreuzprofil: unselecting disallowed
+                usageCheck.setEnabled(False)
 
         # hide column with ugly uuid
         self.setColumnHidden(0, True)
@@ -337,7 +364,6 @@ class GeorefTable(QTableWidget):
     # \param
     # @returns
     def cleanGeorefTable(self):
-
         # georefTable
         rowTotal = self.rowCount()
         for row in range(rowTotal, -1, -1):
@@ -354,13 +380,13 @@ class GeorefTable(QTableWidget):
 
             tableData = self.__getTableData()
 
-            pointNr = ''
+            pointNr = ""
             for tblObj in tableData:
-                if tblObj['uuid'] == activeUUID:
-                    pointNr = tblObj['ptnr']
+                if tblObj["uuid"] == activeUUID:
+                    pointNr = tblObj["ptnr"]
 
-            self.pup.publish('activatePoint', {'uuid': activeUUID, 'ptnr': pointNr})
-            self.my_signal.emit({'uuid': activeUUID, 'ptnr': pointNr})
+            self.pup.publish("activatePoint", {"uuid": activeUUID, "ptnr": pointNr})
+            self.my_signal.emit({"uuid": activeUUID, "ptnr": pointNr})
 
     ## \brief The activePoint ist set by UUID
     #
@@ -374,7 +400,7 @@ class GeorefTable(QTableWidget):
     # the Function TransformationDialogCanvas.highlightSourceLayer(uuidValue) is called
     #
     def georefTableCellClick(self):
-        index = (self.selectionModel().currentIndex())
+        index = self.selectionModel().currentIndex()
         uuidValue = index.sibling(index.row(), 0).data()
 
         self.dialogInstance.canvasGcp.highlightSourceLayer(uuidValue)
@@ -387,8 +413,7 @@ class GeorefTable(QTableWidget):
     # \param rowId - is the index of the row
     #
     def georefTableRowClick(self, rowId):
-
-        index = (self.selectionModel().currentIndex())
+        index = self.selectionModel().currentIndex()
         uuidValue = index.sibling(rowId, 0).data()
 
         self.dialogInstance.canvasGcp.highlightSourceLayer(uuidValue)
@@ -398,14 +423,21 @@ class GeorefTable(QTableWidget):
 
         points = []
         for tblObj in tableData:
-            points.append([
-                tblObj['targetPoints'][0], tblObj['targetPoints'][1], tblObj['targetPoints'][2], self.viewDirection,
-                self.profileNumber, int(tblObj['usage']), tblObj['uuid']
-            ])
+            points.append(
+                [
+                    tblObj["targetPoints"][0],
+                    tblObj["targetPoints"][1],
+                    tblObj["targetPoints"][2],
+                    self.viewDirection,
+                    self.profileNumber,
+                    int(tblObj["usage"]),
+                    tblObj["uuid"],
+                ]
+            )
 
         metaInfos = {
-            'method': 'projected',
-            'direction': aarDirection
+            "method": "projected",
+            "direction": aarDirection,
         }
 
         return points, metaInfos
@@ -415,16 +447,21 @@ class GeorefTable(QTableWidget):
     # \param
     #
     def updateErrorValues(self, linkObj):
-
         georefData = self.dataStoreGeoref.getGeorefData(self.directionAAR)
 
         gcpArray = []
         for georefObj in georefData:
-
             for targetObj in self.targetGCP:
-                if targetObj['uuid'] == georefObj['uuid']:
+                if targetObj["uuid"] == georefObj["uuid"]:
                     gcpArray.append(
-                        [georefObj['input_x'], georefObj['input_z'], targetObj['x'], targetObj['z'], targetObj['uuid']])
+                        [
+                            georefObj["input_x"],
+                            georefObj["input_z"],
+                            targetObj["x"],
+                            targetObj["z"],
+                            targetObj["uuid"],
+                        ]
+                    )
 
         self.hide()
 
@@ -432,45 +469,41 @@ class GeorefTable(QTableWidget):
         columnCount = self.columnCount()
 
         if len(georefData) > 4:
-
             V_X, V_Y, V_XY, V_XY_uuid, mo, mox, moy = self.res.projective_trans(np.array(gcpArray))
 
             for i in range(0, rowCount):
-
                 tblPointUuid = None
 
                 for j in range(0, columnCount):
-
                     head = self.horizontalHeaderItem(j).text()
 
-                    if head == 'UUID':
+                    if head == "UUID":
                         tblPointUuid = self.item(i, j).text()
 
                 # in Zelle der Tabelle eintragen
                 for j in range(0, columnCount):
                     head = self.horizontalHeaderItem(j).text()
 
-                    if head == 'Error':
+                    if head == "Error":
                         self.item(i, j).setText(str(-99999))
                         self.setRowColor(i, self.whiteBrush)
                         for errorObj in V_XY_uuid:
-                            if errorObj['uuid'] == tblPointUuid:
-                                self.item(i, j).setText(str(round(errorObj['v_xy'], 4)))
+                            if errorObj["uuid"] == tblPointUuid:
+                                self.item(i, j).setText(str(round(errorObj["v_xy"], 4)))
 
                                 for cat in self.errorColors:
-
                                     if (
-                                            cat['last'] is False and
-                                            cat['first'] is False and
-                                            cat['min'] < errorObj['v_xy'] <= cat['max']
+                                        cat["last"] is False
+                                        and cat["first"] is False
+                                        and cat["min"] < errorObj["v_xy"] <= cat["max"]
                                     ):
-                                        self.setRowColor(i, cat['color'])
+                                        self.setRowColor(i, cat["color"])
 
-                                    if cat['last'] is True and errorObj['v_xy'] > cat['min']:
-                                        self.setRowColor(i, cat['color'])
+                                    if cat["last"] is True and errorObj["v_xy"] > cat["min"]:
+                                        self.setRowColor(i, cat["color"])
 
-                                    if cat['first'] is True and errorObj['v_xy'] < cat['max']:
-                                        self.setRowColor(i, cat['color'])
+                                    if cat["first"] is True and errorObj["v_xy"] < cat["max"]:
+                                        self.setRowColor(i, cat["color"])
 
         else:
             for i in range(0, rowCount):
@@ -478,7 +511,7 @@ class GeorefTable(QTableWidget):
                 for j in range(0, columnCount):
                     head = self.horizontalHeaderItem(j).text()
 
-                    if head == 'Error':
+                    if head == "Error":
                         self.item(i, j).setText(str(-99999))
 
                         self.setRowColor(i, self.whiteBrush)
@@ -496,44 +529,39 @@ class GeorefTable(QTableWidget):
     # \param linkObj
     #
     def updateImageCoordinates(self, linkObj):
-
         self.hide()
         rowCount = self.rowCount()
         columnCount = self.columnCount()
 
         for i in range(0, rowCount):
-
             tblPointUuid = None
 
             for j in range(0, columnCount):
-
                 head = self.horizontalHeaderItem(j).text()
 
-                if head == 'UUID':
+                if head == "UUID":
                     tblPointUuid = self.item(i, j).text()
 
             # in Zelle der Tabelle eintragen
             for j in range(0, columnCount):
                 head = self.horizontalHeaderItem(j).text()
-                if linkObj['uuid'] == tblPointUuid:
-
-                    if head == 'Quelle X':
-                        self.item(i, j).setText(str(round(linkObj['x'], 3)))
-                    if head == 'Quelle Z':
-                        self.item(i, j).setText(str(round(linkObj['z'], 3)))
+                if linkObj["uuid"] == tblPointUuid:
+                    if head == "Quelle X":
+                        self.item(i, j).setText(str(round(linkObj["x"], 3)))
+                    if head == "Quelle Z":
+                        self.item(i, j).setText(str(round(linkObj["z"], 3)))
 
         self.show()
 
     def pointUsageChanged(self):
-
         tableData = self.__getTableData()
 
-        data = self.prepareData(tableData, 'horizontal')
-        self.pup.publish('dataChanged', data)
+        data = self.prepareData(tableData, "horizontal")
+        self.pup.publish("dataChanged", data)
         self.updateErrorValues(None)
 
-        data = self.prepareData(tableData, 'original')
-        self.pup.publish('dataChanged', data)
+        data = self.prepareData(tableData, "original")
+        self.pup.publish("dataChanged", data)
 
-        data = self.prepareData(tableData, 'absolute height')
-        self.pup.publish('dataChanged', data)
+        data = self.prepareData(tableData, "absolute height")
+        self.pup.publish("dataChanged", data)

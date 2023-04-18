@@ -92,7 +92,13 @@ class Measurement():
         self.__dockwidget.butClear.clicked.connect(self.__koordtableClear)
         self.__dockwidget.tabWidget_2.currentChanged.connect(self.__watchEventStop)
 
-        self.__t2gInstance = plugins.get([s for s in active_plugins if "Tachy2GIS" in s][0])
+        # print(active_plugins)
+        # active_plugins enthält einmal:
+        # ['firstaid', 'plugin_reloader', 'Tachy2GIS', 'Tachy2GIS_arch', 'grassprovider', 'processing']
+        # und einmal: (nach einem plugin reload)
+        # ['firstaid', 'plugin_reloader', 'Tachy2GIS_arch', 'grassprovider', 'processing', 'Tachy2GIS']
+        # >"Tachy2GIS" in s< passt auf 'Tachy2GIS_arch' und auf 'Tachy2GIS'
+        self.__t2gInstance = plugins.get([s for s in active_plugins if "Tachy2GIS" == s][0])
         self.__t2gInstance.dlg.closingPlugin.connect(self.__t2gInstanceClose)
 
         self.__vertices = []#self.__t2gInstance.vtk_mouse_interactor_style.vertices
