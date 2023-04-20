@@ -92,6 +92,7 @@ class PolygonMapTool(QgsMapToolEmitPoint):
         for marker in self.markers:
             self.canvas.scene().removeItem(marker)
         self.rubberBand.setStrokeColor(Qt.red)
+        self.polygon_drawn.emit(QgsGeometry())
 
     def keyPressEvent(self, e):
         """Pressing ESC resets the canvas. Pressing enter connects the polygon"""

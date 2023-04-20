@@ -1,11 +1,18 @@
 # -*- coding: utf-8 -*-
 import os
 import processing
-from PyQt5.QtCore import Qt, pyqtSlot
+from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont, QColor
 from qgis.core import (
-    QgsPoint, QgsFeature, QgsGeometry, QgsMarkerSymbol, QgsSingleSymbolRenderer, QgsPalLayerSettings,
-    QgsTextFormat, QgsTextBufferSettings, QgsVectorLayerSimpleLabeling
+    QgsPoint,
+    QgsFeature,
+    QgsGeometry,
+    QgsMarkerSymbol,
+    QgsSingleSymbolRenderer,
+    QgsPalLayerSettings,
+    QgsTextFormat,
+    QgsTextBufferSettings,
+    QgsVectorLayerSimpleLabeling,
 )
 from qgis.gui import QgsMapCanvas, QgsMapToolPan, QgsMapToolZoom
 
@@ -19,16 +26,14 @@ from ..publisher import Publisher
 # @author Mario Uhlig, VisDat Geodatentechnologie GmbH, mario.uhlig@visdat.de
 # @date 2021-26-05
 class ProfileGcpCanvas(QgsMapCanvas):
-
     ## The constructor.
     #
     def __init__(self, dialogInstance, rotationCoords):
-
         super(ProfileGcpCanvas, self).__init__()
 
         self.pup = Publisher()
 
-        self.iconpath = os.path.join(os.path.dirname(__file__), 'Icons')
+        self.iconpath = os.path.join(os.path.dirname(__file__), "Icons")
 
         self.activePoint = None
 
@@ -44,14 +49,9 @@ class ProfileGcpCanvas(QgsMapCanvas):
 
         self.createConnects()
 
-    @pyqtSlot(dict)
-    def testSlot(self, dict_param):
-        print("testSlot", dict_param)
-
     ## \brief Event connections
     #
     def createConnects(self):
-
         # Koordinatenanzeige
         self.xyCoordinates.connect(self.canvasMoveEvent)
 
@@ -61,7 +61,7 @@ class ProfileGcpCanvas(QgsMapCanvas):
     def canvasMoveEvent(self, event):
         x = event.x()
         y = event.y()
-        self.pup.publish('moveCoordinate', {'x': x, 'y': y})
+        self.pup.publish("moveCoordinate", {"x": x, "y": y})
         # self.dialogInstance.setCoordinatesOnStatusBar(x, y)
 
     ## \brief Create action to pan on the map
@@ -82,12 +82,11 @@ class ProfileGcpCanvas(QgsMapCanvas):
     ## \brief Set extent of the map by extent of the source layer
     #
     def setExtentByGcpLayer(self):
-
         self.setExtent(self.gcpLayer.extent().buffered(0.2))
         self.refresh()
 
     def setActivePoint(self, linkObj):
-        self.activePoint = linkObj['uuid']
+        self.activePoint = linkObj["uuid"]
 
     ## \brief Update canvas map element
     #
@@ -101,7 +100,6 @@ class ProfileGcpCanvas(QgsMapCanvas):
     # \param gcpLayer
 
     def updateCanvas(self, refData):
-
         # canvas leeren
 
         self.clearCache()
@@ -127,15 +125,19 @@ class ProfileGcpCanvas(QgsMapCanvas):
     # \param uuidValue
 
     def highlightSourceLayer(self, uuidValue):
-
         for feature in self.gcpLayer.getFeatures():
             uuidFeat = feature.attribute("uuid")
             if uuidFeat == uuidValue:
-                self.flashFeatureIds(self.gcpLayer, [feature.id()], startColor=QColor(Qt.green),
-                                     endColor=QColor(Qt.green), flashes=5, duration=500)
+                self.flashFeatureIds(
+                    self.gcpLayer,
+                    [feature.id()],
+                    startColor=QColor(Qt.green),
+                    endColor=QColor(Qt.green),
+                    flashes=5,
+                    duration=500,
+                )
 
     def styleLayer(self):
-
         # Label Layer
         sourcelayerSettings = QgsPalLayerSettings()
         textFormat = QgsTextFormat()
@@ -159,26 +161,22 @@ class ProfileGcpCanvas(QgsMapCanvas):
         self.gcpLayer.setLabeling(sourcelayerSettings)
 
         # Styling
-        symbol = QgsMarkerSymbol.createSimple({'name': 'circle', 'color': 'green', 'size': '2'})
+        symbol = QgsMarkerSymbol.createSimple({"name": "circle", "color": "green", "size": "2"})
         self.gcpLayer.setRenderer(QgsSingleSymbolRenderer(symbol))
 
         self.gcpLayer.triggerRepaint()
 
     def setupGcpLayer(self, refData):
-        refData['pointLayer'].selectAll()
+        refData["pointLayer"].selectAll()
         self.gcpLayer = processing.run(
-            "native:saveselectedfeatures",
-            {'INPUT': refData['pointLayer'], 'OUTPUT': 'memory:'}
-        )['OUTPUT']
-        refData['pointLayer'].removeSelection()
+            "native:saveselectedfeatures", {"INPUT": refData["pointLayer"], "OUTPUT": "memory:"}
+        )["OUTPUT"]
+        refData["pointLayer"].removeSelection()
 
         # check validation of Layers
         if not self.gcpLayer.isValid():
             self.messageBar.pushMessage(
-                "Error",
-                "Layer " + self.gcpLayer.name() + " failed to load!",
-                level=1,
-                duration=5
+                "Error", "Layer " + self.gcpLayer.name() + " failed to load!", level=1, duration=5
             )
 
         # gcpLayer leeren
@@ -195,15 +193,15 @@ class ProfileGcpCanvas(QgsMapCanvas):
         self.gcpLayer.startEditing()
         pr = self.gcpLayer.dataProvider()
 
-        featsSel = refData['pointLayer'].getFeatures()
+        featsSel = refData["pointLayer"].getFeatures()
 
         selFeatures = []
         for feature in featsSel:
             rotFeature = QgsFeature(self.gcpLayer.fields())
 
-            rotateGeom = self.rotationCoords.rotatePointFeatureFromOrg(feature, 'horizontal')
+            rotateGeom = self.rotationCoords.rotatePointFeatureFromOrg(feature, "horizontal")
 
-            zPoint = QgsPoint(rotateGeom['x_trans'], rotateGeom['z_trans'], rotateGeom['z_trans'])
+            zPoint = QgsPoint(rotateGeom["x_trans"], rotateGeom["z_trans"], rotateGeom["z_trans"])
 
             gZPoint = QgsGeometry(zPoint)
             rotFeature.setGeometry(gZPoint)

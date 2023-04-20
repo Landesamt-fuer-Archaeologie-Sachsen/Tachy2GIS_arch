@@ -13,6 +13,7 @@ from PyQt5.QtWidgets import (
     QVBoxLayout,
     QHBoxLayout,
     QPushButton,
+    QLabel,
 )
 from PyQt5.QtGui import QIcon
 from osgeo import gdal
@@ -53,7 +54,7 @@ class GeoreferencingDialog(QMainWindow):
         # for Kreuzprofil; use points from both profiles
         self.ref_data_pair = None
 
-        self.clipping_polygon = None
+        self.clipping_polygon = QgsGeometry()
 
         self.createMenu()
         self.createComponents()
@@ -73,9 +74,22 @@ class GeoreferencingDialog(QMainWindow):
         self.ref_data_pair = ref_data_pair
         self.imageParambar.set_for_kreuzprofil()
         self.imageParambar.toolDrawPolygon.polygon_drawn.connect(self.polygon_drawn)
+        self.startGeorefBtn.setEnabled(False)
+        self.startGeorefBtn.setStyleSheet("background-color: lightgrey; width: 200px")
+        self.toolbarMap.addWidget(QLabel(" Benötigt Referenzierungspunkte und ein Beschneidungspolygon!"))
+        self.canvasImage.pup.register("imagePointCoordinates", self.check_for_enable_startBtn)
 
     def polygon_drawn(self, geom: QgsGeometry):
         self.clipping_polygon = geom
+        self.check_for_enable_startBtn()
+
+    def check_for_enable_startBtn(self, _=None):
+        if self.clipping_polygon.isNull() or len(self.dataStoreGeoref.imagePoints) < 4:
+            self.startGeorefBtn.setEnabled(False)
+            self.startGeorefBtn.setStyleSheet("background-color: lightgrey; width: 200px")
+        else:
+            self.startGeorefBtn.setEnabled(True)
+            self.startGeorefBtn.setStyleSheet("background-color: green; width: 200px")
 
     ## \brief Create different menus
     #
@@ -143,7 +157,6 @@ class GeoreferencingDialog(QMainWindow):
         self.georefTable.pup.register("activatePoint", self.canvasGcp.setActivePoint)
         self.georefTable.pup.register("activatePoint", self.canvasImage.setActivePoint)
         self.georefTable.pup.register("activatePoint", self.imageParambar.activateMapToolMove)
-        self.georefTable.my_signal.connect(self.canvasGcp.testSlot)
 
         self.canvasImage.pup.register("imagePointCoordinates", self.georefTable.updateImageCoordinates)
         self.canvasImage.pup.register("imagePointCoordinates", self.dataStoreGeoref.addImagePoint)

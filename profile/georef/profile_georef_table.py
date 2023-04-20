@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import (
     QRadioButton,
     QMessageBox,
 )
-from PyQt5.QtCore import Qt, pyqtSignal
+from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor, QBrush
 import numpy as np
 from operator import itemgetter
@@ -24,9 +24,6 @@ from .residuals import Residuals
 
 
 class GeorefTable(QTableWidget):
-    # darf nicht in den Konstruktor:
-    my_signal = pyqtSignal(dict)
-
     ## The constructor.
     # Defines attributes for the table
     # - Tableheaders
@@ -386,7 +383,6 @@ class GeorefTable(QTableWidget):
                     pointNr = tblObj["ptnr"]
 
             self.pup.publish("activatePoint", {"uuid": activeUUID, "ptnr": pointNr})
-            self.my_signal.emit({"uuid": activeUUID, "ptnr": pointNr})
 
     ## \brief The activePoint ist set by UUID
     #
