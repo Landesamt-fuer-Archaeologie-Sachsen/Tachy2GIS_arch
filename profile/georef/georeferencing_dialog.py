@@ -2,6 +2,9 @@
 import os
 import json
 import pathlib
+import tempfile
+from glob import glob
+from shutil import rmtree
 
 import osgeo_utils.gdal_merge
 from PIL import Image, ImageDraw
@@ -51,9 +54,9 @@ class GeoreferencingDialog(QMainWindow):
         self.dataStoreGeoref = DataStoreGeoref()
         self.rotationCoords = rotationCoords
 
-        # for Kreuzprofil; use points from both profiles
+        # for Kreuzprofil
         self.ref_data_pair = None
-
+        self.profile_set = None
         self.clipping_polygon = QgsGeometry()
 
         self.createMenu()
@@ -226,30 +229,37 @@ class GeoreferencingDialog(QMainWindow):
         verticalLayout.addLayout(horizontalLayout)
         verticalLayout.addWidget(self.georefTable)
 
-    def restore(self, refData):
-        self.refData = refData
+    def createFolders(self, refData):
+        print("Create missing folders ...")
 
+        profileDirs = refData["profileDirs"]
+
+        for key, value in profileDirs.items():
+            if not os.path.exists(value):
+                os.makedirs(value)
+
+    def restore(self):
         prof_nr = self.refData["profileNumber"]
         self.setWindowTitle(f"Georeferenzierung von Profil: {prof_nr}")
 
         self.georefTable.cleanGeorefTable()
 
-        if len(self.ref_data_pair) == 2:
+        if self.ref_data_pair and len(self.ref_data_pair) == 2:
             self.georefTable.updateGeorefTable(
-                refData,
+                self.refData,
                 self.aarDirection,
-                self.ref_data_pair[0] if self.ref_data_pair[0] is not refData else self.ref_data_pair[1],
+                self.ref_data_pair[0] if self.ref_data_pair[0] is not self.refData else self.ref_data_pair[1],
             )
         else:
-            self.georefTable.updateGeorefTable(refData, self.aarDirection)
+            self.georefTable.updateGeorefTable(self.refData, self.aarDirection)
         self.georefTable.pointUsageChanged()
 
-        validImageLayer = self.canvasImage.updateCanvas(refData["imagePath"])
+        validImageLayer = self.canvasImage.updateCanvas(self.refData["imagePath"])
 
         if validImageLayer:
-            self.canvasGcp.updateCanvas(refData)
+            self.canvasGcp.updateCanvas(self.refData)
 
-            self.dataStoreGeoref.addTargetPoints(refData)
+            self.dataStoreGeoref.addTargetPoints(self.refData)
 
             self.adjustSize()
             self.show()
@@ -293,7 +303,61 @@ class GeoreferencingDialog(QMainWindow):
     #
     # \param refData
     def showGeoreferencingDialog(self, refData):
-        self.restore(refData)
+        self.refData = refData
+
+        if self.ref_data_pair:
+            if self.refData is self.ref_data_pair[0]:
+                self.profile_set = 0
+            elif self.refData is self.ref_data_pair[1]:
+                self.profile_set = 1
+            else:
+                print("Fehler42")
+                return
+
+            if self.profile_set == 0:
+                # later results will be copied there
+                self.createFolders(refData)
+                self.refData["profileDirs_backup"] = self.refData["profileDirs"].copy()
+
+            # store all in temp dir:
+            tmp_dir = tempfile.mkdtemp(prefix=f"georef_profile{self.refData['profileNumber']}_")
+            self.refData["savePath"] = str(tmp_dir)
+
+            for key, value in self.refData["profileDirs"].items():
+                last_folder = os.path.basename(os.path.normpath(value))
+                profile_dir = pathlib.Path(self.refData["savePath"]).joinpath(last_folder)
+                self.refData["profileDirs"][key] = str(profile_dir)
+
+            # load camera file:
+            with Image.open(self.refData["imagePath"]) as imageObject:
+                imageObject.load()
+
+            file_name = "camera_copy.jpg"
+
+            if self.profile_set == 1:
+                # I am the second set and I need to flip my image
+                opposite_direction = {
+                    "S": "N",
+                    "W": "E",
+                    "N": "S",
+                    "E": "W",
+                }
+                self.refData["viewDirection"] = opposite_direction[self.refData["viewDirection"]]
+                imageObject = imageObject.transpose(Image.FLIP_LEFT_RIGHT)
+                file_name = "flipped_" + file_name
+
+            # store file
+            file_path = str(pathlib.Path(self.refData["savePath"]).joinpath(file_name))
+            imageObject.save(file_path)
+            imageObject.close()
+
+            # make the (flipped) png image the default to work with
+            self.refData["imagePath"] = file_path
+
+        # create folders in tmp dir or original dir if not kreuzprofil
+        self.createFolders(refData)
+
+        self.restore()
 
     ## \brief Start georeferencing process
     #
@@ -306,20 +370,16 @@ class GeoreferencingDialog(QMainWindow):
             points_list = [(p[0], abs(p[1])) for p in self.clipping_polygon.asMultiPolygon()[0][0]]
             img = Image.open(self.refData["imagePath"])
             mask = Image.new("1", img.size, 0)
-            draw = ImageDraw.Draw(mask)
-            draw.polygon(points_list, fill=1, outline=1)
+            draw_tool = ImageDraw.Draw(mask)
+            draw_tool.polygon(points_list, fill=1, outline=1)
             black = Image.new(img.mode, img.size, 0)
             result = Image.composite(img, black, mask)
-            cropped_image_path = str(pathlib.Path(self.refData["savePath"]).joinpath("cropped.jpg"))
-            result.save(cropped_image_path)
-
-            # second profile image is flipped horizontally
-            # if os.path.basename(self.refData["imagePath"]).startswith("flipped_"):
-            #     # delete flipped image
-            #     os.remove(self.refData["imagePath"])
+            clipped_image_path = str(pathlib.Path(self.refData["savePath"]).joinpath("clipped.jpg"))
+            result.save(clipped_image_path)
+            result.close()
 
             # make clipped image the default to work with
-            self.refData["imagePath"] = cropped_image_path
+            self.refData["imagePath"] = clipped_image_path
 
         imageFileIn = self.refData["imagePath"]
         profileTargetName = self.refData["profileTargetName"]
@@ -346,53 +406,38 @@ class GeoreferencingDialog(QMainWindow):
                     duration=5,
                 )
 
-            # if aarDirection == "original":
-            #     x = [e["aar_x"] for e in georefData]
-            #     y = [e["aar_z"] for e in georefData]
-            #     min_x = min(x)
-            #     max_x = max(x)
-            #     min_y = min(y)
-            #     max_y = max(y)
-            #     # srcWin – subwindow in pixels to extract: [left_x, top_y, width, height]
-            #     # projWin – subwindow in projected coordinates to extract: [ulx, uly, lrx, lry]
-            #     gdal.Translate(
-            #         str(base_path.joinpath("cropped.jpg")),
-            #         str(imageFileOut),
-            #         # srcWin=[min_x, min_y, max_x - min_x, max_y - min_y]
-            #         projWin=[min_x, max_y, max_x, min_y],
-            #     )
-
             if not self.ref_data_pair:
                 # not set for kreuzprofil
                 continue
 
-            self.refData[f"geo_ref_done{aarDirection}"] = True
+            self.refData[f"geo_ref_done_{aarDirection}"] = True
 
             if not (
-                self.ref_data_pair[0].get(f"geo_ref_done{aarDirection}", False)
-                and self.ref_data_pair[1].get(f"geo_ref_done{aarDirection}", False)
+                self.ref_data_pair[0].get(f"geo_ref_done_{aarDirection}", False)
+                and self.ref_data_pair[1].get(f"geo_ref_done_{aarDirection}", False)
             ):
                 # other profil is not ready yet
                 continue
 
+            save_path_0_original = pathlib.Path(
+                self.ref_data_pair[0]["profileDirs_backup"][aarDirections_to_path_dict[aarDirection]]
+            )
             save_path_0 = pathlib.Path(self.ref_data_pair[0]["profileDirs"][aarDirections_to_path_dict[aarDirection]])
             save_path_1 = pathlib.Path(self.ref_data_pair[1]["profileDirs"][aarDirections_to_path_dict[aarDirection]])
             command = (
                 f"gdal_merge.py -of gtiff -n 0 -o "
-                f"{save_path_0.joinpath('merged.tif')} "
+                "/vsimem/merged.tif "
                 f"{save_path_0.joinpath(f'{profileTargetName}.jpg')} "
                 f"{save_path_1.joinpath(f'{profileTargetName}.jpg')}"
             )
-            # print(command)
-            # print(os.popen(command).read())
             osgeo_utils.gdal_merge.main(command.split(" "))
 
             gdal.Translate(
-                str(save_path_0.joinpath("merged.jpg")),
-                str(save_path_0.joinpath("merged.tif")),
-                options="-of JPEG -scale -co worldfile=yes",
+                f"{save_path_0_original.joinpath(f'{profileTargetName}.jpg')}",
+                "/vsimem/merged.tif",
+                options="-co worldfile=yes",
             )
-            os.remove(str(save_path_0.joinpath("merged.tif")))
+            gdal.Unlink("/vsimem/merged.tif")
 
             with open(f"{save_path_0.joinpath(f'{profileTargetName}.meta')}", "r") as meta_file_0:
                 meta_0 = json.load(meta_file_0)
@@ -402,43 +447,24 @@ class GeoreferencingDialog(QMainWindow):
             for item in meta_0["gcps"]:
                 del item["input_x"]
                 del item["input_z"]
-            out_path = str(save_path_0.joinpath("merged.meta"))
+            out_path = f"{save_path_0_original.joinpath(f'{profileTargetName}.meta')}"
             with open(out_path, "w") as outfile:
                 json.dump(meta_0, outfile)
-
-            os.remove(f"{save_path_0.joinpath(f'{profileTargetName}.jpg')}")
-            os.remove(f"{save_path_0.joinpath(f'{profileTargetName}.meta')}")
-            os.remove(f"{save_path_0.joinpath(f'{profileTargetName}.wld')}")
-            os.remove(f"{save_path_1.joinpath(f'{profileTargetName}.jpg')}")
-            os.remove(f"{save_path_1.joinpath(f'{profileTargetName}.meta')}")
-            os.remove(f"{save_path_1.joinpath(f'{profileTargetName}.wld')}")
-            os.rename(
-                f"{save_path_0.joinpath(f'merged.jpg')}",
-                f"{save_path_0.joinpath(f'{profileTargetName}.jpg')}",
-            )
-            os.rename(
-                f"{save_path_0.joinpath(f'merged.meta')}",
-                f"{save_path_0.joinpath(f'{profileTargetName}.meta')}",
-            )
-            os.rename(
-                f"{save_path_0.joinpath(f'merged.wld')}",
-                f"{save_path_0.joinpath(f'{profileTargetName}.wld')}",
-            )
-
-        if all(
-            [
-                self.refData.get(f"geo_ref_done{aarDirection}", False)
-                for aarDirection in aarDirections_to_path_dict.keys()
-            ]
-        ):
-            # remove cropped image
-            if os.path.exists(self.refData["imagePath"]):
-                os.remove(self.refData["imagePath"])
-            if os.path.exists(self.refData["imagePath"] + ".aux.xml"):
-                os.remove(self.refData["imagePath"] + ".aux.xml")
 
         self.destroyDialog()
 
     def destroyDialog(self):
+        self.refData["geo_ref_done_destroyed"] = True
+        if (
+            self.ref_data_pair
+            and self.ref_data_pair[0].get("geo_ref_done_destroyed", False)
+            and self.ref_data_pair[1].get("geo_ref_done_destroyed", False)
+        ):
+            # cleanup last sessions
+            pattern = os.path.join(tempfile.gettempdir(), "georef_profile*")
+            for item in glob(pattern):
+                if os.path.isdir(item):
+                    rmtree(item, ignore_errors=True)
+
         self.close()
         self.destroy()

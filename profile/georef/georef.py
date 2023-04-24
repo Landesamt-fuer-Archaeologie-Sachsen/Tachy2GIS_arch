@@ -1,9 +1,7 @@
 ## @package QGIS geoEdit extension..
-import os
 import math
 import pathlib
 
-from PIL import Image
 from PyQt5.QtWidgets import QMessageBox, QComboBox, QLabel
 from PyQt5.QtCore import Qt
 from qgis.core import (
@@ -83,27 +81,6 @@ class Georef:
         else:
             print("preselectedLineLayer is kein QgsVectorLayer")
 
-    def flip_image_from_image_path(self, refData):
-        opposite_direction = {
-            "S": "N",
-            "W": "E",
-            "N": "S",
-            "E": "W",
-        }
-        refData["viewDirection"] = opposite_direction[refData["viewDirection"]]
-        with Image.open(refData["imagePath"]) as imageObject:
-            imageObject.load()
-        flippedImage = imageObject.transpose(Image.FLIP_LEFT_RIGHT)
-        flipped_image_path = str(
-            pathlib.Path(refData["savePath"]).joinpath("flipped_" + os.path.basename(refData["imagePath"]))
-        )
-        flippedImage.save(flipped_image_path)
-        flippedImage.close()
-        imageObject.close()
-        del flippedImage
-        del imageObject
-        refData["imagePath"] = flipped_image_path
-
     def startGeoreferencingBtn_clicked(self):
         # reset old dialogues, windows and ref data:
         self.geo_referencing_dialogues_list = []
@@ -131,20 +108,6 @@ class Georef:
             return
 
         self.ref_data_pair.append(self.getSelectedValues(second_set=True))
-
-        # flip second image and viewing direction:
-        self.flip_image_from_image_path(self.ref_data_pair[1])
-
-        # w1 = DrawPolygonWindow()
-        # w1.toolDraw.polygon_drawn.connect(self.polygon_one_drawn)
-        # w1.showWindow(self.ref_data_pair[0]["imagePath"])
-        # self.draw_polygon_window_list.append(w1)
-        #
-        # w2 = DrawPolygonWindow()
-        # w2.toolDraw.polygon_drawn.connect(self.polygon_two_drawn)
-        # w2.showWindow(self.ref_data_pair[1]["imagePath"])
-        # self.draw_polygon_window_list.append(w2)
-
         self.startGeoreferencingDialog(self.ref_data_pair[0], True)
         self.startGeoreferencingDialog(self.ref_data_pair[1], True)
 
@@ -152,7 +115,6 @@ class Georef:
     #
     #
     def startGeoreferencingDialog(self, refData, set_for_kreuzprofil=False):
-        self.createFolders(refData)
         georeferencingDialog = GeoreferencingDialog(self, self.rotationCoords, self.iface)
         if set_for_kreuzprofil:
             georeferencingDialog.set_for_kreuzprofil(self.ref_data_pair)
@@ -573,15 +535,6 @@ class Georef:
                                 inputLayers.append(child.layer())
 
         return inputLayers
-
-    def createFolders(self, refData):
-        print("Create missing folders ...")
-
-        profileDirs = refData["profileDirs"]
-
-        for key, value in profileDirs.items():
-            if not os.path.exists(value):
-                os.makedirs(value)
 
     ## \brief Opens a message box with background information
     #
