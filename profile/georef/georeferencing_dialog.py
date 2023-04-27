@@ -3,6 +3,7 @@ import os
 import json
 import pathlib
 import tempfile
+import traceback
 from glob import glob
 from shutil import rmtree
 
@@ -17,6 +18,7 @@ from PyQt5.QtWidgets import (
     QHBoxLayout,
     QPushButton,
     QLabel,
+    QMessageBox
 )
 from PyQt5.QtGui import QIcon
 from osgeo import gdal
@@ -365,91 +367,101 @@ class GeoreferencingDialog(QMainWindow):
     # Write Metadatafile
     #
     def startGeoreferencing(self):
-        if self.clipping_polygon:
-            # clip image to polygon
-            points_list = [(p[0], abs(p[1])) for p in self.clipping_polygon.asMultiPolygon()[0][0]]
-            img = Image.open(self.refData["imagePath"])
-            mask = Image.new("1", img.size, 0)
-            draw_tool = ImageDraw.Draw(mask)
-            draw_tool.polygon(points_list, fill=1, outline=1)
-            black = Image.new(img.mode, img.size, 0)
-            result = Image.composite(img, black, mask)
-            clipped_image_path = str(pathlib.Path(self.refData["savePath"]).joinpath("clipped.jpg"))
-            result.save(clipped_image_path)
-            result.close()
 
-            # make clipped image the default to work with
-            self.refData["imagePath"] = clipped_image_path
+        try:
+            if self.clipping_polygon:
+                # clip image to polygon
+                points_list = [(p[0], abs(p[1])) for p in self.clipping_polygon.asMultiPolygon()[0][0]]
+                img = Image.open(self.refData["imagePath"])
+                mask = Image.new("1", img.size, 0)
+                draw_tool = ImageDraw.Draw(mask)
+                draw_tool.polygon(points_list, fill=1, outline=1)
+                black = Image.new(img.mode, img.size, 0)
+                result = Image.composite(img, black, mask)
+                clipped_image_path = str(pathlib.Path(self.refData["savePath"]).joinpath("clipped.jpg"))
+                result.save(clipped_image_path)
+                result.close()
 
-        imageFileIn = self.refData["imagePath"]
-        profileTargetName = self.refData["profileTargetName"]
+                # make clipped image the default to work with
+                self.refData["imagePath"] = clipped_image_path
 
-        aarDirections_to_path_dict = {
-            "horizontal": "dirPh",
-            "original": "dirPo",
-            "absolute height": "dirPa",
-        }
-        for aarDirection in aarDirections_to_path_dict.keys():
-            base_path = pathlib.Path(self.refData["profileDirs"][aarDirections_to_path_dict[aarDirection]])
-            imageFileOut = base_path.joinpath(f"{profileTargetName}.jpg")
-            metaFileOut = base_path.joinpath(f"{profileTargetName}.meta")
+            imageFileIn = self.refData["imagePath"]
+            profileTargetName = self.refData["profileTargetName"]
 
-            georefData = self.dataStoreGeoref.getGeorefData(aarDirection)
-            georefChecker = self.imageGeoref.runGeoref(georefData, self.refData["crs"], imageFileIn, str(imageFileOut))
+            aarDirections_to_path_dict = {
+                "horizontal": "dirPh",
+                "original": "dirPo",
+                "absolute height": "dirPa",
+            }
+            for aarDirection in aarDirections_to_path_dict.keys():
+                base_path = pathlib.Path(self.refData["profileDirs"][aarDirections_to_path_dict[aarDirection]])
+                imageFileOut = base_path.joinpath(f"{profileTargetName}.jpg")
+                metaFileOut = base_path.joinpath(f"{profileTargetName}.meta")
 
-            if georefChecker == "ok":
-                fileName = self.writeMetafile(aarDirection, metaFileOut)
-                self.iface.messageBar().pushMessage(
-                    "Hinweis",
-                    "Das Profil wurde unter " + str(imageFileOut) + " referenziert",
-                    level=3,
-                    duration=5,
+                georefData = self.dataStoreGeoref.getGeorefData(aarDirection)
+                georefChecker = self.imageGeoref.runGeoref(georefData, self.refData["crs"], imageFileIn, str(imageFileOut))
+
+                if georefChecker == "ok":
+                    fileName = self.writeMetafile(aarDirection, metaFileOut)
+                    self.iface.messageBar().pushMessage(
+                        "Hinweis",
+                        "Das Profil wurde unter " + str(imageFileOut) + " referenziert",
+                        level=3,
+                        duration=5,
+                    )
+
+                if not self.ref_data_pair:
+                    # not set for kreuzprofil
+                    continue
+
+                self.refData[f"geo_ref_done_{aarDirection}"] = True
+
+                if not (
+                    self.ref_data_pair[0].get(f"geo_ref_done_{aarDirection}", False)
+                    and self.ref_data_pair[1].get(f"geo_ref_done_{aarDirection}", False)
+                ):
+                    # other profil is not ready yet
+                    continue
+
+                save_path_0_original = pathlib.Path(
+                    self.ref_data_pair[0]["profileDirs_backup"][aarDirections_to_path_dict[aarDirection]]
                 )
+                save_path_0 = pathlib.Path(self.ref_data_pair[0]["profileDirs"][aarDirections_to_path_dict[aarDirection]])
+                save_path_1 = pathlib.Path(self.ref_data_pair[1]["profileDirs"][aarDirections_to_path_dict[aarDirection]])
+                command = (
+                    f"gdal_merge.py -of gtiff -n 0 -o "
+                    "/vsimem/merged.tif "
+                    f"{save_path_0.joinpath(f'{profileTargetName}.jpg')} "
+                    f"{save_path_1.joinpath(f'{profileTargetName}.jpg')}"
+                )
+                osgeo_utils.gdal_merge.main(command.split(" "))
 
-            if not self.ref_data_pair:
-                # not set for kreuzprofil
-                continue
+                gdal.Translate(
+                    f"{save_path_0_original.joinpath(f'{profileTargetName}.jpg')}",
+                    "/vsimem/merged.tif",
+                    options="-co worldfile=yes",
+                )
+                gdal.Unlink("/vsimem/merged.tif")
 
-            self.refData[f"geo_ref_done_{aarDirection}"] = True
-
-            if not (
-                self.ref_data_pair[0].get(f"geo_ref_done_{aarDirection}", False)
-                and self.ref_data_pair[1].get(f"geo_ref_done_{aarDirection}", False)
-            ):
-                # other profil is not ready yet
-                continue
-
-            save_path_0_original = pathlib.Path(
-                self.ref_data_pair[0]["profileDirs_backup"][aarDirections_to_path_dict[aarDirection]]
+                with open(f"{save_path_0.joinpath(f'{profileTargetName}.meta')}", "r") as meta_file_0:
+                    meta_0 = json.load(meta_file_0)
+                with open(f"{save_path_1.joinpath(f'{profileTargetName}.meta')}", "r") as meta_file_1:
+                    meta_1 = json.load(meta_file_1)
+                meta_0["gcps"] += meta_1["gcps"]
+                for item in meta_0["gcps"]:
+                    del item["input_x"]
+                    del item["input_z"]
+                out_path = f"{save_path_0_original.joinpath(f'{profileTargetName}.meta')}"
+                with open(out_path, "w") as outfile:
+                    json.dump(meta_0, outfile)
+        except Exception as e:
+            print(f"An exception occurred {type(e)} \n {traceback.format_exc()}")
+            QMessageBox.critical(
+                self,
+                "Fehler bei der Profilentzerrung!",
+                f"Profil konnte nicht entzerrt werden. Vorgang wurde abgebrochen!",
+                QMessageBox.Abort,
             )
-            save_path_0 = pathlib.Path(self.ref_data_pair[0]["profileDirs"][aarDirections_to_path_dict[aarDirection]])
-            save_path_1 = pathlib.Path(self.ref_data_pair[1]["profileDirs"][aarDirections_to_path_dict[aarDirection]])
-            command = (
-                f"gdal_merge.py -of gtiff -n 0 -o "
-                "/vsimem/merged.tif "
-                f"{save_path_0.joinpath(f'{profileTargetName}.jpg')} "
-                f"{save_path_1.joinpath(f'{profileTargetName}.jpg')}"
-            )
-            osgeo_utils.gdal_merge.main(command.split(" "))
-
-            gdal.Translate(
-                f"{save_path_0_original.joinpath(f'{profileTargetName}.jpg')}",
-                "/vsimem/merged.tif",
-                options="-co worldfile=yes",
-            )
-            gdal.Unlink("/vsimem/merged.tif")
-
-            with open(f"{save_path_0.joinpath(f'{profileTargetName}.meta')}", "r") as meta_file_0:
-                meta_0 = json.load(meta_file_0)
-            with open(f"{save_path_1.joinpath(f'{profileTargetName}.meta')}", "r") as meta_file_1:
-                meta_1 = json.load(meta_file_1)
-            meta_0["gcps"] += meta_1["gcps"]
-            for item in meta_0["gcps"]:
-                del item["input_x"]
-                del item["input_z"]
-            out_path = f"{save_path_0_original.joinpath(f'{profileTargetName}.meta')}"
-            with open(out_path, "w") as outfile:
-                json.dump(meta_0, outfile)
 
         self.destroyDialog()
 
