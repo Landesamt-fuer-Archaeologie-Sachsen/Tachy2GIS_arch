@@ -18,7 +18,7 @@ from PyQt5.QtWidgets import (
     QHBoxLayout,
     QPushButton,
     QLabel,
-    QMessageBox
+    QMessageBox,
 )
 from PyQt5.QtGui import QIcon
 from osgeo import gdal
@@ -56,6 +56,11 @@ class GeoreferencingDialog(QMainWindow):
         self.dataStoreGeoref = DataStoreGeoref()
         self.rotationCoords = rotationCoords
 
+        self.aarDirections_to_path_dict = {
+            "horizontal": "dirPh",
+            "original": "dirPo",
+            "absolute height": "dirPa",
+        }
         # for Kreuzprofil
         self.ref_data_pair = None
         self.profile_set = None
@@ -79,16 +84,20 @@ class GeoreferencingDialog(QMainWindow):
         self.ref_data_pair = ref_data_pair
         self.imageParambar.set_for_kreuzprofil()
         self.imageParambar.toolDrawPolygon.polygon_drawn.connect(self.polygon_drawn)
-        self.startGeorefBtn.setEnabled(False)
-        self.startGeorefBtn.setStyleSheet("background-color: lightgrey; width: 200px")
-        self.toolbarMap.addWidget(QLabel(" Benötigt Referenzierungspunkte und ein Beschneidungspolygon!"))
-        self.canvasImage.pup.register("imagePointCoordinates", self.check_for_enable_startBtn)
 
     def polygon_drawn(self, geom: QgsGeometry):
         self.clipping_polygon = geom
         self.check_for_enable_startBtn()
 
     def check_for_enable_startBtn(self, _=None):
+        if len(self.dataStoreGeoref.imagePoints) < 4:
+            self.startGeorefBtn.setEnabled(False)
+            self.startGeorefBtn.setStyleSheet("background-color: lightgrey; width: 200px")
+        else:
+            self.startGeorefBtn.setEnabled(True)
+            self.startGeorefBtn.setStyleSheet("background-color: green; width: 200px")
+
+    def check_for_enable_startBtn_kreuz(self, _=None):
         if self.clipping_polygon.isNull() or len(self.dataStoreGeoref.imagePoints) < 4:
             self.startGeorefBtn.setEnabled(False)
             self.startGeorefBtn.setStyleSheet("background-color: lightgrey; width: 200px")
@@ -307,6 +316,15 @@ class GeoreferencingDialog(QMainWindow):
     def showGeoreferencingDialog(self, refData):
         self.refData = refData
 
+        self.startGeorefBtn.setEnabled(False)
+        self.startGeorefBtn.setStyleSheet("background-color: lightgrey; width: 200px")
+        if self.ref_data_pair:
+            self.toolbarMap.addWidget(QLabel("   Benötigt Referenzierungspunkte und ein Beschneidungspolygon!"))
+            self.canvasImage.pup.register("imagePointCoordinates", self.check_for_enable_startBtn_kreuz)
+        else:
+            self.toolbarMap.addWidget(QLabel("   Benötigt Referenzierungspunkte!"))
+            self.canvasImage.pup.register("imagePointCoordinates", self.check_for_enable_startBtn)
+
         if self.ref_data_pair:
             if self.refData is self.ref_data_pair[0]:
                 self.profile_set = 0
@@ -367,7 +385,6 @@ class GeoreferencingDialog(QMainWindow):
     # Write Metadatafile
     #
     def startGeoreferencing(self):
-
         try:
             if self.clipping_polygon:
                 # clip image to polygon
@@ -388,18 +405,15 @@ class GeoreferencingDialog(QMainWindow):
             imageFileIn = self.refData["imagePath"]
             profileTargetName = self.refData["profileTargetName"]
 
-            aarDirections_to_path_dict = {
-                "horizontal": "dirPh",
-                "original": "dirPo",
-                "absolute height": "dirPa",
-            }
-            for aarDirection in aarDirections_to_path_dict.keys():
-                base_path = pathlib.Path(self.refData["profileDirs"][aarDirections_to_path_dict[aarDirection]])
+            for aarDirection in self.aarDirections_to_path_dict.keys():
+                base_path = pathlib.Path(self.refData["profileDirs"][self.aarDirections_to_path_dict[aarDirection]])
                 imageFileOut = base_path.joinpath(f"{profileTargetName}.jpg")
                 metaFileOut = base_path.joinpath(f"{profileTargetName}.meta")
 
                 georefData = self.dataStoreGeoref.getGeorefData(aarDirection)
-                georefChecker = self.imageGeoref.runGeoref(georefData, self.refData["crs"], imageFileIn, str(imageFileOut))
+                georefChecker = self.imageGeoref.runGeoref(
+                    georefData, self.refData["crs"], imageFileIn, str(imageFileOut)
+                )
 
                 if georefChecker == "ok":
                     fileName = self.writeMetafile(aarDirection, metaFileOut)
@@ -424,10 +438,14 @@ class GeoreferencingDialog(QMainWindow):
                     continue
 
                 save_path_0_original = pathlib.Path(
-                    self.ref_data_pair[0]["profileDirs_backup"][aarDirections_to_path_dict[aarDirection]]
+                    self.ref_data_pair[0]["profileDirs_backup"][self.aarDirections_to_path_dict[aarDirection]]
                 )
-                save_path_0 = pathlib.Path(self.ref_data_pair[0]["profileDirs"][aarDirections_to_path_dict[aarDirection]])
-                save_path_1 = pathlib.Path(self.ref_data_pair[1]["profileDirs"][aarDirections_to_path_dict[aarDirection]])
+                save_path_0 = pathlib.Path(
+                    self.ref_data_pair[0]["profileDirs"][self.aarDirections_to_path_dict[aarDirection]]
+                )
+                save_path_1 = pathlib.Path(
+                    self.ref_data_pair[1]["profileDirs"][self.aarDirections_to_path_dict[aarDirection]]
+                )
                 command = (
                     f"gdal_merge.py -of gtiff -n 0 -o "
                     "/vsimem/merged.tif "
@@ -478,5 +496,7 @@ class GeoreferencingDialog(QMainWindow):
                 if os.path.isdir(item):
                     rmtree(item, ignore_errors=True)
 
+        # mark that it was closed already:
+        self.ref_data_pair = None
         self.close()
         self.destroy()

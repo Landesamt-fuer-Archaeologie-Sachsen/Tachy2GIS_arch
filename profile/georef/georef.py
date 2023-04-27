@@ -1,9 +1,10 @@
 ## @package QGIS geoEdit extension..
 import math
 import pathlib
+from functools import partial
 
 from PyQt5.QtWidgets import QMessageBox, QComboBox, QLabel
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, pyqtSlot, QObject
 from qgis.core import (
     QgsProject,
     QgsVectorLayer,
@@ -102,12 +103,22 @@ class Georef:
             QMessageBox.critical(
                 self.dockwidget,
                 "Invalide Einstellung",
-                "Profilnummern müssen sich unterscheiden!",
+                "Die eingestellten Profilnummern müssen verschieden sein!",
                 QMessageBox.Abort,
             )
             return
 
         self.ref_data_pair.append(self.getSelectedValues(second_set=True))
+
+        view_direction_set = {self.ref_data_pair[0]["viewDirection"], self.ref_data_pair[1]["viewDirection"]}
+        if view_direction_set != {"S", "N"} and view_direction_set != {"E", "W"}:
+            QMessageBox.critical(
+                self.dockwidget,
+                "Invalide Einstellung",
+                "Die eingestellten Profile müssen in entgegengesetzten Blickrichtungen aufgenommen worden sein!",
+                QMessageBox.Abort,
+            )
+            return
         self.startGeoreferencingDialog(self.ref_data_pair[0], True)
         self.startGeoreferencingDialog(self.ref_data_pair[1], True)
 
@@ -118,8 +129,31 @@ class Georef:
         georeferencingDialog = GeoreferencingDialog(self, self.rotationCoords, self.iface)
         if set_for_kreuzprofil:
             georeferencingDialog.set_for_kreuzprofil(self.ref_data_pair)
+            georeferencingDialog.destroyed.connect(partial(self.on_dialog_closed, self))
         georeferencingDialog.showGeoreferencingDialog(refData)
         self.geo_referencing_dialogues_list.append(georeferencingDialog)
+
+    @pyqtSlot(QObject)
+    def on_dialog_closed(self, _):
+        successful = 0
+        for dialog in self.geo_referencing_dialogues_list:
+            ready = [
+                dialog.refData.get(f"geo_ref_done_{aarDirection}", False)
+                for aarDirection in dialog.aarDirections_to_path_dict.keys()
+            ]
+            if all(ready):
+                successful += 1
+
+        # if one window was closed but no successful:
+        if successful == 0:
+            for dialog in self.geo_referencing_dialogues_list:
+                # detect if it was closed already:
+                if dialog.ref_data_pair:
+                    dialog.destroyDialog()
+            self.geo_referencing_dialogues_list = []
+            self.draw_polygon_window_list = []
+            self.ref_data_pair = []
+            self.polygon_list = []
 
     ## \brief SaveComboBox is clicked
     #
