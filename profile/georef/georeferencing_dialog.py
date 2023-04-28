@@ -250,19 +250,25 @@ class GeoreferencingDialog(QMainWindow):
                 os.makedirs(value)
 
     def restore(self):
-        prof_nr = self.refData["profileNumber"]
-        self.setWindowTitle(f"Georeferenzierung von Profil: {prof_nr}")
-
         self.georefTable.cleanGeorefTable()
 
         if self.ref_data_pair and len(self.ref_data_pair) == 2:
+            other_ref_data = (
+                self.ref_data_pair[0] if self.ref_data_pair[0] is not self.refData else self.ref_data_pair[1]
+            )
             self.georefTable.updateGeorefTable(
                 self.refData,
                 self.aarDirection,
-                self.ref_data_pair[0] if self.ref_data_pair[0] is not self.refData else self.ref_data_pair[1],
+                other_ref_data,
+            )
+            self.setWindowTitle(
+                f"Georeferenzierung von Kreuzprofil: {self.refData['profileNumber']} "
+                f"(im anderen Fenster {other_ref_data['profileNumber']})"
             )
         else:
             self.georefTable.updateGeorefTable(self.refData, self.aarDirection)
+            self.setWindowTitle(f"Georeferenzierung von Profil: {self.refData['profileNumber']}")
+
         self.georefTable.pointUsageChanged()
 
         validImageLayer = self.canvasImage.updateCanvas(self.refData["imagePath"])
@@ -273,8 +279,8 @@ class GeoreferencingDialog(QMainWindow):
             self.dataStoreGeoref.addTargetPoints(self.refData)
 
             self.adjustSize()
-            self.show()
             self.resize(1000, 750)
+            self.show()
         else:
             self.iface.messageBar().pushMessage("Error", "Rasterlayer konnte nicht gelesen werden", level=1, duration=3)
 
