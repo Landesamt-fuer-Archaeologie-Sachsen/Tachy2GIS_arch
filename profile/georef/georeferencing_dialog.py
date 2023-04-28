@@ -19,6 +19,7 @@ from PyQt5.QtWidgets import (
     QPushButton,
     QLabel,
     QMessageBox,
+    QDesktopWidget,
 )
 from PyQt5.QtGui import QIcon
 from osgeo import gdal
@@ -251,6 +252,7 @@ class GeoreferencingDialog(QMainWindow):
 
     def restore(self):
         self.georefTable.cleanGeorefTable()
+        offset = 0
 
         if self.ref_data_pair and len(self.ref_data_pair) == 2:
             other_ref_data = (
@@ -265,6 +267,10 @@ class GeoreferencingDialog(QMainWindow):
                 f"Georeferenzierung von Kreuzprofil: {self.refData['profileNumber']} "
                 f"(im anderen Fenster {other_ref_data['profileNumber']})"
             )
+            if self.profile_set == 0:
+                offset = -10
+            else:
+                offset = 10
         else:
             self.georefTable.updateGeorefTable(self.refData, self.aarDirection)
             self.setWindowTitle(f"Georeferenzierung von Profil: {self.refData['profileNumber']}")
@@ -280,6 +286,10 @@ class GeoreferencingDialog(QMainWindow):
 
             self.adjustSize()
             self.resize(1000, 750)
+            sg = QDesktopWidget().availableGeometry()
+            x = (sg.width() - self.width()) / 2.0 + offset
+            y = (sg.height() - self.height()) / 2.0 + offset
+            self.setGeometry(x, y, self.width(), self.height())
             self.show()
         else:
             self.iface.messageBar().pushMessage("Error", "Rasterlayer konnte nicht gelesen werden", level=1, duration=3)
