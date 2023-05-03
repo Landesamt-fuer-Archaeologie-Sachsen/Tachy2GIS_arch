@@ -160,14 +160,23 @@ class ImageParambar(QWidget):
     def polygon_set_map_tool(self):
         self.canvasImage.setMapTool(self.toolDrawPolygon)
 
+    def createAction_tool_polygon_undo(self):
+        icon = QIcon(QgsApplication.iconPath("mActionRollbackAllEdits.svg"))
+        self.action_tool_polygon_undo = QAction(icon, "letzten Punkt entfernen [ESC]", self)
+        self.imageToolbar.addAction(self.action_tool_polygon_undo)
+        self.action_tool_polygon_undo.triggered.connect(self.polygon_undo)
+
+    def polygon_undo(self):
+        self.toolDrawPolygon.undo()
+
     def createAction_tool_polygon_finish(self):
         icon = QIcon(QgsApplication.iconPath("mLayoutItemPolygon.svg"))
-        self.action_tool_polygon_finish = QAction(icon, "Linienzug schließen", self)
+        self.action_tool_polygon_finish = QAction(icon, "Linienzug schließen [R-MOUSE]", self)
         self.imageToolbar.addAction(self.action_tool_polygon_finish)
         self.action_tool_polygon_finish.triggered.connect(self.polygon_finish)
 
     def polygon_finish(self):
-        self.toolDrawPolygon.finishPolygon()
+        self.toolDrawPolygon.finish_polygon()
 
     def createAction_tool_polygon_reset(self):
         icon = QIcon(QgsApplication.iconPath("mActionRefresh.svg"))
@@ -182,6 +191,7 @@ class ImageParambar(QWidget):
         self.toolDrawPolygon = PolygonMapTool(self.canvasImage)
         self.imageToolbar.addSeparator()
         self.createAction_tool_polygon()
+        self.createAction_tool_polygon_undo()
         self.createAction_tool_polygon_finish()
         self.createAction_tool_polygon_reset()
 
