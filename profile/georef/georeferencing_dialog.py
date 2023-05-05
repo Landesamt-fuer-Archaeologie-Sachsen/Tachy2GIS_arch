@@ -151,7 +151,7 @@ class GeoreferencingDialog(QMainWindow):
         self.canvasGcp = ProfileGcpCanvas(self, self.rotationCoords)
 
         # paramsBar
-        self.imageParambar = ImageParambar(self, self.canvasImage)
+        self.imageParambar = ImageParambar(self.canvasImage)
         self.gcpParambar = GcpParambar(self, self.canvasGcp, self.rotationCoords)
 
         # Actions
