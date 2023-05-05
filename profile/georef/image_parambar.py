@@ -2,48 +2,78 @@
 import os
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QWidget, QHBoxLayout, QFrame, QSizePolicy, QToolBar, QAction, QLineEdit
+from PyQt5.QtWidgets import QWidget, QHBoxLayout, QSizePolicy, QToolBar, QAction, QLineEdit, QActionGroup
 from qgis.core import QgsApplication
 
 from .map_tool_draw_polygon import PolygonMapTool
 
 
-## @brief With the TransformationDialogParambar class a bar based on QWidget is realized
-#
-# Inherits from QWidget
-#
-# @author Mario Uhlig, VisDat geodatentechnologie GmbH, mario.uhlig@visdat.de
-# @date 2020-11-09
-
-
 class ImageParambar(QWidget):
-    def __init__(self, dialogInstance, canvasImage):
-        ## The constructor.
-        # Creates labels with styles
-        # @param dialogInstance pointer to the dialogInstance
+    """!
+    @brief toolbar based on QWidget for map tools
 
-        super(ImageParambar, self).__init__()
+    Inherits from QWidget
 
-        self.iconpath = os.path.join(os.path.dirname(__file__), "..", "Icons")
-        print("iconpath", self.iconpath)
-        self.dialogInstance = dialogInstance
+    @author Mario Uhlig, VisDat geodatentechnologie GmbH, mario.uhlig@visdat.de
+    @date 2020-11-09
+    """
 
+    def __init__(self, canvasImage):
+        """!
+        @param canvasImage ref to the canvas to use with map tools
+        """
+        super().__init__()
         self.canvasImage = canvasImage
 
-        self.createComponents()
-        self.createLayout()
+        icon_path = os.path.join(os.path.dirname(__file__), "..", "Icons")
 
-    ## \brief Create components
-    #
-    def createComponents(self):
         self.imageToolbar = QToolBar("Edit", self)
+        self.action_group = QActionGroup(self)
 
-        self.createMoveAction()
-        self.createPanAction()
-        self.createActionZoomIn()
-        self.createActionZoomOut()
-        self.createActionExtent()
+        # create component move:
+        iconMove = QIcon(os.path.join(icon_path, "mActionAddGCPPoint.png"))
+        self.actionMove = QAction(iconMove, "Move", self)
+        self.actionMove.setCheckable(True)
+        self.canvasImage.toolMove.setAction(self.actionMove)
+        self.action_group.addAction(self.actionMove)
+        self.imageToolbar.addAction(self.actionMove)
+        self.actionMove.triggered.connect(self.activateMove)
 
+        # create component pan:
+        iconPan = QIcon(os.path.join(icon_path, "mActionPan.png"))
+        self.actionPan = QAction(iconPan, "Pan", self)
+        self.actionPan.setCheckable(True)
+        self.canvasImage.toolPan.setAction(self.actionPan)
+        self.action_group.addAction(self.actionPan)
+        self.imageToolbar.addAction(self.actionPan)
+        self.actionPan.triggered.connect(self.activatePan)
+
+        # create component zoom in:
+        iconZoomIn = QIcon(os.path.join(icon_path, "mActionZoomIn.png"))
+        self.actionZoomIn = QAction(iconZoomIn, "Zoom in", self)
+        self.actionZoomIn.setCheckable(True)
+        self.canvasImage.toolZoomIn.setAction(self.actionZoomIn)
+        self.action_group.addAction(self.actionZoomIn)
+        self.imageToolbar.addAction(self.actionZoomIn)
+        self.actionZoomIn.triggered.connect(self.activateZoomIn)
+
+        # create component zoom out:
+        iconZoomOut = QIcon(os.path.join(icon_path, "mActionZoomOut.png"))
+        self.actionZoomOut = QAction(iconZoomOut, "Zoom out", self)
+        self.actionZoomOut.setCheckable(True)
+        self.canvasImage.toolZoomOut.setAction(self.actionZoomOut)
+        self.action_group.addAction(self.actionZoomOut)
+        self.imageToolbar.addAction(self.actionZoomOut)
+        self.actionZoomOut.triggered.connect(self.activateZoomOut)
+
+        # create component zoom to extent:
+        iconExtent = QIcon(os.path.join(icon_path, "mActionZoomToLayer.png"))
+        self.actionExtent = QAction(iconExtent, "Zoom to layer", self)
+        self.action_group.addAction(self.actionExtent)
+        self.imageToolbar.addAction(self.actionExtent)
+        self.actionExtent.triggered.connect(self.canvasImage.setExtentByImageLayer)
+
+        # create component coordinates:
         self.toolbarCoord = QToolBar("Coordinates", self)
         self.coordLineEdit = QLineEdit()
         self.coordLineEdit.setAlignment(Qt.AlignCenter)
@@ -52,151 +82,95 @@ class ImageParambar(QWidget):
         self.coordLineEditFm = self.coordLineEdit.fontMetrics()
         width_text = self.coordLineEditFm.width("xxxxxx.xx,xxxxxx.xx")
         self.coordLineEdit.setMinimumWidth(width_text + 30)
-
         self.toolbarCoord.addWidget(self.coordLineEdit)
 
-    ## \brief Create Layout
-    #
-    def createLayout(self):
+        # create Layout
         self.paramsBarLayout = QHBoxLayout()
         self.paramsBarLayout.setContentsMargins(0, 0, 0, 0)
         self.paramsBarLayout.setSpacing(0)
         self.setLayout(self.paramsBarLayout)
         self.paramsBarLayout.addWidget(self.imageToolbar)
-
         spacer = QWidget()
         spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
         self.paramsBarLayout.addWidget(spacer)
-
         self.paramsBarLayout.addWidget(self.toolbarCoord)
 
-    ## \brief Create move action
-    #
     def activateMove(self):
         self.canvasImage.setMapTool(self.canvasImage.toolMove)
 
-    ## \brief Create pan action
-    #
     def activatePan(self):
         self.canvasImage.setMapTool(self.canvasImage.toolPan)
 
-    ## \brief Create pan action
-    #
     def activateZoomIn(self):
         self.canvasImage.setMapTool(self.canvasImage.toolZoomIn)
 
-    ## \brief Create pan action
-    #
     def activateZoomOut(self):
         self.canvasImage.setMapTool(self.canvasImage.toolZoomOut)
 
-    ## \brief Create move action
-    #
-    def createMoveAction(self):
-        # move
-        iconMove = QIcon(os.path.join(self.iconpath, "mActionAddGCPPoint.png"))
-        self.actionMove = QAction(iconMove, "Move", self)
-        self.actionMove.setCheckable(True)
+    def activateMapToolMove(self, _):
+        self.actionMove.activate(0)
 
-        self.canvasImage.toolMove.setAction(self.actionMove)
+    def polygon_set_map_tool(self, checked):
+        self.action_group_polygon.setEnabled(checked)
+        if checked:
+            self.canvasImage.setMapTool(self.toolDrawPolygon)
+        else:
+            self.toolDrawPolygon.recover_to_normal_mode()
 
-        self.imageToolbar.addAction(self.actionMove)
-        self.canvasImage.setMapTool(self.canvasImage.toolMove)
-        self.actionMove.triggered.connect(self.activateMove)
-
-    ## \brief Create pan action
-    #
-    def createPanAction(self):
-        # Pan
-        iconPan = QIcon(os.path.join(self.iconpath, "mActionPan.png"))
-        self.actionPan = QAction(iconPan, "Pan", self)
-        self.actionPan.setCheckable(True)
-
-        self.canvasImage.toolPan.setAction(self.actionPan)
-
-        self.imageToolbar.addAction(self.actionPan)
-        self.canvasImage.setMapTool(self.canvasImage.toolPan)
-        self.actionPan.triggered.connect(self.activatePan)
-
-    def createActionZoomIn(self):
-        iconZoomIn = QIcon(os.path.join(self.iconpath, "mActionZoomIn.png"))
-        self.actionZoomIn = QAction(iconZoomIn, "Zoom in", self)
-        self.actionZoomIn.setCheckable(True)
-
-        self.canvasImage.toolZoomIn.setAction(self.actionZoomIn)
-
-        self.imageToolbar.addAction(self.actionZoomIn)
-        self.canvasImage.setMapTool(self.canvasImage.toolZoomIn)
-
-        self.actionZoomIn.triggered.connect(self.activateZoomIn)
-
-    def createActionZoomOut(self):
-        iconZoomOut = QIcon(os.path.join(self.iconpath, "mActionZoomOut.png"))
-        self.actionZoomOut = QAction(iconZoomOut, "Zoom out", self)
-        self.actionZoomOut.setCheckable(True)
-
-        self.canvasImage.toolZoomOut.setAction(self.actionZoomOut)
-
-        self.imageToolbar.addAction(self.actionZoomOut)
-        self.canvasImage.setMapTool(self.canvasImage.toolZoomOut)
-
-        self.actionZoomOut.triggered.connect(self.activateZoomOut)
-
-    def createActionExtent(self):
-        iconExtent = QIcon(os.path.join(self.iconpath, "mActionZoomToLayer.png"))
-        self.actionExtent = QAction(iconExtent, "Zoom to layer", self)
-
-        self.imageToolbar.addAction(self.actionExtent)
-
-        self.actionExtent.triggered.connect(self.canvasImage.setExtentByImageLayer)
-
-    def createAction_tool_polygon(self):
-        icon = QIcon(QgsApplication.iconPath("mActionAddNodesItem.svg"))
-        self.action_tool_polygon = QAction(icon, "Zeichne Polygon zum Beschneiden", self)
-        self.action_tool_polygon.setCheckable(True)
-        self.imageToolbar.addAction(self.action_tool_polygon)
-        self.action_tool_polygon.triggered.connect(self.polygon_set_map_tool)
-
-    def polygon_set_map_tool(self):
-        self.canvasImage.setMapTool(self.toolDrawPolygon)
-
-    def createAction_tool_polygon_finish(self):
-        icon = QIcon(QgsApplication.iconPath("mLayoutItemPolygon.svg"))
-        self.action_tool_polygon_finish = QAction(icon, "Linienzug schließen", self)
-        self.imageToolbar.addAction(self.action_tool_polygon_finish)
-        self.action_tool_polygon_finish.triggered.connect(self.polygon_finish)
+    def polygon_undo(self):
+        self.toolDrawPolygon.undo_last_point()
 
     def polygon_finish(self):
-        self.toolDrawPolygon.finishPolygon()
+        self.toolDrawPolygon.finish_polygon()
 
-    def createAction_tool_polygon_reset(self):
-        icon = QIcon(QgsApplication.iconPath("mActionRefresh.svg"))
-        self.action_tool_polygon_reset = QAction(icon, "Polygon zurücksetzen", self)
-        self.imageToolbar.addAction(self.action_tool_polygon_reset)
-        self.action_tool_polygon_reset.triggered.connect(self.polygon_reset)
+    def polygon_edit(self):
+        self.toolDrawPolygon.select_mode()
 
     def polygon_reset(self):
-        self.toolDrawPolygon.reset()
+        self.toolDrawPolygon.reset_polygon()
 
     def set_for_kreuzprofil(self):
         self.toolDrawPolygon = PolygonMapTool(self.canvasImage)
+        self.action_group_polygon = QActionGroup(self)
         self.imageToolbar.addSeparator()
-        self.createAction_tool_polygon()
-        self.createAction_tool_polygon_finish()
-        self.createAction_tool_polygon_reset()
 
-    def activateMapToolMove(self, linkObj):
-        self.actionMove.activate(0)
+        # createAction_tool_polygon
+        icon4 = QIcon(QgsApplication.iconPath("mActionAddNodesItem.svg"))
+        self.action_tool_polygon = QAction(icon4, "Polygon: Zeichnen (zum Beschneiden)", self)
+        self.action_tool_polygon.setCheckable(True)
+        self.action_group.addAction(self.action_tool_polygon)
+        self.imageToolbar.addAction(self.action_tool_polygon)
+        self.action_tool_polygon.toggled.connect(self.polygon_set_map_tool)
 
-    ## \brief Create a splitter (vertical line to separate labels in the parambar)
-    #
-    def createSplitter(self):
-        vSplit = QFrame()
-        vSplit.setFrameShape(QFrame.VLine | QFrame.Sunken)
+        # createAction_tool_polygon_undo
+        icon3 = QIcon(QgsApplication.iconPath("mActionRollbackEdits.svg"))
+        self.action_tool_polygon_undo = QAction(icon3, "Polygon: vorhergehenden Punkt entfernen [ESC]", self)
+        self.action_group_polygon.addAction(self.action_tool_polygon_undo)
+        self.imageToolbar.addAction(self.action_tool_polygon_undo)
+        self.action_tool_polygon_undo.triggered.connect(self.polygon_undo)
 
-        return vSplit
+        # createAction_tool_polygon_finish
+        icon1 = QIcon(QgsApplication.iconPath("mLayoutItemPolygon.svg"))
+        self.action_tool_polygon_finish = QAction(icon1, "Polygon: Editieren beenden [R-MOUSE]", self)
+        self.action_group_polygon.addAction(self.action_tool_polygon_finish)
+        self.imageToolbar.addAction(self.action_tool_polygon_finish)
+        self.action_tool_polygon_finish.triggered.connect(self.polygon_finish)
 
-    ## \brief Create a splitter (vertical line to separate labels in the parambar)
-    #
+        # createAction_tool_polygon_edit
+        icon2 = QIcon(QgsApplication.iconPath("mActionEditNodesItem.svg"))
+        self.action_tool_polygon_edit = QAction(icon2, "Polygon: Punkt auswählen zum erneuten Editieren", self)
+        self.action_group_polygon.addAction(self.action_tool_polygon_edit)
+        self.imageToolbar.addAction(self.action_tool_polygon_edit)
+        self.action_tool_polygon_edit.triggered.connect(self.polygon_edit)
+
+        # createAction_tool_polygon_reset
+        icon = QIcon(QgsApplication.iconPath("mActionDeleteSelected.svg"))
+        self.action_tool_polygon_reset = QAction(icon, "Polygon: alles löschen", self)
+        self.action_group_polygon.addAction(self.action_tool_polygon_reset)
+        self.imageToolbar.addAction(self.action_tool_polygon_reset)
+        self.action_tool_polygon_reset.triggered.connect(self.polygon_reset)
+
+        self.action_group_polygon.setEnabled(False)
+
     def updateCoordinate(self, coordObj):
         self.coordLineEdit.setText(str(round(coordObj["x"], 2)) + "," + str(round(coordObj["y"], 2)))

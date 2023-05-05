@@ -88,7 +88,10 @@ class GeoreferencingDialog(QMainWindow):
 
     def polygon_drawn(self, geom: QgsGeometry):
         self.clipping_polygon = geom
-        self.check_for_enable_startBtn()
+        if self.ref_data_pair:
+            self.check_for_enable_startBtn_kreuz()
+        else:
+            self.check_for_enable_startBtn()
 
     def check_for_enable_startBtn(self, _=None):
         if len(self.dataStoreGeoref.imagePoints) < 4:
@@ -148,7 +151,7 @@ class GeoreferencingDialog(QMainWindow):
         self.canvasGcp = ProfileGcpCanvas(self, self.rotationCoords)
 
         # paramsBar
-        self.imageParambar = ImageParambar(self, self.canvasImage)
+        self.imageParambar = ImageParambar(self.canvasImage)
         self.gcpParambar = GcpParambar(self, self.canvasGcp, self.rotationCoords)
 
         # Actions

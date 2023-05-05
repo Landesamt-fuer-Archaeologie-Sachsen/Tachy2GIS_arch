@@ -1,64 +1,7 @@
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QColor
-from PyQt5.QtWidgets import QMainWindow, QSizePolicy, QAction
-from qgis.core import QgsGeometry, QgsRasterLayer
-from qgis.gui import QgsMapCanvas, QgsMapToolPan, QgsMapToolEmitPoint, QgsRubberBand, QgsVertexMarker
-
-
-class DrawPolygonWindow(QMainWindow):
-    """!
-    for testing PolygonMapTool
-    """
-
-    def __init__(self):
-        super().__init__()
-
-        self.canvas = QgsMapCanvas()
-        self.canvas.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
-        self.canvas.setCanvasColor(Qt.white)
-        self.canvas.enableAntiAliasing(True)
-
-        self.imageLayer = None
-
-        self.setCentralWidget(self.canvas)
-
-        self.actionConnect = QAction("Linienzug schließen", self)
-        self.actionClear = QAction("Reset", self)
-        self.actionReady = QAction("Fertig", self)
-
-        self.actionClear.triggered.connect(self.clear)
-        self.actionConnect.triggered.connect(self.finish_polygon)
-
-        self.toolbar = self.addToolBar("Canvas actions")
-        # ensure user can't close the toolbar
-        self.toolbar.setContextMenuPolicy(Qt.PreventContextMenu)
-        self.toolbar.setMovable(False)
-
-        self.toolbar.addAction(self.actionConnect)
-        self.toolbar.addAction(self.actionClear)
-        self.toolbar.addAction(self.actionReady)
-
-        self.toolPan = QgsMapToolPan(self.canvas)
-
-        self.toolDraw = PolygonMapTool(self.canvas)
-
-        # set draw tool by default
-        self.canvas.setMapTool(self.toolDraw)
-
-    def clear(self):
-        self.toolDraw.reset()
-
-    def finish_polygon(self):
-        self.toolDraw.finishPolygon()
-
-    def showWindow(self, raster_image_path: str):
-        self.imageLayer = QgsRasterLayer(raster_image_path, "Profile image")
-        if self.imageLayer.isValid():
-            self.canvas.setDestinationCrs(self.imageLayer.crs())
-            self.canvas.setExtent(self.imageLayer.extent())
-            self.canvas.setLayers([self.imageLayer])
-
-        self.show()
+from qgis.core import QgsGeometry, QgsWkbTypes
+from qgis.gui import QgsMapToolEmitPoint, QgsRubberBand, QgsVertexMarker
 
 
 class PolygonMapTool(QgsMapToolEmitPoint):
@@ -68,93 +11,180 @@ class PolygonMapTool(QgsMapToolEmitPoint):
     def __init__(self, canvas):
         self.canvas = canvas
         super().__init__(self.canvas)
-        # rubberband class gives the user visual feedback of the drawing
         self.rubberBand = QgsRubberBand(self.canvas)
 
-        self.rubberBand.setStrokeColor(Qt.red)
         # RGB color values, last value indicates transparency (0-255)
         self.rubberBand.setFillColor(QColor(255, 255, 255, 60))
         self.rubberBand.setWidth(3)
 
-        self.points = []
         self.markers = []
-        # a flag indicating when a single polygon is finished
-        self.finished = False
-        self.poly_bbox = False
-        self.double_click_flag = False
-        self.reset()
+        self.isFinished = False
+        self.isMoving = False
+        self.isSelecting = False
 
-    def reset(self):
-        """Empties the canvas and the points gathered thus far"""
-        self.rubberBand.reset()
-        self.poly_bbox = False
-        self.points.clear()
+        self.reset_polygon()
+
+    def reset_polygon(self):
+        # clear points of rubber band:
+        self.rubberBand.reset(QgsWkbTypes.PolygonGeometry)
+        # remove all vertices:
         for marker in self.markers:
             self.canvas.scene().removeItem(marker)
+        self.markers = []
+
         self.rubberBand.setStrokeColor(Qt.red)
+        self.isFinished = False
+
+        self.isMoving = False
+        self.isSelecting = False
+
         self.polygon_drawn.emit(QgsGeometry())
 
-    def keyPressEvent(self, e):
-        """Pressing ESC resets the canvas. Pressing enter connects the polygon"""
-        if e.key() == 16777216:
-            self.reset()
-        if e.key() == 16777220:
-            self.finishPolygon()
+    def get_polygon(self):
+        return self.rubberBand.asGeometry()
 
-    def canvasDoubleClickEvent(self, e):
-        """Finishes the polygon on double click"""
-        self.double_click_flag = True
-        self.finishPolygon()
+    def finish_polygon(self):
+        if self.isFinished:
+            return
+
+        if self.isMoving:
+            self.rubberBand.removeLastPoint()
+            self.isMoving = False
+
+        if self.rubberBand.numberOfVertices() < 2:
+            return
+
+        self.isFinished = True
+        self.rubberBand.setStrokeColor(Qt.darkGreen)
+        self.rubberBand.closePoints()
+
+        self.polygon_drawn.emit(self.get_polygon())
+
+    def undo_last_point(self):
+        if self.isFinished:
+            # remove closing point:
+            self.isFinished = False
+            self.rubberBand.removeLastPoint()
+            self.rubberBand.setStrokeColor(Qt.red)
+            self.polygon_drawn.emit(QgsGeometry())
+
+        if self.isMoving:
+            self.rubberBand.removePoint(-2)
+        else:
+            self.rubberBand.removeLastPoint()
+
+        if len(self.markers) > 0:
+            self.canvas.scene().removeItem(self.markers[-1])
+            del self.markers[-1]
+
+    def select_mode(self):
+        if self.rubberBand.numberOfVertices() < 2:
+            return
+
+        self.finish_polygon()
+        self.rubberBand.setStrokeColor(Qt.red)
+        self.rubberBand.updateCanvas()
+        self.isSelecting = True
+
+    def recover_to_normal_mode(self):
+        for vertex in self.markers:
+            vertex.setColor(Qt.black)
+            vertex.setIconSize(7)
+            vertex.setPenWidth(1)
+        self.isSelecting = False
+        self.isFinished = False
+        self.finish_polygon()
+
+    def keyPressEvent(self, e):
+        if self.isSelecting:
+            return
+
+        # pressing ESC:
+        if e.key() == 16777216:
+            self.undo_last_point()
 
     def canvasReleaseEvent(self, e):
-        if self.double_click_flag:
-            self.double_click_flag = False
+        if self.isSelecting:
+            if e.button() == Qt.RightButton:
+                self.recover_to_normal_mode()
+                return
+
+            if e.button() != Qt.LeftButton:
+                return
+
+            # find indexes of vertices which are blue:
+            index_list = [i for i, m in enumerate(self.markers) if m.color() == Qt.blue]
+            if len(index_list) != 1:
+                # either no vertex was blue or more than one were
+                return
+            rotate_amount = index_list[0] + 1
+            # rotate markers inside list so that blue one is now last:
+            self.markers = self.markers[rotate_amount:] + self.markers[:rotate_amount]
+            # clear and fill rubberband so that the point to remove is last:
+            self.rubberBand.reset(QgsWkbTypes.PolygonGeometry)
+            for marker in self.markers:
+                self.rubberBand.addPoint(marker.center(), False)
+            self.rubberBand.show()
+            self.isFinished = False
+            self.isSelecting = False
+            # remove last point and vertex with undo function:
+            self.undo_last_point()
+            # as we are now in normal mode this now draws a temporary point:
+            self.canvasMoveEvent(e)
             return
 
-        # if the finished flag is activated, the canvas will be reset
-        # for a new polygon
-        if self.finished:
-            self.reset()
-            self.finished = False
-
-        click_point = self.toMapCoordinates(e.pos())
-        self.rubberBand.addPoint(click_point, True)
-        self.points.append(click_point)
-        self.rubberBand.show()
-
-        vertexMarker = QgsVertexMarker(self.canvas)
-        vertexMarker.setCenter(click_point)
-        vertexMarker.setColor(Qt.red)
-        vertexMarker.setIconSize(5)
-        vertexMarker.setIconType(QgsVertexMarker.IconType.ICON_BOX)
-        vertexMarker.setPenWidth(3)
-        self.markers.append(vertexMarker)
+        if self.isFinished:
+            return
 
         if e.button() == Qt.RightButton:
-            self.finishPolygon()
-
-    def finishPolygon(self):
-        if self.finished:
+            self.finish_polygon()
             return
 
-        self.finished = True
-        self.rubberBand.setStrokeColor(Qt.darkGreen)
+        if self.isMoving:
+            # remove temporary point:
+            self.rubberBand.removeLastPoint()
+            self.isMoving = False
 
-        if len(self.points) > 2:
-            first_point = self.points[0]
-            self.points.append(first_point)
-            self.rubberBand.closePoints()
-            self.rubberBand.addPoint(first_point, True)
-            # a polygon is created and added to the map for visual purposes
-            map_polygon = QgsGeometry.fromPolygonXY([self.points])
-            self.rubberBand.setToGeometry(map_polygon)
-            # get the bounding box of this new polygon
-            self.poly_bbox = self.rubberBand.asGeometry().boundingBox()
+        # use correct clicking point for adding:
+        click_point = self.toMapCoordinates(e.pos())
+        self.rubberBand.addPoint(click_point, False)
+        vertexMarker = QgsVertexMarker(self.canvas)
+        vertexMarker.setCenter(click_point)
+        vertexMarker.setColor(Qt.black)
+        vertexMarker.setFillColor(Qt.red)
+        vertexMarker.setIconSize(7)
+        vertexMarker.setIconType(QgsVertexMarker.IconType.ICON_CIRCLE)
+        vertexMarker.setPenWidth(1)
+        self.markers.append(vertexMarker)
 
-        self.polygon_drawn.emit(self.getPolygon())
+        self.rubberBand.show()
 
-    def getPoints(self):
-        return self.points
+    def canvasMoveEvent(self, e):
+        move_point = self.toMapCoordinates(e.pos())
 
-    def getPolygon(self):
-        return self.rubberBand.asGeometry()
+        if self.isSelecting:
+            # mark nearest vertex blue:
+            for vertex in self.markers:
+                vertex.setColor(Qt.black)
+                vertex.setIconSize(7)
+                vertex.setPenWidth(1)
+            x = move_point.x()
+            y = move_point.y()
+            distances = [p.center().distance(x, y) for p in self.markers]
+            index_of_nearest = min(range(len(distances)), key=distances.__getitem__)
+            self.markers[index_of_nearest].setColor(Qt.blue)
+            self.markers[index_of_nearest].setIconSize(9)
+            self.markers[index_of_nearest].setPenWidth(3)
+            return
+
+        if self.isFinished or self.rubberBand.numberOfVertices() < 1:
+            return
+
+        # draw a temporary point at mouse pointer while moving:
+        if self.isMoving:
+            self.rubberBand.removeLastPoint()
+
+        self.rubberBand.addPoint(move_point, True)
+        self.isMoving = True
+
+        self.rubberBand.show()

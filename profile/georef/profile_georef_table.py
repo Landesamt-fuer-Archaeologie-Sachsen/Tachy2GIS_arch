@@ -238,11 +238,13 @@ class GeorefTable(QTableWidget):
         self.viewDirection = refData["viewDirection"]
         self.profileNumber = refData["profileNumber"]
         self.targetGCP = refData["targetGCP"]["points"].copy()
+        self.targetGCP.sort(key=lambda l: l["ptnr"])
         for i in self.targetGCP:
             i["from_other_profile_number"] = False
 
         if refData_2:
             other_points = refData_2["targetGCP"]["points"].copy()
+            other_points.sort(key=lambda l: l["ptnr"])
             for i in other_points:
                 i["from_other_profile_number"] = True
             self.targetGCP += other_points
