@@ -71,7 +71,7 @@ class Measurement():
         self.__dockwidget.butCreateFeature.setToolTip('Geometrie erstellen')
         #self.__dockwidget.butCreateFeature.setIcon(QIcon(os.path.join(self.__iconpath, 'mActionCapturePoint.png')))
         self.__dockwidget.butCreateFeature.clicked.connect(self.__geometryIdentify)
-        self.__dockwidget.butCreateFeature.setEnabled(False)
+        #self.__dockwidget.butCreateFeature.setEnabled(False)
         self.__dockwidget.butCreateFeature.setShortcut('Enter')
 
         items = ["Frei", "Kreis mit 2 Punkten (Radius)", "Kreis mit 2 Punkten (Durchmesser)", "Rechteck"]
@@ -107,7 +107,6 @@ class Measurement():
 
         self.__watch = QTimer()
         self.__watch.timeout.connect(self.__watchEvent)
-        self.__vertices = []
         self.__verticesCount = 0
         #self.__targetLayer = None
 
@@ -274,7 +273,6 @@ class Measurement():
             self.__dockwidget.butT2GStart.setStyleSheet("border-style: outset ; border-width: 5px ; border-color: green")
             self.__dockwidget.label_26.setStyleSheet("background-color:green")
             self.__iface.mapCanvas().setMapTool(self.__canvas_clicked)
-            #self.__t2gInstanceStart()
             self.__setPolygonlayerActiv()
         else:
             self.__measurementActiv = False
@@ -402,9 +400,10 @@ class Measurement():
 
         self.__dockwidget.labPointCount.setText('0 Punkte')
         self.__verticesCount = 0
+        self.__vertices = []
 
         self.__rubberbandClean()
-        self.__dockwidget.butCreateFeature.setEnabled(False)
+        #self.__dockwidget.butCreateFeature.setEnabled(False)
 
     def __setTableHeader(self):
         self.__dockwidget.tableWidget.setColumnCount(4)
@@ -631,8 +630,8 @@ class Measurement():
     def __setVertexMarker(self,vertices):
         self.__rubberbandClean()
         self.__rubberBand.setRubberBandPoly(vertices, 2)
-        for i in range(len(vertices)):
-            self.__vertexMaker.setMarker(vertices[i][0], vertices[i][1],10,1)
+        #for i in range(len(vertices)):
+        #    self.__vertexMaker.setMarker(vertices[i][0], vertices[i][1],10,1)
 
     def __setTempMaker(self):
         self.__pointMaker.makerClean()
@@ -641,7 +640,7 @@ class Measurement():
             row = item.row()
             self.__pointMaker.setMarker(self.__vertices[row][0], self.__vertices[row][1],12,2)
 
-        self.__geometrycheck()
+        #self.__geometrycheck()
 
     def __setMarker2(self):
         if self.__activLayer is None:
@@ -677,6 +676,10 @@ class Measurement():
         if self.__zcheck() is False:
             return
 
+        if self.__geometrycheck() is False:
+            iface.messageBar().pushMessage(u"T2G Archäologie: ", u"Geometrie nicht möglich.",
+                                           level=Qgis.Critical)
+            return
         x = self.__dockwidget.cboFigur.currentIndex()
         ##@ freihe Geometry
         if x == 0:
@@ -829,29 +832,32 @@ class Measurement():
         return QgsGeometry.fromPolyline(pts)
 
     def __geometrycheck(self):
-        self.__dockwidget.butCreateFeature.setEnabled(False)
+        #self.__dockwidget.butCreateFeature.setEnabled(False)
+        value = False
         ##@ Polygongeometrie
         if self.__activLayer.geometryType() == 2 and len(self.__vertices) >= 3:
-            self.__dockwidget.butCreateFeature.setEnabled(True)
-
+            #self.__dockwidget.butCreateFeature.setEnabled(True)
+            value = True
         ##@ Liniengeometrie
         elif self.__activLayer.geometryType() == 1 and len(self.__vertices) >= 2:
-            self.__dockwidget.butCreateFeature.setEnabled(True)
-
+            #self.__dockwidget.butCreateFeature.setEnabled(True)
+            value = True
         ##@ Punktgeometrie
         elif self.__activLayer.geometryType() == 0 and len(self.__vertices) >= 1:
-            self.__dockwidget.butCreateFeature.setEnabled(True)
-
+            #self.__dockwidget.butCreateFeature.setEnabled(True)
+            value = True
         x = self.__dockwidget.cboFigur.currentIndex()
 
         if x >= 1 and len(self.__vertices) == 2:
-            self.__dockwidget.butCreateFeature.setEnabled(False)
+            #self.__dockwidget.butCreateFeature.setEnabled(False)
+            value = False
             if self.__activLayer.geometryType() == 0:
                 iface.messageBar().pushMessage(u"T2G Archäologie: ", u"Auf Punktlayer nicht möglich.",
                                                level=Qgis.Info)
-                return
-            self.__dockwidget.butCreateFeature.setEnabled(True)
-
+                #return
+                value = False
+            #self.__dockwidget.butCreateFeature.setEnabled(True)
+        return value
 
     def __greateFeature(self,features):
 
@@ -929,6 +935,16 @@ class Measurement():
             self.__mesurementsShow()
 
     def __fillcboobjTyp(self):
+        self.__dockwidget.cboFigur.setCurrentIndex(0)  # auf freie Geometry schalten
+        if self.__activLayer.name() == 'E_Point' or self.__activLayer.name() == 'E_Line':
+            self.__dockwidget.cboFigur.setCurrentIndex(0)
+            self.__dockwidget.cboFigur.model().item(1).setEnabled(False)
+            self.__dockwidget.cboFigur.model().item(2).setEnabled(False)
+            self.__dockwidget.cboFigur.model().item(3).setEnabled(False)
+        else:
+            self.__dockwidget.cboFigur.model().item(1).setEnabled(True)
+            self.__dockwidget.cboFigur.model().item(2).setEnabled(True)
+            self.__dockwidget.cboFigur.model().item(3).setEnabled(True)
         self.__dockwidget.cboobjTyp.clear()
         if self.__activLayer.name() == 'E_Point':
             swert='Punkt'
@@ -1026,7 +1042,7 @@ class Measurement():
         setCustomProjectVariable('prof_nr', self.__dockwidget.txtProfilNr.text())
         setCustomProjectVariable('ptnr', self.__dockwidget.txtptnr.text())
         setCustomProjectVariable('material', self.__dockwidget.cboMaterial.currentText())
-        self.__nextValue()
+        self.__nextValue() # naechste Nummer
 
     def __writeAutoAttributeToSettigs(self):
         sectionlist = ['AttPoint','AttLine','AttPoly']
@@ -1068,7 +1084,7 @@ class Measurement():
         self.__dockwidget.cboMaterial.setCurrentText(self.__config.getValue(section,"material",''))
         self.__dockwidget.cboArchGeo.setCurrentIndex(int(self.__config.getValue(section,"archgeo",'0')))
 
-
+    # Naechster Unterwert (z.bsp. 2_1,2_2,2_3)
     def __zaehlung(self):
         dlg = self.__dockwidget
         if dlg.chbbefZ.isChecked() and dlg.txtBefNr.text() != '':
@@ -1104,7 +1120,7 @@ class Measurement():
             for i in range(len(x)-1):
                 s1 = s1 + x[i]+'_'
             dlg.txtptnr.setText(s1 + str(int(x[len(x)-1])+1))
-
+    # Naechster Wert (z.bsp. 1,2,3)
     def __nextValue(self):
         dlg = self.__dockwidget
         #if self.__dockwidget.chbAutoAtt.isChecked():
@@ -1229,7 +1245,7 @@ class ClickedPoint(QgsMapTool):
         self.mouseInfoOn = onOff
 
     def setMouseInfoVisibleTrue(self):
-        self.toolTipWidget.show()
+        #self.toolTipWidget.show()
         pass
 
     def setMouseInfoVisibleFalse(self):
@@ -1248,6 +1264,7 @@ class ClickedPoint(QgsMapTool):
             pass
         if self.mouseInfoOn:
             self.showToolTip(e.originalMapPoint())
+            pass
 
     def showToolTip(self,point):
 
