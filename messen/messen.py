@@ -71,7 +71,7 @@ class Measurement():
         self.__dockwidget.butCreateFeature.setToolTip('Geometrie erstellen')
         #self.__dockwidget.butCreateFeature.setIcon(QIcon(os.path.join(self.__iconpath, 'mActionCapturePoint.png')))
         self.__dockwidget.butCreateFeature.clicked.connect(self.__geometryIdentify)
-        self.__dockwidget.butCreateFeature.setEnabled(False)
+        #self.__dockwidget.butCreateFeature.setEnabled(False)
         self.__dockwidget.butCreateFeature.setShortcut('Enter')
 
         items = ["Frei", "Kreis mit 2 Punkten (Radius)", "Kreis mit 2 Punkten (Durchmesser)", "Rechteck"]
@@ -99,7 +99,7 @@ class Measurement():
 
         self.__watch = QTimer()
         self.__watch.timeout.connect(self.__watchEvent)
-        self.__vertices = []
+
         self.__verticesCount = 0
         #self.__targetLayer = None
 
@@ -132,9 +132,9 @@ class Measurement():
 
         self.__activLayer = None
         self.__lastNewFeatures = []
+        self.__wkbTypeName = None
+        self.__isMulti = None
 
-        #self.__setPolygonlayerActiv()
-        #self.__fillcboobjTyp()
         self.__dockwidget.butClear_2.clicked.connect(self.__delAutoAttribut)
         self.__dockwidget.chbAttributtable.setToolTip('Attributtabelle einblenden')
         self.__dockwidget.butAttributtable.clicked.connect(self.__lastGeometryShow)
@@ -302,11 +302,10 @@ class Measurement():
             self.__dockwidget.labPointCount.setText(str(self.__verticesCount)+' Punkte')
 
             #self.__koordList.append({str(row),str(self.__vertices[row][0]),str(self.__vertices[row][1]),str(self.__vertices[row][2])})
-            #self.__dockwidget.tableWidget.scrollToItem(self.__verticesCount)
             self.__lastVertexHeight = self.__vertices[row][2]
 
-            self.__rubberbandClean()
-            self.__setVertexMarker(self.__vertices)
+            #self.__setVertexMarker(self.__vertices) # vorläufig deaktiviert wegen Performanceprobleme
+
             #Einfügeposition prüfen und markieren
             if self.__insertPos != None:
                 self.__dockwidget.tableWidget.selectRow(self.__insertPos-1)
@@ -316,6 +315,7 @@ class Measurement():
 
             self.__iface.mapCanvas().setFocus()
             self.__beep_AddKoord()
+            self.__geometrycheck()
 
     def __beep_AddKoord(self):
         if  self.__dockwidget.chbSound.isChecked():
@@ -394,6 +394,7 @@ class Measurement():
 
         self.__dockwidget.labPointCount.setText('0 Punkte')
         self.__verticesCount = 0
+        self.__vertices = []
 
         self.__rubberbandClean()
         self.__dockwidget.butCreateFeature.setEnabled(False)
@@ -412,6 +413,8 @@ class Measurement():
         activeLayer = QgsProject().instance().mapLayersByName('E_Polygon')[0]
         self.__iface.setActiveLayer(activeLayer)
         self.__activLayer = activeLayer
+        self.__wkbTypeName = QgsWkbTypes.displayString(self.__activLayer.wkbType())
+        self.__isMulti = QgsWkbTypes.isMultiType(self.__activLayer.wkbType())
         self.__dockwidget.label_9.setText('E_Polygon')
         self.__dockwidget.label_37.setStyleSheet("background-color:green")
         self.__t2gInstance.dlg.targetLayerComboBox.setCurrentText('E_Polygon')
@@ -623,8 +626,8 @@ class Measurement():
     def __setVertexMarker(self,vertices):
         self.__rubberbandClean()
         self.__rubberBand.setRubberBandPoly(vertices, 2)
-        for i in range(len(vertices)):
-            self.__vertexMaker.setMarker(vertices[i][0], vertices[i][1],10,1)
+        #for i in range(len(vertices)):
+        #    self.__vertexMaker.setMarker(vertices[i][0], vertices[i][1],10,1)
 
     def __setTempMaker(self):
         self.__pointMaker.makerClean()
@@ -669,6 +672,10 @@ class Measurement():
         if self.__zcheck() is False:
             return
 
+        if self.__geometrycheck() is False:
+            iface.messageBar().pushMessage(u"T2G Archäologie: ", u"Geometrie nicht möglich.",
+                                           level=Qgis.Critical)
+            return
         x = self.__dockwidget.cboFigur.currentIndex()
         ##@ freihe Geometry
         if x == 0:
@@ -713,80 +720,90 @@ class Measurement():
                         self.__zaehlung()
                 ##@ Liniengeometrie
                 elif self.__activLayer.geometryType() == 1:
-                    ptList = []
-                    for i in range(len(self.__vertices)):
-                        # QgsMessageLog.logMessage(str(item.text()), 'T2G Archäologie', Qgis.Info)
-
-                        point = QgsPoint(float(self.__vertices[i][0]), float(self.__vertices[i][1]), float(self.__vertices[i][2]))
-                        ptList.append(point)
+                    wktGeo = self.make_wkt(self.__vertices)
                     attL = {UUid: '{' + str(uuid.uuid4()) + '}', archgeoid : archgeoval}
+                    geometry = QgsGeometry.fromWkt(wktGeo)
                     features.append(QgsVectorLayerUtils.createFeature(self.__activLayer,
-                                                                             QgsGeometry.fromPolyline(ptList),
+                                                                             geometry,
                                                                              attL,
                                                                              self.__activLayer.createExpressionContext()))
                     self.__zaehlung()
                 ##@ Polygongeometrie
                 elif self.__activLayer.geometryType() == 2:
-                    ptList = []
-                    for i in range(len(self.__vertices)):
-                        # QgsMessageLog.logMessage(str(item.text()), 'T2G Archäologie', Qgis.Info)
-
-                        point = QgsPoint(float(self.__vertices[i][0]), float(self.__vertices[i][1]), float(self.__vertices[i][2]))
-                        ptList.append(point)
-                    ptList.append(ptList[0])
+                    features = []
+                    self.__vertices.append(self.__vertices[0])
+                    wktGeo = self.make_wkt(self.__vertices)
                     attL = {UUid: '{' + str(uuid.uuid4()) + '}', archgeoid : archgeoval}
-                    features.append(QgsVectorLayerUtils.createFeature(self.__activLayer,
-                                                                                QgsGeometry.fromPolyline(ptList),
-                                                                                attL,
-                                                                                self.__activLayer.createExpressionContext()))
+                    geometry = QgsGeometry.fromWkt(wktGeo)
+                    features = [QgsVectorLayerUtils.createFeature(self.__activLayer,
+                                                          geometry,
+                                                          attL,
+                                                          self.__activLayer.createExpressionContext())]
                     self.__zaehlung()
                 self.__writeAutoAttributeToSettigs()
                 return features
 
+
     def __greateCircleMRGeometry(self):
         self.__setAutoAttributeToQgisVariable()
         UUid = self.__activLayer.dataProvider().fieldNameIndex('uuid')
-        ##@ Kreis Mittelpunkt und Radius
+        features = []
         if self.__activLayer.geometryType() == 1 or self.__activLayer.geometryType() == 2:
-            features = []
-            point1 = QgsPoint(float(self.__vertices[0][0]),float(self.__vertices[0][1]),float(self.__vertices[0][2]))
-            point2 = QgsPoint(float(self.__vertices[1][0]),float(self.__vertices[1][1]),float(self.__vertices[0][2]))
-            radius = point1.distance(point2)
-            segments = 30#int(radius*10)
-            geo = self.__circle_geometry(point1, radius, segments)
-            attL = {UUid: '{' + str(uuid.uuid4()) + '}'}
-            features.append(QgsVectorLayerUtils.createFeature(self.__activLayer,
-                                                                    geo,
-                                                                     attL,
-                                                                     self.__activLayer.createExpressionContext()))
-            self.__zaehlung()
+            ##@ Kreis Mittelpunkt und Radius
+            z = 0
+            for i in range(len(self.__vertices)):
+                point1 = QgsPoint(float(self.__vertices[z][0]),float(self.__vertices[z][1]),float(self.__vertices[z][2]))
+                point2 = QgsPoint(float(self.__vertices[z+1][0]),float(self.__vertices[z+1][1]),float(self.__vertices[z+1][2]))
+                radius = point1.distance(point2)
+                if radius < 1:
+                    segments = 30
+                else:
+                    segments = int(radius*20)
+                geometry = self.__circle_geometry(point1, radius, segments)
+                wktGeo = self.make_wkt(geometry)
+                attL = {UUid: '{' + str(uuid.uuid4()) + '}'}
+                geometry = QgsGeometry.fromWkt(wktGeo)
+                features.append (QgsVectorLayerUtils.createFeature(self.__activLayer,
+                                                      geometry,
+                                                      attL,
+                                                      self.__activLayer.createExpressionContext()))
+                self.__zaehlung()
+                z = z + 2
+                if z == len(self.__vertices):
+                    break
             self.__writeAutoAttributeToSettigs()
             return features
 
     def __greateCircle2PGeometry(self):
         self.__setAutoAttributeToQgisVariable()
         UUid = self.__activLayer.dataProvider().fieldNameIndex('uuid')
-        ##@ Kreis 2 Punkte
+        features = []
         if self.__activLayer.geometryType() == 1 or self.__activLayer.geometryType() == 2:
-            features = []
-            point1 = QgsPoint(float(self.__vertices[0][0]),float(self.__vertices[0][1]),float(self.__vertices[0][2]))
-            point2 = QgsPoint(float(self.__vertices[1][0]),float(self.__vertices[1][1]),float(self.__vertices[0][2]))
-
-            segments = 30 #int(radius*10)
-            #centerP = (point1.x()+(point2.x()/2), point1.y()+(point2.y()/2))
-            x = (point1.x()+point2.x())/2
-            y = (point1.y()+point2.y())/2
-            center = QgsPoint((point1.x()+point2.x())/2,(point1.y()+point2.y())/2,float(self.__vertices[0][2]))
-            radius = point1.distance(center)
-            QgsMessageLog.logMessage(str(center)+' '+str(radius), 'T2G Archäologie', Qgis.Info)
-
-            geo = self.__circle_geometry(center, radius, segments)
-            attL = {UUid: '{' + str(uuid.uuid4()) + '}'}
-            features.append(QgsVectorLayerUtils.createFeature(self.__activLayer,
-                                                                    geo,
-                                                                     attL,
-                                                                     self.__activLayer.createExpressionContext()))
-            self.__zaehlung()
+            ##@ Kreis 2 Punkte
+            z = 0
+            for i in range(len(self.__vertices)):
+                point1 = QgsPoint(float(self.__vertices[z][0]),float(self.__vertices[z][1]),float(self.__vertices[z][2]))
+                point2 = QgsPoint(float(self.__vertices[z+1][0]),float(self.__vertices[z+1][1]),float(self.__vertices[z+1][2]))
+                x = (point1.x()+point2.x())/2
+                y = (point1.y()+point2.y())/2
+                center = QgsPoint((point1.x()+point2.x())/2,(point1.y()+point2.y())/2,float(self.__vertices[0][2]))
+                radius = point1.distance(center)
+                if radius < 1:
+                    segments = 30
+                else:
+                    segments = int(radius*20)
+                geometry = self.__circle_geometry(center, radius, segments)
+                wktGeo = self.make_wkt(geometry)
+                attL = {UUid: '{' + str(uuid.uuid4()) + '}'}
+                geometry = QgsGeometry.fromWkt(wktGeo)
+                features.append (QgsVectorLayerUtils.createFeature(self.__activLayer,
+                                                      geometry,
+                                                      attL,
+                                                      self.__activLayer.createExpressionContext()))
+                self.__zaehlung()
+                z = z + 2
+                if z == len(self.__vertices):
+                    break
             self.__writeAutoAttributeToSettigs()
             return features
 
@@ -800,10 +817,10 @@ class Measurement():
             point2 = QgsPoint(float(self.__vertices[1][0]),float(self.__vertices[1][1]),float(self.__vertices[0][2]))
             rect = QgsRectangle(point1.x(), point1.y(), point2.x(), point2.y())
 
-            geo = QgsGeometry.fromRect(rect)
+            geometry = QgsGeometry.fromRect(rect)
             attL = {UUid: '{' + str(uuid.uuid4()) + '}'}
             features.append(QgsVectorLayerUtils.createFeature(self.__activLayer,
-                                                                    geo,
+                                                                    geometry,
                                                                      attL,
                                                                      self.__activLayer.createExpressionContext()))
             self.__zaehlung()
@@ -814,11 +831,11 @@ class Measurement():
         pts = []
         for i in range(segments):
             theta = i * (2.0 * math.pi / segments)
-            p = QgsPoint(pt.x() + radius * math.cos(theta),
-                         pt.y() + radius * math.sin(theta),pt.z())
+            p = [pt.x() + radius * math.cos(theta),
+                         pt.y() + radius * math.sin(theta),pt.z()]
             pts.append(p)
         pts.append(pts[0])
-        return QgsGeometry.fromPolyline(pts)
+        return pts #QgsGeometry.fromPolyline(pts)
 
     def __geometrycheck(self):
         self.__dockwidget.butCreateFeature.setEnabled(False)
@@ -846,10 +863,11 @@ class Measurement():
 
 
     def __greateFeature(self,features):
-
+        self.__activLayer.commitChanges()
         if features is None:
             #self.__koordtableClear()
             return
+        self.__activLayer.commitChanges()
         nextFeatId = self.__activLayer.featureCount()
         self.__lastNewFeatures = []
         self.__activLayer.startEditing()
@@ -857,8 +875,6 @@ class Measurement():
         for feat in features:
             feat.setId(nextFeatId)
             self.__activLayer.dataProvider().addFeatures([feat])
-            #self.__activLayer.featureAdded.emit(nextFeatId)
-            #self.__activLayer.attributeValueChanged.emit()
             nextFeatId += 1  # next id for multiple points
             self.__lastNewFeatures.append(feat.id())
         self.__activLayer.commitChanges()
@@ -921,6 +937,16 @@ class Measurement():
             self.__mesurementsShow()
 
     def __fillcboobjTyp(self):
+        self.__dockwidget.cboFigur.setCurrentIndex(0) #auf freihe Geometry schalten
+        if self.__activLayer.name() == 'E_Point' or self.__activLayer.name() == 'E_Line':
+            self.__dockwidget.cboFigur.setCurrentIndex(0)
+            self.__dockwidget.cboFigur.model().item(1).setEnabled(False)
+            self.__dockwidget.cboFigur.model().item(2).setEnabled(False)
+            self.__dockwidget.cboFigur.model().item(3).setEnabled(False)
+        else:
+            self.__dockwidget.cboFigur.model().item(1).setEnabled(True)
+            self.__dockwidget.cboFigur.model().item(2).setEnabled(True)
+            self.__dockwidget.cboFigur.model().item(3).setEnabled(True)
         self.__dockwidget.cboobjTyp.clear()
         if self.__activLayer.name() == 'E_Point':
             swert='Punkt'
@@ -1018,7 +1044,7 @@ class Measurement():
         setCustomProjectVariable('prof_nr', self.__dockwidget.txtProfilNr.text())
         setCustomProjectVariable('ptnr', self.__dockwidget.txtptnr.text())
         setCustomProjectVariable('material', self.__dockwidget.cboMaterial.currentText())
-        self.__nextValue()
+        self.__nextValue() # naechste Nummer
 
     def __writeAutoAttributeToSettigs(self):
         sectionlist = ['AttPoint','AttLine','AttPoly']
@@ -1060,7 +1086,7 @@ class Measurement():
         self.__dockwidget.cboMaterial.setCurrentText(self.__config.getValue(section,"material",''))
         self.__dockwidget.cboArchGeo.setCurrentIndex(int(self.__config.getValue(section,"archgeo",'0')))
 
-
+    # Naechster Unterwert (z.bsp. 2_1,2_2,2_3)
     def __zaehlung(self):
         dlg = self.__dockwidget
         if dlg.chbbefZ.isChecked() and dlg.txtBefNr.text() != '':
@@ -1096,7 +1122,7 @@ class Measurement():
             for i in range(len(x)-1):
                 s1 = s1 + x[i]+'_'
             dlg.txtptnr.setText(s1 + str(int(x[len(x)-1])+1))
-
+    # Naechster Wert (z.bsp. 1,2,3)
     def __nextValue(self):
         dlg = self.__dockwidget
         #if self.__dockwidget.chbAutoAtt.isChecked():
@@ -1188,6 +1214,24 @@ class Measurement():
             QApplication.processEvents()
         self.__dockwidget.butBefundLabel.setStyleSheet("")
 
+    def make_wkt(self, vertices):
+        if ('Z' or 'M') not in self.__wkbTypeName[-2:]:
+            vertexts = [f'({v[0]} {v[1]})' for v in vertices]
+        elif self.__wkbTypeName[-2:] == 'ZM':
+            vertexts = [f'{v[0]} {v[1]} {v[2]} {0.0}' for v in vertices]
+        elif self.__wkbTypeName[-1] == 'M':
+            vertexts = [f'({v[0]} {v[1]} {0.0})' for v in vertices]
+        else:
+            vertexts = [f'({v[0]} {v[1]} {v[2]})' for v in vertices]
+        if self.__isMulti:
+            wkt = '{0}({1})))'.format(self.__wkbTypeName + '((', ', '.join(vertexts))
+        else:
+            wkt = []
+            for v in vertexts:
+                wkt.append('{0}{1}'.format(self.__wkbTypeName, v))
+        QgsMessageLog.logMessage(str(wkt), 'T2G Archäologie', Qgis.Info)
+        return wkt
+
 
 class ClickedPoint(QgsMapTool):
 
@@ -1221,7 +1265,7 @@ class ClickedPoint(QgsMapTool):
         self.mouseInfoOn = onOff
 
     def setMouseInfoVisibleTrue(self):
-        self.toolTipWidget.show()
+        #self.toolTipWidget.show()
         pass
 
     def setMouseInfoVisibleFalse(self):
@@ -1240,6 +1284,7 @@ class ClickedPoint(QgsMapTool):
             pass
         if self.mouseInfoOn:
             self.showToolTip(e.originalMapPoint())
+            pass
 
     def showToolTip(self,point):
 
