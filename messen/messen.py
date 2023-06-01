@@ -92,21 +92,14 @@ class Measurement():
         self.__dockwidget.butClear.clicked.connect(self.__koordtableClear)
         self.__dockwidget.tabWidget_2.currentChanged.connect(self.__watchEventStop)
 
-        #print(active_plugins)
-        # active_plugins enthält einmal:
-        # ['firstaid', 'plugin_reloader', 'Tachy2GIS', 'Tachy2GIS_arch', 'grassprovider', 'processing']
-        # und einmal: (nach einem plugin reload)
-        # ['firstaid', 'plugin_reloader', 'Tachy2GIS_arch', 'grassprovider', 'processing', 'Tachy2GIS']
-        # und einmal: (nach einem plugin reload)
-        # ['firstaid', 'plugin_reloader', 'Tachy2GIS_arch', 'grassprovider', 'processing', 'Tachy2GIS-3D_viewer']
-        # Es soll entweder das Tachy2GIS oder das Tachy2GIS-3D_viewer Plugin verwendet werden aber nicht das Tachy2GIS_arch Plugin
-        self.__t2gInstance = plugins.get([s for s in active_plugins if "Tachy2GIS" in s and "Tachy2GIS_arch" != s][0])
+        self.__t2gInstance = plugins.get([s for s in active_plugins if "Tachy2GIS" in s][0])
         self.__t2gInstance.dlg.closingPlugin.connect(self.__t2gInstanceClose)
 
         self.__vertices = []#self.__t2gInstance.vtk_mouse_interactor_style.vertices
 
         self.__watch = QTimer()
         self.__watch.timeout.connect(self.__watchEvent)
+
         self.__verticesCount = 0
         #self.__targetLayer = None
 
@@ -142,8 +135,6 @@ class Measurement():
         self.__wkbTypeName = None
         self.__isMulti = None
 
-        #self.__setPolygonlayerActiv()
-        #self.__fillcboobjTyp()
         self.__dockwidget.butClear_2.clicked.connect(self.__delAutoAttribut)
         self.__dockwidget.chbAttributtable.setToolTip('Attributtabelle einblenden')
         self.__dockwidget.butAttributtable.clicked.connect(self.__lastGeometryShow)
@@ -275,6 +266,7 @@ class Measurement():
             self.__dockwidget.butT2GStart.setStyleSheet("border-style: outset ; border-width: 5px ; border-color: green")
             self.__dockwidget.label_26.setStyleSheet("background-color:green")
             self.__iface.mapCanvas().setMapTool(self.__canvas_clicked)
+            #self.__t2gInstanceStart()
             self.__setPolygonlayerActiv()
         else:
             self.__measurementActiv = False
@@ -310,11 +302,10 @@ class Measurement():
             self.__dockwidget.labPointCount.setText(str(self.__verticesCount)+' Punkte')
 
             #self.__koordList.append({str(row),str(self.__vertices[row][0]),str(self.__vertices[row][1]),str(self.__vertices[row][2])})
-            #self.__dockwidget.tableWidget.scrollToItem(self.__verticesCount)
             self.__lastVertexHeight = self.__vertices[row][2]
 
-            self.__rubberbandClean()
-            self.__setVertexMarker(self.__vertices)
+            #self.__setVertexMarker(self.__vertices) # vorläufig deaktiviert wegen Performanceprobleme
+
             #Einfügeposition prüfen und markieren
             if self.__insertPos != None:
                 self.__dockwidget.tableWidget.selectRow(self.__insertPos-1)
@@ -324,6 +315,7 @@ class Measurement():
 
             self.__iface.mapCanvas().setFocus()
             self.__beep_AddKoord()
+            self.__geometrycheck()
 
     def __beep_AddKoord(self):
         if  self.__dockwidget.chbSound.isChecked():
@@ -405,7 +397,7 @@ class Measurement():
         self.__vertices = []
 
         self.__rubberbandClean()
-        #self.__dockwidget.butCreateFeature.setEnabled(False)
+        self.__dockwidget.butCreateFeature.setEnabled(False)
 
     def __setTableHeader(self):
         self.__dockwidget.tableWidget.setColumnCount(4)
@@ -644,8 +636,6 @@ class Measurement():
             row = item.row()
             self.__pointMaker.setMarker(self.__vertices[row][0], self.__vertices[row][1],12,2)
 
-        #self.__geometrycheck()
-
     def __setMarker2(self):
         if self.__activLayer is None:
             self.__iface.messageBar().pushMessage(u"T2G Archäologie: ", u"Kein Messlayer gewählt!",
@@ -846,32 +836,29 @@ class Measurement():
         return pts #QgsGeometry.fromPolyline(pts)
 
     def __geometrycheck(self):
-        #self.__dockwidget.butCreateFeature.setEnabled(False)
-        value = False
+        self.__dockwidget.butCreateFeature.setEnabled(False)
         ##@ Polygongeometrie
         if self.__activLayer.geometryType() == 2 and len(self.__vertices) >= 3:
-            #self.__dockwidget.butCreateFeature.setEnabled(True)
-            value = True
+            self.__dockwidget.butCreateFeature.setEnabled(True)
+
         ##@ Liniengeometrie
         elif self.__activLayer.geometryType() == 1 and len(self.__vertices) >= 2:
-            #self.__dockwidget.butCreateFeature.setEnabled(True)
-            value = True
+            self.__dockwidget.butCreateFeature.setEnabled(True)
+
         ##@ Punktgeometrie
         elif self.__activLayer.geometryType() == 0 and len(self.__vertices) >= 1:
-            #self.__dockwidget.butCreateFeature.setEnabled(True)
-            value = True
+            self.__dockwidget.butCreateFeature.setEnabled(True)
+
         x = self.__dockwidget.cboFigur.currentIndex()
 
         if x >= 1 and len(self.__vertices) == 2:
-            #self.__dockwidget.butCreateFeature.setEnabled(False)
-            value = False
+            self.__dockwidget.butCreateFeature.setEnabled(False)
             if self.__activLayer.geometryType() == 0:
                 iface.messageBar().pushMessage(u"T2G Archäologie: ", u"Auf Punktlayer nicht möglich.",
                                                level=Qgis.Info)
-                #return
-                value = False
-            #self.__dockwidget.butCreateFeature.setEnabled(True)
-        return value
+                return
+            self.__dockwidget.butCreateFeature.setEnabled(True)
+
 
     def __greateFeature(self,features):
         self.__activLayer.commitChanges()
@@ -886,8 +873,6 @@ class Measurement():
         for feat in features:
             feat.setId(nextFeatId)
             self.__activLayer.dataProvider().addFeatures([feat])
-            #self.__activLayer.featureAdded.emit(nextFeatId)
-            #self.__activLayer.attributeValueChanged.emit()
             nextFeatId += 1  # next id for multiple points
             self.__lastNewFeatures.append(feat.id())
         self.__activLayer.commitChanges()
