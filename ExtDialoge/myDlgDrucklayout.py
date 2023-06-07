@@ -83,5 +83,5 @@ class dlgDrucklayout(QtWidgets.QDialog):
         self.ui.txtLayGemeinde.setText(getCustomProjectVariable('Gemeinde'))
         self.ui.cboLayHoehenbezug.setCurrentText(getCustomProjectVariable('Hoehenbezug'))
         self.ui.cboLayLagebezug.setCurrentText(getCustomProjectVariable('Lagebezug'))
-        self.ui.txtLayGelaendeaufnahme.setText(getCustomProjectVariable('Geländeaufnahme'))
+        self.ui.txtLayGelaendeaufnahme.setText(getCustomProjectVariable('Gelaendeaufnahme'))
         self.ui.txtLayGelaendeaufnahmeDatum.setText(getCustomProjectVariable('Gelaendeaufnahme_Datum'))
