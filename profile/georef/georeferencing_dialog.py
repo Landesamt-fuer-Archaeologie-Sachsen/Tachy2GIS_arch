@@ -247,7 +247,15 @@ class GeoreferencingDialog(QMainWindow):
     def createFolders(self, refData):
         print("Create missing folders ...")
 
-        profileDirs = refData["profileDirs"]
+        profileDirs = refData["profileDirs"].copy()
+
+        if "original" not in refData["transform_methods"]:
+            del profileDirs["dirPo"]
+        if "horizontal" not in refData["transform_methods"]:
+            del profileDirs["dirPh"]
+        if "absolute height" not in refData["transform_methods"]:
+            del profileDirs["dirPa"]
+        del profileDirs["dir3d"]
 
         for key, value in profileDirs.items():
             if not os.path.exists(value):
@@ -424,7 +432,7 @@ class GeoreferencingDialog(QMainWindow):
             imageFileIn = self.refData["imagePath"]
             profileTargetName = self.refData["profileTargetName"]
 
-            for aarDirection in self.aarDirections_to_path_dict.keys():
+            for aarDirection in self.refData["transform_methods"]:
                 base_path = pathlib.Path(self.refData["profileDirs"][self.aarDirections_to_path_dict[aarDirection]])
                 imageFileOut = base_path.joinpath(f"{profileTargetName}.jpg")
                 metaFileOut = base_path.joinpath(f"{profileTargetName}.meta")
@@ -491,6 +499,7 @@ class GeoreferencingDialog(QMainWindow):
                 out_path = f"{save_path_0_original.joinpath(f'{profileTargetName}.meta')}"
                 with open(out_path, "w") as outfile:
                     json.dump(meta_0, outfile)
+
         except Exception as e:
             print(f"An exception occurred {type(e)} \n {traceback.format_exc()}")
             QMessageBox.critical(
