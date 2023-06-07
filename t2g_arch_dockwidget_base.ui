@@ -12,7 +12,7 @@
   </property>
   <property name="minimumSize">
    <size>
-    <width>365</width>
+    <width>438</width>
     <height>635</height>
    </size>
   </property>
@@ -3029,17 +3029,17 @@
               </property>
              </widget>
             </item>
-            <item row="10" column="0">
+            <item row="11" column="0">
              <widget class="QLabel" name="label_45">
               <property name="text">
                <string>Speichern unter</string>
               </property>
              </widget>
             </item>
-            <item row="10" column="1">
+            <item row="11" column="1">
              <widget class="QLineEdit" name="profileTargetName"/>
             </item>
-            <item row="11" column="1">
+            <item row="12" column="1">
              <widget class="QPushButton" name="startGeoreferencingBtn">
               <property name="styleSheet">
                <string notr="true">background-color : green</string>
@@ -3049,7 +3049,7 @@
               </property>
              </widget>
             </item>
-            <item row="12" column="1">
+            <item row="13" column="1">
              <spacer name="verticalSpacer_4">
               <property name="orientation">
                <enum>Qt::Vertical</enum>
@@ -3065,7 +3065,7 @@
               </property>
              </spacer>
             </item>
-            <item row="13" column="1">
+            <item row="14" column="1">
              <layout class="QHBoxLayout" name="horizontalLayout_6">
               <property name="spacing">
                <number>6</number>
@@ -3097,6 +3097,41 @@
                </widget>
               </item>
              </layout>
+            </item>
+            <item row="10" column="1">
+             <layout class="QHBoxLayout" name="horizontalLayout_5">
+              <item>
+               <widget class="QCheckBox" name="check_transform_original">
+                <property name="text">
+                 <string>original</string>
+                </property>
+                <property name="checked">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QCheckBox" name="check_transform_horizontal">
+                <property name="text">
+                 <string>horizontal</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QCheckBox" name="check_transform_absolut">
+                <property name="text">
+                 <string>absolut</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item row="10" column="0">
+             <widget class="QLabel" name="label_52">
+              <property name="text">
+               <string>Transformationsmethode</string>
+              </property>
+             </widget>
             </item>
            </layout>
           </widget>

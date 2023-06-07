@@ -90,6 +90,29 @@ class Georef:
         self.ref_data_pair = []
         self.ref_data_pair.append(self.getSelectedValues())
 
+        if not (
+            self.dockwidget.check_transform_original.isChecked()
+            or self.dockwidget.check_transform_horizontal.isChecked()
+            or self.dockwidget.check_transform_absolut.isChecked()
+        ):
+            QMessageBox.critical(
+                self.dockwidget,
+                "Invalide Einstellung",
+                "Mindestens eine Transformationsmethode muss ausgewählt sein!",
+                QMessageBox.Abort,
+            )
+            return
+
+        transform_methods = []
+        if self.dockwidget.check_transform_original.isChecked():
+            transform_methods.append("original")
+        if self.dockwidget.check_transform_horizontal.isChecked():
+            transform_methods.append("horizontal")
+        if self.dockwidget.check_transform_absolut.isChecked():
+            transform_methods.append("absolute height")
+
+        self.ref_data_pair[0]["transform_methods"] = transform_methods
+
         # case no kreuzprofil:
         if not self.dockwidget.checkboxKreuzprofil.isChecked():
             self.startGeoreferencingDialog(self.ref_data_pair[0])
@@ -109,6 +132,7 @@ class Georef:
             return
 
         self.ref_data_pair.append(self.getSelectedValues(second_set=True))
+        self.ref_data_pair[1]["transform_methods"] = transform_methods
 
         view_direction_set = {self.ref_data_pair[0]["viewDirection"], self.ref_data_pair[1]["viewDirection"]}
         if view_direction_set != {"S", "N"} and view_direction_set != {"E", "W"}:
@@ -139,7 +163,7 @@ class Georef:
         for dialog in self.geo_referencing_dialogues_list:
             ready = [
                 dialog.refData.get(f"geo_ref_done_{aarDirection}", False)
-                for aarDirection in dialog.aarDirections_to_path_dict.keys()
+                for aarDirection in dialog.refData["transform_methods"]
             ]
             if all(ready):
                 successful += 1
@@ -172,11 +196,8 @@ class Georef:
     #
     def handleKreuzprofil(self, state):
         if state == Qt.Checked:
-            print("Checked")
             self.show_kreuzprofil_selection(True)
-
         else:
-            print("Unchecked")
             self.show_kreuzprofil_selection(False)
 
     ## \brief Show or hide Selection of Kreuzprofile
