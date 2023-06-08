@@ -83,8 +83,6 @@ class GeoreferencingDialog(QMainWindow):
 
     def set_for_kreuzprofil(self, ref_data_pair):
         self.ref_data_pair = ref_data_pair
-        self.imageParambar.set_for_kreuzprofil()
-        self.imageParambar.toolDrawPolygon.polygon_drawn.connect(self.polygon_drawn)
 
     def polygon_drawn(self, geom: QgsGeometry):
         self.clipping_polygon = geom
@@ -172,6 +170,8 @@ class GeoreferencingDialog(QMainWindow):
     ## \brief Event connections
     #
     def createConnects(self):
+        self.imageParambar.toolDrawPolygon.polygon_drawn.connect(self.polygon_drawn)
+
         self.georefTable.pup.register("activatePoint", self.canvasGcp.setActivePoint)
         self.georefTable.pup.register("activatePoint", self.canvasImage.setActivePoint)
         self.georefTable.pup.register("activatePoint", self.imageParambar.activateMapToolMove)
@@ -422,7 +422,13 @@ class GeoreferencingDialog(QMainWindow):
                 draw_tool.polygon(points_list, fill=1, outline=1)
                 black = Image.new(img.mode, img.size, 0)
                 result = Image.composite(img, black, mask)
-                clipped_image_path = str(pathlib.Path(self.refData["savePath"]).joinpath("clipped.jpg"))
+                if self.ref_data_pair:
+                    clipped_image_path = str(pathlib.Path(self.refData["savePath"]).joinpath("clipped.jpg"))
+                else:
+                    # not kreuzprofil, but with clipping polygon:
+                    # store clipped in temp dir:
+                    tmp_dir = tempfile.mkdtemp(prefix=f"georef_profile{self.refData['profileNumber']}_")
+                    clipped_image_path = str(pathlib.Path(tmp_dir).joinpath("clipped.jpg"))
                 result.save(clipped_image_path)
                 result.close()
 
