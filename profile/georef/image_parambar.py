@@ -95,41 +95,7 @@ class ImageParambar(QWidget):
         self.paramsBarLayout.addWidget(spacer)
         self.paramsBarLayout.addWidget(self.toolbarCoord)
 
-    def activateMove(self):
-        self.canvasImage.setMapTool(self.canvasImage.toolMove)
-
-    def activatePan(self):
-        self.canvasImage.setMapTool(self.canvasImage.toolPan)
-
-    def activateZoomIn(self):
-        self.canvasImage.setMapTool(self.canvasImage.toolZoomIn)
-
-    def activateZoomOut(self):
-        self.canvasImage.setMapTool(self.canvasImage.toolZoomOut)
-
-    def activateMapToolMove(self, _):
-        self.actionMove.activate(0)
-
-    def polygon_set_map_tool(self, checked):
-        self.action_group_polygon.setEnabled(checked)
-        if checked:
-            self.canvasImage.setMapTool(self.toolDrawPolygon)
-        else:
-            self.toolDrawPolygon.recover_to_normal_mode()
-
-    def polygon_undo(self):
-        self.toolDrawPolygon.undo_last_point()
-
-    def polygon_finish(self):
-        self.toolDrawPolygon.finish_polygon()
-
-    def polygon_edit(self):
-        self.toolDrawPolygon.select_mode()
-
-    def polygon_reset(self):
-        self.toolDrawPolygon.reset_polygon()
-
-    def set_for_kreuzprofil(self):
+        # Polygon vvvvvvvvvvvvvvvvvvvvvvvvvv
         self.toolDrawPolygon = PolygonMapTool(self.canvasImage)
         self.action_group_polygon = QActionGroup(self)
         self.imageToolbar.addSeparator()
@@ -171,6 +137,40 @@ class ImageParambar(QWidget):
         self.action_tool_polygon_reset.triggered.connect(self.polygon_reset)
 
         self.action_group_polygon.setEnabled(False)
+
+    def activateMove(self):
+        self.canvasImage.setMapTool(self.canvasImage.toolMove)
+
+    def activatePan(self):
+        self.canvasImage.setMapTool(self.canvasImage.toolPan)
+
+    def activateZoomIn(self):
+        self.canvasImage.setMapTool(self.canvasImage.toolZoomIn)
+
+    def activateZoomOut(self):
+        self.canvasImage.setMapTool(self.canvasImage.toolZoomOut)
+
+    def activateMapToolMove(self, _):
+        self.actionMove.activate(0)
+
+    def polygon_set_map_tool(self, checked):
+        self.action_group_polygon.setEnabled(checked)
+        if checked:
+            self.canvasImage.setMapTool(self.toolDrawPolygon)
+        else:
+            self.toolDrawPolygon.recover_to_normal_mode()
+
+    def polygon_undo(self):
+        self.toolDrawPolygon.undo_last_point()
+
+    def polygon_finish(self):
+        self.toolDrawPolygon.finish_polygon()
+
+    def polygon_edit(self):
+        self.toolDrawPolygon.select_mode()
+
+    def polygon_reset(self):
+        self.toolDrawPolygon.reset_polygon()
 
     def updateCoordinate(self, coordObj):
         self.coordLineEdit.setText(str(round(coordObj["x"], 2)) + "," + str(round(coordObj["y"], 2)))
