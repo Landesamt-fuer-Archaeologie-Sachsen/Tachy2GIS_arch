@@ -165,7 +165,7 @@ class GeoreferencingDialog(QMainWindow):
         self.profileAAR = profileAAR()
 
         # Bildgeoreferenzierung
-        self.imageGeoref = ImageGeoref(self, self.dataStoreGeoref, self.iface)
+        self.imageGeoref = ImageGeoref()
 
     ## \brief Event connections
     #
@@ -379,7 +379,7 @@ class GeoreferencingDialog(QMainWindow):
             with Image.open(self.refData["imagePath"]) as imageObject:
                 imageObject.load()
 
-            file_name = "camera_copy.jpg"
+            file_name = "camera_copy.png"
 
             if self.profile_set == 1:
                 # I am the second set and I need to flip my image
@@ -420,15 +420,15 @@ class GeoreferencingDialog(QMainWindow):
                 mask = Image.new("1", img.size, 0)
                 draw_tool = ImageDraw.Draw(mask)
                 draw_tool.polygon(points_list, fill=1, outline=1)
-                black = Image.new(img.mode, img.size, 0)
-                result = Image.composite(img, black, mask)
+                background = Image.new(img.mode, img.size, "white")
+                result = Image.composite(img, background, mask)
                 if self.ref_data_pair:
-                    clipped_image_path = str(pathlib.Path(self.refData["savePath"]).joinpath("clipped.jpg"))
+                    clipped_image_path = str(pathlib.Path(self.refData["savePath"]).joinpath("clipped.png"))
                 else:
                     # not kreuzprofil, but with clipping polygon:
                     # store clipped in temp dir:
                     tmp_dir = tempfile.mkdtemp(prefix=f"georef_profile{self.refData['profileNumber']}_")
-                    clipped_image_path = str(pathlib.Path(tmp_dir).joinpath("clipped.jpg"))
+                    clipped_image_path = str(pathlib.Path(tmp_dir).joinpath("clipped.png"))
                 result.save(clipped_image_path)
                 result.close()
 
@@ -437,28 +437,41 @@ class GeoreferencingDialog(QMainWindow):
 
             imageFileIn = self.refData["imagePath"]
             profileTargetName = self.refData["profileTargetName"]
+            if not self.ref_data_pair:
+                # not set for kreuzprofil
+                file_extension = "jpg"
+            else:
+                file_extension = "png"
 
             for aarDirection in self.refData["transform_methods"]:
                 base_path = pathlib.Path(self.refData["profileDirs"][self.aarDirections_to_path_dict[aarDirection]])
-                imageFileOut = base_path.joinpath(f"{profileTargetName}.jpg")
+                imageFileOut = base_path.joinpath(f"{profileTargetName}.{file_extension}")
                 metaFileOut = base_path.joinpath(f"{profileTargetName}.meta")
 
                 georefData = self.dataStoreGeoref.getGeorefData(aarDirection)
-                georefChecker = self.imageGeoref.runGeoref(
+                georefChecker = self.imageGeoref.run_georef(
                     georefData, self.refData["crs"], imageFileIn, str(imageFileOut)
                 )
 
-                if georefChecker == "ok":
-                    fileName = self.writeMetafile(aarDirection, metaFileOut)
+                if georefChecker != "ok":
+                    self.iface.messageBar().pushMessage(
+                        "Hinweis",
+                        "Konnte Profil nicht georeferenzieren. Es müssen min. 4 GCP gesetzt sein!",
+                        level=1,
+                        duration=5,
+                    )
+                    continue
+
+                _ = self.writeMetafile(aarDirection, metaFileOut)
+
+                if not self.ref_data_pair:
+                    # not set for kreuzprofil
                     self.iface.messageBar().pushMessage(
                         "Hinweis",
                         "Das Profil wurde unter " + str(imageFileOut) + " referenziert",
                         level=3,
                         duration=5,
                     )
-
-                if not self.ref_data_pair:
-                    # not set for kreuzprofil
                     continue
 
                 self.refData[f"geo_ref_done_{aarDirection}"] = True
@@ -480,17 +493,21 @@ class GeoreferencingDialog(QMainWindow):
                     self.ref_data_pair[1]["profileDirs"][self.aarDirections_to_path_dict[aarDirection]]
                 )
                 command = (
-                    f"gdal_merge.py -of gtiff -n 0 -o "
-                    "/vsimem/merged.tif "
-                    f"{save_path_0.joinpath(f'{profileTargetName}.jpg')} "
-                    f"{save_path_1.joinpath(f'{profileTargetName}.jpg')}"
+                    f"gdal_merge.py "
+                    f"-n 255 "
+                    f"-init 255 "
+                    f"-of gtiff "
+                    f"-o /vsimem/merged.tif "
+                    f"{save_path_0.joinpath(f'{profileTargetName}.{file_extension}')} "
+                    f"{save_path_1.joinpath(f'{profileTargetName}.{file_extension}')}"
                 )
                 osgeo_utils.gdal_merge.main(command.split(" "))
 
+                imageFileOut = save_path_0_original.joinpath(f"{profileTargetName}.jpg")
                 gdal.Translate(
-                    f"{save_path_0_original.joinpath(f'{profileTargetName}.jpg')}",
+                    f"{imageFileOut}",
                     "/vsimem/merged.tif",
-                    options="-co worldfile=yes",
+                    options="-co WORLDFILE=YES -co QUALITY=100",
                 )
                 gdal.Unlink("/vsimem/merged.tif")
 
@@ -506,12 +523,19 @@ class GeoreferencingDialog(QMainWindow):
                 with open(out_path, "w") as outfile:
                     json.dump(meta_0, outfile)
 
+                self.iface.messageBar().pushMessage(
+                    "Hinweis",
+                    "Das Profil wurde unter " + str(imageFileOut) + " referenziert",
+                    level=3,
+                    duration=5,
+                )
+
         except Exception as e:
             print(f"An exception occurred {type(e)} \n {traceback.format_exc()}")
             QMessageBox.critical(
                 self,
                 "Fehler bei der Profilentzerrung!",
-                f"Profil konnte nicht entzerrt werden. Vorgang wurde abgebrochen!",
+                "Profil konnte nicht entzerrt werden. Vorgang wurde abgebrochen!",
                 QMessageBox.Abort,
             )
 
