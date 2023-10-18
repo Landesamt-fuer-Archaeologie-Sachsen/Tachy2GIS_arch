@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon, QPainter, QColor
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QSizePolicy, QToolBar, QAction, QLineEdit, QActionGroup
 from qgis.core import QgsApplication
 
@@ -100,9 +100,19 @@ class ImageParambar(QWidget):
         self.action_group_polygon = QActionGroup(self)
         self.imageToolbar.addSeparator()
 
+        def color_shift_icon(original_icon, color):
+            pixmap = original_icon.pixmap(64, 64)
+            painter = QPainter(pixmap)
+            painter.setCompositionMode(QPainter.CompositionMode_SourceAtop)
+            painter.fillRect(pixmap.rect(), color)
+            painter.end()
+            return QIcon(pixmap)
+
         # createAction_tool_polygon
         icon4 = QIcon(QgsApplication.iconPath("mActionAddNodesItem.svg"))
-        self.action_tool_polygon = QAction(icon4, "Polygon: Zeichnen (zum Beschneiden)", self)
+        self.action_tool_polygon = QAction(
+            icon4, "Polygon: Zeichnen (zum Beschneiden)\n-> [STRG] halten für Snapping", self
+        )
         self.action_tool_polygon.setCheckable(True)
         self.action_group.addAction(self.action_tool_polygon)
         self.imageToolbar.addAction(self.action_tool_polygon)
@@ -116,7 +126,7 @@ class ImageParambar(QWidget):
         self.action_tool_polygon_undo.triggered.connect(self.polygon_undo)
 
         # createAction_tool_polygon_finish
-        icon1 = QIcon(QgsApplication.iconPath("mLayoutItemPolygon.svg"))
+        icon1 = color_shift_icon(QIcon(QgsApplication.iconPath("mLayoutItemPolygon.svg")), QColor(0, 190, 0, 80))
         self.action_tool_polygon_finish = QAction(icon1, "Polygon: Editieren beenden [R-MOUSE]", self)
         self.action_group_polygon.addAction(self.action_tool_polygon_finish)
         self.imageToolbar.addAction(self.action_tool_polygon_finish)
@@ -164,7 +174,7 @@ class ImageParambar(QWidget):
         self.toolDrawPolygon.undo_last_point()
 
     def polygon_finish(self):
-        self.toolDrawPolygon.finish_polygon()
+        self.toolDrawPolygon.recover_to_normal_mode()
 
     def polygon_edit(self):
         self.toolDrawPolygon.select_mode()

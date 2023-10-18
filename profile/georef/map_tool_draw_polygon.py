@@ -1,6 +1,6 @@
-from PyQt5.QtCore import Qt, pyqtSignal
+from PyQt5.QtCore import Qt, pyqtSignal, QPoint
 from PyQt5.QtGui import QColor
-from qgis.core import QgsGeometry, QgsWkbTypes
+from qgis.core import QgsGeometry, QgsWkbTypes, QgsArrowSymbolLayer, QgsSymbol
 from qgis.gui import QgsMapToolEmitPoint, QgsRubberBand, QgsVertexMarker
 
 
@@ -11,31 +11,50 @@ class PolygonMapTool(QgsMapToolEmitPoint):
     def __init__(self, canvas):
         self.canvas = canvas
         super().__init__(self.canvas)
-        self.rubberBand = QgsRubberBand(self.canvas)
-
-        # RGB color values, last value indicates transparency (0-255)
-        self.rubberBand.setFillColor(QColor(255, 255, 255, 60))
-        self.rubberBand.setWidth(3)
 
         self.markers = []
+        self.lastMapCoord = None
         self.isFinished = False
-        self.isMoving = False
         self.isSelecting = False
+        self.isSnapping = False
+
+        self.symbol = QgsSymbol.defaultSymbol(QgsWkbTypes.PolygonGeometry)
+        arrow = QgsArrowSymbolLayer.create(
+            {
+                "arrow_type": "0",
+                "head_type": "0",
+                "is_curved": "0",
+                "arrow_start_width": "0.5",
+                "arrow_width": "0.5",
+                "head_length": "2",
+                "head_thickness": "0.8",
+                "color": "red",
+            }
+        )
+        self.symbol.changeSymbolLayer(0, arrow)
+
+        self.tempRubberBand = QgsRubberBand(self.canvas)
+        self.resetTempRubber()
+        self.closingRubberBand = QgsRubberBand(self.canvas)
+        self.resetClosingRubber()
+        self.rubberBand = QgsRubberBand(self.canvas)
+        self.rubberBand.setSymbol(self.symbol)
 
         self.reset_polygon()
 
     def reset_polygon(self):
         # clear points of rubber band:
         self.rubberBand.reset(QgsWkbTypes.PolygonGeometry)
+        self.resetTempRubber()
+        self.resetClosingRubber()
+
         # remove all vertices:
         for marker in self.markers:
             self.canvas.scene().removeItem(marker)
         self.markers = []
 
-        self.rubberBand.setStrokeColor(Qt.red)
+        self.symbol.setColor(Qt.red)
         self.isFinished = False
-
-        self.isMoving = False
         self.isSelecting = False
 
         self.polygon_drawn.emit(QgsGeometry())
@@ -44,45 +63,65 @@ class PolygonMapTool(QgsMapToolEmitPoint):
         return self.rubberBand.asGeometry()
 
     def finish_polygon(self):
-        if self.isFinished:
-            return
-
-        if self.isMoving:
-            self.rubberBand.removeLastPoint()
-            self.isMoving = False
-
-        if self.rubberBand.numberOfVertices() < 2:
+        if self.isFinished or len(self.markers) < 3:
             return
 
         self.isFinished = True
-        self.rubberBand.setStrokeColor(Qt.darkGreen)
+        self.symbol.setColor(Qt.darkGreen)
         self.rubberBand.closePoints()
+
+        self.resetClosingRubber()
+        self.resetTempRubber()
+
+        # if last marker was set on first marker
+        # remove last marker as this class expects
+        # one marker less than vertices in a closed rubberband
+        if self.rubberBand.numberOfVertices() == len(self.markers):
+            if len(self.markers) > 0:
+                self.canvas.scene().removeItem(self.markers[-1])
+                del self.markers[-1]
 
         self.polygon_drawn.emit(self.get_polygon())
 
     def undo_last_point(self):
+        if self.isSelecting:
+            self.recover_to_normal_mode()
+
         if self.isFinished:
             # remove closing point:
-            self.isFinished = False
             self.rubberBand.removeLastPoint()
-            self.rubberBand.setStrokeColor(Qt.red)
+            self.symbol.setColor(Qt.red)
+            self.isFinished = False
             self.polygon_drawn.emit(QgsGeometry())
 
-        if self.isMoving:
-            self.rubberBand.removePoint(-2)
-        else:
-            self.rubberBand.removeLastPoint()
-
+        self.rubberBand.removeLastPoint()
         if len(self.markers) > 0:
             self.canvas.scene().removeItem(self.markers[-1])
             del self.markers[-1]
 
+        self.resetTempRubber()
+        self.resetClosingRubber()
+        if len(self.markers) > 1:
+            self.tempRubberBand.addPoint(self.markers[0].center())
+            self.tempRubberBand.addPoint(self.lastMapCoord)
+            self.tempRubberBand.addPoint(self.markers[-1].center())
+            self.closingRubberBand.addPoint(self.markers[0].center())
+            self.closingRubberBand.addPoint(self.markers[-1].center())
+        elif len(self.markers) == 1:
+            self.tempRubberBand.addPoint(self.markers[0].center())
+            self.tempRubberBand.addPoint(self.lastMapCoord)
+            self.tempRubberBand.addPoint(self.markers[0].center())
+            self.closingRubberBand.addPoint(self.markers[0].center())
+            self.closingRubberBand.addPoint(self.markers[0].center())
+
+        self.handleMove()
+
     def select_mode(self):
-        if self.rubberBand.numberOfVertices() < 2:
+        if len(self.markers) < 2:
             return
 
         self.finish_polygon()
-        self.rubberBand.setStrokeColor(Qt.red)
+        self.symbol.setColor(Qt.red)
         self.rubberBand.updateCanvas()
         self.isSelecting = True
 
@@ -96,20 +135,25 @@ class PolygonMapTool(QgsMapToolEmitPoint):
         self.finish_polygon()
 
     def keyPressEvent(self, e):
-        if self.isSelecting:
-            return
-
         # pressing ESC:
-        if e.key() == 16777216:
+        if e.key() == Qt.Key_Escape:
             self.undo_last_point()
+
+        if e.key() == Qt.Key_Control:
+            self.isSnapping = True
+            self.handleMove()
+
+    def keyReleaseEvent(self, e):
+        if e.key() == Qt.Key_Control:
+            self.isSnapping = False
+            self.handleMove()
 
     def canvasReleaseEvent(self, e):
         if self.isSelecting:
             if e.button() == Qt.RightButton:
                 self.recover_to_normal_mode()
                 return
-
-            if e.button() != Qt.LeftButton:
+            elif e.button() != Qt.LeftButton:
                 return
 
             # find indexes of vertices which are blue:
@@ -123,14 +167,30 @@ class PolygonMapTool(QgsMapToolEmitPoint):
             # clear and fill rubberband so that the point to remove is last:
             self.rubberBand.reset(QgsWkbTypes.PolygonGeometry)
             for marker in self.markers:
-                self.rubberBand.addPoint(marker.center(), False)
-            self.rubberBand.show()
+                self.rubberBand.addPoint(marker.center())
             self.isFinished = False
             self.isSelecting = False
+
             # remove last point and vertex with undo function:
             self.undo_last_point()
+
+            self.resetTempRubber()
+            self.resetClosingRubber()
+            if len(self.markers) > 1:
+                self.tempRubberBand.addPoint(self.markers[0].center())
+                self.tempRubberBand.addPoint(self.lastMapCoord)
+                self.tempRubberBand.addPoint(self.markers[-1].center())
+                self.closingRubberBand.addPoint(self.markers[0].center())
+                self.closingRubberBand.addPoint(self.markers[-1].center())
+            elif len(self.markers) == 1:
+                self.tempRubberBand.addPoint(self.markers[0].center())
+                self.tempRubberBand.addPoint(self.lastMapCoord)
+                self.tempRubberBand.addPoint(self.markers[0].center())
+                self.closingRubberBand.addPoint(self.markers[0].center())
+                self.closingRubberBand.addPoint(self.markers[0].center())
+
             # as we are now in normal mode this now draws a temporary point:
-            self.canvasMoveEvent(e)
+            self.handleMove()
             return
 
         if self.isFinished:
@@ -139,15 +199,17 @@ class PolygonMapTool(QgsMapToolEmitPoint):
         if e.button() == Qt.RightButton:
             self.finish_polygon()
             return
-
-        if self.isMoving:
-            # remove temporary point:
-            self.rubberBand.removeLastPoint()
-            self.isMoving = False
+        elif e.button() != Qt.LeftButton:
+            return
 
         # use correct clicking point for adding:
         click_point = self.toMapCoordinates(e.pos())
-        self.rubberBand.addPoint(click_point, False)
+        if self.isSnapping:
+            snappingMarker = self.getSnappingMarker()
+            if snappingMarker:
+                click_point = snappingMarker.center()
+
+        self.rubberBand.addPoint(click_point)
         vertexMarker = QgsVertexMarker(self.canvas)
         vertexMarker.setCenter(click_point)
         vertexMarker.setColor(Qt.black)
@@ -157,34 +219,88 @@ class PolygonMapTool(QgsMapToolEmitPoint):
         vertexMarker.setPenWidth(1)
         self.markers.append(vertexMarker)
 
-        self.rubberBand.show()
+        if len(self.markers) > 1:
+            self.resetTempRubber()
+            self.tempRubberBand.addPoint(self.markers[0].center())
+            self.tempRubberBand.addPoint(self.lastMapCoord)
+            self.tempRubberBand.addPoint(self.markers[-1].center())
+        elif len(self.markers) == 1:
+            self.resetTempRubber()
+            self.tempRubberBand.addPoint(self.markers[0].center())
+            self.tempRubberBand.addPoint(self.lastMapCoord)
+            self.tempRubberBand.addPoint(self.markers[0].center())
+        if self.closingRubberBand.numberOfVertices() == 0:
+            self.closingRubberBand.addPoint(click_point)
+            self.closingRubberBand.addPoint(click_point)
+        self.closingRubberBand.movePoint(click_point)
 
     def canvasMoveEvent(self, e):
-        move_point = self.toMapCoordinates(e.pos())
+        self.lastMapCoord = self.toMapCoordinates(e.pos())
+        self.handleMove()
+
+    def handleMove(self):
+        # reset styling:
+        for vertex in self.markers:
+            vertex.setColor(Qt.black)
+            vertex.setIconSize(7)
+            vertex.setPenWidth(1)
 
         if self.isSelecting:
-            # mark nearest vertex blue:
-            for vertex in self.markers:
-                vertex.setColor(Qt.black)
-                vertex.setIconSize(7)
-                vertex.setPenWidth(1)
-            x = move_point.x()
-            y = move_point.y()
-            distances = [p.center().distance(x, y) for p in self.markers]
-            index_of_nearest = min(range(len(distances)), key=distances.__getitem__)
-            self.markers[index_of_nearest].setColor(Qt.blue)
-            self.markers[index_of_nearest].setIconSize(9)
-            self.markers[index_of_nearest].setPenWidth(3)
+            snappingMarker = self.getSnappingMarker()
+            if snappingMarker:
+                # mark nearest vertex blue:
+                snappingMarker.setColor(Qt.blue)
+                snappingMarker.setIconSize(9)
+                snappingMarker.setPenWidth(3)
             return
 
-        if self.isFinished or self.rubberBand.numberOfVertices() < 1:
+        if self.isFinished or len(self.markers) < 1:
             return
+
+        movingPoint = self.lastMapCoord
+        if self.isSnapping:
+            snappingMarker = self.getSnappingMarker()
+            if snappingMarker:
+                movingPoint = snappingMarker.center()
+                # mark nearest vertex yellow:
+                snappingMarker.setColor(Qt.yellow)
+                snappingMarker.setIconSize(9)
+                snappingMarker.setPenWidth(3)
 
         # draw a temporary point at mouse pointer while moving:
-        if self.isMoving:
-            self.rubberBand.removeLastPoint()
+        self.tempRubberBand.movePoint(1, movingPoint)
 
-        self.rubberBand.addPoint(move_point, True)
-        self.isMoving = True
+    def getSnappingMarker(self):
+        if len(self.markers) < 1:
+            return None
 
-        self.rubberBand.show()
+        move_point = self.lastMapCoord
+        x = move_point.x()
+        y = move_point.y()
+        distances = [p.center().distance(x, y) for p in self.markers]
+        index_of_nearest = min(range(len(distances)), key=distances.__getitem__)
+
+        # tolerance needs to be recalculated as user can zoom while moving
+        pt1 = QPoint(x, y)
+        pt2 = QPoint(x + 20, y)
+        layerPt1 = self.toLayerCoordinates(self.canvas.layer(0), pt1)
+        layerPt2 = self.toLayerCoordinates(self.canvas.layer(0), pt2)
+        tolerance = layerPt2.x() - layerPt1.x()
+        if distances[index_of_nearest] > tolerance:
+            return None
+
+        return self.markers[index_of_nearest]
+
+    def resetTempRubber(self):
+        self.tempRubberBand.reset(QgsWkbTypes.LineGeometry)
+        self.tempRubberBand.setLineStyle(Qt.DotLine)
+        self.tempRubberBand.setStrokeColor(Qt.white)
+        self.tempRubberBand.setSecondaryStrokeColor(QColor(0, 0, 255, 100))
+        self.tempRubberBand.setWidth(1)
+
+    def resetClosingRubber(self):
+        self.closingRubberBand.reset(QgsWkbTypes.LineGeometry)
+        self.closingRubberBand.setLineStyle(Qt.DashLine)
+        self.closingRubberBand.setStrokeColor(Qt.black)
+        self.closingRubberBand.setSecondaryStrokeColor(QColor(255, 0, 0, 100))
+        self.closingRubberBand.setWidth(1)
