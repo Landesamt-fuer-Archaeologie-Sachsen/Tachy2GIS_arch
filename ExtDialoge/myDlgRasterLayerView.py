@@ -24,10 +24,10 @@
 
 import os
 
-from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5 import QtWidgets, QtCore, QtGui, uic
-from PyQt5.QtGui import *
-from PyQt5.QtWidgets import *
+from qgis.PyQt.QtCore import Qt, pyqtSignal
+from qgis.PyQt import QtWidgets, QtCore, QtGui, uic
+from qgis.PyQt.QtGui import *
+from qgis.PyQt.QtWidgets import *
 from qgis.core import *
 from qgis.gui import *
 from ..functions import *

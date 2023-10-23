@@ -1,4 +1,4 @@
-from PyQt5.QtCore import Qt
+from qgis.PyQt.QtCore import Qt
 from qgis.gui import QgsMapTool, QgsVertexMarker, QgsAttributeDialog, QgsAttributeEditorContext
 from qgis.core import QgsPoint, QgsFeature, QgsGeometry, QgsFeatureRequest
 
@@ -77,7 +77,7 @@ class MapToolDigiPoint(QgsMapTool, MapToolMixin):
 
         for item in fields:
 
-            if item.name() == 'uuid' or item.name() == 'id' or item.name() == 'obj_type' or item.name() == 'obj_art' or item.name() == 'zeit' or item.name() == 'material' or item.name() == 'bemerkung' or item.name() == 'bef_nr' or item.name() == 'fund_nr' or item.name() == 'prob_nr':
+            if item.name() == 'uuid' or item.name() == 'id' or item.name() == 'obj_typ' or item.name() == 'obj_art' or item.name() == 'zeit' or item.name() == 'material' or item.name() == 'bemerkung' or item.name() == 'bef_nr' or item.name() == 'fund_nr' or item.name() == 'prob_nr':
                 dataObj[item.name()] = feature[item.name()]
 
         dataObj['layer'] = self.refData['pointLayer'].sourceName()

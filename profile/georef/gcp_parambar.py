@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import os
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QWidget, QHBoxLayout, QLabel, QFrame, QSizePolicy, QToolBar, QAction, QLineEdit
+from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtGui import QIcon
+from qgis.PyQt.QtWidgets import QWidget, QHBoxLayout, QLabel, QFrame, QSizePolicy, QToolBar, QAction, QLineEdit
 
 ## @brief With the TransformationDialogParambar class a bar based on QWidget is realized
 #

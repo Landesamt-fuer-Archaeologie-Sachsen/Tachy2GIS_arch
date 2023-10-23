@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import os
-from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QHeaderView, QPushButton, QMessageBox
-from PyQt5.QtGui import QIcon, QPalette, QColor
-from PyQt5.QtCore import Qt
+from qgis.PyQt.QtWidgets import QTableWidget, QTableWidgetItem, QHeaderView, QPushButton, QMessageBox
+from qgis.PyQt.QtGui import QIcon, QPalette, QColor
+from qgis.PyQt.QtCore import Qt
 
 from ..publisher import Publisher
 ## @brief With the DigitizeTable class a table based on QTableWidget is realized
@@ -81,7 +81,7 @@ class DigitizeTable(QTableWidget):
         self.insertRow(rowPosition)
 
         # UUID
-        self.setItem(rowPosition, 0, QTableWidgetItem(str(dataObj['uuid'])))
+        self.setItem(rowPosition, 0, QTableWidgetItem(str(dataObj['obj_uuid'])))
         self.setColumnHidden(0, True)
 
         # ID
@@ -93,8 +93,8 @@ class DigitizeTable(QTableWidget):
         idItem.setFlags(Qt.ItemIsEnabled)
         self.setItem(rowPosition, 1, idItem)
         # Objekttyp
-        if "obj_type" in dataObj:
-            typeItem = QTableWidgetItem(str(dataObj['obj_type']))
+        if "obj_typ" in dataObj:
+            typeItem = QTableWidgetItem(str(dataObj['obj_typ']))
         else:
             typeItem = QTableWidgetItem('NULL')
 
@@ -209,8 +209,8 @@ class DigitizeTable(QTableWidget):
                 if dataObj['uuid'] == tblUuid:
 
                     if head == 'Objekttyp':
-                        if "obj_type" in dataObj:
-                            self.item(i, j).setText(str(dataObj['obj_type']))
+                        if "obj_typ" in dataObj:
+                            self.item(i, j).setText(str(dataObj['obj_typ']))
 
                     if head == 'Objektart':
                         if "obj_art" in dataObj:

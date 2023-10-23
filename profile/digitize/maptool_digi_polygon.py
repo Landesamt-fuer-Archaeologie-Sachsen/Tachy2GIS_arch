@@ -1,4 +1,4 @@
-from PyQt5.QtCore import Qt
+from qgis.PyQt.QtCore import Qt
 from qgis.gui import QgsMapTool, QgsRubberBand, QgsVertexMarker, QgsAttributeDialog, QgsAttributeEditorContext
 from qgis.core import QgsWkbTypes, QgsFeature, QgsGeometry, QgsFeatureRequest
 
@@ -94,7 +94,7 @@ class MapToolDigiPolygon(QgsMapTool, MapToolMixin):
 
         for item in fields:
 
-            if item.name() == 'uuid' or item.name() == 'id' or item.name() == 'obj_type' or item.name() == 'obj_art' or item.name() == 'zeit' or item.name() == 'material' or item.name() == 'bemerkung' or item.name() == 'bef_nr' or item.name() == 'fund_nr' or item.name() == 'prob_nr':
+            if item.name() == 'obj_uuid' or item.name() == 'id' or item.name() == 'obj_typ' or item.name() == 'obj_art' or item.name() == 'zeit' or item.name() == 'material' or item.name() == 'bemerkung' or item.name() == 'bef_nr' or item.name() == 'fund_nr' or item.name() == 'prob_nr':
                 dataObj[item.name()] = feature[item.name()]
 
         dataObj['layer'] = self.refData['polygonLayer'].sourceName()
@@ -235,7 +235,7 @@ class MapToolDigiPolygon(QgsMapTool, MapToolMixin):
             #schauen ob es schon existiert (anhand uuid), wenn ja dann löschen und durch Zielfeature ersetzen
             sourceLayerFeatures = self.refData['polygonLayer'].getFeatures()
             for sourceFeature in sourceLayerFeatures:
-                if feature["uuid"] == sourceFeature["uuid"]:
+                if feature["obj_uuid"] == sourceFeature["obj_uuid"]:
                     pr.deleteFeatures([sourceFeature.id()])
                     pr.addFeatures([rotFeature])
 
@@ -254,7 +254,7 @@ class MapToolDigiPolygon(QgsMapTool, MapToolMixin):
         features = self.refData['polygonLayer'].getFeatures()
 
         for feature in features:
-            if feature['uuid'] == uuid:
+            if feature['obj_uuid'] == uuid:
                 if feature['geo_quelle'] == 'profile_object':
                     self.refData['polygonLayer'].startEditing()
                     self.refData['polygonLayer'].deleteFeature(feature.id())

@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import os
 import processing
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QFont, QColor
+from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtGui import QFont, QColor
 from qgis.core import (
     QgsPoint,
     QgsFeature,
@@ -86,7 +86,7 @@ class ProfileGcpCanvas(QgsMapCanvas):
         self.refresh()
 
     def setActivePoint(self, linkObj):
-        self.activePoint = linkObj["uuid"]
+        self.activePoint = linkObj["obj_uuid"]
 
     ## \brief Update canvas map element
     #
@@ -126,7 +126,7 @@ class ProfileGcpCanvas(QgsMapCanvas):
 
     def highlightSourceLayer(self, uuidValue):
         for feature in self.gcpLayer.getFeatures():
-            uuidFeat = feature.attribute("uuid")
+            uuidFeat = feature.attribute("obj_uuid")
             if uuidFeat == uuidValue:
                 self.flashFeatureIds(
                     self.gcpLayer,

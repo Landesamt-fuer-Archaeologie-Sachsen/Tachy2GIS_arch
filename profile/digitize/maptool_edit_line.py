@@ -1,5 +1,5 @@
 import math
-from PyQt5.QtCore import Qt
+from qgis.PyQt.QtCore import Qt
 from qgis.gui import QgsMapToolIdentify, QgsMapToolIdentifyFeature, QgsVertexMarker
 from qgis.core import QgsWkbTypes
 

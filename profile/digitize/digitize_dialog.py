@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
-from PyQt5.QtWidgets import QWidget, QMainWindow, QAction, QVBoxLayout
-from PyQt5.QtGui import QIcon
+from qgis.PyQt.QtWidgets import QWidget, QMainWindow, QAction, QVBoxLayout
+from qgis.PyQt.QtGui import QIcon
 from qgis.gui import QgsMessageBar
 
 from .parambar import Parambar

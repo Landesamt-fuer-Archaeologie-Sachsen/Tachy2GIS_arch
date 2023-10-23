@@ -1,13 +1,158 @@
 # -*- coding: utf-8 -*-
-import sys, os, shutil, os.path, time, csv, datetime, re
+from qgis.PyQt import QtWidgets
+from qgis.PyQt.QtWidgets import (QDesktopWidget,
+                                 QGridLayout,
+                                 QMessageBox,
+                                 QLabel,
+                                 QProgressBar,
+                                 QTextBrowser, 
+                                 QWidget)
+from qgis.PyQt.QtCore import (Qt, 
+                              QUrl,
+                              pyqtSignal)
+from qgis.PyQt.QtGui import (QColor)
+
+from qgis.core import (QgsExpressionContextUtils,
+                       QgsFeature,
+                       QgsFeatureRequest,
+                       QgsField,
+                       QgsGeometry,
+                       QgsLayerTreeGroup,
+                       QgsLayerTreeLayer,
+                       QgsMapLayer,
+                       QgsPoint,
+                       QgsPointXY,
+                       QgsProject,
+                       QgsVectorLayer,
+                       QgsWkbTypes)
+from qgis.gui import (QgsMapToolEmitPoint,
+                      QgsRubberBand,
+                      QgsVertexMarker)
+from qgis.utils import iface
+
+import os, shutil, os.path, time, csv, datetime, re
 from datetime import *#date, datetime
-from PyQt5 import QtWidgets
-from PyQt5.QtWidgets import *
-from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtGui import *
-from qgis.core import *
-from qgis.gui import *
-from qgis.utils import *#iface
+
+def getLookupDict(layer, keyColumn, valueColumn, filterExpression=''):
+    lookupDict = {}
+    if layer.fields().indexOf(keyColumn) == -1 or layer.fields().indexOf(valueColumn) == -1:
+        return lookupDict
+    request = QgsFeatureRequest()
+    if filterExpression:
+        request.setFilterExpression(filterExpression)
+    for feature in layer.getFeatures(request):
+        lookupDict[feature.attribute(keyColumn)] = feature.attribute(valueColumn)
+    return lookupDict
+
+def setCustomProjectVariable(variableName, variableWert):
+    project = QgsProject.instance()
+    QgsExpressionContextUtils.setProjectVariable(project, variableName, variableWert)
+
+def getCustomProjectVariable(variableName):
+    project = QgsProject.instance()
+    variable = QgsExpressionContextUtils.projectScope(project).variable(variableName)
+    if not variable: 
+        return ''
+    else:
+        return variable
+
+def delCustomProjectVariable(variableName):
+    project = QgsProject.instance()
+    QgsExpressionContextUtils.removeProjectVariable(project, variableName)
+
+def showAndHideWidgets(widgetsToShow, widgetsToHide):
+    for wg in widgetsToShow:
+        wg.show()
+    for wg in widgetsToHide:
+        wg.hide()
+
+def enableAndDisableWidgets(enableWidgets, disableWidgets):
+    for wg in enableWidgets:
+        wg.setEnabled(True)
+    for wg in disableWidgets:
+        wg.setEnabled(False)
+
+def layerHasPendingChanges(layer: QgsVectorLayer):
+    buffer = layer.editBuffer()
+    if not buffer:
+        return False
+    return bool(len(buffer.changedGeometries()) + len(buffer.changedAttributeValues()))
+
+def findLayerInProject(name):
+    mapLayers = QgsProject.instance().mapLayers()
+    for lyr in mapLayers.values():
+        if lyr.name() == name:
+            return lyr
+        
+class ProjectSaveFunc():
+    # ToDo: Currently without use
+    def projectSave(self, source):
+        try:
+            currentDate = (time.strftime("%Y.%m.%d"))
+            currentTime = (time.strftime("%H-%M"))
+            target = os.path.join(source, r'_Sicherungen_', currentDate + '_' + currentTime)
+
+            fileFunc().directory_copy(os.path.join(source, 'GPKG Files'), os.path.join(target, 'GPKG Files'))
+            fileFunc().directory_copy(os.path.join(source, 'Shape'), os.path.join(target, 'Shape'))
+            fileFunc().directory_copy(os.path.join(source, 'Projekt'), os.path.join(target, 'Projekt'))
+
+            os.remove(os.path.join(target, 'Projekt', 'intro.py'))
+            fileFunc().directory_del(os.path.join(target, 'Projekt', '__pycache__'))
+            return True
+        except:
+            fileFunc().directory_del(target)
+            return False
+
+    def dayprojectSave(self, copyFrom):
+        now = datetime.now()  # current date and time
+        currentDate = now.strftime("%Y.%m.%d")
+        currentTime = now.strftime("%H-%M")
+        copyTo = os.path.join(copyFrom, r'_Tagesdateien_', currentDate + '_' + currentTime)
+
+        try:
+            fileFunc().directory_copy(os.path.join(copyFrom, 'GPKG Files'), os.path.join(copyTo, 'GPKG_Files'))
+            fileFunc().directory_copy(os.path.join(copyFrom, 'Shape'), os.path.join(copyTo, 'Shape'))
+            fileFunc().directory_copy(os.path.join(copyFrom, 'Projekt'), os.path.join(copyTo, 'Projekt'))
+
+            os.remove(os.path.join(copyTo, 'Projekt', 'intro.py'))
+            fileFunc().directory_del(os.path.join(copyTo, 'Projekt', '__pycache__'))
+            return True
+        except:
+            fileFunc().directory_del(copyTo)
+            return False
+
+    def shapesSave(self):
+        for layer in iface.mapCanvas().layers():
+            if layer.isEditable() and layer.isModified():
+                layer.commitChanges()
+                layer.startEditing()
+
+def addPoint3D(layer, point, attListe):
+    referenceNumber = getCustomProjectVariable('aktcode')
+    #geoarch = getCustomProjectVariable('geo-arch')
+    
+    # ToDo: should geo-arch be included as a field?
+    dateFieldIndex = layer.fields().indexFromName('erf_datum')
+    referenceFieldIndex = layer.fields().indexFromName('aktcode')
+    #geoArchFieldIndex = layer.fields().indexFromName('geo-arch')
+
+    attListe.update({dateFieldIndex: str(datetime.now()), 
+                     referenceFieldIndex: referenceNumber
+                     #geoArchFieldIndex: geoarch
+                     })
+    
+    feature = QgsFeature()
+    fields = layer.fields()
+    feature.setFields(fields)
+    feature.setGeometry(QgsGeometry(point))
+    _, addedFeatures = layer.dataProvider().addFeatures([feature])
+    layer.updateExtents()
+
+    layer.dataProvider().changeAttributeValues({addedFeatures[-1].id(): attListe})
+
+
+
+#-------------------- Refactoring ----------------------------
 
 class fileFunc():
     def directory_del(self, path):
@@ -31,10 +176,8 @@ class fileFunc():
             os.makedirs(path)
 
     def directory_copy(self, quelle, ziel):
-        root_src_dir = unicode(quelle)
-        root_dst_dir = unicode(ziel)
-        for src_dir, dirs, files in os.walk(root_src_dir):
-            dst_dir = src_dir.replace(root_src_dir, root_dst_dir, 1)
+        for src_dir, dirs, files in os.walk(quelle):
+            dst_dir = src_dir.replace(quelle, ziel, 1)
             if not os.path.exists(dst_dir):
                 os.makedirs(dst_dir.replace('\\','/',1))
             for file_ in files:
@@ -43,47 +186,6 @@ class fileFunc():
                 if os.path.exists(dst_file):
                     os.remove(dst_file)
                 shutil.copy(src_file, dst_dir)
-
-class projectSaveFunc():
-    def project_save(self,quelle):
-        try:
-            datum = unicode(time.strftime("%Y.%m.%d"))
-            zeit = unicode(time.strftime("%H-%M")) #"%H-%M-%S"
-            ziel = os.path.join(quelle, r'_Sicherungen_', datum + '_' + zeit)
-
-            fileFunc().directory_copy(os.path.join(quelle, 'GPKG Files'), os.path.join(ziel, 'GPKG Files'))
-            fileFunc().directory_copy(os.path.join(quelle, 'Shape'), os.path.join(ziel, 'Shape'))
-            fileFunc().directory_copy(os.path.join(quelle, 'Projekt'), os.path.join(ziel, 'Projekt'))
-
-            os.remove(os.path.join(ziel, 'Projekt', 'intro.py'))
-            fileFunc().directory_del(os.path.join(ziel, 'Projekt', '__pycache__'))
-            return 'True'
-        except:
-            fileFunc().directory_del(ziel)
-            return 'False'
-
-    def dayproject_save(self,quelle):
-        try:
-            datum = unicode(time.strftime("%Y.%m.%d"))
-            zeit = unicode(time.strftime("%H-%M")) #"%H-%M-%S"
-            ziel = os.path.join(quelle, r'_Tagesdateien_', datum + '_' + zeit)
-
-            fileFunc().directory_copy(os.path.join(quelle, 'GPKG Files'), os.path.join(ziel, 'GPKG Files'))
-            fileFunc().directory_copy(os.path.join(quelle, 'Shape'), os.path.join(ziel, 'Shape'))
-            fileFunc().directory_copy(os.path.join(quelle, 'Projekt'), os.path.join(ziel, 'Projekt'))
-
-            os.remove(os.path.join(ziel, 'Projekt', 'intro.py'))
-            fileFunc().directory_del(os.path.join(ziel, 'Projekt', '__pycache__'))
-            return 'True'
-        except:
-            fileFunc().directory_del(ziel)
-            return 'False'
-
-    def shapesSave(self):
-        for layer in iface.mapCanvas().layers():
-            if layer.isEditable() and layer.isModified():
-                layer.commitChanges()
-                layer.startEditing()
 
 class makerAndRubberbands():
     def __init__(self):
@@ -146,9 +248,8 @@ def isDate(datum, spl):
     return correctDate
 
 def isNumber(str):
-    correct = None
     try:
-        a = float(str)
+        float(str)
         correct = True
     except:
         correct = False
@@ -230,22 +331,6 @@ def setColumnVisibility(layer, columnName, visible):
 
 def setColumnSort(layer, columnName, sort):
     config = layer.attributeTableConfig()
-
-
-def setCustomProjectVariable(variableName, variableWert):
-    project = QgsProject.instance()
-    QgsExpressionContextUtils.setProjectVariable(project, variableName, variableWert)
-
-def getCustomProjectVariable(variableName):
-    project = QgsProject.instance()
-    if str(QgsExpressionContextUtils.projectScope(project).variable(variableName)) == 'NULL':
-        return str('')
-    else:
-        return QgsExpressionContextUtils.projectScope(project).variable(variableName)
-
-def delCustomProjectVariable(variableName):
-    project = QgsProject.instance()
-    QgsExpressionContextUtils.removeProjectVariable(project, variableName)
 
 def csvListfilter(pfad,spalte,suchspalte,suchwert,vergleich):
     path = os.path.join(pfad)
@@ -426,36 +511,6 @@ class LayerTree:
                 child.setExpanded(self.expanded)
         pass
 
-def addPoint3D(layer, point, attListe):
-    project = QgsProject.instance()
-    # letzte id ermitteln
-    idfeld = layer.dataProvider().fieldNameIndex('id')
-    if layer.maximumValue(idfeld) == None:
-        idmaxi = 0
-    else:
-        idmaxi = layer.maximumValue(idfeld)
-    attListe.update({'id': str(idmaxi + 1)})
-
-    aktcode = QgsExpressionContextUtils.projectScope(project).variable('aktcode')
-    geoarch = QgsExpressionContextUtils.projectScope(project).variable('geo-arch')
-
-    attListe.update({'messdatum': str(datetime.now()), 'aktcode' : aktcode,'geo-arch': geoarch})
-    layer.startEditing()
-    feature = QgsFeature()
-    fields = layer.fields()
-    feature.setFields(fields)
-    feature.setGeometry(QgsGeometry(point))
-    # Attribute
-    layer.dataProvider().addFeatures([feature])
-    layer.updateExtents()
-    features = [feature for feature in layer.getFeatures()]
-    lastfeature = features[-1]
-
-    for item in attListe:
-        #QgsMessageLog.logMessage(str(item), 'T2G', Qgis.Info)
-        fIndex = layer.dataProvider().fieldNameIndex(item)
-        layer.changeAttributeValue(lastfeature.id(), fIndex, attListe[item])
-    layer.commitChanges()
 
 def setAliasName() :
     # >Alias Namen erzeugen
@@ -467,7 +522,7 @@ def setAliasName() :
                     layer.setFieldAlias(a, 'Aufnamedatum')
                 elif field.name() == 'aktcode':
                     layer.setFieldAlias(a, 'Grabung')
-                elif field.name() == 'obj_type':
+                elif field.name() == 'obj_typ':
                     layer.setFieldAlias(a, 'Objekttyp')
                 elif field.name() == 'obj_art':
                     layer.setFieldAlias(a, 'Objektart')
@@ -531,11 +586,12 @@ class PrintClickedPoint(QgsMapToolEmitPoint):
 
     def canvasMoveEvent( self, e ):
         try:
-            point = self.toMapCoordinates(self.canvas.mouseLastXY())
-            point = e.originalMapPoint()
-            point = e.snapPoint()
-            self.dlg.activateWindow()
-            self.dlg.txtPoint_2.setText(str(point.x())+','+str(point.y()))
+            #point = self.toMapCoordinates(self.canvas.mouseLastXY())
+            #point = e.originalMapPoint()
+            #point = e.snapPoint()
+            #self.dlg.activateWindow()
+            #self.dlg.txtPoint_2.setText(str(point.x())+','+str(point.y()))
+            pass
         except:
             pass
     def canvasPressEvent( self, e ):
@@ -546,6 +602,7 @@ class PrintClickedPoint(QgsMapToolEmitPoint):
         self.dlg.txtPointTemp.setText(str(point.x())+','+str(point.y()))
         #except:
         #    pass
+
 class ClickedPoint(QgsMapToolEmitPoint):
     geomPoint = pyqtSignal()
     tempPoint = pyqtSignal()
@@ -577,7 +634,6 @@ class xml():
         self.file = file
 
     def getValue(self,element,key):
-        file = 'G:/settings.xml'
         import xml.etree.ElementTree as ElementTree
         tree = ElementTree.parse(self.file)
         root = tree.getroot()
@@ -600,10 +656,10 @@ class xml():
                         child.text = wert
         tree.write(self.file)
 
-class MyMeldung(QWidget):
+class HelpWindow(QWidget):
 
     def __init__(self,parent = None ):
-        super(MyMeldung, self).__init__(parent, QtCore.Qt.WindowStaysOnTopHint)
+        super(HelpWindow, self).__init__(parent, Qt.WindowStaysOnTopHint)
         self.setLayout(QGridLayout())
         self.layout().setContentsMargins(0, 0, 0, 0)
         self.meldung = QTextBrowser()
@@ -615,14 +671,12 @@ class MyMeldung(QWidget):
         if pfad == None:
             self.meldung.setHtml(text)
         elif text == None:
-            self.meldung.setSource(QtCore.QUrl.fromLocalFile(pfad))
-        #self.meldung.setHtml(self.text)
+            self.meldung.setSource(QUrl.fromLocalFile(pfad))
         self.resize(width, height)
         self.show()
-        pass
 
     def setText(self,text):
         self.text = text
 
     def setPfad(self, pfad):
-        self.pfad = text
+        self.pfad = pfad

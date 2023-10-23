@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import os
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QAction
-from PyQt5.QtGui import QIcon, QFont, QColor
+from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtWidgets import QAction
+from qgis.PyQt.QtGui import QIcon, QFont, QColor
 from qgis.core import QgsMarkerSymbol, QgsSingleSymbolRenderer, QgsPalLayerSettings, QgsTextFormat, \
     QgsTextBufferSettings, QgsVectorLayerSimpleLabeling
 from qgis.gui import QgsMapCanvas, QgsMapToolPan, QgsMapToolZoom

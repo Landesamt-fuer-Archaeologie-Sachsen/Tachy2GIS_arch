@@ -3,8 +3,8 @@ import math
 import pathlib
 from functools import partial
 
-from PyQt5.QtWidgets import QMessageBox, QComboBox, QLabel
-from PyQt5.QtCore import Qt, pyqtSlot, QObject
+from qgis.PyQt.QtWidgets import QMessageBox, QComboBox, QLabel
+from qgis.PyQt.QtCore import Qt, pyqtSlot, QObject
 from qgis.core import (
     QgsProject,
     QgsVectorLayer,
@@ -327,8 +327,8 @@ class Georef:
 
             if geoType == 1001 or geoType == 3001:
                 pointObj = {
-                    "uuid": feature.attribute("uuid"),
-                    "ptnr": feature.attribute("ptnr"),
+                    "uuid": feature.attribute("obj_uuid"),
+                    "ptnr": feature.attribute("pt_nr"),
                     "id": feature.attribute("id"),
                     "x": float(g.get().x()),
                     "y": float(g.get().y()),
@@ -499,9 +499,9 @@ class Georef:
     def getProfileNumbers(self, lineLayer):
         profileList = []
         for feat in lineLayer.getFeatures():
-            if feat.attribute("Objekttyp") == "Profil":
-                if feat.attribute("prof_nr"):
-                    profileList.append(feat.attribute("prof_nr"))
+            if feat.attribute('obj_typ') == 'Profil':
+                if feat.attribute('prof_nr'):
+                    profileList.append(feat.attribute('prof_nr'))
 
         return sorted(profileList, key=str.lower)
 

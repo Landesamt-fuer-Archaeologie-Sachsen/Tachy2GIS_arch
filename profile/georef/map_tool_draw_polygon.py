@@ -1,5 +1,5 @@
-from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtGui import QColor
+from qgis.PyQt.QtCore import Qt, pyqtSignal
+from qgis.PyQt.QtGui import QColor
 from qgis.core import QgsGeometry, QgsWkbTypes
 from qgis.gui import QgsMapToolEmitPoint, QgsRubberBand, QgsVertexMarker
 

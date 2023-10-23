@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from PyQt5.QtWidgets import QWidget, QHBoxLayout, QLabel, QFrame, QSizePolicy
+from qgis.PyQt.QtWidgets import QWidget, QHBoxLayout, QLabel, QFrame, QSizePolicy
 
 ## @brief With the TransformationDialogParambar class a bar based on QWidget is realized
 #

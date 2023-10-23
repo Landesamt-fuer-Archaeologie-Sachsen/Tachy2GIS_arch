@@ -1,6 +1,6 @@
 
-from PyQt5 import QtWidgets, uic, QtCore
-from PyQt5.QtGui import *
+from qgis.PyQt import QtWidgets, uic, QtCore
+from qgis.PyQt.QtGui import *
 
 class Textadjustment(object):
     """docstring for ."""
@@ -11,24 +11,11 @@ class Textadjustment(object):
         self.__dockwidget = t2gArchInstance.dockwidget
         self.textScale = textScale
 
-
+    # ToDo: use QtDesigner
     def setText(self):
+        pass
+        """
         f = float(self.textScale)
-        w = self.__dockwidget
-        w.label_2.setFont(QFont('MS Shell Dlg 2', 8*f))
-        w.txtAkt.setFont(QFont('MS Shell Dlg 2', 11*f, weight=QFont.Bold))
-        w.cboFigur.setFont(QFont('MS Shell Dlg 2', 8*f))
-        w.label_3.setFont(QFont('MS Shell Dlg 2', 8*f))
-        w.txtZKoord.setFont(QFont('MS Shell Dlg 2', 8*f))
-        w.butCreateFeature.setFont(QFont('MS Shell Dlg 2', 8*f))
-        w.butClear.setFont(QFont('MS Shell Dlg 2', 8*f))
-        w.chbAutoAtt.setFont(QFont('MS Shell Dlg 2', 8*f))
-        #w.chbAutoAtt.setStyleSheet("QCheckBox::indicator"
-        #                       "{"
-        #                       "width :10px;"
-        #                       "height : 10px;"
-        #                       "}")
-        w.chbAttributtable.setFont(QFont('MS Shell Dlg 2', 7*f))
         w.labPointCount.setFont(QFont('MS Shell Dlg 2', 8*f))
         w.tabWidget.setFont(QFont('MS Shell Dlg 2', 8*f))
         w.tabWidget_2.setFont(QFont('MS Shell Dlg 2', 9*f))
@@ -56,14 +43,9 @@ class Textadjustment(object):
         w.label_6.setFont(QFont('MS Shell Dlg 2', 8*f))
         w.label_7.setFont(QFont('MS Shell Dlg 2', 8*f))
         w.butSchriftfeld.setFont(QFont('MS Shell Dlg 2', 8*f))
-
-        w.txtPoint_2.hide()
-        w.txtPointTemp_2.hide()
-        w.cboArchGeo.hide()
-        w.butBefundLabel.hide()
-
         w.cboobjTyp.setStyleSheet("color:blue")
         w.cboobjArt.setStyleSheet("color:blue")
+        w.cboobjSpez.setStyleSheet("color:blue")
         w.txtSchnittNr.setStyleSheet("color:blue")
         w.txtPlanum.setStyleSheet("color:blue")
         w.txtBefNr.setStyleSheet("color:blue")
@@ -72,3 +54,5 @@ class Textadjustment(object):
         w.txtFundNr.setStyleSheet("color:blue")
         w.txtProbeNr.setStyleSheet("color:blue")
         w.cboMaterial.setStyleSheet("color:blue")
+        w.cboEpoche.setStyleSheet("color:blue")
+        """

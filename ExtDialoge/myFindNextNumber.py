@@ -2,11 +2,11 @@
 # -*- coding=utf-8 -*-
 
 
-from PyQt5.QtSerialPort import QSerialPort
+from qgis.PyQt.QtSerialPort import QSerialPort
 
 import datetime
 from ..functions import *
-from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot, QTimer
+from qgis.PyQt.QtCore import QObject, pyqtSignal, pyqtSlot, QTimer
 
 
 class FindNextNumber(QObject):
@@ -35,8 +35,7 @@ class FindNextNumber(QObject):
         self.nextNumberEmit.emit()
 
     def getMaxValues(self):
-        if getCustomProjectVariable('maxWerteAktualisieren') == 'True':
-            #return
+        if getCustomProjectVariable('maxWerteAktualisieren') == True:
             layerLine = QgsProject.instance().mapLayersByName('E_Line')[0]
             layerPoly = QgsProject.instance().mapLayersByName('E_Polygon')[0]
             layerPoint = QgsProject.instance().mapLayersByName('E_Point')[0]
