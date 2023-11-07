@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 import os
+
+from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtWidgets import QWidget, QMainWindow, QAction, QVBoxLayout
 from PyQt5.QtGui import QIcon
+from qgis.core import QgsPointXY
 from qgis.gui import QgsMessageBar
 
 from .parambar import Parambar
@@ -12,9 +15,6 @@ from .maptool_digi_point import MapToolDigiPoint
 from .maptool_digi_line import MapToolDigiLine
 from .maptool_digi_polygon import MapToolDigiPolygon
 
-from .maptool_edit_point import MapToolEditPoint
-from .maptool_edit_line import MapToolEditLine
-from .maptool_edit_polygon import MapToolEditPolygon
 ## @brief With the GeoreferencingDialog class a dialog window for the georeferencing of profiles is realized
 #
 # The class inherits form QMainWindow
@@ -22,15 +22,14 @@ from .maptool_edit_polygon import MapToolEditPolygon
 # @author Mario Uhlig, VisDat geodatentechnologie GmbH, mario.uhlig@visdat.de
 # @date 2021-25-05
 
+
 class DigitizeDialog(QMainWindow):
-
     def __init__(self, dataStoreDigitize, rotationCoords, iFace, aar_direction):
-
         super(DigitizeDialog, self).__init__()
 
         self.__iface = iFace
 
-        self.iconpath = os.path.join(os.path.dirname(__file__), '...', 'Icons')
+        self.iconpath = os.path.join(os.path.dirname(__file__), "...", "Icons")
 
         self.aar_direction = aar_direction
 
@@ -51,21 +50,20 @@ class DigitizeDialog(QMainWindow):
     # creates the menuBar at upper part of the window and statusBar in the lower part
     #
     def createMenu(self):
-
         self.statusBar()
 
         self.statusBar().reformat()
-        self.statusBar().setStyleSheet('background-color: #FFF8DC;')
+        self.statusBar().setStyleSheet("background-color: #FFF8DC;")
         self.statusBar().setStyleSheet("QStatusBar::item {border: none;}")
 
-        exitAct = QAction(QIcon(os.path.join(self.iconpath , 'Ok_grau.png')), 'Exit', self)
+        exitAct = QAction(QIcon(os.path.join(self.iconpath, "Ok_grau.png")), "Exit", self)
 
-        exitAct.setShortcut('Ctrl+Q')
-        exitAct.setStatusTip('Anwendung schließen')
+        exitAct.setShortcut("Ctrl+Q")
+        exitAct.setStatusTip("Anwendung schließen")
         exitAct.triggered.connect(self.close)
 
         menubar = self.menuBar()
-        fileMenu = menubar.addMenu('&Datei')
+        fileMenu = menubar.addMenu("&Datei")
         fileMenu.addAction(exitAct)
 
     ## \brief ECreates the components of the window
@@ -79,75 +77,90 @@ class DigitizeDialog(QMainWindow):
 
     # @returns
     def createComponents(self):
-
-        #messageBar
+        # messageBar
         self.messageBar = QgsMessageBar()
 
-        #Canvas Elemente
+        # Canvas Elemente
         self.canvasDigitize = DigitizeCanvas(self, self.__iface)
 
-        #MapTools
+        # MapTools
         self.toolIdentify = MapToolIdentify(self.canvasDigitize, self.__iface)
-        self.toolDigiPoint = MapToolDigiPoint(self.canvasDigitize, self.__iface, self.rotationCoords, self.dataStoreDigitize)
-        self.toolDigiLine = MapToolDigiLine(self.canvasDigitize, self.__iface, self.rotationCoords, self.dataStoreDigitize)
-        self.toolDigiPolygon = MapToolDigiPolygon(self.canvasDigitize, self.__iface, self.rotationCoords, self.dataStoreDigitize)
+        self.toolDigiPoint = MapToolDigiPoint(
+            self.canvasDigitize, self.__iface, self.rotationCoords, self.dataStoreDigitize
+        )
+        self.toolDigiLine = MapToolDigiLine(
+            self.canvasDigitize, self.__iface, self.rotationCoords, self.dataStoreDigitize
+        )
+        self.toolDigiPolygon = MapToolDigiPolygon(
+            self.canvasDigitize, self.__iface, self.rotationCoords, self.dataStoreDigitize
+        )
 
-        self.toolEditPoint = MapToolEditPoint(self.canvasDigitize, self.__iface, self.rotationCoords)
-        self.toolEditLine = MapToolEditLine(self.canvasDigitize, self.__iface, self.rotationCoords)
-        self.toolEditPolygon = MapToolEditPolygon(self.canvasDigitize, self.__iface, self.rotationCoords)
+        # paramsBar
+        self.parambar = Parambar(
+            self,
+            self.canvasDigitize,
+            self.toolIdentify,
+            self.toolDigiPoint,
+            self.toolDigiLine,
+            self.toolDigiPolygon,
+            self.rotationCoords,
+            self.aar_direction,
+        )
 
-        #paramsBar
-        self.parambar = Parambar(self, self.canvasDigitize, self.toolIdentify, self.toolDigiPoint, self.toolDigiLine, self.toolDigiPolygon, self.toolEditPoint, self.toolEditLine, self.toolEditPolygon, self.rotationCoords, self.aar_direction)
-
-        #Table
+        # Table
         self.tableDigitize = DigitizeTable(self)
 
     ## \brief Event connections
     #
 
     def createConnects(self):
+        self.canvasDigitize.pup.register("moveCoordinate", self.parambar.updateCoordinate)
+        self.canvasDigitize.pup.register("setDigiPointLayer", self.toolDigiPoint.setDigiPointLayer)
+        self.canvasDigitize.pup.register("setDigiLineLayer", self.toolDigiLine.setDigiLineLayer)
+        self.canvasDigitize.pup.register("setDigiPolygonLayer", self.toolDigiPolygon.setDigiPolygonLayer)
 
-        self.canvasDigitize.pup.register('moveCoordinate', self.parambar.updateCoordinate)
-        self.canvasDigitize.pup.register('setDigiPointLayer', self.toolDigiPoint.setDigiPointLayer)
-        self.canvasDigitize.pup.register('setDigiLineLayer', self.toolDigiLine.setDigiLineLayer)
-        self.canvasDigitize.pup.register('setDigiPolygonLayer', self.toolDigiPolygon.setDigiPolygonLayer)
+        self.canvasDigitize.pup.register("setDigiPointLayer", self.toolIdentify.setDigiPointLayer)
+        self.canvasDigitize.pup.register("setDigiLineLayer", self.toolIdentify.setDigiLineLayer)
+        self.canvasDigitize.pup.register("setDigiPolygonLayer", self.toolIdentify.setDigiPolygonLayer)
 
-        self.canvasDigitize.pup.register('setDigiPointLayer', self.toolIdentify.setDigiPointLayer)
-        self.canvasDigitize.pup.register('setDigiLineLayer', self.toolIdentify.setDigiLineLayer)
-        self.canvasDigitize.pup.register('setDigiPolygonLayer', self.toolIdentify.setDigiPolygonLayer)
+        self.canvasDigitize.pup.register("updateFeatureAttr", self.tableDigitize.updateFeature)
 
-        self.canvasDigitize.pup.register('setDigiPointLayer', self.toolEditPoint.setDigiPointLayer)
-        self.canvasDigitize.pup.register('setDigiLineLayer', self.toolEditLine.setDigiLineLayer)
-        self.canvasDigitize.pup.register('setDigiPolygonLayer', self.toolEditPolygon.setDigiPolygonLayer)
+        # self.parambar.pup.register('triggerAarTransformationParams', self.dataStoreDigitize.triggerAarTransformationParams)
+        self.dataStoreDigitize.pup.register("pushTransformationParams", self.rotationCoords.setAarTransformationParams)
 
-        self.canvasDigitize.pup.register('updateFeatureAttr', self.tableDigitize.updateFeature)
+        self.toolDigiPoint.pup.register("pointFeatureAttr", self.tableDigitize.insertFeature)
+        self.toolDigiLine.pup.register("lineFeatureAttr", self.tableDigitize.insertFeature)
+        self.toolDigiPolygon.pup.register("polygonFeatureAttr", self.tableDigitize.insertFeature)
 
-        #self.parambar.pup.register('triggerAarTransformationParams', self.dataStoreDigitize.triggerAarTransformationParams)
-        self.dataStoreDigitize.pup.register('pushTransformationParams', self.rotationCoords.setAarTransformationParams)
+        self.tableDigitize.pup.register("removeFeatureByUuid", self.canvasDigitize.removeFeatureByUuid)
+        self.tableDigitize.pup.register("editFeatureAttributes", self.canvasDigitize.editFeatureAttributes)
 
-        self.toolDigiPoint.pup.register('pointFeatureAttr', self.tableDigitize.insertFeature)
-        self.toolDigiLine.pup.register('lineFeatureAttr', self.tableDigitize.insertFeature)
-        self.toolDigiPolygon.pup.register('polygonFeatureAttr', self.tableDigitize.insertFeature)
+        self.tableDigitize.pup.register("removeFeatureByUuid", self.toolDigiPoint.removeFeatureInEingabelayerByUuid)
+        self.tableDigitize.pup.register("removeFeatureByUuid", self.toolDigiLine.removeFeatureInEingabelayerByUuid)
+        self.tableDigitize.pup.register("removeFeatureByUuid", self.toolDigiPolygon.removeFeatureInEingabelayerByUuid)
 
-        self.tableDigitize.pup.register('removeFeatureByUuid', self.canvasDigitize.removeFeatureByUuid)
-        self.tableDigitize.pup.register('editFeatureAttributes', self.canvasDigitize.editFeatureAttributes)
+        self.toolIdentify.pup.register("removeHoverFeatures", self.canvasDigitize.removeHoverFeatures)
+        self.toolIdentify.pup.register("addHoverFeatures", self.canvasDigitize.addHoverFeatures)
 
-        self.tableDigitize.pup.register('removeFeatureByUuid', self.toolDigiPoint.removeFeatureInEingabelayerByUuid)
-        self.tableDigitize.pup.register('removeFeatureByUuid', self.toolDigiLine.removeFeatureInEingabelayerByUuid)
-        self.tableDigitize.pup.register('removeFeatureByUuid', self.toolDigiPolygon.removeFeatureInEingabelayerByUuid)
+        self.toolDigiPoint.digi_layer_changed.connect(self.collect_points_from_digi_layers)
+        self.toolDigiLine.digi_layer_changed.connect(self.collect_points_from_digi_layers)
+        self.toolDigiPolygon.digi_layer_changed.connect(self.collect_points_from_digi_layers)
 
-        self.toolIdentify.pup.register('removeHoverFeatures', self.canvasDigitize.removeHoverFeatures)
-        self.toolIdentify.pup.register('addHoverFeatures', self.canvasDigitize.addHoverFeatures)
+        self.toolIdentify.points_feature_selected_for_edit.connect(self.toolDigiPoint.set_feature_for_editing)
+        self.toolIdentify.points_feature_selected_for_edit.connect(self.parambar.point_set_map_tool)
+        self.toolIdentify.lines_feature_selected_for_edit.connect(self.toolDigiLine.set_feature_for_editing)
+        self.toolIdentify.lines_feature_selected_for_edit.connect(self.parambar.line_set_map_tool)
+        self.toolIdentify.polygons_feature_selected_for_edit.connect(self.toolDigiPolygon.set_feature_for_editing)
+        self.toolIdentify.polygons_feature_selected_for_edit.connect(self.parambar.polygon_set_map_tool)
 
     ## \brief Creates the layout for the window and assigns the created components
     #
 
     def createLayout(self):
-
         widgetCentral = QWidget()
 
         verticalLayout = QVBoxLayout()
-        verticalLayout.setContentsMargins(0,0,0,0)
+        verticalLayout.setContentsMargins(0, 0, 0, 0)
         verticalLayout.setSpacing(0)
         widgetCentral.setLayout(verticalLayout)
         self.setCentralWidget(widgetCentral)
@@ -158,7 +171,6 @@ class DigitizeDialog(QMainWindow):
         verticalLayout.addWidget(self.tableDigitize)
 
     def restore(self, refData):
-
         self.canvasDigitize.update(refData)
         self.parambar.update(refData)
         self.toolDigiPoint.update(refData)
@@ -168,7 +180,6 @@ class DigitizeDialog(QMainWindow):
         self.adjustSize()
         self.show()
         self.resize(1000, 700)
-
 
     ## \brief Open up the digitize dialog
     #
@@ -181,6 +192,22 @@ class DigitizeDialog(QMainWindow):
 
         bufferGeometry = self.rotationCoords.profileBuffer(1, self.aar_direction)
 
-        self.toolDigiPoint.getFeaturesFromEingabelayer(bufferGeometry, 'profile', self.aar_direction)
-        self.toolDigiLine.getFeaturesFromEingabelayer(bufferGeometry, 'profile', self.aar_direction)
-        self.toolDigiPolygon.getFeaturesFromEingabelayer(bufferGeometry, 'profile', self.aar_direction)
+        self.toolDigiPoint.getFeaturesFromEingabelayer(bufferGeometry, "profile", self.aar_direction)
+        self.toolDigiLine.getFeaturesFromEingabelayer(bufferGeometry, "profile", self.aar_direction)
+        self.toolDigiPolygon.getFeaturesFromEingabelayer(bufferGeometry, "profile", self.aar_direction)
+
+    @pyqtSlot()
+    def collect_points_from_digi_layers(self):
+        list_of_points = [
+            QgsPointXY(point.x(), point.y())
+            for layer in (
+                self.toolDigiPolygon.digiPolygonLayer,
+                self.toolDigiLine.digiLineLayer,
+                self.toolDigiPoint.digiPointLayer,
+            )
+            for feature in layer.getFeatures()
+            for point in feature.geometry().vertices()
+        ]
+        self.toolDigiPolygon.setSnappingPoints(list_of_points)
+        self.toolDigiLine.setSnappingPoints(list_of_points)
+        self.toolDigiPoint.setSnappingPoints(list_of_points)

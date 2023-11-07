@@ -199,9 +199,9 @@ class DigitizeCanvas(QgsMapCanvas):
                 "is_curved": "0",
                 "arrow_start_width": "0.5",
                 "arrow_width": "0.5",
-                "head_length": "2",
+                "head_length": "0",
                 "head_thickness": "0.8",
-                "color": "green",
+                "color": "black",
             }
         )
         symbol_profile.changeSymbolLayer(0, arrow)
@@ -214,7 +214,7 @@ class DigitizeCanvas(QgsMapCanvas):
                 "is_curved": "0",
                 "arrow_start_width": "0.5",
                 "arrow_width": "0.5",
-                "head_length": "2",
+                "head_length": "0",
                 "head_thickness": "0.8",
                 "color": "grey",
             }
@@ -376,9 +376,9 @@ class DigitizeCanvas(QgsMapCanvas):
                 "is_curved": "0",
                 "arrow_start_width": "0.5",
                 "arrow_width": "0.5",
-                "head_length": "2",
+                "head_length": "0",
                 "head_thickness": "0.8",
-                "color": "green",
+                "color": "black",
             }
         )
         symbol_profile.changeSymbolLayer(0, arrow)
@@ -391,7 +391,7 @@ class DigitizeCanvas(QgsMapCanvas):
                 "is_curved": "0",
                 "arrow_start_width": "0.5",
                 "arrow_width": "0.5",
-                "head_length": "2",
+                "head_length": "0",
                 "head_thickness": "0.8",
                 "color": "grey",
             }
@@ -471,7 +471,7 @@ class DigitizeCanvas(QgsMapCanvas):
                 "style": "solid",
                 "color": "255, 255, 0, 50",
                 "outline_style": "solid",
-                "outline_color": "255, 255, 0, 50",
+                "outline_color": "255, 255, 0, 0",
                 "outline_width": "2",
                 "cap_style": "round",
                 "join_style": "round",
@@ -482,7 +482,7 @@ class DigitizeCanvas(QgsMapCanvas):
                 "style": "solid",
                 "color": "255, 255, 0, 50",
                 "outline_style": "solid",
-                "outline_color": "255, 255, 0, 50",
+                "outline_color": "255, 255, 0, 0",
                 "outline_width": "2",
                 "cap_style": "round",
                 "join_style": "round",
