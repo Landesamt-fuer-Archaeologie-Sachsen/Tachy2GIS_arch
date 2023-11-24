@@ -1,81 +1,81 @@
-from PyQt5.QtCore import Qt
-from qgis.gui import QgsMapTool, QgsRubberBand, QgsVertexMarker, QgsAttributeDialog, QgsAttributeEditorContext
-from qgis.core import QgsWkbTypes, QgsFeature, QgsGeometry, QgsFeatureRequest
+from PyQt5.QtCore import pyqtSignal, pyqtSlot
+from qgis.gui import QgsAttributeDialog, QgsAttributeEditorContext
+from qgis.core import QgsFeature, QgsGeometry, QgsFeatureRequest
 
+from .map_tools import PolygonMapTool
 from ..publisher import Publisher
 from .maptool_mixin import MapToolMixin
 
-class MapToolDigiPolygon(QgsMapTool, MapToolMixin):
+
+class MapToolDigiPolygon(PolygonMapTool, MapToolMixin):
+    # darf nicht in den Konstruktor:
+    digi_layer_changed = pyqtSignal()
+
     def __init__(self, canvas, iFace, rotationCoords, dataStoreDigitize):
-        
+        self.canvas = canvas
         self.__iface = iFace
-        self.pup = Publisher()
         self.rotationCoords = rotationCoords
         self.dataStoreDigitize = dataStoreDigitize
-        self.canvas = canvas
+        self.pup = Publisher()
         self.digiPolygonLayer = None
         self.featGeometry = None
         self.feat = None
         self.dialogAttributes = None
-        QgsMapTool.__init__(self, self.canvas)
-        self.rubberband = None
-        self.vertexMarker = None
-        self.createRubberband()
-        self.point = None
-        self.points = []
         self.refData = None
-        self.snapping = False
+        PolygonMapTool.__init__(self, self.canvas)
+        self.finished_geometry.connect(self.got_geometry)
 
-    def createRubberband(self):
-        self.rubberband = QgsRubberBand(self.canvas, True)
-        self.rubberband.setStrokeColor(Qt.red)
-        self.rubberband.setWidth(3)
-        self.rubberband.show()
+    def setDigiPolygonLayer(self, digiPolygonLayer):
+        self.digiPolygonLayer = digiPolygonLayer
 
-    def canvasPressEvent(self, event):
+    def update(self, refData):
+        self.refData = refData
 
-        if event.button() == Qt.RightButton:
+    def got_geometry(self, geometry):
+        self.featGeometry = geometry
+        if self.featGeometry.isNull():
+            return
 
-            self.featGeometry = self.rubberband.asGeometry()
-
-            if self.featGeometry:
-                if len(self.points) > 2:
-                    self.showdialog()
-
+        if self.feat and self.feat.hasGeometry():
+            self.feat.setGeometry(self.featGeometry)
+            self.digiPolygonLayer.startEditing()
+            self.digiPolygonLayer.addFeature(self.feat)
+            self.digiPolygonLayer.commitChanges()
+            self.digiPolygonLayer.endEditCommand()
+            self.clear_map_tool()
         else:
+            self.showdialog()
 
-            self.active = True
+    @pyqtSlot(QgsFeature)
+    def set_feature_for_editing(self, feature):
+        self.feat = feature
+        self.set_geometry_for_editing(feature.geometry())
+        self.digiPolygonLayer.startEditing()
+        self.digiPolygonLayer.deleteFeature(feature.id())
+        self.digiPolygonLayer.commitChanges()
+        self.digiPolygonLayer.endEditCommand()
+        self.canvas.setMapTool(self)
 
-            if self.snapping is True:
-                pointXY, position = self.snapToNearestVertex(self.canvas, event.pos())
-                self.point = pointXY
-            else:
-                self.point = self.toMapCoordinates(event.pos())
+    def clear_map_tool(self):
+        self.reset_geometry()
+        self.feat = None
 
-            self.canvas.scene().removeItem(self.vertexMarker)
-            self.vertexMarker = self.createVertexMarker(self.canvas, self.point, Qt.red, 5, QgsVertexMarker.ICON_BOX, 3)
-
-            self.points.append(self.point)
-            self.isEmittingPoint = True
-            self.showPoly()
-
-    def showPoly(self):
-
-        self.rubberband.setToGeometry(QgsGeometry.fromPolygonXY([self.points]), None)
+    def createFeature(self):
+        self.feat = QgsFeature()
+        self.feat.setGeometry(self.featGeometry)
 
     def showdialog(self):
-
         self.createFeature()
 
         self.feat.setFields(self.digiPolygonLayer.fields())
 
         self.digiPolygonLayer.startEditing()
-        self.refData['polygonLayer'].startEditing()
+        self.refData["polygonLayer"].startEditing()
 
         prof_nr = self.dataStoreDigitize.getProfileNumber()
         self.setPlaceholders(self.feat, prof_nr)
 
-        self.dialogAttributes = QgsAttributeDialog(self.refData['polygonLayer'], self.feat, False, None)
+        self.dialogAttributes = QgsAttributeDialog(self.refData["polygonLayer"], self.feat, False, None)
         self.dialogAttributes.setMode(QgsAttributeEditorContext.FixAttributeMode)
         self.dialogAttributes.show()
 
@@ -84,104 +84,89 @@ class MapToolDigiPolygon(QgsMapTool, MapToolMixin):
         self.dialogAttributes.accepted.connect(self.acceptedAttributeDialog)
 
     def closeAttributeDialog(self):
-        self.clearRubberband()
-        self.refData['polygonLayer'].commitChanges()
-
-
-    def writeToTable(self, fields, feature):
-
-        dataObj = {}
-
-        for item in fields:
-
-            if item.name() == 'uuid' or item.name() == 'id' or item.name() == 'obj_type' or item.name() == 'obj_art' or item.name() == 'zeit' or item.name() == 'material' or item.name() == 'bemerkung' or item.name() == 'bef_nr' or item.name() == 'fund_nr' or item.name() == 'prob_nr':
-                dataObj[item.name()] = feature[item.name()]
-
-        dataObj['layer'] = self.refData['polygonLayer'].sourceName()
-
-        self.pup.publish('polygonFeatureAttr', dataObj)
+        self.clear_map_tool()
+        self.refData["polygonLayer"].commitChanges()
 
     def acceptedAttributeDialog(self):
-
-        self.refData['polygonLayer'].commitChanges()
+        self.refData["polygonLayer"].commitChanges()
 
         atrObj = self.dialogAttributes.feature().attributes()
         self.feat.setAttributes(atrObj)
 
-        self.feat['geo_quelle'] = 'profile_object'
+        self.feat["geo_quelle"] = "profile_object"
 
         self.addFeature2Layer()
-        self.clearRubberband()
 
         dialogFeature = self.dialogAttributes.feature()
 
-        #write to table
+        # write to table
         self.writeToTable(self.feat.fields(), dialogFeature)
-        
+
         self.digiPolygonLayer.updateExtents()
         self.canvas.refresh()
-        
 
-    def clearRubberband(self):
-        self.rubberband.reset(QgsWkbTypes.PolygonGeometry)
-        self.points = []
-        self.canvas.scene().removeItem(self.vertexMarker)
+        self.digi_layer_changed.emit()
+        self.clear_map_tool()
 
-    def createFeature(self):
+    def writeToTable(self, fields, feature):
+        dataObj = {}
 
-        self.feat = QgsFeature()
-        self.feat.setGeometry(self.featGeometry)
+        for item in fields:
+            if (
+                item.name() == "uuid"
+                or item.name() == "id"
+                or item.name() == "obj_type"
+                or item.name() == "obj_art"
+                or item.name() == "zeit"
+                or item.name() == "material"
+                or item.name() == "bemerkung"
+                or item.name() == "bef_nr"
+                or item.name() == "fund_nr"
+                or item.name() == "prob_nr"
+            ):
+                dataObj[item.name()] = feature[item.name()]
+
+        dataObj["layer"] = self.refData["polygonLayer"].sourceName()
+
+        self.pup.publish("polygonFeatureAttr", dataObj)
 
     def addFeature2Layer(self):
-
         pr = self.digiPolygonLayer.dataProvider()
         pr.addFeatures([self.feat])
         self.digiPolygonLayer.updateExtents()
-
         self.digiPolygonLayer.endEditCommand()
 
     def getFeaturesFromEingabelayer(self, bufferGeometry, geoType, aar_direction):
-
         self.digiPolygonLayer.startEditing()
         pr = self.digiPolygonLayer.dataProvider()
 
         bbox = bufferGeometry.boundingBox()
         req = QgsFeatureRequest()
         filterRect = req.setFilterRect(bbox)
-        featsSel = self.refData['polygonLayer'].getFeatures(filterRect)
+        featsSel = self.refData["polygonLayer"].getFeatures(filterRect)
 
         selFeatures = []
         for feature in featsSel:
+            if not feature.geometry().within(bufferGeometry):
+                continue
 
-            if feature.geometry().within(bufferGeometry):
+            if geoType == "tachy" and feature["geo_quelle"] != "profile_object":
+                rotFeature = QgsFeature(self.digiPolygonLayer.fields())
+                rotateGeom = self.rotationCoords.rotatePolygonFeatureFromOrg(feature, aar_direction)
+                rotFeature.setGeometry(rotateGeom)
+                rotFeature.setAttributes(feature.attributes())
+                selFeatures.append(rotFeature)
 
-                if geoType == 'tachy':
-                    if feature['geo_quelle'] != 'profile_object':
+            elif geoType == "profile" and feature["geo_quelle"] == "profile_object":
+                rotFeature = QgsFeature(self.digiPolygonLayer.fields())
+                rotateGeom = self.rotationCoords.rotatePolygonFeatureFromOrg(feature, aar_direction)
+                rotFeature.setGeometry(rotateGeom)
+                rotFeature.setAttributes(feature.attributes())
 
-                        rotFeature = QgsFeature(self.digiPolygonLayer.fields())
+                selFeatures.append(rotFeature)
 
-                        rotateGeom = self.rotationCoords.rotatePolygonFeatureFromOrg(feature, aar_direction)
-
-                        rotFeature.setGeometry(rotateGeom)
-
-                        rotFeature.setAttributes(feature.attributes())
-
-                        selFeatures.append(rotFeature)
-
-                if geoType == 'profile':
-                    if feature['geo_quelle'] == 'profile_object':
-                        rotFeature = QgsFeature(self.digiPolygonLayer.fields())
-
-                        rotateGeom = self.rotationCoords.rotatePolygonFeatureFromOrg(feature, aar_direction)
-                        rotFeature.setGeometry(rotateGeom)
-
-                        rotFeature.setAttributes(feature.attributes())
-
-                        selFeatures.append(rotFeature)
-
-                        #write to table
-                        self.writeToTable(feature.fields(), feature)
-
+                # write to table
+                self.writeToTable(feature.fields(), feature)
 
         pr.addFeatures(selFeatures)
 
@@ -189,17 +174,16 @@ class MapToolDigiPolygon(QgsMapTool, MapToolMixin):
         self.digiPolygonLayer.updateExtents()
         self.digiPolygonLayer.endEditCommand()
 
-    def removeNoneProfileFeatures(self):
+        self.digi_layer_changed.emit()
 
+    def removeNoneProfileFeatures(self):
         self.digiPolygonLayer.startEditing()
         pr = self.digiPolygonLayer.dataProvider()
         features = self.digiPolygonLayer.getFeatures()
 
         removeFeatures = []
         for feature in features:
-
-            if feature['geo_quelle'] != 'profile_object':
-
+            if feature["geo_quelle"] != "profile_object":
                 removeFeatures.append(feature.id())
 
         pr.deleteFeatures(removeFeatures)
@@ -208,32 +192,31 @@ class MapToolDigiPolygon(QgsMapTool, MapToolMixin):
         self.digiPolygonLayer.updateExtents()
         self.digiPolygonLayer.endEditCommand()
 
-    #in den Eingabelayer schreiben
+    # in den Eingabelayer schreiben
     def reverseRotation2Eingabelayer(self, layer_id, aar_direction):
- 
-        self.refData['polygonLayer'].startEditing()
+        self.refData["polygonLayer"].startEditing()
 
-        pr = self.refData['polygonLayer'].dataProvider()
+        pr = self.refData["polygonLayer"].dataProvider()
 
         features = self.digiPolygonLayer.getFeatures()
 
-        #iterrieren über zu schreibende features
+        # iterrieren über zu schreibende features
         for feature in features:
-            #Zielgeometrie erzeugen
-            emptyTargetGeometry = self.rubberband.asGeometry()
+            # Zielgeometrie erzeugen
+            emptyTargetGeometry = QgsGeometry.fromMultiPolygonXY([])
 
-            #Zielfeature erzeugen
-            rotFeature = QgsFeature(self.refData['polygonLayer'].fields())
+            # Zielfeature erzeugen
+            rotFeature = QgsFeature(self.refData["polygonLayer"].fields())
 
-            #Geometrie in Kartenebene umrechnen
+            # Geometrie in Kartenebene umrechnen
             rotateGeom = self.rotationCoords.rotatePolygonFeature(feature, emptyTargetGeometry, aar_direction)
             rotFeature.setGeometry(rotateGeom)
             rotFeature.setAttributes(feature.attributes())
 
             checker = True
-            #Features aus Eingabelayer
-            #schauen ob es schon existiert (anhand uuid), wenn ja dann löschen und durch Zielfeature ersetzen
-            sourceLayerFeatures = self.refData['polygonLayer'].getFeatures()
+            # Features aus Eingabelayer
+            # schauen ob es schon existiert (anhand uuid), wenn ja dann löschen und durch Zielfeature ersetzen
+            sourceLayerFeatures = self.refData["polygonLayer"].getFeatures()
             for sourceFeature in sourceLayerFeatures:
                 if feature["uuid"] == sourceFeature["uuid"]:
                     pr.deleteFeatures([sourceFeature.id()])
@@ -241,33 +224,23 @@ class MapToolDigiPolygon(QgsMapTool, MapToolMixin):
 
                     checker = False
 
-            #wenn feature nicht vorhanden, neues feature im Layer anlegen
+            # wenn feature nicht vorhanden, neues feature im Layer anlegen
             if checker == True:
                 retObj = pr.addFeatures([rotFeature])
 
-        self.refData['polygonLayer'].removeSelection()
-        self.refData['polygonLayer'].commitChanges()
-        self.refData['polygonLayer'].updateExtents()
-        self.refData['polygonLayer'].endEditCommand()
+        self.refData["polygonLayer"].removeSelection()
+        self.refData["polygonLayer"].commitChanges()
+        self.refData["polygonLayer"].updateExtents()
+        self.refData["polygonLayer"].endEditCommand()
 
     def removeFeatureInEingabelayerByUuid(self, uuid):
-        features = self.refData['polygonLayer'].getFeatures()
+        features = self.refData["polygonLayer"].getFeatures()
 
         for feature in features:
-            if feature['uuid'] == uuid:
-                if feature['geo_quelle'] == 'profile_object':
-                    self.refData['polygonLayer'].startEditing()
-                    self.refData['polygonLayer'].deleteFeature(feature.id())
-                    self.refData['polygonLayer'].commitChanges()
+            if feature["uuid"] == uuid:
+                if feature["geo_quelle"] == "profile_object":
+                    self.refData["polygonLayer"].startEditing()
+                    self.refData["polygonLayer"].deleteFeature(feature.id())
+                    self.refData["polygonLayer"].commitChanges()
 
-    def setDigiPolygonLayer(self, digiPolygonLayer):
-        self.digiPolygonLayer = digiPolygonLayer
-
-    def update(self, refData):
-        self.refData = refData
-
-    def setSnapping(self, enableSnapping):
-        if enableSnapping is True:
-            self.snapping = True
-        else:
-            self.snapping = False
+        self.digi_layer_changed.emit()

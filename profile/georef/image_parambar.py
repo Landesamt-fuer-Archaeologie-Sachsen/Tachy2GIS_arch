@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 import os
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QIcon
+from PyQt5.QtCore import Qt, QRect
+from PyQt5.QtGui import QIcon, QPainter, QColor
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QSizePolicy, QToolBar, QAction, QLineEdit, QActionGroup
 from qgis.core import QgsApplication
 
-from .map_tool_draw_polygon import PolygonMapTool
+from ..digitize.map_tools import PolygonMapTool
 
 
 class ImageParambar(QWidget):
@@ -100,38 +100,63 @@ class ImageParambar(QWidget):
         self.action_group_polygon = QActionGroup(self)
         self.imageToolbar.addSeparator()
 
+        def color_shift_icon(source_icon, color):
+            pixmap = source_icon.pixmap(64, 64)
+            painter = QPainter(pixmap)
+            painter.setCompositionMode(QPainter.CompositionMode_SourceAtop)
+            painter.fillRect(pixmap.rect(), color)
+            painter.end()
+            return QIcon(pixmap)
+
+        def merge_icons(source_icon, small_icon):
+            big = 64
+            small = 32
+            pixmap = source_icon.pixmap(big, big)
+            small_pixmap = small_icon.pixmap(small, small)
+            painter = QPainter(pixmap)
+            painter.setCompositionMode(QPainter.CompositionMode_DestinationOver)
+            painter.drawPixmap(QRect(big - small, big - small, small, small), small_pixmap, small_pixmap.rect())
+            painter.end()
+            return QIcon(pixmap)
+
         # createAction_tool_polygon
-        icon4 = QIcon(QgsApplication.iconPath("mActionAddNodesItem.svg"))
-        self.action_tool_polygon = QAction(icon4, "Polygon: Zeichnen (zum Beschneiden)", self)
+        icon_geom = QIcon(QgsApplication.iconPath("mLayoutItemPolygon.svg"))
+        icon_add = merge_icons(
+            icon_geom,
+            QIcon(QgsApplication.iconPath("mActionAdd.svg")),
+        )
+        self.action_tool_polygon = QAction(
+            icon_add,
+            (
+                "Polygon zeichnen (zum Beschneiden)\n"
+                "-> [L-MAUS] Punkt setzen\n"
+                "-> [ESC] vorhergehenden Punkt entfernen\n"
+                "-> [R] Reihenfolge der Punkte umkehren\n"
+                "-> [R-MAUS] Editieren beenden"
+            ),
+            self,
+        )
         self.action_tool_polygon.setCheckable(True)
         self.action_group.addAction(self.action_tool_polygon)
         self.imageToolbar.addAction(self.action_tool_polygon)
         self.action_tool_polygon.toggled.connect(self.polygon_set_map_tool)
 
-        # createAction_tool_polygon_undo
-        icon3 = QIcon(QgsApplication.iconPath("mActionRollbackEdits.svg"))
-        self.action_tool_polygon_undo = QAction(icon3, "Polygon: vorhergehenden Punkt entfernen [ESC]", self)
-        self.action_group_polygon.addAction(self.action_tool_polygon_undo)
-        self.imageToolbar.addAction(self.action_tool_polygon_undo)
-        self.action_tool_polygon_undo.triggered.connect(self.polygon_undo)
-
-        # createAction_tool_polygon_finish
-        icon1 = QIcon(QgsApplication.iconPath("mLayoutItemPolygon.svg"))
-        self.action_tool_polygon_finish = QAction(icon1, "Polygon: Editieren beenden [R-MOUSE]", self)
-        self.action_group_polygon.addAction(self.action_tool_polygon_finish)
-        self.imageToolbar.addAction(self.action_tool_polygon_finish)
-        self.action_tool_polygon_finish.triggered.connect(self.polygon_finish)
-
         # createAction_tool_polygon_edit
-        icon2 = QIcon(QgsApplication.iconPath("mActionEditNodesItem.svg"))
-        self.action_tool_polygon_edit = QAction(icon2, "Polygon: Punkt auswählen zum erneuten Editieren", self)
+        icon_edit = merge_icons(
+            color_shift_icon(icon_geom, QColor(0, 160, 255, 80)),
+            QIcon(QgsApplication.iconPath("mActionToggleEditing.svg")),
+        )
+        self.action_tool_polygon_edit = QAction(icon_edit, "Polygon editieren\n(1) Punkt auswählen", self)
         self.action_group_polygon.addAction(self.action_tool_polygon_edit)
         self.imageToolbar.addAction(self.action_tool_polygon_edit)
         self.action_tool_polygon_edit.triggered.connect(self.polygon_edit)
 
         # createAction_tool_polygon_reset
-        icon = QIcon(QgsApplication.iconPath("mActionDeleteSelected.svg"))
-        self.action_tool_polygon_reset = QAction(icon, "Polygon: alles löschen", self)
+        icon_reset = merge_icons(
+            color_shift_icon(icon_geom, QColor(190, 0, 0, 60)),
+            QIcon(QgsApplication.iconPath("mActionDeleteSelected.svg")),
+        )
+        self.action_tool_polygon_reset = QAction(icon_reset, "Polygon entfernen", self)
         self.action_group_polygon.addAction(self.action_tool_polygon_reset)
         self.imageToolbar.addAction(self.action_tool_polygon_reset)
         self.action_tool_polygon_reset.triggered.connect(self.polygon_reset)
@@ -160,17 +185,11 @@ class ImageParambar(QWidget):
         else:
             self.toolDrawPolygon.recover_to_normal_mode()
 
-    def polygon_undo(self):
-        self.toolDrawPolygon.undo_last_point()
-
-    def polygon_finish(self):
-        self.toolDrawPolygon.finish_polygon()
-
     def polygon_edit(self):
         self.toolDrawPolygon.select_mode()
 
     def polygon_reset(self):
-        self.toolDrawPolygon.reset_polygon()
+        self.toolDrawPolygon.reset_geometry()
 
     def updateCoordinate(self, coordObj):
         self.coordLineEdit.setText(str(round(coordObj["x"], 2)) + "," + str(round(coordObj["y"], 2)))

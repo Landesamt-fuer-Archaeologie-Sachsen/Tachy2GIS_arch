@@ -170,7 +170,7 @@ class GeoreferencingDialog(QMainWindow):
     ## \brief Event connections
     #
     def createConnects(self):
-        self.imageParambar.toolDrawPolygon.polygon_drawn.connect(self.polygon_drawn)
+        self.imageParambar.toolDrawPolygon.finished_geometry.connect(self.polygon_drawn)
 
         self.georefTable.pup.register("activatePoint", self.canvasGcp.setActivePoint)
         self.georefTable.pup.register("activatePoint", self.canvasImage.setActivePoint)
