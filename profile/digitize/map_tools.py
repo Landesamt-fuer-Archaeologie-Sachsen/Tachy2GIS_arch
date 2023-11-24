@@ -674,7 +674,7 @@ class MultilineMapTool(QgsMapTool):
         if self.isSnapping:
             snappingPoint = self.getSnappingPoint()
             if snappingPoint:
-                click_point = snappingPoint.center()
+                click_point = snappingPoint
 
         self.rubberBand.addPoint(click_point)
         vertexMarker = QgsVertexMarker(self.canvas)
@@ -931,7 +931,7 @@ class PointMapTool(QgsMapTool):
         if self.isSnapping:
             snappingPoint = self.getSnappingPoint()
             if snappingPoint:
-                click_point = snappingPoint.center()
+                click_point = snappingPoint
 
         self.reset_geometry()
         vertexMarker = QgsVertexMarker(self.canvas)
