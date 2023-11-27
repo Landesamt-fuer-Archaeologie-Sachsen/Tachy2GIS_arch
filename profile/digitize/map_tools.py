@@ -518,7 +518,6 @@ class MultilineMapTool(QgsMapTool):
 
         if self.isSplit:
             self.isSplit = False
-            self.resetClosingRubber()
             self.markers.extend(self.markers2)
             self.markers2 = []
             self.rubberBand.reset(QgsWkbTypes.LineGeometry)
@@ -550,9 +549,10 @@ class MultilineMapTool(QgsMapTool):
         if len(self.markers) < 1:
             self.tempRubberBand.reset(QgsWkbTypes.LineGeometry)
             if self.isSplit:
-                self.finish_geometry(not_really_finished=True)
-                self.symbol.setColor(Qt.red)
-                self.isFinished = False
+                self.isSplit = False
+                self.resetClosingRubber()
+                self.markers.extend(self.markers2)
+                self.markers2 = []
                 self.reverse_points()
                 self.tempRubberBand.addPoint(self.markers[-1].center())
                 self.tempRubberBand.addPoint(self.lastMapCoord)
