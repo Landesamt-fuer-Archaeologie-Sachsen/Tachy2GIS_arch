@@ -46,6 +46,8 @@ class MapToolDigiLine(MultilineMapTool, MapToolMixin):
         else:
             self.showdialog()
 
+        self.digi_layer_changed.emit()
+
     @pyqtSlot(QgsFeature)
     def set_feature_for_editing(self, feature):
         self.feat = feature
@@ -75,7 +77,9 @@ class MapToolDigiLine(MultilineMapTool, MapToolMixin):
         prof_nr = self.dataStoreDigitize.getProfileNumber()
         self.setPlaceholders(self.feat, prof_nr)
 
-        self.dialogAttributes = QgsAttributeDialog(self.refData["lineLayer"], self.feat, False, None)
+        self.dialogAttributes = QgsAttributeDialog(
+            self.refData["lineLayer"], self.feat, False, None
+        )
         self.dialogAttributes.setMode(QgsAttributeEditorContext.FixAttributeMode)
         self.dialogAttributes.show()
 
@@ -157,14 +161,18 @@ class MapToolDigiLine(MultilineMapTool, MapToolMixin):
 
             if geoType == "tachy" and feature["geo_quelle"] != "profile_object":
                 rotFeature = QgsFeature(self.digiLineLayer.fields())
-                rotateGeom = self.rotationCoords.rotateLineFeatureFromOrg(feature, aar_direction)
+                rotateGeom = self.rotationCoords.rotateLineFeatureFromOrg(
+                    feature, aar_direction
+                )
                 rotFeature.setGeometry(rotateGeom)
                 rotFeature.setAttributes(feature.attributes())
                 selFeatures.append(rotFeature)
 
             elif geoType == "profile" and feature["geo_quelle"] == "profile_object":
                 rotFeature = QgsFeature(self.digiLineLayer.fields())
-                rotateGeom = self.rotationCoords.rotateLineFeatureFromOrg(feature, aar_direction)
+                rotateGeom = self.rotationCoords.rotateLineFeatureFromOrg(
+                    feature, aar_direction
+                )
                 rotFeature.setGeometry(rotateGeom)
                 rotFeature.setAttributes(feature.attributes())
 
@@ -214,7 +222,9 @@ class MapToolDigiLine(MultilineMapTool, MapToolMixin):
             rotFeature = QgsFeature(self.refData["lineLayer"].fields())
 
             # Geometrie in Kartenebene umrechnen
-            rotateGeom = self.rotationCoords.rotateLineFeature(feature, emptyTargetGeometry, aar_direction)
+            rotateGeom = self.rotationCoords.rotateLineFeature(
+                feature, emptyTargetGeometry, aar_direction
+            )
             rotFeature.setGeometry(rotateGeom)
             rotFeature.setAttributes(feature.attributes())
 

@@ -46,6 +46,8 @@ class MapToolDigiPolygon(PolygonMapTool, MapToolMixin):
         else:
             self.showdialog()
 
+        self.digi_layer_changed.emit()
+
     @pyqtSlot(QgsFeature)
     def set_feature_for_editing(self, feature):
         self.feat = feature
