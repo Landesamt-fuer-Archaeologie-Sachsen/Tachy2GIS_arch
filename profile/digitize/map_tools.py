@@ -547,6 +547,7 @@ class MultilineMapTool(QgsMapTool):
         del self.markers[-1]
 
         if len(self.markers) < 1:
+            self.rubberBand.reset(QgsWkbTypes.LineGeometry)
             self.tempRubberBand.reset(QgsWkbTypes.LineGeometry)
             if self.isSplit:
                 self.isSplit = False
