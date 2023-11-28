@@ -46,6 +46,8 @@ class MapToolDigiPolygon(PolygonMapTool, MapToolMixin):
         else:
             self.showdialog()
 
+        self.digi_layer_changed.emit()
+
     @pyqtSlot(QgsFeature)
     def set_feature_for_editing(self, feature):
         self.feat = feature
@@ -105,8 +107,8 @@ class MapToolDigiPolygon(PolygonMapTool, MapToolMixin):
         self.digiPolygonLayer.updateExtents()
         self.canvas.refresh()
 
-        self.digi_layer_changed.emit()
         self.clear_map_tool()
+        self.digi_layer_changed.emit()
 
     def writeToTable(self, fields, feature):
         dataObj = {}

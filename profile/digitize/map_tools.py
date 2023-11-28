@@ -313,9 +313,6 @@ class PolygonMapTool(QgsMapTool):
                 self.selectingMarker.setPenWidth(3)
             return
 
-        if self.isFinished or len(self.markers) < 1:
-            return
-
         if self.isSnapping:
             snappingPoint = self.getSnappingPoint()
             if snappingPoint:
@@ -327,6 +324,9 @@ class PolygonMapTool(QgsMapTool):
                 self.snappingMarker.setFillColor(Qt.red)
                 self.snappingMarker.setIconSize(9)
                 self.snappingMarker.setPenWidth(3)
+
+        if self.isFinished or len(self.markers) < 1:
+            return
 
         # draw a temporary point at mouse pointer while moving:
         self.draw_helper_rubbers()
@@ -518,7 +518,6 @@ class MultilineMapTool(QgsMapTool):
 
         if self.isSplit:
             self.isSplit = False
-            self.resetClosingRubber()
             self.markers.extend(self.markers2)
             self.markers2 = []
             self.rubberBand.reset(QgsWkbTypes.LineGeometry)
@@ -550,9 +549,10 @@ class MultilineMapTool(QgsMapTool):
         if len(self.markers) < 1:
             self.tempRubberBand.reset(QgsWkbTypes.LineGeometry)
             if self.isSplit:
-                self.finish_geometry(not_really_finished=True)
-                self.symbol.setColor(Qt.red)
-                self.isFinished = False
+                self.isSplit = False
+                self.resetClosingRubber()
+                self.markers.extend(self.markers2)
+                self.markers2 = []
                 self.reverse_points()
                 self.tempRubberBand.addPoint(self.markers[-1].center())
                 self.tempRubberBand.addPoint(self.lastMapCoord)
@@ -700,8 +700,10 @@ class MultilineMapTool(QgsMapTool):
     def handleMove(self):
         if self.snappingMarker:
             self.canvas.scene().removeItem(self.snappingMarker)
+            self.snappingMarker = None
         if self.selectingMarker:
             self.canvas.scene().removeItem(self.selectingMarker)
+            self.selectingMarker = None
 
         if self.isSelecting:
             snappingPoint = self.getSnappingPoint()
@@ -714,9 +716,6 @@ class MultilineMapTool(QgsMapTool):
                 self.selectingMarker.setFillColor(Qt.red)
                 self.selectingMarker.setIconSize(9)
                 self.selectingMarker.setPenWidth(3)
-            return
-
-        if not self.isSplit and (self.isFinished or len(self.markers) < 1):
             return
 
         movingPoint = self.lastMapCoord
@@ -732,6 +731,9 @@ class MultilineMapTool(QgsMapTool):
                 self.snappingMarker.setFillColor(Qt.red)
                 self.snappingMarker.setIconSize(9)
                 self.snappingMarker.setPenWidth(3)
+
+        if not self.isSplit and (self.isFinished or len(self.markers) < 1):
+            return
 
         # draw a temporary point at mouse pointer while moving:
         if self.isSplit:
@@ -964,9 +966,6 @@ class PointMapTool(QgsMapTool):
                 self.selectingMarker.setFillColor(Qt.red)
                 self.selectingMarker.setIconSize(9)
                 self.selectingMarker.setPenWidth(3)
-            return
-
-        if self.isFinished or len(self.markers) < 1:
             return
 
         if self.isSnapping:

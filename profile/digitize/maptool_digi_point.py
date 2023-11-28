@@ -46,6 +46,8 @@ class MapToolDigiPoint(PointMapTool, MapToolMixin):
         else:
             self.showdialog()
 
+        self.digi_layer_changed.emit()
+
     @pyqtSlot(QgsFeature)
     def set_feature_for_editing(self, feature):
         self.feat = feature
@@ -58,6 +60,7 @@ class MapToolDigiPoint(PointMapTool, MapToolMixin):
 
     def clear_map_tool(self):
         self.reset_geometry()
+        self.feat = None
 
     def createFeature(self):
         self.feat = QgsFeature()
@@ -95,7 +98,6 @@ class MapToolDigiPoint(PointMapTool, MapToolMixin):
         self.feat["geo_quelle"] = "profile_object"
 
         self.addFeature2Layer()
-        self.clear_map_tool()
 
         dialogFeature = self.dialogAttributes.feature()
 
@@ -105,6 +107,7 @@ class MapToolDigiPoint(PointMapTool, MapToolMixin):
         self.digiPointLayer.updateExtents()
         self.canvas.refresh()
 
+        self.clear_map_tool()
         self.digi_layer_changed.emit()
 
     def writeToTable(self, fields, feature):

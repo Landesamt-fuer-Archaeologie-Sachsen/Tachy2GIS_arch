@@ -221,6 +221,8 @@ class Parambar(QWidget):
             self.activateDigiPolygon()
             self.action_tool_polygon.setChecked(True)
 
+        self.canvasDigitize.setFocus()  # so that keyboard events reach this without click
+
     def activatePan(self):
         self.canvasDigitize.setMapTool(self.canvasDigitize.toolPan)
 

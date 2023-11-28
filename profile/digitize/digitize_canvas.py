@@ -13,9 +13,6 @@ from qgis.core import (
     QgsFillSymbol,
     QgsCategorizedSymbolRenderer,
     QgsRendererCategory,
-    QgsSymbol,
-    QgsWkbTypes,
-    QgsArrowSymbolLayer,
 )
 from qgis.gui import QgsMapCanvas, QgsMapToolPan, QgsMapToolZoom, QgsAttributeDialog
 
@@ -70,7 +67,8 @@ class DigitizeCanvas(QgsMapCanvas):
     def createDigiPointLayer(self, refData):
         refData["pointLayer"].selectAll()
         self.digiPointLayer = processing.run(
-            "native:saveselectedfeatures", {"INPUT": refData["pointLayer"], "OUTPUT": "memory:"}
+            "native:saveselectedfeatures",
+            {"INPUT": refData["pointLayer"], "OUTPUT": "memory:"},
         )["OUTPUT"]
         refData["pointLayer"].removeSelection()
 
@@ -128,7 +126,8 @@ class DigitizeCanvas(QgsMapCanvas):
     def createDigiPointHoverLayer(self, refData):
         refData["pointLayer"].selectAll()
         self.digiPointHoverLayer = processing.run(
-            "native:saveselectedfeatures", {"INPUT": refData["pointLayer"], "OUTPUT": "memory:"}
+            "native:saveselectedfeatures",
+            {"INPUT": refData["pointLayer"], "OUTPUT": "memory:"},
         )["OUTPUT"]
         refData["pointLayer"].removeSelection()
 
@@ -182,7 +181,8 @@ class DigitizeCanvas(QgsMapCanvas):
     def createDigiLineLayer(self, refData):
         refData["lineLayer"].selectAll()
         self.digiLineLayer = processing.run(
-            "native:saveselectedfeatures", {"INPUT": refData["lineLayer"], "OUTPUT": "memory:"}
+            "native:saveselectedfeatures",
+            {"INPUT": refData["lineLayer"], "OUTPUT": "memory:"},
         )["OUTPUT"]
         refData["lineLayer"].removeSelection()
 
@@ -191,35 +191,13 @@ class DigitizeCanvas(QgsMapCanvas):
         pr.truncate()
 
         # Renderer
-        symbol_profile = QgsSymbol.defaultSymbol(QgsWkbTypes.LineGeometry)
-        arrow = QgsArrowSymbolLayer.create(
-            {
-                "arrow_type": "0",
-                "head_type": "0",
-                "is_curved": "0",
-                "arrow_start_width": "0.5",
-                "arrow_width": "0.5",
-                "head_length": "0",
-                "head_thickness": "0.8",
-                "color": "black",
-            }
+        symbol_profile = QgsLineSymbol.createSimple(
+            {"line_style": "solid", "color": "black", "width": "0.8"}
         )
-        symbol_profile.changeSymbolLayer(0, arrow)
 
-        symbol_tachy = QgsSymbol.defaultSymbol(QgsWkbTypes.LineGeometry)
-        arrow = QgsArrowSymbolLayer.create(
-            {
-                "arrow_type": "0",
-                "head_type": "0",
-                "is_curved": "0",
-                "arrow_start_width": "0.5",
-                "arrow_width": "0.5",
-                "head_length": "0",
-                "head_thickness": "0.8",
-                "color": "grey",
-            }
+        symbol_tachy = QgsLineSymbol.createSimple(
+            {"line_style": "solid", "color": "grey", "width": "0.8"}
         )
-        symbol_tachy.changeSymbolLayer(0, arrow)
 
         symbol_profile_vertex = QgsMarkerLineSymbolLayer()
         symbol_profile_vertex.setSubSymbol(
@@ -279,7 +257,8 @@ class DigitizeCanvas(QgsMapCanvas):
     def createDigiLineHoverLayer(self, refData):
         refData["lineLayer"].selectAll()
         self.digiLineHoverLayer = processing.run(
-            "native:saveselectedfeatures", {"INPUT": refData["lineLayer"], "OUTPUT": "memory:"}
+            "native:saveselectedfeatures",
+            {"INPUT": refData["lineLayer"], "OUTPUT": "memory:"},
         )["OUTPUT"]
         refData["lineLayer"].removeSelection()
 
@@ -359,7 +338,8 @@ class DigitizeCanvas(QgsMapCanvas):
     def createDigiPolygonLayer(self, refData):
         refData["polygonLayer"].selectAll()
         self.digiPolygonLayer = processing.run(
-            "native:saveselectedfeatures", {"INPUT": refData["polygonLayer"], "OUTPUT": "memory:"}
+            "native:saveselectedfeatures",
+            {"INPUT": refData["polygonLayer"], "OUTPUT": "memory:"},
         )["OUTPUT"]
         refData["polygonLayer"].removeSelection()
 
@@ -368,35 +348,23 @@ class DigitizeCanvas(QgsMapCanvas):
         pr.truncate()
 
         # Renderer
-        symbol_profile = QgsSymbol.defaultSymbol(QgsWkbTypes.PolygonGeometry)
-        arrow = QgsArrowSymbolLayer.create(
+        symbol_profile = QgsFillSymbol.createSimple(
             {
-                "arrow_type": "0",
-                "head_type": "0",
-                "is_curved": "0",
-                "arrow_start_width": "0.5",
-                "arrow_width": "0.5",
-                "head_length": "0",
-                "head_thickness": "0.8",
-                "color": "black",
+                "style": "no",
+                "outline_style": "solid",
+                "outline_color": "black",
+                "outline_width": "0.8",
             }
         )
-        symbol_profile.changeSymbolLayer(0, arrow)
 
-        symbol_tachy = QgsSymbol.defaultSymbol(QgsWkbTypes.PolygonGeometry)
-        arrow = QgsArrowSymbolLayer.create(
+        symbol_tachy = QgsFillSymbol.createSimple(
             {
-                "arrow_type": "0",
-                "head_type": "0",
-                "is_curved": "0",
-                "arrow_start_width": "0.5",
-                "arrow_width": "0.5",
-                "head_length": "0",
-                "head_thickness": "0.8",
-                "color": "grey",
+                "style": "no",
+                "outline_style": "solid",
+                "outline_color": "grey",
+                "outline_width": "0.8",
             }
         )
-        symbol_tachy.changeSymbolLayer(0, arrow)
 
         symbol_profile_vertex = QgsMarkerLineSymbolLayer()
         symbol_profile_vertex.setSubSymbol(
@@ -457,7 +425,8 @@ class DigitizeCanvas(QgsMapCanvas):
     def createDigiPolygonHoverLayer(self, refData):
         refData["polygonLayer"].selectAll()
         self.digiPolygonHoverLayer = processing.run(
-            "native:saveselectedfeatures", {"INPUT": refData["polygonLayer"], "OUTPUT": "memory:"}
+            "native:saveselectedfeatures",
+            {"INPUT": refData["polygonLayer"], "OUTPUT": "memory:"},
         )["OUTPUT"]
         refData["polygonLayer"].removeSelection()
 
@@ -673,7 +642,11 @@ class DigitizeCanvas(QgsMapCanvas):
     #
     def openAttributeDialog(self, layer, feature):
         self.featForm = QgsAttributeDialog(
-            vl=layer, thepFeature=feature, parent=self, featureOwner=False, showDialogButtons=True
+            vl=layer,
+            thepFeature=feature,
+            parent=self,
+            featureOwner=False,
+            showDialogButtons=True,
         )
         self.featForm.closeEvent = self.closeFeatForm
         self.featForm.setWindowTitle("Feature Eigenschaften")
