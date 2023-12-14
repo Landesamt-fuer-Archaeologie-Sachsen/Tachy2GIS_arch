@@ -206,7 +206,7 @@ class PolygonMapTool(QgsMapTool):
         self.finish_geometry()
 
     def keyPressEvent(self, e):
-        if e.key() == Qt.Key_Escape:
+        if e.key() == Qt.Key_Z:
             self.undo_last_point()
 
         if e.key() == Qt.Key_R:
@@ -547,6 +547,7 @@ class MultilineMapTool(QgsMapTool):
         del self.markers[-1]
 
         if len(self.markers) < 1:
+            self.rubberBand.reset(QgsWkbTypes.LineGeometry)
             self.tempRubberBand.reset(QgsWkbTypes.LineGeometry)
             if self.isSplit:
                 self.isSplit = False
@@ -586,7 +587,7 @@ class MultilineMapTool(QgsMapTool):
         self.finish_geometry()
 
     def keyPressEvent(self, e):
-        if e.key() == Qt.Key_Escape:
+        if e.key() == Qt.Key_Z:
             self.undo_last_point()
 
         if e.key() == Qt.Key_R:
@@ -877,7 +878,7 @@ class PointMapTool(QgsMapTool):
         self.finish_geometry()
 
     def keyPressEvent(self, e):
-        if e.key() == Qt.Key_Escape:
+        if e.key() == Qt.Key_Z:
             self.undo_last_point()
 
         if e.key() == Qt.Key_Control:

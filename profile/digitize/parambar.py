@@ -369,7 +369,7 @@ class Parambar(QWidget):
                 "Polygon zeichnen\n"
                 "-> [L-MAUS] Punkt setzen\n"
                 "-> [STRG] halten für Snapping\n"
-                "-> [ESC] vorhergehenden Punkt entfernen\n"
+                "-> [Z] vorhergehenden Punkt entfernen\n"
                 "-> [R] Reihenfolge der Punkte umkehren\n"
                 "-> [R-MAUS] Editieren beenden"
             ),
@@ -433,7 +433,7 @@ class Parambar(QWidget):
                 "Linie zeichnen\n"
                 "-> [L-MAUS] Punkt setzen\n"
                 "-> [STRG] halten für Snapping\n"
-                "-> [ESC] vorhergehenden Punkt entfernen\n"
+                "-> [Z] vorhergehenden Punkt entfernen\n"
                 "-> [R] Reihenfolge der Punkte umkehren\n"
                 "-> [R-MAUS] Editieren beenden"
             ),
@@ -497,7 +497,7 @@ class Parambar(QWidget):
                 "Punkt zeichnen\n"
                 "-> [L-MAUS] Punkt setzen\n"
                 "-> [STRG] halten für Snapping\n"
-                "-> [ESC] vorhergehenden Punkt entfernen\n"
+                "-> [Z] vorhergehenden Punkt entfernen\n"
                 "-> [R-MAUS] Editieren beenden"
             ),
             self,

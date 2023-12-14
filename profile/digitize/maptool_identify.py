@@ -166,9 +166,11 @@ class MapToolIdentify(QgsMapTool):
         if final_result.mFeature["uuid"] != self.lastUUID:
             self.lastUUID = final_result.mFeature["uuid"]
             self.lastFeature = (final_result.mLayer, final_result.mFeature)
-            linkObj = {"layer": final_result.mLayer, "features": [final_result.mFeature]}
             self.pup.publish("removeHoverFeatures", {})
-            self.pup.publish("addHoverFeatures", linkObj)
+            self.pup.publish(
+                "addHoverFeatures",
+                {"layer": final_result.mLayer, "features": [final_result.mFeature]}
+            )
 
     def getDistance(self, geometry: QgsGeometry, point: QgsPointXY):
         vertex_distance = geometry.closestVertexWithContext(point)[0]

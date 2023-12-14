@@ -130,7 +130,7 @@ class ImageParambar(QWidget):
             (
                 "Polygon zeichnen (zum Beschneiden)\n"
                 "-> [L-MAUS] Punkt setzen\n"
-                "-> [ESC] vorhergehenden Punkt entfernen\n"
+                "-> [Z] vorhergehenden Punkt entfernen\n"
                 "-> [R] Reihenfolge der Punkte umkehren\n"
                 "-> [R-MAUS] Editieren beenden"
             ),
