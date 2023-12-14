@@ -12,7 +12,7 @@ from qgis.core import (
     QgsLineSymbol,
     QgsFillSymbol,
     QgsCategorizedSymbolRenderer,
-    QgsRendererCategory,
+    QgsRendererCategory, QgsRuleBasedLabeling,
 )
 from qgis.gui import QgsMapCanvas, QgsMapToolPan, QgsMapToolZoom, QgsAttributeDialog
 
@@ -114,10 +114,28 @@ class DigitizeCanvas(QgsMapCanvas):
         crs = refData["pointLayer"].sourceCrs()
         self.digiPointLayer.setCrs(crs)
 
-        # Label Layer
-        labelSettings = self.createLabelSettings("bef_nr")
+        # rule-based labeling
+        root = QgsRuleBasedLabeling.Rule(QgsPalLayerSettings())
+        rule_pt = QgsRuleBasedLabeling.Rule(self.createLabelSettings("""
+            'Punkt ' + "ptnr"
+        """).settings())
+        rule_pt.settings().isExpression = True
+        rule_pt.setFilterExpression("""
+            "obj_type" = 'Fotoentzerrpunkt' OR "obj_type" = 'Fund' OR "obj_type" = 'Probe' 
+        """)
+        rule_bef = QgsRuleBasedLabeling.Rule(self.createLabelSettings("""
+            'Befund ' + "bef_nr"
+        """).settings())
+        rule_bef.settings().isExpression = True
+        rule_bef.setFilterExpression("""
+            "obj_type" = 'Befund' 
+        """)
+        root.appendChild(rule_bef)
+        root.appendChild(rule_pt)
+
+        # Apply rule-based labeling to the layer
+        self.digiPointLayer.setLabeling(QgsRuleBasedLabeling(root))
         self.digiPointLayer.setLabelsEnabled(True)
-        self.digiPointLayer.setLabeling(labelSettings)
 
     ## \brief Create a hover point layer from Point-Eingabelayer
     #
@@ -242,13 +260,30 @@ class DigitizeCanvas(QgsMapCanvas):
         self.digiLineLayer.setRenderer(categorized_renderer)
 
         crs = refData["lineLayer"].sourceCrs()
-
         self.digiLineLayer.setCrs(crs)
 
-        # Label Layer
-        labelSettings = self.createLabelSettings("bef_nr")
+        # rule-based labeling
+        root = QgsRuleBasedLabeling.Rule(QgsPalLayerSettings())
+        rule_prof = QgsRuleBasedLabeling.Rule(self.createLabelSettings("""
+            'Profil ' + "prof_nr"
+        """).settings())
+        rule_prof.settings().isExpression = True
+        rule_prof.setFilterExpression("""
+            "obj_type" = 'Profil'
+        """)
+        rule_bef = QgsRuleBasedLabeling.Rule(self.createLabelSettings("""
+            'Befund ' + "bef_nr"
+        """).settings())
+        rule_bef.settings().isExpression = True
+        rule_bef.setFilterExpression("""
+            "obj_type" = 'Befund' 
+        """)
+        root.appendChild(rule_bef)
+        root.appendChild(rule_prof)
+
+        # Apply rule-based labeling to the layer
+        self.digiLineLayer.setLabeling(QgsRuleBasedLabeling(root))
         self.digiLineLayer.setLabelsEnabled(True)
-        self.digiLineLayer.setLabeling(labelSettings)
 
     ## \brief Create a hover line layer from Line-Eingabelayer
     #
@@ -409,13 +444,22 @@ class DigitizeCanvas(QgsMapCanvas):
         self.digiPolygonLayer.setRenderer(categorized_renderer)
 
         crs = refData["polygonLayer"].sourceCrs()
-
         self.digiPolygonLayer.setCrs(crs)
 
-        # Label Layer
-        labelSettings = self.createLabelSettings("bef_nr")
+        # rule-based labeling
+        root = QgsRuleBasedLabeling.Rule(QgsPalLayerSettings())
+        rule_bef = QgsRuleBasedLabeling.Rule(self.createLabelSettings("""
+            'Befund ' + "bef_nr"
+        """).settings())
+        rule_bef.settings().isExpression = True
+        rule_bef.setFilterExpression("""
+            "obj_type" = 'Befund' 
+        """)
+        root.appendChild(rule_bef)
+
+        # Apply rule-based labeling to the layer
+        self.digiPolygonLayer.setLabeling(QgsRuleBasedLabeling(root))
         self.digiPolygonLayer.setLabelsEnabled(True)
-        self.digiPolygonLayer.setLabeling(labelSettings)
 
     ## \brief Create a hover polygon layer from Polygon-Eingabelayer
     #
@@ -511,6 +555,7 @@ class DigitizeCanvas(QgsMapCanvas):
     def addHoverFeatures(self, linkObj):
         layer = linkObj["layer"]
         features = linkObj["features"]
+        # print([(f.name(), linkObj["features"][0][f.name()]) for f in linkObj["features"][0].fields()])
 
         if layer == self.digiPolygonLayer:
             self.digiPolygonHoverLayer.startEditing()
@@ -561,20 +606,16 @@ class DigitizeCanvas(QgsMapCanvas):
     # @returns labelSettings
 
     def createLabelSettings(self, label_field):
-        palSettings = QgsPalLayerSettings()
         textFormat = QgsTextFormat()
-
         textFormat.setFont(QFont("Arial", 10))
         textFormat.setSize(10)
-        palSettings.setFormat(textFormat)
 
+        palSettings = QgsPalLayerSettings()
+        palSettings.setFormat(textFormat)
         palSettings.fieldName = label_field
-        palSettings.placement = 4
         palSettings.enabled = True
 
-        labelSettings = QgsVectorLayerSimpleLabeling(palSettings)
-
-        return labelSettings
+        return QgsVectorLayerSimpleLabeling(palSettings)
 
     ## \brief Set coordinates on the statusbar in dialog instance TransformationDialog.setCoordinatesOnStatusBar() . Depends on mouse move on the map element
     #
