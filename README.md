@@ -1,5 +1,5 @@
 # Tachy2GIS_arch
-# Development branch - for stable version please switch to main branch!!
+# Development branch - for stable version please see the latest release!!
 
 QGIS plugin for documentation of archaeological features using Tachy2GIS
 
