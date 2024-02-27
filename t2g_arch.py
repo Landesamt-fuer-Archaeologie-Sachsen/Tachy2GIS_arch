@@ -1739,13 +1739,16 @@ class T2G_Arch:
         #    QgsMessageLog.logMessage("Auto Backup: Erstellt.", 'T2G Archäologie', Qgis.Info)
 
         ziel = os.path.join(self.ProjPfad, r'_Sicherungen_')
-        ordner = []
 
-        for folder in next(os.walk(ziel))[1]:
-            ordner.append((str(folder)))
+        # Temporärer Fix - Diskussion wie und ob Sicherung
+        if os.path.isdir(ziel):
+            ordner = []
 
-        for i in range(0, len(ordner) - 5):
-            fileFunc().directory_del(os.path.join(ziel, ordner[i]))
+            for folder in next(os.walk(ziel))[1]:
+                ordner.append((str(folder)))
+
+            for i in range(0, len(ordner) - 5):
+                fileFunc().directory_del(os.path.join(ziel, ordner[i]))
 
     # ToDo: refactoring - Map Tools
     def editFeature(self, layer, feature):
