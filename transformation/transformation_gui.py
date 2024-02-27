@@ -4,7 +4,7 @@ import os
 import shutil
 import time
 
-from PyQt5.QtWidgets import QMessageBox
+from qgis.PyQt.QtWidgets import QMessageBox
 from qgis.core import QgsProject, QgsVectorLayer, QgsLayerTreeGroup, QgsLayerTreeLayer, QgsVectorFileWriter, QgsCoordinateReferenceSystem
 from .transformation_dialog import TransformationDialog
 from .transformation_calculations import TransformationCalculations
@@ -384,10 +384,10 @@ class TransformationGui():
                 isValid = True
 
                 #Check that column obj_type is in attributtable
-                field_index = sourceLayer.fields().indexFromName('obj_type')
+                field_index = sourceLayer.fields().indexFromName('obj_typ')
 
                 if field_index == -1:
-                    self.iface.messageBar().pushMessage("Error", "Im Eingabelayer fehlt die Spalte 'obj_type'", level=1, duration=5)
+                    self.iface.messageBar().pushMessage("Error", "Im Eingabelayer fehlt die Spalte 'obj_typ'", level=1, duration=5)
                     isValid = False
                 else:
                     isValid = True
@@ -395,13 +395,13 @@ class TransformationGui():
                     counterGeoref = 0
                     for feature in sourceLayer.getFeatures():
                         #Alt war Georeferenzierung
-                        if feature.attribute('obj_type') == self.colNameGcpSource:
+                        if feature.attribute('obj_typ') == self.colNameGcpSource:
                             counterGeoref += 1
 
 
                     if counterGeoref < 2:
                         isValid = False
-                        self.iface.messageBar().pushMessage("Error", "Min. zwei Einträge '"+self.colNameGcpSource+"' in Spalte 'obj_type' sind notwendig", level=1, duration=5)
+                        self.iface.messageBar().pushMessage("Error", "Min. zwei Einträge '"+self.colNameGcpSource+"' in Spalte 'obj_typ' sind notwendig", level=1, duration=5)
                     else:
                         isValid = True
 
@@ -496,7 +496,7 @@ class TransformationGui():
         gcpSource = []
 
         for feature in sourceLayer.getFeatures():
-            if feature.attribute('obj_type') == self.colNameGcpSource:
+            if feature.attribute('obj_typ') == self.colNameGcpSource:
                 point = feature.geometry().constGet()
                 geomType = point.wkbType()
                 #1001 PointZ, 3001 PointZM, -2147483647 Point2.5D

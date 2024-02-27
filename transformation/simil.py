@@ -230,3 +230,4 @@ class simil():
         t_vector = np.array(simil._get_t_vector(r_quat, s_quat)).reshape(3,1)
 
         return lambda_i, r_matrix, t_vector
+

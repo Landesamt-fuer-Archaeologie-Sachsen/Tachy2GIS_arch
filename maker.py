@@ -21,9 +21,9 @@
  ***************************************************************************/
 """
 
-from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt, QSize, QTimer, pyqtSlot, pyqtSignal
-from PyQt5.QtGui import *#QIcon, QPixmap
-from PyQt5.QtWidgets import *#QAction, QMessageBox, QFileDialog, QTreeWidgetItem, QInputDialog
+from qgis.PyQt.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt, QSize, QTimer, pyqtSlot, pyqtSignal
+from qgis.PyQt.QtGui import *#QIcon, QPixmap
+from qgis.PyQt.QtWidgets import *#QAction, QMessageBox, QFileDialog, QTreeWidgetItem, QInputDialog
 from qgis.core import QgsProject, QgsExpressionContextUtils, QgsMessageLog, Qgis, QgsVectorLayer, QgsFeature,QgsWkbTypes
 from qgis.utils import iface, plugins
 

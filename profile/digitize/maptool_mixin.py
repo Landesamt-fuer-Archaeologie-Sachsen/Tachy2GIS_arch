@@ -14,7 +14,7 @@ class MapToolMixin:
     def setPlaceholders(self, feature, prof_nr):
         # uuid to identify feature
         feature_uuid = uuid.uuid4()
-        feature["uuid"] = str(feature_uuid)
+        feature["obj_uuid"] = str(feature_uuid)
 
         # Type of digitize
         feature["geo_quelle"] = "profile_object"
@@ -30,7 +30,7 @@ class MapToolMixin:
             pass
 
         # obj_type
-        feature["obj_type"] = "Befund"
+        feature["obj_typ"] = "Befund"
 
         # prf_nr
         feature["prof_nr"] = prof_nr

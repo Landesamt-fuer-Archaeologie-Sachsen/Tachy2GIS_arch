@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QHeaderView, QComboBox
-from PyQt5.QtCore import Qt
+from qgis.PyQt.QtWidgets import QTableWidget, QTableWidgetItem, QHeaderView, QComboBox
+from qgis.PyQt.QtCore import Qt
 
 ## @brief With the TransformationDialogTable class a table based on QTableWidget is realized
 #

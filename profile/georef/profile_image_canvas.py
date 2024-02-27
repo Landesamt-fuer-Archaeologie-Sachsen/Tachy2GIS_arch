@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import os
 
-from PyQt5.QtCore import Qt, QSizeF, QPointF
-from PyQt5.QtGui import QColor, QTextDocument
+from qgis.PyQt.QtCore import Qt, QSizeF, QPointF
+from qgis.PyQt.QtGui import QColor, QTextDocument
 from qgis.core import (
     QgsRasterLayer,
     QgsFillSymbol,

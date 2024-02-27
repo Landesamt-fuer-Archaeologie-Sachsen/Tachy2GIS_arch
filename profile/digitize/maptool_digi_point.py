@@ -1,4 +1,4 @@
-from PyQt5.QtCore import pyqtSignal, pyqtSlot
+from qgis.PyQt.QtCore import pyqtSignal, pyqtSlot
 from qgis.gui import QgsAttributeDialog, QgsAttributeEditorContext
 from qgis.core import QgsFeature, QgsGeometry, QgsFeatureRequest, QgsPoint
 
@@ -117,7 +117,7 @@ class MapToolDigiPoint(PointMapTool, MapToolMixin):
             if (
                 item.name() == "uuid"
                 or item.name() == "id"
-                or item.name() == "obj_type"
+                or item.name() == "obj_typ"
                 or item.name() == "obj_art"
                 or item.name() == "zeit"
                 or item.name() == "material"

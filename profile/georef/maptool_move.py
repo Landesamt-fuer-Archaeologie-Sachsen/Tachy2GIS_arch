@@ -1,5 +1,5 @@
 from qgis.gui import QgsMapTool
-from PyQt5.QtCore import Qt, pyqtSignal
+from qgis.PyQt.QtCore import Qt, pyqtSignal
 
 class MapToolMove(QgsMapTool):
 

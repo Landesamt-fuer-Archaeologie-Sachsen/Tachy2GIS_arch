@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-from PyQt5.QtCore import Qt
-from PyQt5 import QtWidgets, QtCore, QtGui, uic
-from PyQt5.QtGui import *
-from PyQt5.QtWidgets import *
+from qgis.PyQt.QtCore import Qt
+from qgis.PyQt import QtWidgets, QtCore, QtGui, uic
+from qgis.PyQt.QtGui import *
+from qgis.PyQt.QtWidgets import *
 from qgis.core import *
 from qgis.gui import *
 from ..functions import *
@@ -53,7 +53,7 @@ class DlgSettings(QtWidgets.QDialog):
         self.ui.txtProfilFEPPfadExp.setText(val)
         val = self.__config.getValue("Profilentzerrung","feldNProfNr",'prof_nr')
         self.ui.txtfeldNProfNr.setText(val)
-        val = self.__config.getValue("Profilentzerrung","feldNFEP",'obj_type')
+        val = self.__config.getValue("Profilentzerrung","feldNFEP",'obj_typ')
         self.ui.txtFeldNFEP.setText(val)
         val = self.__config.getValue("Profilentzerrung","attFEP",'Fotoentzerrpunkt')
         self.ui.txtAttFEP.setText(val)
@@ -166,7 +166,7 @@ class Configfile():
         self.__config_object["Punkte Export"] = {"pfad Exportordner": "./../Jobs"}
 
         self.__config_object["Profilentzerrung"] = {"feldNProfNr": "prof_nr",
-                                                    "feldNFEP": "obj_type",
+                                                    "feldNFEP": "obj_typ",
                                                     "attFEP": "Fotoentzerrpunkt",
                                                     "pfad Exportordner": "./../Jobs"}
 
@@ -199,7 +199,7 @@ class Configfile():
         except PermissionError:
             QgsMessageLog.logMessage('Config-Datei nicht vorhanden!', 'T2G Archäologie', Qgis.Critical)
 
-    def getValue(self,section,option,default):
+    def getValue(self, section, option, default=None):
         if not self.__config_object.has_section(section):
             self.__config_object.add_section(section)
         if not self.__config_object.has_option(section, option):
@@ -207,7 +207,6 @@ class Configfile():
             value = default
         else:
             value = self.__config_object[section][option]
-        #self.saveFile()
         return value
 
     def updateValue(self,section,option,value):

@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import os
-from PyQt5.QtCore import Qt, QRect
-from PyQt5.QtGui import QIcon, QPainter, QColor
-from PyQt5.QtWidgets import QWidget, QHBoxLayout, QSizePolicy, QToolBar, QAction, QLineEdit, QActionGroup
+from qgis.PyQt.QtCore import Qt, QRect
+from qgis.PyQt.QtGui import QIcon, QPainter, QColor
+from qgis.PyQt.QtWidgets import QWidget, QHBoxLayout, QSizePolicy, QToolBar, QAction, QLineEdit, QActionGroup
 from qgis.core import QgsApplication
 
 from ..digitize.map_tools import PolygonMapTool

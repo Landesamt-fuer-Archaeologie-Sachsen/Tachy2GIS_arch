@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from typing import List
-from PyQt5.QtWidgets import (
+from qgis.PyQt.QtWidgets import (
     QTableWidget,
     QTableWidgetItem,
     QHeaderView,
@@ -8,8 +8,8 @@ from PyQt5.QtWidgets import (
     QRadioButton,
     QMessageBox,
 )
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QColor, QBrush
+from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtGui import QColor, QBrush
 import numpy as np
 from operator import itemgetter
 

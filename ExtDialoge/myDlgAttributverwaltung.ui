@@ -343,3 +343,349 @@
  <resources/>
  <connections/>
 </ui>
+
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Dialog</class>
+ <widget class="QDialog" name="Dialog">
+  <property name="windowModality">
+   <enum>Qt::ApplicationModal</enum>
+  </property>
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>602</width>
+    <height>472</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Attributverwaltung</string>
+  </property>
+  <property name="modal">
+   <bool>true</bool>
+  </property>
+  <widget class="QTabWidget" name="tabWidget">
+   <property name="geometry">
+    <rect>
+     <x>3</x>
+     <y>3</y>
+     <width>595</width>
+     <height>466</height>
+    </rect>
+   </property>
+   <property name="currentIndex">
+    <number>0</number>
+   </property>
+   <widget class="QWidget" name="tab">
+    <attribute name="title">
+     <string>Filter</string>
+    </attribute>
+    <widget class="QGroupBox" name="groupBox">
+     <property name="geometry">
+      <rect>
+       <x>6</x>
+       <y>9</y>
+       <width>268</width>
+       <height>421</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color:rgb(221, 221, 221);
+</string>
+     </property>
+     <property name="title">
+      <string>Objekttyp</string>
+     </property>
+     <widget class="QListWidget" name="listObjektTyp">
+      <property name="geometry">
+       <rect>
+        <x>6</x>
+        <y>78</y>
+        <width>256</width>
+        <height>322</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">background-color: rgb(255, 255, 255)</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="labObjektTypCount">
+      <property name="geometry">
+       <rect>
+        <x>9</x>
+        <y>402</y>
+        <width>232</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>0</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="butObjektTypNeu">
+      <property name="geometry">
+       <rect>
+        <x>138</x>
+        <y>6</y>
+        <width>124</width>
+        <height>25</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>  Objekttyp neu</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_2">
+      <property name="geometry">
+       <rect>
+        <x>81</x>
+        <y>48</y>
+        <width>55</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Layertyp</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="txtObjektTypLayerArt">
+      <property name="geometry">
+       <rect>
+        <x>174</x>
+        <y>48</y>
+        <width>88</width>
+        <height>22</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="butObjektTypLayerArtEdit">
+      <property name="geometry">
+       <rect>
+        <x>138</x>
+        <y>45</y>
+        <width>28</width>
+        <height>25</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+     <widget class="Line" name="line_2">
+      <property name="geometry">
+       <rect>
+        <x>60</x>
+        <y>36</y>
+        <width>202</width>
+        <height>6</height>
+       </rect>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QGroupBox" name="groupBox_4">
+     <property name="geometry">
+      <rect>
+       <x>315</x>
+       <y>9</y>
+       <width>268</width>
+       <height>424</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color:rgb(221, 221, 221);
+</string>
+     </property>
+     <property name="title">
+      <string>Objektart</string>
+     </property>
+     <widget class="QListWidget" name="listObjektArt_2">
+      <property name="geometry">
+       <rect>
+        <x>9</x>
+        <y>81</y>
+        <width>256</width>
+        <height>319</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">background-color: rgb(255, 255, 255)</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="labObjektArtCount_2">
+      <property name="geometry">
+       <rect>
+        <x>9</x>
+        <y>402</y>
+        <width>229</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>0</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="butaddFilter">
+      <property name="geometry">
+       <rect>
+        <x>141</x>
+        <y>48</y>
+        <width>121</width>
+        <height>25</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Filter hinzufügen</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="butObjektArtNeu">
+      <property name="geometry">
+       <rect>
+        <x>129</x>
+        <y>6</y>
+        <width>133</width>
+        <height>25</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>  Objektart neu</string>
+      </property>
+     </widget>
+     <widget class="Line" name="line">
+      <property name="geometry">
+       <rect>
+        <x>60</x>
+        <y>39</y>
+        <width>202</width>
+        <height>6</height>
+       </rect>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="butdelFilter">
+      <property name="geometry">
+       <rect>
+        <x>11</x>
+        <y>48</y>
+        <width>127</width>
+        <height>25</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Filter entfernen</string>
+      </property>
+     </widget>
+    </widget>
+   </widget>
+   <widget class="QWidget" name="tab_2">
+    <attribute name="title">
+     <string>Objektarten</string>
+    </attribute>
+    <widget class="QGroupBox" name="groupBox_2">
+     <property name="geometry">
+      <rect>
+       <x>12</x>
+       <y>12</y>
+       <width>268</width>
+       <height>397</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color:rgb(221, 221, 221);
+</string>
+     </property>
+     <property name="title">
+      <string>Alle Objektarten</string>
+     </property>
+     <widget class="QListWidget" name="listObjektArt">
+      <property name="geometry">
+       <rect>
+        <x>6</x>
+        <y>36</y>
+        <width>256</width>
+        <height>340</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">background-color: rgb(255, 255, 255)</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="labObjektArtCount">
+      <property name="geometry">
+       <rect>
+        <x>9</x>
+        <y>378</y>
+        <width>229</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>0</string>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QGroupBox" name="groupBox_3">
+     <property name="geometry">
+      <rect>
+       <x>288</x>
+       <y>12</y>
+       <width>292</width>
+       <height>397</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color:rgb(221, 221, 221);
+</string>
+     </property>
+     <property name="title">
+      <string>wird angezeigt bei folgenden Objekttypen</string>
+     </property>
+     <widget class="QListWidget" name="listObjektArtFilter">
+      <property name="geometry">
+       <rect>
+        <x>6</x>
+        <y>36</y>
+        <width>277</width>
+        <height>340</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">background-color: rgb(255, 255, 255)</string>
+      </property>
+     </widget>
+    </widget>
+   </widget>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

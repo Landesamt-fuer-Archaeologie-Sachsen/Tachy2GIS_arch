@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 import processing
-from PyQt5.QtGui import QFont
+from qgis.PyQt.QtGui import QFont
 from qgis.core import (
     QgsRasterLayer,
     QgsMarkerSymbol,
@@ -12,7 +12,8 @@ from qgis.core import (
     QgsLineSymbol,
     QgsFillSymbol,
     QgsCategorizedSymbolRenderer,
-    QgsRendererCategory, QgsRuleBasedLabeling,
+    QgsRendererCategory,
+    QgsRuleBasedLabeling,
 )
 from qgis.gui import QgsMapCanvas, QgsMapToolPan, QgsMapToolZoom, QgsAttributeDialog
 
@@ -661,21 +662,21 @@ class DigitizeCanvas(QgsMapCanvas):
         featuresPoly = self.digiPolygonLayer.getFeatures()
 
         for feature in featuresPoly:
-            if feature["uuid"] == uuid:
+            if feature["obj_uuid"] == uuid:
                 self.digiPolygonLayer.startEditing()
                 self.openAttributeDialog(self.digiPolygonLayer, feature)
 
         featuresLine = self.digiLineLayer.getFeatures()
 
         for feature in featuresLine:
-            if feature["uuid"] == uuid:
+            if feature["obj_uuid"] == uuid:
                 self.digiLineLayer.startEditing()
                 self.openAttributeDialog(self.digiLineLayer, feature)
 
         featuresPoint = self.digiPointLayer.getFeatures()
 
         for feature in featuresPoint:
-            if feature["uuid"] == uuid:
+            if feature["obj_uuid"] == uuid:
                 self.digiPointLayer.startEditing()
                 self.openAttributeDialog(self.digiPointLayer, feature)
 
@@ -701,9 +702,9 @@ class DigitizeCanvas(QgsMapCanvas):
 
         for item in fields:
             if (
-                item.name() == "uuid"
+                item.name() == "obj_uuid"
                 or item.name() == "id"
-                or item.name() == "obj_type"
+                or item.name() == "obj_typ"
                 or item.name() == "obj_art"
                 or item.name() == "zeit"
                 or item.name() == "material"
@@ -733,7 +734,7 @@ class DigitizeCanvas(QgsMapCanvas):
         featuresPoly = self.digiPolygonLayer.getFeatures()
 
         for feature in featuresPoly:
-            if feature["uuid"] == uuid:
+            if feature["obj_uuid"] == uuid:
                 self.digiPolygonLayer.startEditing()
                 self.digiPolygonLayer.deleteFeature(feature.id())
                 self.digiPolygonLayer.commitChanges()
@@ -741,7 +742,7 @@ class DigitizeCanvas(QgsMapCanvas):
         featuresLine = self.digiLineLayer.getFeatures()
 
         for feature in featuresLine:
-            if feature["uuid"] == uuid:
+            if feature["obj_uuid"] == uuid:
                 self.digiLineLayer.startEditing()
                 self.digiLineLayer.deleteFeature(feature.id())
                 self.digiLineLayer.commitChanges()
@@ -749,7 +750,7 @@ class DigitizeCanvas(QgsMapCanvas):
         featuresPoint = self.digiPointLayer.getFeatures()
 
         for feature in featuresPoint:
-            if feature["uuid"] == uuid:
+            if feature["obj_uuid"] == uuid:
                 self.digiPointLayer.startEditing()
                 self.digiPointLayer.deleteFeature(feature.id())
                 self.digiPointLayer.commitChanges()

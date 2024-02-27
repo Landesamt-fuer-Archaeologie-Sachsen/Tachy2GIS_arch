@@ -1,4 +1,4 @@
-from PyQt5.QtCore import pyqtSignal, pyqtSlot
+from qgis.PyQt.QtCore import pyqtSignal, pyqtSlot
 from qgis.gui import QgsAttributeDialog, QgsAttributeEditorContext
 from qgis.core import QgsFeature, QgsGeometry, QgsFeatureRequest
 
@@ -115,9 +115,9 @@ class MapToolDigiPolygon(PolygonMapTool, MapToolMixin):
 
         for item in fields:
             if (
-                item.name() == "uuid"
+                item.name() == "obj_uuid"
                 or item.name() == "id"
-                or item.name() == "obj_type"
+                or item.name() == "obj_typ"
                 or item.name() == "obj_art"
                 or item.name() == "zeit"
                 or item.name() == "material"
@@ -220,7 +220,7 @@ class MapToolDigiPolygon(PolygonMapTool, MapToolMixin):
             # schauen ob es schon existiert (anhand uuid), wenn ja dann löschen und durch Zielfeature ersetzen
             sourceLayerFeatures = self.refData["polygonLayer"].getFeatures()
             for sourceFeature in sourceLayerFeatures:
-                if feature["uuid"] == sourceFeature["uuid"]:
+                if feature["obj_uuid"] == sourceFeature["obj_uuid"]:
                     pr.deleteFeatures([sourceFeature.id()])
                     pr.addFeatures([rotFeature])
 
@@ -239,7 +239,7 @@ class MapToolDigiPolygon(PolygonMapTool, MapToolMixin):
         features = self.refData["polygonLayer"].getFeatures()
 
         for feature in features:
-            if feature["uuid"] == uuid:
+            if feature["obj_uuid"] == uuid:
                 if feature["geo_quelle"] == "profile_object":
                     self.refData["polygonLayer"].startEditing()
                     self.refData["polygonLayer"].deleteFeature(feature.id())

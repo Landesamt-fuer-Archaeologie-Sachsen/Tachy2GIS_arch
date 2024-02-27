@@ -2,8 +2,8 @@
 import shutil
 import os
 
-from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QMessageBox
+from qgis.PyQt.QtGui import QIcon
+from qgis.PyQt.QtWidgets import QMessageBox
 from qgis.core import QgsProject, QgsGeometry, QgsVectorLayer, QgsApplication, QgsLayerTreeGroup, QgsLayerTreeLayer, QgsRectangle, QgsVectorFileWriter
 from processing.gui import AlgorithmExecutor
 from qgis import processing
@@ -81,7 +81,7 @@ class GeoEdit():
         #Setup Sonstiges
         self.__dockwidget.butLineRes.setIcon(QIcon(os.path.join(self.__iconpath, 'LineRe.gif')))
         self.__dockwidget.butLineRes.setToolTip('Linie umdrehen')
-        self.__dockwidget.butLineRes.clicked.connect(self.__t2gArchInstance.lineFeatureReverse)
+        self.__dockwidget.butLineRes.clicked.connect(self.__t2gArchInstance.reverseLines)
 
     ## @brief Start process to move features forward
     # - Get input values

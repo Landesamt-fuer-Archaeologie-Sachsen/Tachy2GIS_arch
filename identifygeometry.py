@@ -26,8 +26,8 @@
 #
 #---------------------------------------------------------------------
 
-from PyQt5.QtCore import pyqtSignal,Qt
-from PyQt5.QtGui import QPixmap, QCursor
+from qgis.PyQt.QtCore import pyqtSignal,Qt
+from qgis.PyQt.QtGui import QPixmap, QCursor
 from qgis.core import Qgis, QgsVectorLayer, QgsFeature, QgsMessageLog
 from qgis.gui import QgsMapToolIdentify
 

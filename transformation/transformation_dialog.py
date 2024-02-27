@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 import os
 import csv
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QWidget, QMainWindow, QAction, QVBoxLayout, QLabel, QPushButton, QSizePolicy, QLineEdit, QFileDialog
-from PyQt5.QtGui import QIcon
+from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtWidgets import QWidget, QMainWindow, QAction, QVBoxLayout, QLabel, QPushButton, QSizePolicy, QLineEdit, QFileDialog
+from qgis.PyQt.QtGui import QIcon
 from qgis.gui import QgsMessageBar
 
 from .transformation_dialog_table import TransformationDialogTable
@@ -58,6 +58,7 @@ class TransformationDialog(QMainWindow):
     def createMenu(self):
 
         self.statusBar()
+
 
         self.statusBar().reformat()
         self.statusBar().setStyleSheet('background-color: #FFF8DC;')

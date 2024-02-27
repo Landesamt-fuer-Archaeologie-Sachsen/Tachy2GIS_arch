@@ -1,0 +1,71 @@
+14C-Probe;|Probe|Topo/Kartographie|;C14;1
+Anthropologische Probe;|Probe|;ANTH;1
+Baumwurf;|Befund|Störung|;;1
+biotisch;|Befund|Störung|;;1
+Bohrkern;|Probe|;;1
+botanische Probe;|Probe|;BOT;1
+chemische Probe;|Probe|;CHEM;1
+dendrologische Probe;|Probe|;DEND;1
+Erdprobe;|Probe|;EP;1
+Felsgestein unbearbeitet;|Fundkonzentration|;;1
+geologische Probe;|Probe|;GEO;1
+GOK;|Höhenpunkt|;GOK;1
+Graben;|Befund|Störung|;;1
+Grabung;|Schnitt|;;1
+Grab;|Topo/Kartographie|;;1
+Holzkohle;|Fund|Fundkonzentration|Probe|;HK;1
+Holz;|Fund|Fundkonzentration|Befund|;;1
+Keramik;|Fund|Fundkonzentration|;;1
+Knochenbrand;|Fund|Fundkonzentration|;;1
+Knochen;|Fund|Fundkonzentration|;;1
+Metall;|Fund|Fundkonzentration|;;1
+Münze;|Fund|Fundkonzentration|TestTest|;;1
+Oberkante;|Höhenpunkt|;OKA;1
+Pflanzloch;|Störung|;;1
+Planum;|Fotoentzerrpunkt|;;1
+Pollen;|Probe|;POL;1
+Profil;|Fotoentzerrpunkt|;;1
+Prospektion;|Schnitt|;;1
+Quadrant;|Schnitt|;;1
+Rodung;|Störung|;;1
+Rotlehm;|Fund|Fundkonzentration|;;1
+Rötel;|Fund|Fundkonzentration|;;1
+Schlacke;|Fund|Fundkonzentration|;;1
+Silex;|Fund|Fundkonzentration|;;1
+Sonderfund;|Fund|Fundkonzentration|;;1
+sonstige Probe;|Probe|;SOP;1
+Sonstiges;|Befund|;SONS;1
+Spinnwirtel;|Fund|Fundkonzentration|;;1
+unbestimmt;|Fund|Fundkonzentration|;;1
+Unterkante;|Höhenpunkt|;UKA;1
+Webgewicht;|Fund|Fundkonzentration|;;1
+Wurzel;|Störung|;;1
+Felsgestein bearbeitet;|Fund|Fundkonzentration|;;1
+Anstehendes;|Befund|;;1
+Bestattung;|Befund|;;1
+Bodenanomalie;|Befund|;;1
+Bodeneingriff ;|Befund|;;1
+Deponierung;|Befund|;;1
+Fundament;|Befund|;;1
+Fundkonzentration;|Befund|;;1
+Fußboden;|Befund|;;1
+Gebäude;|Befund|;;1
+Grabbau;|Befund|;;1
+Grube;|Befund|;;1
+Handwerk/Wirtschaft;|Befund|;;1
+Horizont;|Befund|;;1
+Keller;|Befund|;;1
+Kultbau;|Befund|;;1
+Latrine;|Befund|;;1
+Mauer;|Befund|;;1
+Ofen;|Befund|;;1
+Pfosten;|Befund|;;1
+Schicht;|Befund|;;1
+Sonstige Bauelemente;|Befund|;;1
+Spolie;|Befund|;;1
+Steinsetzung;|Befund|;;1
+Verfärbung;|Befund|;;1
+Verfüllung;|Befund|;;1
+Verkehrsfläche;|Befund|;;1
+Wand;|Befund|;;1
+Wasserbau;|Befund|;;1

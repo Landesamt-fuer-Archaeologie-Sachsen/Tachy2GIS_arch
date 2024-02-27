@@ -9,8 +9,8 @@ from shutil import rmtree
 
 import osgeo_utils.gdal_merge
 from PIL import Image, ImageDraw
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import (
+from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtWidgets import (
     QWidget,
     QMainWindow,
     QAction,
@@ -21,7 +21,7 @@ from PyQt5.QtWidgets import (
     QMessageBox,
     QDesktopWidget,
 )
-from PyQt5.QtGui import QIcon
+from qgis.PyQt.QtGui import QIcon
 from osgeo import gdal
 from qgis.core import QgsGeometry
 from qgis.gui import QgsMessageBar

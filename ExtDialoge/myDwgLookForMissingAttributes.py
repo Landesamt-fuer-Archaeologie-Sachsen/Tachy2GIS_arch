@@ -24,10 +24,10 @@
 
 import os
 
-from PyQt5.QtCore import Qt
-from PyQt5 import QtWidgets, QtCore, QtGui, uic
-from PyQt5.QtGui import *
-from PyQt5.QtWidgets import *
+from qgis.PyQt.QtCore import Qt
+from qgis.PyQt import QtWidgets, QtCore, QtGui, uic
+from qgis.PyQt.QtGui import *
+from qgis.PyQt.QtWidgets import *
 from qgis.core import *
 from qgis.gui import *
 from ..functions import *
@@ -133,7 +133,7 @@ class LookForMissingAttributesDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     def findBefLabel(self):
         layer = QgsProject.instance().mapLayersByName('E_Point')[0]
         self.iface.setActiveLayer(layer)
-        find = '"obj_type"=\'Kartenbeschriftung\''
+        find = '"obj_typ"=\'Kartenbeschriftung\''
 
         it = layer.getFeatures(QgsFeatureRequest(QgsExpression(str(find))))
         ids = [i.id() for i in it]
@@ -155,7 +155,7 @@ class LookForMissingAttributesDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     def findProfnr(self):
         layer = QgsProject.instance().mapLayersByName('E_Line')[0]
         self.iface.setActiveLayer(layer)
-        find = '"obj_type"=\'Profil\''
+        find = '"obj_typ"=\'Profil\''
 
         it = layer.getFeatures(QgsFeatureRequest(QgsExpression(str(find))))
         ids = [i.id() for i in it]

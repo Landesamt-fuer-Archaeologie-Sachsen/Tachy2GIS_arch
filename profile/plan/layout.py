@@ -1,6 +1,6 @@
 import os
 from qgis.core import QgsProject, QgsMapSettings, QgsRectangle, QgsRasterLayer, QgsPrintLayout, QgsLayoutItemMap, QgsLayoutPoint, QgsLayoutSize, QgsUnitTypes, QgsLayoutItemLabel,QgsLayoutItemLegend, QgsLayoutExporter
-from PyQt5.QtGui import QColor
+from qgis.PyQt.QtGui import QColor
 
 ## @brief Layout class
 #

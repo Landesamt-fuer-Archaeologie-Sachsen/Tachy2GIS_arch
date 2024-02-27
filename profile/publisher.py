@@ -13,3 +13,4 @@ class Publisher:
     def publish(self, event, message):
         for callback in self.get_subscribers(event):
             callback(message)
+

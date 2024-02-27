@@ -2,8 +2,8 @@
 import os
 
 from PyQt5.QtCore import pyqtSlot
-from PyQt5.QtWidgets import QWidget, QMainWindow, QAction, QVBoxLayout
-from PyQt5.QtGui import QIcon
+from qgis.PyQt.QtWidgets import QWidget, QMainWindow, QAction, QVBoxLayout
+from qgis.PyQt.QtGui import QIcon
 from qgis.core import QgsPointXY
 from qgis.gui import QgsMessageBar
 

@@ -1,4 +1,4 @@
-from PyQt5.QtCore import pyqtSignal, pyqtSlot
+from qgis.PyQt.QtCore import pyqtSignal, pyqtSlot
 from qgis.gui import QgsAttributeDialog, QgsAttributeEditorContext
 from qgis.core import QgsFeature, QgsGeometry, QgsFeatureRequest
 
@@ -117,7 +117,7 @@ class MapToolDigiLine(MultilineMapTool, MapToolMixin):
 
         for item in fields:
             if (
-                item.name() == "uuid"
+                item.name() == "obj_uuid"
                 or item.name() == "id"
                 or item.name() == "obj_type"
                 or item.name() == "obj_art"
@@ -233,7 +233,7 @@ class MapToolDigiLine(MultilineMapTool, MapToolMixin):
             # schauen ob es schon existiert (anhand uuid), wenn ja dann löschen und durch Zielfeature ersetzen
             sourceLayerFeatures = self.refData["lineLayer"].getFeatures()
             for sourceFeature in sourceLayerFeatures:
-                if feature["uuid"] == sourceFeature["uuid"]:
+                if feature["obj_uuid"] == sourceFeature["obj_uuid"]:
                     pr.deleteFeatures([sourceFeature.id()])
                     pr.addFeatures([rotFeature])
 
@@ -252,7 +252,7 @@ class MapToolDigiLine(MultilineMapTool, MapToolMixin):
         features = self.refData["lineLayer"].getFeatures()
 
         for feature in features:
-            if feature["uuid"] == uuid:
+            if feature["obj_uuid"] == uuid:
                 if feature["geo_quelle"] == "profile_object":
                     self.refData["lineLayer"].startEditing()
                     self.refData["lineLayer"].deleteFeature(feature.id())
