@@ -152,7 +152,7 @@ class ProfileGcpCanvas(QgsMapCanvas):
         textFormat.setBuffer(bufferSettings)
         sourcelayerSettings.setFormat(textFormat)
 
-        sourcelayerSettings.fieldName = "ptnr"
+        sourcelayerSettings.fieldName = "pt_nr"
         sourcelayerSettings.placement = 4
         sourcelayerSettings.enabled = True
 

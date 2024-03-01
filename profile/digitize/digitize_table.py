@@ -85,8 +85,8 @@ class DigitizeTable(QTableWidget):
         self.setColumnHidden(0, True)
 
         # ID
-        if "id" in dataObj:
-            idItem = QTableWidgetItem(str(dataObj['id']))
+        if "fid" in dataObj:
+            idItem = QTableWidgetItem(str(dataObj['fid']))
         else:
             idItem = QTableWidgetItem('NULL')
 

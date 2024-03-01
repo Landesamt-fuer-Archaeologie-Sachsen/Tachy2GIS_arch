@@ -703,7 +703,7 @@ class DigitizeCanvas(QgsMapCanvas):
         for item in fields:
             if (
                 item.name() == "obj_uuid"
-                or item.name() == "id"
+                or item.name() == "fid"
                 or item.name() == "obj_typ"
                 or item.name() == "obj_art"
                 or item.name() == "zeit"
