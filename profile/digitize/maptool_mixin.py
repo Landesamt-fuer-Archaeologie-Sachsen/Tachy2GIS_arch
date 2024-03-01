@@ -20,7 +20,7 @@ class MapToolMixin:
         feature["geo_quelle"] = "profile_object"
         ## set current date
         e = QgsExpression(" $now ")
-        feature["messdatum"] = e.evaluate()
+        feature["erf_datum"] = e.evaluate()
 
         # aktCode
         try:
