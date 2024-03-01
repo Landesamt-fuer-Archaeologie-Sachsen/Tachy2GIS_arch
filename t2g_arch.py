@@ -449,6 +449,9 @@ class T2G_Arch:
                 self.layerPoly.subsetStringChanged.disconnect(self.filterGesetzt)
                 self.layerPoly.attributeValueChanged.disconnect(self.polygonLayerEdited)
                 self.layerPoly.featureAdded.disconnect(self.eventFeatureAdded)
+            if self.geoEdit:
+                self.geoEdit.disconnectSignals()
+
 
     def setupModules(self):
         # Messen

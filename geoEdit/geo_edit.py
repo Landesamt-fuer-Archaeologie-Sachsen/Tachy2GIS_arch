@@ -83,6 +83,11 @@ class GeoEdit():
         self.__dockwidget.butLineRes.setToolTip('Linie umdrehen')
         self.__dockwidget.butLineRes.clicked.connect(self.__t2gArchInstance.reverseLines)
 
+    def disconnectSignals(self):
+        # muss disconnected werden bei reload des Plugins
+        self.__iface.layerTreeView().currentLayerChanged.disconnect(self.__activeLayerIsChanged)
+
+
     ## @brief Start process to move features forward
     # - Get input values
     # - Check validity of the sourcelayer
