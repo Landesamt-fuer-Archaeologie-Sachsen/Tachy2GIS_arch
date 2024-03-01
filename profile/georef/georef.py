@@ -499,7 +499,8 @@ class Georef:
     def getProfileNumbers(self, lineLayer):
         profileList = []
         for feat in lineLayer.getFeatures():
-            if feat.attribute('obj_typ') == 'Profil':
+            # id 2 entspricht "Profil"
+            if feat.attribute('obj_typ') == '2':
                 if feat.attribute('prof_nr'):
                     profileList.append(feat.attribute('prof_nr'))
 
