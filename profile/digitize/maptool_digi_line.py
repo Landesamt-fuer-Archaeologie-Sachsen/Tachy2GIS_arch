@@ -230,7 +230,7 @@ class MapToolDigiLine(MultilineMapTool, MapToolMixin):
 
             checker = True
             # Features aus Eingabelayer
-            # schauen ob es schon existiert (anhand uuid), wenn ja dann löschen und durch Zielfeature ersetzen
+            # schauen ob es schon existiert (anhand obj_uuid), wenn ja dann löschen und durch Zielfeature ersetzen
             sourceLayerFeatures = self.refData["lineLayer"].getFeatures()
             for sourceFeature in sourceLayerFeatures:
                 if feature["obj_uuid"] == sourceFeature["obj_uuid"]:
@@ -248,11 +248,11 @@ class MapToolDigiLine(MultilineMapTool, MapToolMixin):
         self.refData["lineLayer"].updateExtents()
         self.refData["lineLayer"].endEditCommand()
 
-    def removeFeatureInEingabelayerByUuid(self, uuid):
+    def removeFeatureInEingabelayerByUuid(self, obj_uuid):
         features = self.refData["lineLayer"].getFeatures()
 
         for feature in features:
-            if feature["obj_uuid"] == uuid:
+            if feature["obj_uuid"] == obj_uuid:
                 if feature["geo_quelle"] == "profile_object":
                     self.refData["lineLayer"].startEditing()
                     self.refData["lineLayer"].deleteFeature(feature.id())

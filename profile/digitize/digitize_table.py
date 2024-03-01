@@ -58,7 +58,7 @@ class DigitizeTable(QTableWidget):
             returnValue = msgBox.exec()
             if returnValue == QMessageBox.Ok:
                 self.removeRow(row)
-                self.pup.publish('removeFeatureByUuid', button.uuid)
+                self.pup.publish('removeFeatureByUuid', button.obj_uuid)
 
     ## \brief Start edit dialog
     #
@@ -67,7 +67,7 @@ class DigitizeTable(QTableWidget):
     def editDialog(self):
 
         button = self.sender()
-        self.pup.publish('editFeatureAttributes', button.uuid)
+        self.pup.publish('editFeatureAttributes', button.obj_uuid)
 
     ## \brief Insert into table
     #
@@ -162,7 +162,7 @@ class DigitizeTable(QTableWidget):
 
         editBtn = QPushButton()
         editBtn.setIcon(iconEdit)
-        editBtn.uuid = dataObj['uuid']
+        editBtn.obj_uuid = dataObj['obj_uuid']
         editBtn.setStyleSheet("margin-left:50%; margin-right:50%; bsckground-color:transparent; border:none;");
         self.setCellWidget(rowPosition, 9, editBtn)
         editBtn.clicked.connect(self.editDialog)
@@ -173,7 +173,7 @@ class DigitizeTable(QTableWidget):
 
         deleteBtn = QPushButton()
         deleteBtn.setIcon(iconDel)
-        deleteBtn.uuid = dataObj['uuid']
+        deleteBtn.obj_uuid = dataObj['obj_uuid']
         deleteBtn.setStyleSheet("margin-left:50%; margin-right:50%; bsckground-color:transparent; border:none;");
         self.setCellWidget(rowPosition, 10, deleteBtn)
         deleteBtn.clicked.connect(self.showDialog)
@@ -206,7 +206,7 @@ class DigitizeTable(QTableWidget):
             for j in range(0, columnCount):
                 head = self.horizontalHeaderItem(j).text()
 
-                if dataObj['uuid'] == tblUuid:
+                if dataObj['obj_uuid'] == tblUuid:
 
                     if head == 'Objekttyp':
                         if "obj_typ" in dataObj:

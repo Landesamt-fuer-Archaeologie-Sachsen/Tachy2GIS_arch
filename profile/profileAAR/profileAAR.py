@@ -128,14 +128,14 @@ class profileAAR(object):
                 y = round(feature[1], 3)
                 z = round(feature[2], 3)
                 use = feature[5]
-                uuid = feature[6]
+                obj_uuid = feature[6]
 
                 # write coordinates and attributes (view, profile and z) in a list
                 # add an ID to each point
 
                 point_id += 1
 
-                coord.append([x,y,z,view, profileName, use, point_id, uuid])
+                coord.append([x,y,z,view, profileName, use, point_id, obj_uuid])
 
                 # write a list of profilenames (unique entries)
                 if profileName not in profile_names:

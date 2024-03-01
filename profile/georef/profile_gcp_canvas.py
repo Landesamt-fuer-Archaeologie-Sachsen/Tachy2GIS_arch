@@ -120,7 +120,7 @@ class ProfileGcpCanvas(QgsMapCanvas):
 
         self.setLayers(listLayers)
 
-    ## \brief Short highlighting of a feature by uuid
+    ## \brief Short highlighting of a feature by obj_uuid
     #
     # \param uuidValue
 

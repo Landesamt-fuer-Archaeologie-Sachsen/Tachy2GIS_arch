@@ -42,7 +42,7 @@ class Residuals:
             V_X_sum_sq += V_X[i]*V_X[i]
             V_Y_sum_sq += V_Y[i]*V_Y[i]
 
-            V_XY_uuid.append({'v_xy': V_XY[i], 'uuid': gcps_uuid[i,4]})
+            V_XY_uuid.append({'v_xy': V_XY[i], 'obj_uuid': gcps_uuid[i,4]})
 
         mo = math.sqrt(V_XY_sum_sq/(n)) #avarage error
         mox = math.sqrt(V_X_sum_sq/(n)) #avarage x error
@@ -96,7 +96,7 @@ class Residuals:
             V_X_sum_sq += V_X[i]*V_X[i]
             V_Y_sum_sq += V_Y[i]*V_Y[i]
 
-            V_XY_uuid.append({'v_xy': V_XY[i], 'uuid': gcps_uuid[i,4]})
+            V_XY_uuid.append({'v_xy': V_XY[i], 'obj_uuid': gcps_uuid[i,4]})
 
         mo = math.sqrt(V_XY_sum_sq/(n)) #avarage error
         mox = math.sqrt(V_X_sum_sq/(n)) #avarage x error

@@ -163,8 +163,8 @@ class MapToolIdentify(QgsMapTool):
             index_of_nearest = min(range(len(closest_distances)), key=closest_distances.__getitem__)
             final_result = results[index_of_nearest]
 
-        if final_result.mFeature["uuid"] != self.lastUUID:
-            self.lastUUID = final_result.mFeature["uuid"]
+        if final_result.mFeature["obj_uuid"] != self.lastUUID:
+            self.lastUUID = final_result.mFeature["obj_uuid"]
             self.lastFeature = (final_result.mLayer, final_result.mFeature)
             self.pup.publish("removeHoverFeatures", {})
             self.pup.publish(

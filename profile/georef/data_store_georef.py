@@ -32,7 +32,7 @@ class DataStoreGeoref():
     # @param pointObj is a dictionary e.G.:
     #  \code{.py}
     # {
-    #   'uuid': '{ff4533b8-2e88-4f52-ac24-bb98c345c90b}',
+    #   'obj_uuid': '{ff4533b8-2e88-4f52-ac24-bb98c345c90b}',
     #   'x': 231.0,
     #   'z': -228.0
     # }
@@ -43,7 +43,7 @@ class DataStoreGeoref():
         if len(self.imagePoints) == 0:
 
             self.imagePoints.append({
-            	'uuid': pointObj['uuid'],
+            	'obj_uuid': pointObj['obj_uuid'],
             	'x': pointObj['x'],
                 'z': pointObj['z']
             })
@@ -51,14 +51,14 @@ class DataStoreGeoref():
             checker = False
             for statePoint in self.imagePoints:
 
-                if statePoint['uuid'] == pointObj['uuid']:
+                if statePoint['obj_uuid'] == pointObj['obj_uuid']:
                     statePoint['x'] = pointObj['x']
                     statePoint['z'] = pointObj['z']
                     checker = True
 
             if checker == False:
                 self.imagePoints.append({
-                	'uuid': pointObj['uuid'],
+                	'obj_uuid': pointObj['obj_uuid'],
                 	'x': pointObj['x'],
                     'z': pointObj['z']
                 })
@@ -71,7 +71,7 @@ class DataStoreGeoref():
         for pointObj in refData['targetGCP']['points']:
 
             self.targetPoints.append({
-            	'uuid': pointObj['uuid'],
+            	'obj_uuid': pointObj['obj_uuid'],
             	'x': pointObj['x'],
                 'y': pointObj['z'],
                 'z': pointObj['z']
@@ -89,7 +89,7 @@ class DataStoreGeoref():
             for pointObj in aarList['coord_trans']:
 
                 aarArray.append({
-                    'uuid': pointObj[8],
+                    'obj_uuid': pointObj[8],
                     'ptnr': str(pointObj[7]),
                     'x': pointObj[0],
                     'y': pointObj[1],
@@ -120,7 +120,7 @@ class DataStoreGeoref():
             for pointObj in aarList['coord_trans']:
 
                 aarArray.append({
-                    'uuid': pointObj[8],
+                    'obj_uuid': pointObj[8],
                     'ptnr': str(pointObj[7]),
                     'x': pointObj[0],
                     'y': pointObj[1],
@@ -151,7 +151,7 @@ class DataStoreGeoref():
             for pointObj in aarList['coord_trans']:
 
                 aarArray.append({
-                    'uuid': pointObj[8],
+                    'obj_uuid': pointObj[8],
                     'ptnr': str(pointObj[7]),
                     'x': pointObj[0],
                     'y': pointObj[1],
@@ -211,9 +211,9 @@ class DataStoreGeoref():
         for aarObj in retPoints:
             if(aarObj['usage'] == 1):
                 for imageObj in self.imagePoints:
-                    if aarObj['uuid'] == imageObj['uuid']:
+                    if aarObj['obj_uuid'] == imageObj['obj_uuid']:
                         georefData.append({
-                                        'uuid': aarObj['uuid'],
+                                        'obj_uuid': aarObj['obj_uuid'],
                                         'ptnr': aarObj['ptnr'],
                                         'input_x': imageObj['x'],
                                         'input_z': imageObj['z'],

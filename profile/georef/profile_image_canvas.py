@@ -58,9 +58,9 @@ class ProfileImageCanvas(QgsMapCanvas):
         self.createMapToolMoveMarker()
         self.createConnects()
 
-    def __delete_marker(self, uuid):
+    def __delete_marker(self, obj_uuid):
         for mark in self.markerPoints:
-            if uuid == mark["uuid"]:
+            if obj_uuid == mark["obj_uuid"]:
                 self.scene().removeItem(mark["marker"])
                 self.scene().removeItem(mark["annotation"])
         self.refresh()
@@ -103,7 +103,7 @@ class ProfileImageCanvas(QgsMapCanvas):
     def updateMarkerPoints(self):
         for point in self.aarPoints:
             for mark in self.markerPoints:
-                if point["uuid"] == mark["uuid"]:
+                if point["obj_uuid"] == mark["obj_uuid"]:
                     if point["usage"] == 1:
                         mark["marker"].setColor(QColor(0, 255, 0))
                     if point["usage"] == 0:
@@ -113,28 +113,28 @@ class ProfileImageCanvas(QgsMapCanvas):
 
     def press_point(self, pointData):
         if self.activePoint:
-            self.__delete_marker(self.activePoint["uuid"])
+            self.__delete_marker(self.activePoint["obj_uuid"])
 
             mark, ann = self.__createMarker(pointData)
 
-            self.markerPoints.append({"uuid": self.activePoint["uuid"], "marker": mark, "annotation": ann})
+            self.markerPoints.append({"obj_uuid": self.activePoint["obj_uuid"], "marker": mark, "annotation": ann})
 
             self.updateMarkerPoints()
 
     def release_point(self, pointData):
         if self.activePoint:
-            self.__delete_marker(self.activePoint["uuid"])
+            self.__delete_marker(self.activePoint["obj_uuid"])
 
             mark, ann = self.__createMarker(pointData)
 
-            self.markerPoints.append({"uuid": self.activePoint["uuid"], "marker": mark, "annotation": ann})
+            self.markerPoints.append({"obj_uuid": self.activePoint["obj_uuid"], "marker": mark, "annotation": ann})
 
             self.updateMarkerPoints()
 
             self.pup.publish(
                 "imagePointCoordinates",
                 {
-                    "uuid": self.activePoint["uuid"],
+                    "obj_uuid": self.activePoint["obj_uuid"],
                     "x": pointData[0],
                     "z": abs(pointData[1]),
                 },
@@ -142,11 +142,11 @@ class ProfileImageCanvas(QgsMapCanvas):
 
     def move_point(self, pointData):
         if self.activePoint:
-            self.__delete_marker(self.activePoint["uuid"])
+            self.__delete_marker(self.activePoint["obj_uuid"])
 
             mark, ann = self.__createMarker(pointData)
 
-            self.markerPoints.append({"uuid": self.activePoint["uuid"], "marker": mark, "annotation": ann})
+            self.markerPoints.append({"obj_uuid": self.activePoint["obj_uuid"], "marker": mark, "annotation": ann})
 
             self.updateMarkerPoints()
 

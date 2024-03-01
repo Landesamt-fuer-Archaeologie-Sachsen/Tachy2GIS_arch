@@ -342,6 +342,7 @@ class GeoreferencingDialog(QMainWindow):
     # \param refData
     def showGeoreferencingDialog(self, refData):
         self.refData = refData
+        print(self.refData)
 
         self.startGeorefBtn.setEnabled(False)
         self.startGeorefBtn.setStyleSheet("background-color: lightgrey; width: 200px")

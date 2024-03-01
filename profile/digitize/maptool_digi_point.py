@@ -115,7 +115,7 @@ class MapToolDigiPoint(PointMapTool, MapToolMixin):
 
         for item in fields:
             if (
-                item.name() == "uuid"
+                item.name() == "obj_uuid"
                 or item.name() == "id"
                 or item.name() == "obj_typ"
                 or item.name() == "obj_art"
@@ -162,7 +162,7 @@ class MapToolDigiPoint(PointMapTool, MapToolMixin):
 
                 checker = True
                 for digiPointFeature in self.digiPointLayer.getFeatures():
-                    if feature["uuid"] == digiPointFeature["uuid"]:
+                    if feature["obj_uuid"] == digiPointFeature["obj_uuid"]:
                         checker = False
 
                 if checker == True:
@@ -178,7 +178,7 @@ class MapToolDigiPoint(PointMapTool, MapToolMixin):
 
                 checker = True
                 for digiPointFeature in self.digiPointLayer.getFeatures():
-                    if feature["uuid"] == digiPointFeature["uuid"]:
+                    if feature["obj_uuid"] == digiPointFeature["obj_uuid"]:
                         checker = False
 
                 if checker == True:
@@ -241,7 +241,7 @@ class MapToolDigiPoint(PointMapTool, MapToolMixin):
             # wenn ja dann löschen und durch Zielfeature ersetzen
             checker = True
             for sourceFeature in sourceLayerFeatures:
-                if feature["uuid"] == sourceFeature["uuid"]:
+                if feature["obj_uuid"] == sourceFeature["obj_uuid"]:
                     pr.deleteFeatures([sourceFeature.id()])
                     pr.addFeatures([rotFeature])
                     checker = False
@@ -254,11 +254,11 @@ class MapToolDigiPoint(PointMapTool, MapToolMixin):
         self.refData["pointLayer"].updateExtents()
         self.refData["pointLayer"].endEditCommand()
 
-    def removeFeatureInEingabelayerByUuid(self, uuid):
+    def removeFeatureInEingabelayerByUuid(self, obj_uuid):
         features = self.refData["pointLayer"].getFeatures()
 
         for feature in features:
-            if feature["uuid"] == uuid:
+            if feature["obj_uuid"] == obj_uuid:
                 if feature["geo_quelle"] == "profile_object":
                     self.refData["pointLayer"].startEditing()
                     self.refData["pointLayer"].deleteFeature(feature.id())

@@ -286,7 +286,7 @@ class Georef:
     #    'saveMetadata': True,
     #    'targetGCP': {
     #        'points': [{
-    #            'uuid': '{f9a241b4-1a9b-4695-a493-5262efa1857c}',
+    #            'obj_uuid': '{f9a241b4-1a9b-4695-a493-5262efa1857c}',
     #            'ptnr': '1',
     #            'id': 745,
     #            'x': 4577275.697,
@@ -307,8 +307,10 @@ class Georef:
             profileNumber = self.dockwidget.profileIdsComboGeoref.currentText()
 
         pointLayer = self.dockwidget.layerGcpGeoref.currentLayer().clone()
+        # obj_typ 12 entspricht Fotoentzerrpunkt
         pointLayer.setSubsetString(
-            "obj_type = 'Fotoentzerrpunkt' and " "obj_art = 'Profil' and " "prof_nr = '" + profileNumber + "'"
+            #"obj_typ = '12' and " "prof_nr = '" + profileNumber + "'"
+            "obj_typ = '12' and " "obj_art = 'Profil' and " "prof_nr = '" + profileNumber + "'"
         )
 
         # Zielkoordinaten
@@ -318,6 +320,7 @@ class Georef:
         orgGeomType = ""
 
         for feature in pointLayer.getFeatures():
+            print(feature.attributeMap())
             org_geom = feature.geometry()
             orgGeomType = org_geom.wkbType()
 
@@ -326,10 +329,11 @@ class Georef:
             geoType = g.wkbType()
 
             if geoType == 1001 or geoType == 3001:
+
                 pointObj = {
-                    "uuid": feature.attribute("obj_uuid"),
+                    "obj_uuid": feature.attribute("obj_uuid"),
                     "ptnr": feature.attribute("pt_nr"),
-                    "id": feature.attribute("id"),
+                    "fid": feature.attribute("fid"),
                     "x": float(g.get().x()),
                     "y": float(g.get().y()),
                     "z": float(g.get().z()),
@@ -523,11 +527,13 @@ class Georef:
     #
     # If layer E_Line exists then preselect this
     def preselectionProfileLayer(self):
+        print('preselectionProfileLayer... ')
         notInputLayers = self.getNonInputLayers(1)
+        print('notInputLayers: ', notInputLayers)
         inputLayers = self.getInputlayers(False)
 
         self.dockwidget.layerProfileGeoref.setExceptedLayerList(notInputLayers)
-
+        print('inputLayers: ', inputLayers)
         for layer in inputLayers:
             if layer.name() == "E_Line":
                 self.dockwidget.layerProfileGeoref.setLayer(layer)

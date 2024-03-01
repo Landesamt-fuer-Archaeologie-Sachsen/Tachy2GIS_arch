@@ -56,7 +56,7 @@ class GeorefTable(QTableWidget):
         self.colHeaders = [
             "UUID",
             "PTNR",
-            "ID",
+            "FID",
             "Quelle X",
             "Quelle Z",
             "Ziel X",
@@ -202,11 +202,11 @@ class GeorefTable(QTableWidget):
             for j in range(0, columnCount):
                 head = self.horizontalHeaderItem(j).text()
                 if head == "UUID":
-                    pointObj["uuid"] = self.item(i, j).text()
+                    pointObj["obj_uuid"] = self.item(i, j).text()
                 if head == "PTNR":
                     pointObj["ptnr"] = self.item(i, j).text()
-                if head == "ID":
-                    pointObj["id"] = int(self.item(i, j).text())
+                if head == "FID":
+                    pointObj["fid"] = int(self.item(i, j).text())
                 if head == "Quelle X":
                     pointArraySource[0] = float(self.item(i, j).text())
                 if head == "Quelle Z":
@@ -259,7 +259,7 @@ class GeorefTable(QTableWidget):
         #    self.directionAAR = 'original'
 
         # self.colHeaders = [
-        #     'UUID', 'PTNR', 'ID', 'Quelle X', 'Quelle Z', 'Ziel X', 'Ziel Y', 'Ziel Z',
+        #     'UUID', 'PTNR', 'FID', 'Quelle X', 'Quelle Z', 'Ziel X', 'Ziel Y', 'Ziel Z',
         #     'Error', 'Punkt verwenden', 'Punkt setzen'
         # ]
         targetX = []
@@ -272,14 +272,14 @@ class GeorefTable(QTableWidget):
             rowPosition = self.rowCount()
             self.insertRow(rowPosition)
             # UUID
-            self.setItem(rowPosition, 0, QTableWidgetItem(pointObj["uuid"]))
+            self.setItem(rowPosition, 0, QTableWidgetItem(pointObj["obj_uuid"]))
             # PTNR
             ptnrItem = QTableWidgetItem(str(pointObj["ptnr"]))
             ptnrItem.setFlags(Qt.ItemIsEnabled)
             self.setItem(rowPosition, 1, ptnrItem)
             georefTableHeader.setSectionResizeMode(1, QHeaderView.Stretch)
-            # ID
-            idItem = QTableWidgetItem(str(pointObj["id"]))
+            # FID
+            idItem = QTableWidgetItem(str(pointObj["fid"]))
             idItem.setFlags(Qt.ItemIsEnabled)
             self.setItem(rowPosition, 2, idItem)
             georefTableHeader.setSectionResizeMode(2, QHeaderView.Stretch)
@@ -339,7 +339,7 @@ class GeorefTable(QTableWidget):
             georefTableHeader.setSectionResizeMode(10, QHeaderView.ResizeToContents)
 
             setPointRadio = QRadioButton()
-            setPointRadio.pointUUID = pointObj["uuid"]
+            setPointRadio.pointUUID = pointObj["obj_uuid"]
             # usageCheck.setChecked(True)
             setPointRadio.setStyleSheet("margin-left:50%; margin-right:50%;")
             self.setCellWidget(rowPosition, 10, setPointRadio)
@@ -355,7 +355,7 @@ class GeorefTable(QTableWidget):
                 # case kreuzprofil: unselecting disallowed
                 usageCheck.setEnabled(False)
 
-        # hide column with ugly uuid
+        # hide column with ugly obj_uuid
         self.setColumnHidden(0, True)
 
     ## \brief Remove all cells in table
@@ -381,10 +381,10 @@ class GeorefTable(QTableWidget):
 
             pointNr = ""
             for tblObj in tableData:
-                if tblObj["uuid"] == activeUUID:
+                if tblObj["obj_uuid"] == activeUUID:
                     pointNr = tblObj["ptnr"]
 
-            self.pup.publish("activatePoint", {"uuid": activeUUID, "ptnr": pointNr})
+            self.pup.publish("activatePoint", {"obj_uuid": activeUUID, "ptnr": pointNr})
 
     ## \brief The activePoint ist set by UUID
     #
@@ -392,7 +392,7 @@ class GeorefTable(QTableWidget):
     def setActivePoint(self, pointUUID):
         self.activePoint = pointUUID
 
-    ## \brief If a cell in the table is clicked the corresponding uuid value is searched to used in highlight
+    ## \brief If a cell in the table is clicked the corresponding obj_uuid value is searched to used in highlight
     # sourcelayer feature
     #
     # the Function TransformationDialogCanvas.highlightSourceLayer(uuidValue) is called
@@ -403,7 +403,7 @@ class GeorefTable(QTableWidget):
 
         self.dialogInstance.canvasGcp.highlightSourceLayer(uuidValue)
 
-    ## \brief If a row in the table is clicked the corresponding uuid value is searched to used in highlight
+    ## \brief If a row in the table is clicked the corresponding obj_uuid value is searched to used in highlight
     # sourcelayer feature
     #
     # the Function TransformationDialogCanvas.highlightSourceLayer(uuidValue) is called
@@ -429,7 +429,7 @@ class GeorefTable(QTableWidget):
                     self.viewDirection,
                     self.profileNumber,
                     int(tblObj["usage"]),
-                    tblObj["uuid"],
+                    tblObj["obj_uuid"],
                 ]
             )
 
@@ -450,14 +450,14 @@ class GeorefTable(QTableWidget):
         gcpArray = []
         for georefObj in georefData:
             for targetObj in self.targetGCP:
-                if targetObj["uuid"] == georefObj["uuid"]:
+                if targetObj["obj_uuid"] == georefObj["obj_uuid"]:
                     gcpArray.append(
                         [
                             georefObj["input_x"],
                             georefObj["input_z"],
                             targetObj["x"],
                             targetObj["z"],
-                            targetObj["uuid"],
+                            targetObj["obj_uuid"],
                         ]
                     )
 
@@ -486,7 +486,7 @@ class GeorefTable(QTableWidget):
                         self.item(i, j).setText(str(-99999))
                         self.setRowColor(i, self.whiteBrush)
                         for errorObj in V_XY_uuid:
-                            if errorObj["uuid"] == tblPointUuid:
+                            if errorObj["obj_uuid"] == tblPointUuid:
                                 self.item(i, j).setText(str(round(errorObj["v_xy"], 4)))
 
                                 for cat in self.errorColors:
@@ -522,7 +522,7 @@ class GeorefTable(QTableWidget):
             if isinstance(self.item(rowIndex, j), QTableWidgetItem):
                 self.item(rowIndex, j).setBackground(color)
 
-    ## \brief Update image coordinates for a specific point (uuid)
+    ## \brief Update image coordinates for a specific point (obj_uuid)
     #
     # \param linkObj
     #
@@ -543,7 +543,7 @@ class GeorefTable(QTableWidget):
             # in Zelle der Tabelle eintragen
             for j in range(0, columnCount):
                 head = self.horizontalHeaderItem(j).text()
-                if linkObj["uuid"] == tblPointUuid:
+                if linkObj["obj_uuid"] == tblPointUuid:
                     if head == "Quelle X":
                         self.item(i, j).setText(str(round(linkObj["x"], 3)))
                     if head == "Quelle Z":
