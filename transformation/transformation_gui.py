@@ -376,7 +376,7 @@ class TransformationGui():
             isValid = True
 
             # is 3d Point layer
-            #feature.attribute('obj_type') == 'Georeferenzierung':
+            #feature.attribute('obj_typ') == 'Georeferenzierung':
             layerType = sourceLayer.wkbType()
             print('layerType', layerType)
             #1001 PointZ, 3001 PointZM, 1004 MultiPointZ, 3004 MultipointZM

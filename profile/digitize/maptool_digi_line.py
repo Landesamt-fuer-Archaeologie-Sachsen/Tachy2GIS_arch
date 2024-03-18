@@ -119,7 +119,7 @@ class MapToolDigiLine(MultilineMapTool, MapToolMixin):
             if (
                 item.name() == "obj_uuid"
                 or item.name() == "fid"
-                or item.name() == "obj_type"
+                or item.name() == "obj_typ"
                 or item.name() == "obj_art"
                 or item.name() == "zeit"
                 or item.name() == "material"

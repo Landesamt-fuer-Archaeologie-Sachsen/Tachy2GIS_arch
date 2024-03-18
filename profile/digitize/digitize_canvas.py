@@ -122,14 +122,14 @@ class DigitizeCanvas(QgsMapCanvas):
         """).settings())
         rule_pt.settings().isExpression = True
         rule_pt.setFilterExpression("""
-            "obj_type" = 'Fotoentzerrpunkt' OR "obj_type" = 'Fund' OR "obj_type" = 'Probe' 
+            "obj_typ" = 'Fotoentzerrpunkt' OR "obj_typ" = 'Fund' OR "obj_typ" = 'Probe' 
         """)
         rule_bef = QgsRuleBasedLabeling.Rule(self.createLabelSettings("""
             'Befund ' + "bef_nr"
         """).settings())
         rule_bef.settings().isExpression = True
         rule_bef.setFilterExpression("""
-            "obj_type" = 'Befund' 
+            "obj_typ" = 'Befund' 
         """)
         root.appendChild(rule_bef)
         root.appendChild(rule_pt)
@@ -270,14 +270,14 @@ class DigitizeCanvas(QgsMapCanvas):
         """).settings())
         rule_prof.settings().isExpression = True
         rule_prof.setFilterExpression("""
-            "obj_type" = 'Profil'
+            "obj_typ" = 'Profil'
         """)
         rule_bef = QgsRuleBasedLabeling.Rule(self.createLabelSettings("""
             'Befund ' + "bef_nr"
         """).settings())
         rule_bef.settings().isExpression = True
         rule_bef.setFilterExpression("""
-            "obj_type" = 'Befund' 
+            "obj_typ" = 'Befund' 
         """)
         root.appendChild(rule_bef)
         root.appendChild(rule_prof)
@@ -454,7 +454,7 @@ class DigitizeCanvas(QgsMapCanvas):
         """).settings())
         rule_bef.settings().isExpression = True
         rule_bef.setFilterExpression("""
-            "obj_type" = 'Befund' 
+            "obj_typ" = 'Befund' 
         """)
         root.appendChild(rule_bef)
 
