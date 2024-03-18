@@ -147,7 +147,7 @@ class RasterLayerViewDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
                     i=i+1
         except:
-            pass
+            QgsMessageLog.logMessage(message='RasterLayerViewDockWidget->setup: failed', tag='T2G Archäologie', level=Qgis.MessageLevel.Warning)
         self.tableWidget.setColumnHidden(4,True)
         self.status()
 
@@ -170,7 +170,7 @@ class RasterLayerViewDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             self.ui.label_8.setText(' ' + str(len(picturelist)))
             #self.ui.label.setText('  Ansicht: ' + str(view) + ' - Auswahl: ' + str(selectCount) + ' - Layer: ' + str(layerCount))
         except Exception as e:
-            QgsMessageLog.logMessage(str(e), 'T2G Archäologie', Qgis.Info)
+            QgsMessageLog.logMessage(str(e), 'T2G Archäologie', level=Qgis.MessageLevel.Warning)
 
     def on_customContextMenu(self, pos):
         contextMenu = QtWidgets.QMenu()
