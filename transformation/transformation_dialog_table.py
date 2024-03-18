@@ -32,7 +32,7 @@ class TransformationDialogTable(QTableWidget):
         self.setRowCount(0)
         self.setColumnCount(12)
         self.setHorizontalHeaderLabels(self.colHeaders)
-        self.setStyleSheet("QTableWidget::item { padding: 4px } QTableWidget::item:selected{ background-color: rgba(255, 255, 255, 100%) }");
+        self.setStyleSheet("QTableWidget::item { padding: 4px } QTableWidget::item:selected{ background-color: rgba(255, 255, 255, 100%) }")
 
         #click in Tabellenzelle
         self.clicked.connect(self.gcpTableCellClick)

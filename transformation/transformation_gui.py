@@ -679,7 +679,7 @@ class TransformationGui():
 
                 for layer in inputLayers:
 
-                    layer.removeSelection();
+                    layer.removeSelection()
 
                     layer.setCrs(QgsCoordinateReferenceSystem(self.targetCrs))
 
@@ -708,7 +708,7 @@ class TransformationGui():
 
                     self.paramCalc.createLayerSpatialIndex(layer)
 
-                    layer.removeSelection();
+                    layer.removeSelection()
 
                     #Layer zwischenspeichrern und damit .shp und .idx überschreiben damit Extent des Layers stimmt
                     self.saveLayerAfterTransformation(layer)
@@ -766,7 +766,7 @@ class TransformationGui():
 
                 for layer in inputLayers:
 
-                    layer.removeSelection();
+                    layer.removeSelection()
 
                     layer.setCrs(QgsCoordinateReferenceSystem(self.sourceCrs))
 
@@ -797,7 +797,7 @@ class TransformationGui():
 
                     self.paramCalc.createLayerSpatialIndex(layer)
 
-                    layer.removeSelection();
+                    layer.removeSelection()
 
                     #Layer zwischenspeichrern und damit .shp und .idx überschreiben damit Extent des Layers stimmt
                     self.saveLayerAfterTransformation(layer)

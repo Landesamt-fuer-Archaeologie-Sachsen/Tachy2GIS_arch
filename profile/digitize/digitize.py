@@ -25,7 +25,7 @@ class Digitize():
         self.__iface = iFace
 
         self.digitizeDialog = None
-        
+
         self.dataStoreDigitize = DataStoreDigitize()
         self.rotationCoords = rotationCoords
 
@@ -67,9 +67,9 @@ class Digitize():
                 if self.digitizeDialog:
 
                     if self.digitizeDialog.isVisible():
-                        
+
                         self.digitizeDialog.close()
-                        
+
                 self.digitizeDialog = DigitizeDialog(self.dataStoreDigitize, self.rotationCoords, self.__iface, self.aar_direction)
                 self.dataStoreDigitize.triggerAarTransformationParams(self.aar_direction)
                 self.digitizeDialog.showDigitizeDialog(refData)
@@ -147,7 +147,7 @@ class Digitize():
 
             return refData
         else:
-        	return 'error'
+            return 'error'
 
     ## \brief Preselection of Point-Inputlayers
     #

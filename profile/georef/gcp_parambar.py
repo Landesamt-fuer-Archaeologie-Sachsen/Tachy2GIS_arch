@@ -53,7 +53,7 @@ class GcpParambar(QWidget):
         width_text = self.coordLineEditFm.width('xxxxxx.xxx,xxxxxxx.xxx,xxxx.xxx')
         self.coordLineEdit.setMinimumWidth(width_text + 30)
 
-        self.toolbarCoord.addWidget(self.coordLineEdit)    
+        self.toolbarCoord.addWidget(self.coordLineEdit)
 
 
     ## \brief Create Layout
@@ -67,7 +67,7 @@ class GcpParambar(QWidget):
         self.paramsBarLayout.setSpacing(0)
         self.paramsBarLayout.addWidget(self.gcpToolbar)
 
-        spacer = QWidget();
+        spacer = QWidget()
         spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
         self.paramsBarLayout.addWidget(spacer)
 

@@ -162,7 +162,7 @@ class TransformationDialog(QMainWindow):
         self.coordLineEdit = QLineEdit()
         self.coordLineEdit.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
         self.coordLineEdit.setReadOnly(True)
-        self.coordLineEdit.setMinimumWidth(150);
+        self.coordLineEdit.setMinimumWidth(150)
         self.coordLineEdit.setAlignment(Qt.AlignCenter)
         self.statusBar().addPermanentWidget(self.coordLabel)
         self.statusBar().addPermanentWidget(self.coordLineEdit)

@@ -41,7 +41,7 @@ class DigitizeTable(QTableWidget):
 
     ## \brief Dialog with question: Delete object?
     #
-    # \param 
+    # \param
     # @returns
     def showDialog(self):
 
@@ -62,7 +62,7 @@ class DigitizeTable(QTableWidget):
 
     ## \brief Start edit dialog
     #
-    # \param 
+    # \param
     # @returns
     def editDialog(self):
 
@@ -144,7 +144,7 @@ class DigitizeTable(QTableWidget):
             bemerkungItem = QTableWidgetItem('NULL')
 
         bemerkungItem.setFlags(Qt.ItemIsEnabled)
-        self.setItem(rowPosition, 7, bemerkungItem)            
+        self.setItem(rowPosition, 7, bemerkungItem)
         tableHeader.setSectionResizeMode(7, QHeaderView.Stretch)
 
         # Layer
@@ -154,7 +154,7 @@ class DigitizeTable(QTableWidget):
             layerItem = QTableWidgetItem('NULL')
 
         layerItem.setFlags(Qt.ItemIsEnabled)
-        self.setItem(rowPosition, 8, layerItem)   
+        self.setItem(rowPosition, 8, layerItem)
         tableHeader.setSectionResizeMode(8, QHeaderView.Stretch)
 
         #Bearbeiten
@@ -163,7 +163,7 @@ class DigitizeTable(QTableWidget):
         editBtn = QPushButton()
         editBtn.setIcon(iconEdit)
         editBtn.obj_uuid = dataObj['obj_uuid']
-        editBtn.setStyleSheet("margin-left:50%; margin-right:50%; bsckground-color:transparent; border:none;");
+        editBtn.setStyleSheet("margin-left:50%; margin-right:50%; bsckground-color:transparent; border:none;")
         self.setCellWidget(rowPosition, 9, editBtn)
         editBtn.clicked.connect(self.editDialog)
         tableHeader.setSectionResizeMode(9, QHeaderView.ResizeToContents)
@@ -174,7 +174,7 @@ class DigitizeTable(QTableWidget):
         deleteBtn = QPushButton()
         deleteBtn.setIcon(iconDel)
         deleteBtn.obj_uuid = dataObj['obj_uuid']
-        deleteBtn.setStyleSheet("margin-left:50%; margin-right:50%; bsckground-color:transparent; border:none;");
+        deleteBtn.setStyleSheet("margin-left:50%; margin-right:50%; bsckground-color:transparent; border:none;")
         self.setCellWidget(rowPosition, 10, deleteBtn)
         deleteBtn.clicked.connect(self.showDialog)
         tableHeader.setSectionResizeMode(10, QHeaderView.ResizeToContents)
