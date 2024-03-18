@@ -11,6 +11,8 @@ from qgis.core import (
     QgsLayerTreeGroup,
     QgsLayerTreeLayer,
     QgsWkbTypes,
+    QgsMessageLog,
+    Qgis,
 )
 from qgis.gui import QgsFileWidget
 
@@ -320,7 +322,6 @@ class Georef:
         orgGeomType = ""
 
         for feature in pointLayer.getFeatures():
-            print(feature.attributeMap())
             org_geom = feature.geometry()
             orgGeomType = org_geom.wkbType()
 
@@ -527,13 +528,12 @@ class Georef:
     #
     # If layer E_Line exists then preselect this
     def preselectionProfileLayer(self):
-        print('preselectionProfileLayer... ')
+        # QgsMessageLog.logMessage(message='preselectionProfileLayer...', level=Qgis.MessageLevel.Info)
         notInputLayers = self.getNonInputLayers(1)
-        print('notInputLayers: ', notInputLayers)
         inputLayers = self.getInputlayers(False)
 
         self.dockwidget.layerProfileGeoref.setExceptedLayerList(notInputLayers)
-        print('inputLayers: ', inputLayers)
+
         for layer in inputLayers:
             if layer.name() == "E_Line":
                 self.dockwidget.layerProfileGeoref.setLayer(layer)
