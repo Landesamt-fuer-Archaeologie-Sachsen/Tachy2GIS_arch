@@ -1,6 +1,6 @@
 """
-				2018 by Daniel Timmel
-				
+2018 by Daniel Timmel
+
 Importiert Punkte aus csv datei
 """
 from qgis.core import *
@@ -11,7 +11,7 @@ result = QMessageBox.information(None,'WICHTIG','Dateiformat csv'+'\n'+'ptnr,x,y
 if result == QMessageBox.Ok:
     layer = qgis.utils.iface.activeLayer()
 
-    input_file = QFileDialog.getOpenFileName(None, 'Quellpfad', 
+    input_file = QFileDialog.getOpenFileName(None, 'Quellpfad',
         QgsProject.instance().readPath('./../Jobs'), 'Excel (*.csv);;Alle Dateien (*.*)')
 
     with open(str(input_file [0])) as csvfile:
@@ -31,7 +31,7 @@ if result == QMessageBox.Ok:
             features = [feature for feature in layer.getFeatures()]
             lastfeature = features[-1]
             layer.startEditing()
-        
+
             idfeld = layer.dataProvider().fieldNameIndex('id')
             if layer.maximumValue(idfeld) == None:
                 nextid = 0
@@ -46,12 +46,12 @@ if result == QMessageBox.Ok:
             idAktCode = layer.dataProvider().fieldNameIndex('aktCode')
             layer.changeAttributeValue(lastfeature.id(), idMesDatum, str(datetime.datetime.now()))
             layer.changeAttributeValue(lastfeature.id(), idAktCode, aktcode)
-            QgsMessageLog.logMessage(str(nextid), 'Attribute', Qgis.Info) 
-        
+            QgsMessageLog.logMessage(str(nextid), 'Attribute', Qgis.Info)
+
             for item in attL:
                 #QgsMessageLog.logMessage(str(item), 'Attribute', Qgis.Info)
                 fIndex = layer.dataProvider().fieldNameIndex(item)
                 layer.changeAttributeValue(lastfeature.id(), fIndex, attL[item])
-  
+
             layer.commitChanges()
         QMessageBox.information(None, "Meldung", u"Fertig!")

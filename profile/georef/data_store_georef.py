@@ -43,8 +43,8 @@ class DataStoreGeoref():
         if len(self.imagePoints) == 0:
 
             self.imagePoints.append({
-            	'obj_uuid': pointObj['obj_uuid'],
-            	'x': pointObj['x'],
+                'obj_uuid': pointObj['obj_uuid'],
+                'x': pointObj['x'],
                 'z': pointObj['z']
             })
         else:
@@ -58,8 +58,8 @@ class DataStoreGeoref():
 
             if checker == False:
                 self.imagePoints.append({
-                	'obj_uuid': pointObj['obj_uuid'],
-                	'x': pointObj['x'],
+                    'obj_uuid': pointObj['obj_uuid'],
+                    'x': pointObj['x'],
                     'z': pointObj['z']
                 })
 
@@ -71,8 +71,8 @@ class DataStoreGeoref():
         for pointObj in refData['targetGCP']['points']:
 
             self.targetPoints.append({
-            	'obj_uuid': pointObj['obj_uuid'],
-            	'x': pointObj['x'],
+                'obj_uuid': pointObj['obj_uuid'],
+                'x': pointObj['x'],
                 'y': pointObj['z'],
                 'z': pointObj['z']
             })
@@ -111,8 +111,8 @@ class DataStoreGeoref():
             transformationParams['z_intercept'] = z_intercept
             transformationParams['ns_error'] = aarList['ns_error']
 
-            self.updateAarTransformationParams(transformationParams)   
-            
+            self.updateAarTransformationParams(transformationParams)
+
         if aarDirection == 'absolute height':
 
             aarArray = []
@@ -142,7 +142,7 @@ class DataStoreGeoref():
             transformationParams['z_intercept'] = z_intercept
             transformationParams['ns_error'] = aarList['ns_error']
 
-            self.updateAarTransformationParams(transformationParams)    
+            self.updateAarTransformationParams(transformationParams)
 
         if aarDirection == 'horizontal':
 
@@ -163,7 +163,7 @@ class DataStoreGeoref():
 
             self.pup.publish('pushAarPoints', aarArray)
 
-            self.aarPointsHorizontal = aarArray   
+            self.aarPointsHorizontal = aarArray
 
             #Transformationsparameter
             transformationParams = aarList['transformationParams']
@@ -173,7 +173,7 @@ class DataStoreGeoref():
             transformationParams['z_intercept'] = z_intercept
             transformationParams['ns_error'] = aarList['ns_error']
 
-            self.updateAarTransformationParams(transformationParams)        
+            self.updateAarTransformationParams(transformationParams)
 
 
     def updateAarTransformationParams(self, params):
@@ -227,7 +227,7 @@ class DataStoreGeoref():
         return georefData
 
     def clearStore(self):
-        
+
         self.imagePoints = []
         self.targetPoints = []
         self.aarPointsHorizontal = []

@@ -1,6 +1,6 @@
 """
-				2018 by Daniel Timmel
-				
+2018 by Daniel Timmel
+
 Exportiert Punkte für Stationierung
 """
 from qgis.core import *
@@ -13,19 +13,19 @@ layer = qgis.utils.iface.activeLayer()
 if layer.selectedFeatureCount() == 0:
     reply = QMessageBox.critical(None, "Meldung", u"Es sind keine Punkte selektiert!", QMessageBox.Abort)
 else:
-    output_file = QFileDialog.getSaveFileName(None, 'Speicherpfad', 
+    output_file = QFileDialog.getSaveFileName(None, 'Speicherpfad',
         QgsProject.instance().readPath('./../Jobs'), 'Excel (*.csv);;Alle Dateien (*.*)')
 
     if output_file[0] != '':
         output_file = open(output_file[0], 'w')
 
         feats = []
-        
+
         for feat in layer.selectedFeatures():
             msgout = '%s, %s, %s, %s\n' % (feat["ptnr"], feat["x"], feat["y"], feat["z"])
             unicode_message = msgout.encode('utf-8')
             feats.append(msgout)
-        
+
         box = QMessageBox()
         box.setIcon(QMessageBox.Question)
         box.setWindowTitle('Frage')
@@ -41,7 +41,7 @@ else:
             s_feats = sorted(feats, key=operator.itemgetter(0))
         elif box.clickedButton() == buttonN:
             s_feats = sorted(feats, key=operator.itemgetter(1))
-            
+
         #msgout = '%s, %s, %s, %s\n' % ('ptnr','x','y','z')
         #unicode_message = msgout.encode('utf-8')
         #s_feats.insert(0,msgout)
