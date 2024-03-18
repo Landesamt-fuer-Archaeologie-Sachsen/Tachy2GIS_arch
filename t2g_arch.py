@@ -408,6 +408,10 @@ class T2G_Arch:
         # ToDo: refactoring - watch (autosave?) needed?
         self.watchEvent()
 
+    def onNewProjectLoaded(self):
+        # Hier kannst du den Code einfügen, der ausgeführt werden soll, wenn ein neues Projekt geladen wird
+        print("Ein neues Projekt wurde geladen!")
+
     def setupConnections(self):
         self.dockwidget.closingPlugin.connect(self.stopPlugin)
         self.actionStartPlugin.triggered.connect(self.startAndStopPlugin)
@@ -424,6 +428,9 @@ class T2G_Arch:
         self.dockwidget.butHilfe.clicked.connect(self.help)
 
         QgsProject.instance().layerRemoved.connect(self.checkForGdkeLayers)
+
+        # Registriere die Funktion als Slot für das Signal newProjectCreated
+        QgsProject.instance().readProject.connect(self.onNewProjectLoaded)
 
     def disconnectSignals(self):
         QgsProject.instance().layerRemoved.disconnect(self.checkForGdkeLayers)
@@ -457,6 +464,23 @@ class T2G_Arch:
         # Messen
         self.measurementTab = MeasurementTab()
         self.dockwidget.tab_measurement.layout().addWidget(self.measurementTab)
+
+        # Transformation
+        tGui = TransformationGui(self.dockwidget, iface)
+        tGui.setup()
+
+        # Geometriebearbeitung
+        self.geoEdit = GeoEdit(self, iface)
+        self.geoEdit.setup()
+
+        # Profile
+        self.profile = Profile(self, iface)
+        self.profile.setup()
+
+    def reloadVisdatModules(self):
+
+        if self.geoEdit:
+            self.geoEdit.disconnectSignals()
 
         # Transformation
         tGui = TransformationGui(self.dockwidget, iface)
@@ -511,6 +535,8 @@ class T2G_Arch:
     # ------------ Toolbar ----------------
     def startAndStopPlugin(self):
         if self.actionStartPlugin.isChecked():
+
+            self.reloadVisdatModules()
 
             self.furtherSetups()
 
