@@ -325,8 +325,8 @@ class MeasurementTab(BASE, WIDGET):
                                     'digitizelines_tachy2gis',
                                     'digitizepoints_tachy2gis']:
                 self.actionDigitize.setChecked(False)
-        except:
-            QgsMessageLog.logMessage(message='MeasurementTab->setDigitizeAction: exception', tag='T2G Archäologie', level=Qgis.MessageLevel.Warning)
+        except Exception as e:
+            QgsMessageLog.logMessage(message='MeasurementTab->setDigitizeAction: ' + str(e), tag='T2G Archäologie', level=Qgis.MessageLevel.Warning)
             return
 
     def findLayerToEdit(self, geometryType):
@@ -1029,26 +1029,26 @@ class MeasurementTab(BASE, WIDGET):
             try:
                 if int(self.zbs.text()) >= int(self.txtNextBef.text()) and not '_' in self.zbs.text():
                     self.txtNextBef.setText(str(int(self.zbs.text())+1))
-            except:
-                QgsMessageLog.logMessage(message='MeasurementTab->nextValues: no setText', tag='T2G Archäologie', level=Qgis.MessageLevel.Warning)
+            except Exception as e:
+                QgsMessageLog.logMessage(message='MeasurementTab->nextValues: no setText: ' + str(e), tag='T2G Archäologie', level=Qgis.MessageLevel.Warning)
         if self.fund_nr.txtFundNr.text() != '':
             try:
                 if int(self.fund_nr.text()) >= int(self.txtNextFund.text() and not '_' in self.fund_nr.text()):
                     self.txtNextFund.setText(str(int(self.fund_nr.text())+1))
-            except:
-                QgsMessageLog.logMessage(message='MeasurementTab->nextValues: no setText', tag='T2G Archäologie', level=Qgis.MessageLevel.Warning)
+            except Exception as e:
+                QgsMessageLog.logMessage(message='MeasurementTab->nextValues: no setText: ' + str(e), tag='T2G Archäologie', level=Qgis.MessageLevel.Warning)
         if self.prof_nr.text() != '':
             try:
                 if int(self.prof_nr.text()) >= int(self.txtNextProf.text() and not '_' in self.prof_nr.text()):
                     self.txtNextProf.setText(str(int(self.prof_nr.text())+1))
-            except:
-                QgsMessageLog.logMessage(message='MeasurementTab->nextValues: no setText', tag='T2G Archäologie', level=Qgis.MessageLevel.Warning)
+            except Exception as e:
+                QgsMessageLog.logMessage(message='MeasurementTab->nextValues: no setText: ' + str(e), tag='T2G Archäologie', level=Qgis.MessageLevel.Warning)
         if self.probe_nr.text() != '':
             try:
                 if int(self.probe_nr.text()) >= int(self.txtNextProb.text() and not '_' in self.probe_nr.text()):
                     self.txtNextProb.setText(str(int(self.probe_nr.text())+1))
-            except:
-                QgsMessageLog.logMessage(message='MeasurementTab->nextValues: no setText', tag='T2G Archäologie', level=Qgis.MessageLevel.Warning)
+            except Exception as e:
+                QgsMessageLog.logMessage(message='MeasurementTab->nextValues: no setText: ' + str(e), tag='T2G Archäologie', level=Qgis.MessageLevel.Warning)
 
     def showHelp(self):
         helpHtmPath = os.path.join(os.path.dirname(__file__), 'Tips.htm')

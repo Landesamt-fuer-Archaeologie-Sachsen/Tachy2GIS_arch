@@ -259,8 +259,8 @@ class FeatureQuestionDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                 self.z = text[2]
                 QgsMessageLog.logMessage(self.i + ',' + self.x + ',' + self.y + ',' + self.z, 'T2G Archäologie',
                                          Qgis.Info)
-            except:
-                QgsMessageLog.logMessage(message='FeatureQuestionDockWidget->setTempKoord: failed', tag='T2G Archäologie', level=Qgis.MessageLevel.Warning)
+            except Exception as e:
+                QgsMessageLog.logMessage(message='FeatureQuestionDockWidget->setTempKoord: failed: ' + str(e), tag='T2G Archäologie', level=Qgis.MessageLevel.Warning)
 
         if self.i == '#':
             QgsMessageLog.logMessage('rechne2', 'T2G Archäologie', Qgis.Info)

@@ -146,8 +146,8 @@ class RasterLayerViewDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                     self.tableWidget.setItem(i, 5, QTableWidgetItem(opacity))
 
                     i=i+1
-        except:
-            QgsMessageLog.logMessage(message='RasterLayerViewDockWidget->setup: failed', tag='T2G Archäologie', level=Qgis.MessageLevel.Warning)
+        except Exception as e:
+            QgsMessageLog.logMessage(message='RasterLayerViewDockWidget->setup: failed: ' + str(e), tag='T2G Archäologie', level=Qgis.MessageLevel.Warning)
         self.tableWidget.setColumnHidden(4,True)
         self.status()
 
@@ -283,8 +283,7 @@ class RasterLayerViewDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                 name = self.tableWidget.item(row, 0).text()
                 QgsProject.instance().layerTreeRoot().findLayer(id).setName(name)
         except Exception as e:
-            pass
-            #QgsMessageLog.logMessage(str(e), 'T2G Archäologie', Qgis.Info)
+            QgsMessageLog.logMessage(str(e), 'T2G Archäologie', Qgis.Info)
 
     def on_itemClicked(self,item):
         try:
