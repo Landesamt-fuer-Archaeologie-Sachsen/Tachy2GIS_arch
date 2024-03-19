@@ -540,6 +540,14 @@ class T2G_Arch:
     # ------------ Toolbar ----------------
     def startAndStopPlugin(self):
         if self.actionStartPlugin.isChecked():
+            if not QgsProject.instance().mapLayersByName("E_Line"):
+                self.actionStartPlugin.setChecked(False)
+                QMessageBox.critical(
+                    None,
+                    'Critical',
+                    'Bitte Tachy-GeoPackage-Projekt laden und erneut versuchen.'
+                )
+                return
 
             self.reloadVisdatModules()
 
