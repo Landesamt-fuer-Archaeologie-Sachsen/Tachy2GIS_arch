@@ -175,6 +175,7 @@ class T2G_Arch:
         # noinspection PyTypeChecker,PyArgumentList,PyCallByClass
         return QCoreApplication.translate('T2G_Arch', message)
 
+    # beim Laden des Plugins durch QGIS:
     def initGui(self):
         self.dockwidget = T2G_ArchDockWidget()
         self.setupModules()
@@ -470,17 +471,6 @@ class T2G_Arch:
         self.measurementTab = MeasurementTab()
         self.dockwidget.tab_measurement.layout().addWidget(self.measurementTab)
 
-        # Transformation
-        tGui = TransformationGui(self.dockwidget, iface)
-        tGui.setup()
-
-        # Geometriebearbeitung
-        self.geoEdit = GeoEdit(self, iface)
-        self.geoEdit.setup()
-
-        # Profile
-        self.profile = Profile(self, iface)
-        self.profile.setup()
 
     def reloadVisdatModules(self):
 
@@ -550,7 +540,6 @@ class T2G_Arch:
                 return
 
             self.reloadVisdatModules()
-
             self.furtherSetups()
 
             for action in self.toolbarActions:
@@ -1757,6 +1746,7 @@ class T2G_Arch:
 
     def myDlgSettingsShow(self):
         myDlgSettingsView = DlgSettings(self, self.config)  # mainWindow()
+        myDlgSettingsView.setup()
         # myDlgSettingsView.setAutoFillBackground(True)
         myDlgSettingsView.show()
 

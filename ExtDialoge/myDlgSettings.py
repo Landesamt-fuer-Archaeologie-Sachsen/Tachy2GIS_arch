@@ -28,7 +28,7 @@ class DlgSettings(QtWidgets.QDialog):
         self.ui.treeWidget.itemClicked.connect(self.on_itemClicked)
         self.ui.butOK.clicked.connect(self.ok)
         self.ui.butAbruch.clicked.connect(self.abbruch)
-        self.ui.setup()
+        # self.ui.setup()  # extra call; constructor is not allowed to fail
 
     def setup(self):
         # Alle Tabs Sichtbarkeit aus
