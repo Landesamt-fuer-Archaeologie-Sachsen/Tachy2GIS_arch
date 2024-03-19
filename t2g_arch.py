@@ -80,7 +80,7 @@ from .functions import (addPoint3D,
                         ProjectSaveFunc,
                         setCustomProjectVariable)
 from .textadjustment import Textadjustment
-from .toolbar_functions import (openProjectFolder, 
+from .toolbar_functions import (openProjectFolder,
                                 saveProject)
 from .identifygeometry import IdentifyGeometry
 from .ExtDialoge.myDlgGeometryCheck import GeometryCheckDockWidget
@@ -131,6 +131,11 @@ class T2G_Arch:
             box.setText(str(Qgis.QGIS_VERSION_INT))
             box.exec_()
             raise SystemExit
+
+        self.layerPoint = None
+        self.layerLine = None
+        self.layerPoly = None
+        self.geoEdit = None
 
         self.mapCanvas = iface.mapCanvas()
         # initialize plugin directory
@@ -282,7 +287,7 @@ class T2G_Arch:
             self.layerPoly.featuresDeleted.connect(self.__eventFeaturesDeleted)
             self.layerPoint.featuresDeleted.connect(
                 self.__eventFeaturesDeleted)
-            
+
             self.layerLine.editingStarted.connect(self.eventEditingStarted)
             self.layerPoly.editingStarted.connect(self.eventEditingStarted)
             self.layerPoint.editingStarted.connect(self.eventEditingStarted)
@@ -297,7 +302,7 @@ class T2G_Arch:
             self.layerLine.attributeValueChanged.connect(self.lineLayerEdited)
             self.layerPoly.attributeValueChanged.connect(self.polygonLayerEdited)
             self.layerPoint.attributeValueChanged.connect(self.pointLayerEdited)
-            
+
             self.layerLine.featureAdded.connect(self.eventFeatureAdded)
             self.layerPoly.featureAdded.connect(self.eventFeatureAdded)
             self.layerPoint.featureAdded.connect(self.eventFeatureAdded)
@@ -358,7 +363,7 @@ class T2G_Arch:
         self.QgisDateiPfad = QgsProject.instance().readPath('./')
         self.ProjPfad = os.path.abspath(
             os.path.join(self.QgisDateiPfad, "./.."))
-        
+
         self.dockwidget.label_10.setText(VERSION)
 
         self.currentLayerChanged()
@@ -440,7 +445,7 @@ class T2G_Arch:
                 self.__eventFeaturesDeleted)
                 self.layerPoint.editingStarted.disconnect(self.eventEditingStarted)
                 self.layerPoint.subsetStringChanged.disconnect(self.filterGesetzt)
-                self.layerPoint.attributeValueChanged.disconnect(self.pointLayerEdited)                
+                self.layerPoint.attributeValueChanged.disconnect(self.pointLayerEdited)
                 self.layerPoint.featureAdded.disconnect(self.eventFeatureAdded)
             if self.layerLine:
                 self.layerLine.featuresDeleted.disconnect(
@@ -569,13 +574,13 @@ class T2G_Arch:
         pointsLayer = findLayerInProject('E_Point')
         if not pointsLayer:
             return
-        result = QMessageBox.information(None, 
+        result = QMessageBox.information(None,
                                          'WICHTIG',
                                          'Dateiformat:\nptnr  x  y  z\n'
                                          '\nMöchten Sie fortfahren?',
                                          QMessageBox.Ok | QMessageBox.Cancel)
         if result == QMessageBox.Ok:
-            inputFile = QFileDialog.getOpenFileName(None, 
+            inputFile = QFileDialog.getOpenFileName(None,
                                                     'Quellpfad',
                                                     QgsProject.instance().readPath(importPath),
                                                     'Vermessung (*.txt);;Text mit Komma (*.txt);;Text mit Tab (*.txt);;Excel (*.csv);;Alle Dateien (*.*)')
@@ -588,7 +593,7 @@ class T2G_Arch:
 
                 if dateiFormat == '.csv':
                     QgsMessageLog.logMessage('Point import- read data from .csv', 'T2G Archäologie', Qgis.Info)
-                    with open(inputFile[0]) as file: 
+                    with open(inputFile[0]) as file:
                         lineCount = fileLineCount(inputFile[0])
                         progress.setText(f"{lineCount} Punkte werden importiert")
                         progress.setMaximum(lineCount)
@@ -597,7 +602,7 @@ class T2G_Arch:
                         for line in file:
                             progress.setValue(pointNumber)
                             lineList = line.split(',')
-                            try: 
+                            try:
                                 a = lineList[0].strip()
                                 b = lineList[1].strip()
                                 c = lineList[2].strip()
@@ -611,7 +616,7 @@ class T2G_Arch:
                             pointNumber += 1
                 elif dateiFormat == '.txt':
                     QgsMessageLog.logMessage('Point import- read data from .txt', 'T2G Archäologie', Qgis.Info)
-                    with open(inputFile[0]) as file: 
+                    with open(inputFile[0]) as file:
                         lines = file.readlines()
                         lineCount = len(lines)
                         progress.setText(f"{lineCount} Punkte werden importiert")
@@ -628,7 +633,7 @@ class T2G_Arch:
                             progress.setValue(pointNumber)
                             if sep != 'V' and "." in line:
                                 if "." in line:
-                                    try: 
+                                    try:
                                         a = str(line).split(sep)[0].lstrip()
                                         b = str(line).split(sep)[1].lstrip()
                                         c = str(line).split(sep)[2].lstrip()
@@ -641,10 +646,10 @@ class T2G_Arch:
                                         QgsMessageLog.logMessage(f'Point import: Could not read point in line {pointNumber}', 'T2G Archäologie', Qgis.Info)
                                 else:
                                     iface.messageBar().pushMessage("T2G Archäologie: ",
-                                                                    f"Fehler! Falscher Spaltentrenner oder vorhandene Kopfzeile in Zeile {pointNumber}.", 
+                                                                    f"Fehler! Falscher Spaltentrenner oder vorhandene Kopfzeile in Zeile {pointNumber}.",
                                                                     level=Qgis.Critical)
                             else:
-                                try: 
+                                try:
                                     a = str(line)[0:15].lstrip()
                                     b = str(line)[16:32].lstrip()
                                     c = str(line)[33:44].lstrip()
@@ -653,19 +658,19 @@ class T2G_Arch:
                                     attL = {'pt_nr': a}
                                     addPoint3D(pointsLayer, pt, attL)
                                     objCount += 1
-                                except: 
+                                except:
                                     QgsMessageLog.logMessage(f'Point import: Could not read point in line {pointNumber}', 'T2G Archäologie', Qgis.Info)
-                        
+
                             pointNumber += 1
                 setCustomProjectVariable('maxWerteAktualisieren', True)
 
                 if objCount > 0:
                     iface.messageBar().pushMessage("T2G Archäologie: ",
-                                                   f"{objCount} Punkte eingetragen.", 
+                                                   f"{objCount} Punkte eingetragen.",
                                                    level=Qgis.Info)
                 else:
                     iface.messageBar().pushMessage("T2G Archäologie: ",
-                                                   "Keine Punkte eingetragen.", 
+                                                   "Keine Punkte eingetragen.",
                                                    level=Qgis.Critical)
 
     def exportPoints(self):
@@ -679,12 +684,12 @@ class T2G_Arch:
                                  "Es sind keine Punkte selektiert oder es ist kein Punktlayer ausgewählt!",
                                  QMessageBox.Abort)
         else:
-            outputFile = QFileDialog.getSaveFileName(None, 
+            outputFile = QFileDialog.getSaveFileName(None,
                                                       'Speicherpfad',
                                                       QgsProject.instance().readPath(exportPath),
                                                       'Text (*.txt);;Excel (*.csv);;Alle Dateien (*.*)')
             if outputFile[0] != '':
-                with open(outputFile[0], 'w') as outputFile: 
+                with open(outputFile[0], 'w') as outputFile:
                     feats = []
                     for feat in layer.selectedFeatures():
                         pt = (feat.geometry().asWkt()).split(" ", 1)[1]
@@ -1164,12 +1169,12 @@ class T2G_Arch:
         iface.mapCanvas().refreshAllLayers()
 
     def eventAttributeValueChanged(self, fid, idx, value, lyr):
-        
+
 
         field = lyr.fields()[idx]
         QgsMessageLog.logMessage(f"Attribut in layer {lyr.name()} geändert: id={fid}, field={field.name()}, value={value}",
                                  'T2G Archäologie',
-                                 Qgis.Info) 
+                                 Qgis.Info)
         if isNumber(str(value)):
             if field.name() == "bef_nr":
                 if int(value) >= int(self.__lastMaxNumber[0]):
@@ -1202,9 +1207,9 @@ class T2G_Arch:
 
     def filterGesetzt(self):
         # QgsMessageLog.logMessage('filter gesetzt', 'T2G Archäologie', Qgis.Info)
-        list = [self.layerPoly, 
+        list = [self.layerPoly,
                 self.layerLine,
-                self.layerPoint, 
+                self.layerPoint,
                 self.layerMesspoint]
         for layer in list:
             # QgsMessageLog.logMessage(layer.source(), 'T2G Archäologie', Qgis.Info)
@@ -1735,10 +1740,10 @@ class T2G_Arch:
     # ToDo: open pdf
     def help(self):
         QMessageBox.information(None, 'Hilfe', os.path.join(self.ProjPfad,
-                                                            'Hinweise.pdf'), 
+                                                            'Hinweise.pdf'),
                                                             QMessageBox.Cancel)
         #subprocess.Popen([os.path.join(self.ProjPfad,
-        #                              'Hinweise.pdf')], 
+        #                              'Hinweise.pdf')],
         #                              shell=True)
 
 
