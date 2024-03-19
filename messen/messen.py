@@ -694,7 +694,7 @@ class MeasurementTab(BASE, WIDGET):
 
     def createObjectsForTachy2GisWatch(self):
         self.vertices = self.tachy2GisPlugin.vtk_mouse_interactor_style.vertices
-        self.watch = QTimer()
+        self.watch = QTimer(self)
         self.verticesCount = 0
         self.watch.timeout.connect(self.watchevent)
 

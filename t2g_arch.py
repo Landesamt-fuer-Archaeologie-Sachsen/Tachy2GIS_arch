@@ -144,7 +144,7 @@ class T2G_Arch:
             'T2G_Arch_{}.qm'.format(locale))
 
         if os.path.exists(locale_path):
-            self.translator = QTranslator()
+            self.translator = QTranslator(iface)
             self.translator.load(locale_path)
 
             if qVersion() > '4.3.3':
