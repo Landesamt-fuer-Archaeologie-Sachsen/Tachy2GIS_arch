@@ -1,13 +1,3 @@
-## @package QGIS geoEdit extension..
-import shutil
-import os
-
-from qgis.PyQt.QtGui import QIcon
-from qgis.PyQt.QtWidgets import QMessageBox
-from qgis.core import QgsProject, QgsGeometry, QgsVectorLayer, QgsApplication, QgsLayerTreeGroup, QgsLayerTreeLayer, QgsRectangle, QgsVectorFileWriter
-from processing.gui import AlgorithmExecutor
-from qgis import processing
-
 from .georef.georef import Georef
 from .digitize.digitize import Digitize
 from .plan.plan import Plan
