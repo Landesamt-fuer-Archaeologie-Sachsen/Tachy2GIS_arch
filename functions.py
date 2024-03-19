@@ -277,7 +277,7 @@ def maxValue(layer, fieldname):
 
                 #list = [int(temp)for temp in str(attrs[idField]).split() if temp.isdigit()]
                 #list = [int(s) for s in re.findall(r'-?\d+\.?\d*', str(attrs[idField]))]
-                pattern = re.compile("\d+(?:;\.\d+)?")
+                pattern = re.compile(r"\d+(?:;\.\d+)?")
                 list = pattern.findall(str(attrs[idField]))
                 for a in list:
                     values.append(int(a))
@@ -665,7 +665,7 @@ class HelpWindow(QWidget):
         self.meldung = QTextBrowser()
         self.text = None
         self.pfad = None
-        self.layout().addWidget(self.meldung,0,0,1,2)
+        self.layout().addWidget(self.meldung)  # ,0,0,1,2)
 
     def run(self,pfad,text,width,height):
         if pfad == None:
