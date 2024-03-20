@@ -530,7 +530,7 @@ class T2G_Arch:
     # ------------ Toolbar ----------------
     def startAndStopPlugin(self):
         if self.actionStartPlugin.isChecked():
-            if not QgsProject.instance().mapLayersByName("E_Line"):
+            if not self._is_project_from_tachy_geopackage():
                 self.actionStartPlugin.setChecked(False)
                 QMessageBox.critical(
                     None,
@@ -2039,3 +2039,32 @@ class T2G_Arch:
                 self.selectFeatures.remove(value)
         QgsMessageLog.logMessage(
             'liste' + str(self.selectFeatures), 'T2G Archäologie', Qgis.Info)
+
+    def _is_project_from_tachy_geopackage(self):
+        if not QgsProject.instance().fileName():
+            # kein Projekt geladen
+            print("no project loaded")
+            return False
+
+        file_extension = QgsProject.instance().fileName().split('.')[-1].lower()
+        if file_extension != 'qgz':
+            print("file extension is not qgz")
+            return False
+
+        layers_check_for_existence = ["E_Line", "E_Point", "E_Polygon"]
+        for layer in layers_check_for_existence:
+            if not QgsProject.instance().mapLayersByName(layer):
+                print(f"layer {layer} not found")
+                return False
+
+        layers_check_gpkg_source = ["E_Line", "E_Point", "E_Polygon"]
+        for layer in QgsProject.instance().mapLayers().values():
+            # print(f"{layer.name()} {layer.dataProvider().dataSourceUri()}")
+            if (
+                    layer.name() in layers_check_gpkg_source and
+                    not layer.dataProvider().dataSourceUri().split("|")[0].lower().endswith('.gpkg')
+            ):
+                print(f"data source is no gpkg: {layer.name()} {layer.dataProvider().dataSourceUri()}")
+                return False
+
+        return True
