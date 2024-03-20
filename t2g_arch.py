@@ -157,7 +157,7 @@ class T2G_Arch:
 
         self.menu = self.tr('&T2G Archäologie')
 
-        self.dockWidgetOpen = False
+        self.dock_widget_was_set_open = False
 
         self.toolbarActions = []
         self.toolbar = QToolBar(iface.mainWindow())
@@ -415,8 +415,12 @@ class T2G_Arch:
         self.watchEvent()
 
     def onNewProjectLoaded(self):
-        # Hier kannst du den Code einfügen, der ausgeführt werden soll, wenn ein neues Projekt geladen wird
         print("Ein neues Projekt wurde geladen!")
+
+    def onProjectClosed(self):
+        self.actionStartPlugin.setChecked(False)
+        self.startAndStopPlugin()
+        print("Projekt wurde geschlossen!")
 
     def setupConnections(self):
         self.dockwidget.closingPlugin.connect(self.stopPlugin)
@@ -437,6 +441,7 @@ class T2G_Arch:
 
         # Registriere die Funktion als Slot für das Signal newProjectCreated
         QgsProject.instance().readProject.connect(self.onNewProjectLoaded)
+        QgsProject.instance().cleared.connect(self.onProjectClosed)
 
     def disconnectSignals(self):
         QgsProject.instance().layerRemoved.disconnect(self.checkForGdkeLayers)
@@ -510,7 +515,6 @@ class T2G_Arch:
 
     def stopPlugin(self):
         self.closeGui()
-        self.dockWidgetOpen = False
         self.actionStartPlugin.setChecked(False)
         self.actionShowHideDockwidget.setIcon(
             QIcon(iconPaths['visible_false']))
@@ -545,24 +549,23 @@ class T2G_Arch:
             for action in self.toolbarActions:
                 action.setEnabled(True)
             self.openDockWidget(True)
-            self.dockWidgetOpen = True
             self.actionShowHideDockwidget.setIcon(
                 QIcon(iconPaths['visible_true']))
         else:
             self.closeGui()
-            self.dockWidgetOpen = False
             self.actionShowHideDockwidget.setIcon(
                 QIcon(iconPaths['visible_false']))
 
-    def openDockWidget(self, open):
-        if not self.dockWidgetOpen:
+    def openDockWidget(self, set_open):
+        print("openDockWidget", set_open)
+        if set_open and not self.dock_widget_was_set_open:
             iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
-            self.dockWidgetOpen = True
+            self.dock_widget_was_set_open = True
             self.actionShowHideDockwidget.setIcon(
                 QIcon(iconPaths['visible_true']))
-        else:
+        elif not set_open and self.dock_widget_was_set_open:
             iface.removeDockWidget(self.dockwidget)
-            self.dockWidgetOpen = False
+            self.dock_widget_was_set_open = False
             self.actionShowHideDockwidget.setIcon(
                 QIcon(iconPaths['visible_false']))
 
