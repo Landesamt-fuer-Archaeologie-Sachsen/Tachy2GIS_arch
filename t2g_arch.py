@@ -477,14 +477,28 @@ class T2G_Arch:
         self.dockwidget.tab_measurement.layout().addWidget(self.measurementTab)
 
 
+    def stopVisdatModules(self):
+        if self.geoEdit:
+            self.geoEdit.disconnectSignals()
+
+        # Transformation
+        self.tGui = None
+
+        # Geometriebearbeitung
+        self.geoEdit = None
+
+        # Profile
+        self.profile = None
+
+
     def reloadVisdatModules(self):
 
         if self.geoEdit:
             self.geoEdit.disconnectSignals()
 
         # Transformation
-        tGui = TransformationGui(self.dockwidget, iface)
-        tGui.setup()
+        self.tGui = TransformationGui(self.dockwidget, iface)
+        self.tGui.setup()
 
         # Geometriebearbeitung
         self.geoEdit = GeoEdit(self, iface)
@@ -552,6 +566,7 @@ class T2G_Arch:
             self.actionShowHideDockwidget.setIcon(
                 QIcon(iconPaths['visible_true']))
         else:
+            self.stopVisdatModules()
             self.closeGui()
             self.actionShowHideDockwidget.setIcon(
                 QIcon(iconPaths['visible_false']))
