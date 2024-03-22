@@ -325,11 +325,11 @@ class Georef:
             org_geom = feature.geometry()
             orgGeomType = org_geom.wkbType()
 
-            g = self.rotationCoords.castMultipointGeometry(org_geom)
+            g = self.rotationCoords.castMultiGeometry2Single(org_geom)
 
             geoType = g.wkbType()
 
-            if geoType == 1001 or geoType == 3001:
+            if geoType == 1001 or geoType == 3001 or geoType == -2147483647:
 
                 pointObj = {
                     "obj_uuid": feature.attribute("obj_uuid"),
