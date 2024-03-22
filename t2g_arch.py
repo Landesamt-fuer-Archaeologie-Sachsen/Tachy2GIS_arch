@@ -1161,7 +1161,8 @@ class T2G_Arch:
 
 
     def eventFeatureAdded(self, fid):
-        self.newFeaturesIds.append(fid)
+        # Wird nirgends mehr verwendet # Sonst Fehler beim Digitalisieren
+        # self.newFeaturesIds.append(fid)
         QgsMessageLog.logMessage(
             str(fid) + ' neu', 'T2G Archäologie', Qgis.Info)
 
