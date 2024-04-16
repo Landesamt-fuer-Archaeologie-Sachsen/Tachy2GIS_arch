@@ -11,9 +11,7 @@ class RotationCoords():
 
     #Transformationsparameter für jede AAR-Direction setzen
     def setAarTransformationParams(self, params):
-        print('setAarTransformationParams', params)
         if params['aar_direction'] == 'horizontal':
-            print('horizontal params', params)
             self.transformationParamsHorizontal = params
         if params['aar_direction'] == 'original':
             self.transformationParamsOriginal = params
@@ -25,7 +23,6 @@ class RotationCoords():
     def rotation(self, x, y, z, zAdaption, aar_direction):
 
         if aar_direction == 'horizontal':
-            print('transformationParamsHorizontal', self.transformationParamsHorizontal)
             slope_deg = self.transformationParamsHorizontal['slope_deg']
             center_x = self.transformationParamsHorizontal['center_x']
             center_y = self.transformationParamsHorizontal['center_y']
@@ -179,8 +176,6 @@ class RotationCoords():
 
             adjustGeom = QgsGeometry(mls.createEmptyWithSameType())
 
-            print('IN rotateLineFeatureFromOrg', geomFeat)
-
             pointList = []
             mls = geomFeat.get()
 
@@ -196,8 +191,6 @@ class RotationCoords():
             adjustGeom.addPoints(pointList)
 
             retAdjustGeom = self.castMultiGeometry2Single(adjustGeom)
-
-            print ('retAdjustGeom LINE: ', retAdjustGeom)
 
             return retAdjustGeom
 
@@ -232,8 +225,6 @@ class RotationCoords():
 
         geomFeat = feature.geometry()
 
-        print('wkbType_Feature: ', geomFeat.wkbType())
-
         geomType = geomFeat.wkbType()
 
         mls = geomFeat.get()
@@ -254,8 +245,6 @@ class RotationCoords():
                 pointList.append(zPoint)
 
             adjustGeom.addPoints(pointList)
-
-            print('adjustGeom', adjustGeom)
 
             retAdjustGeom = self.castMultiGeometry2Single(adjustGeom)
 
@@ -374,8 +363,6 @@ class RotationCoords():
     def castMultiGeometry2Single(self, geom):
 
         geoType = geom.wkbType()
-        print('geoType: ', geoType)
-
         ret_geom = geom
 
         #Point25D or PointZ or LineString25D or LineStringZ or Polygon25D or PolygonZ
@@ -390,10 +377,6 @@ class RotationCoords():
         if geoType == QgsWkbTypes.LineString or geoType == QgsWkbTypes.MultiLineString or geoType == QgsWkbTypes.MultiLineString25D or geoType == QgsWkbTypes.MultiLineStringZ or geoType == QgsWkbTypes.MultiLineStringM or geoType == QgsWkbTypes.MultiLineStringZM:
             #LineString25D
             geom_total = geom.coerceToType(QgsWkbTypes.LineString25D)
-            print('wtf geom_total: ', geom_total)
-            geoType2 = geom_total[1].wkbType()
-            print('geoType2: ', geoType2)
-
 
         #Polygon or Multipolygon or MultiPolygon25D or MultiPolygonZ  or MultiPolygonM or MultiPolygonZM
         if geoType == QgsWkbTypes.Polygon or geoType == QgsWkbTypes.MultiPolygon or geoType == QgsWkbTypes.MultiPolygon25D or geoType == QgsWkbTypes.MultiPolygonZ or geoType == QgsWkbTypes.MultiPolygonM or geoType == QgsWkbTypes.MultiPolygonZM:
@@ -409,11 +392,8 @@ class RotationCoords():
                 print('Achtung, es wird der erste Teil der Multi-Geometrie verwendet!')
                 ret_geom = geom_total[0]
         elif len(geom_total) == 1:
-            print('geom_total[0].isGeosValid()', geom_total[0].isGeosValid())
             ret_geom = geom_total[0]
         else:
             ret_geom = geom_total
 
-        ret_geom_geoType = ret_geom.wkbType()
-        print('ret_geom_geoType: ', ret_geom_geoType)
         return ret_geom

@@ -151,7 +151,6 @@ class MapToolDigiLine(MultilineMapTool, MapToolMixin):
 
         selFeatures = []
         for feature in featsSel:
-            print('Line feature.geometry()type', feature.geometry().wkbType())
             if not feature.geometry().within(bufferGeometry):
                 print('No Linefeatures within buffer geometry!')
                 continue

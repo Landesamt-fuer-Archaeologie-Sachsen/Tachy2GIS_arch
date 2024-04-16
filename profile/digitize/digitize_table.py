@@ -75,8 +75,6 @@ class DigitizeTable(QTableWidget):
     # @returns
     def insertFeature(self, dataObj):
 
-        print('dataObj', dataObj)
-
         tableHeader = self.horizontalHeader()
 
         rowPosition = self.rowCount()

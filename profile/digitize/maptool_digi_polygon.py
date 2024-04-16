@@ -139,7 +139,6 @@ class MapToolDigiPolygon(PolygonMapTool, MapToolMixin):
         self.digiPolygonLayer.endEditCommand()
 
     def getFeaturesFromEingabelayer(self, bufferGeometry, geoType, aar_direction):
-        print('digiPolygonLayer-wkbType: ', self.digiPolygonLayer.wkbType())
         self.digiPolygonLayer.startEditing()
         pr = self.digiPolygonLayer.dataProvider()
 
