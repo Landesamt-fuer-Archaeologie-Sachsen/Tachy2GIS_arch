@@ -212,31 +212,31 @@ class MapToolDigiPolygon(PolygonMapTool, MapToolMixin):
 
             if feature['geo_quelle'] == 'profile_object':
 
-            # Zielgeometrie erzeugen
-            emptyTargetGeometry = QgsGeometry.fromMultiPolygonXY([])
+                # Zielgeometrie erzeugen
+                emptyTargetGeometry = QgsGeometry.fromMultiPolygonXY([])
 
-            # Zielfeature erzeugen
-            rotFeature = QgsFeature(self.refData["polygonLayer"].fields())
+                # Zielfeature erzeugen
+                rotFeature = QgsFeature(self.refData["polygonLayer"].fields())
 
-            # Geometrie in Kartenebene umrechnen
-            rotateGeom = self.rotationCoords.rotatePolygonFeature(feature, emptyTargetGeometry, aar_direction)
-            rotFeature.setGeometry(rotateGeom)
-            rotFeature.setAttributes(feature.attributes())
+                # Geometrie in Kartenebene umrechnen
+                rotateGeom = self.rotationCoords.rotatePolygonFeature(feature, emptyTargetGeometry, aar_direction)
+                rotFeature.setGeometry(rotateGeom)
+                rotFeature.setAttributes(feature.attributes())
 
-            checker = True
-            # Features aus Eingabelayer
-            # schauen ob es schon existiert (anhand uuid), wenn ja dann löschen und durch Zielfeature ersetzen
-            sourceLayerFeatures = self.refData["polygonLayer"].getFeatures()
-            for sourceFeature in sourceLayerFeatures:
-                if feature["obj_uuid"] == sourceFeature["obj_uuid"]:
-                    pr.deleteFeatures([sourceFeature.id()])
-                    pr.addFeatures([rotFeature])
+                checker = True
+                # Features aus Eingabelayer
+                # schauen ob es schon existiert (anhand uuid), wenn ja dann löschen und durch Zielfeature ersetzen
+                sourceLayerFeatures = self.refData["polygonLayer"].getFeatures()
+                for sourceFeature in sourceLayerFeatures:
+                    if feature["obj_uuid"] == sourceFeature["obj_uuid"]:
+                        pr.deleteFeatures([sourceFeature.id()])
+                        pr.addFeatures([rotFeature])
 
-                    checker = False
+                        checker = False
 
-            # wenn feature nicht vorhanden, neues feature im Layer anlegen
-            if checker == True:
-                retObj = pr.addFeatures([rotFeature])
+                # wenn feature nicht vorhanden, neues feature im Layer anlegen
+                if checker == True:
+                    retObj = pr.addFeatures([rotFeature])
 
         self.refData["polygonLayer"].removeSelection()
         self.refData["polygonLayer"].commitChanges()

@@ -213,6 +213,7 @@ class MapToolDigiPoint(PointMapTool, MapToolMixin):
 
     # in den Eingabelayer schreiben
     def reverseRotation2Eingabelayer(self, layer_id, aar_direction):
+
         self.refData["pointLayer"].startEditing()
 
         pr = self.refData["pointLayer"].dataProvider()
@@ -221,33 +222,35 @@ class MapToolDigiPoint(PointMapTool, MapToolMixin):
 
         # iterrieren über zu schreibende features
         for feature in features:
-            # Zielfeature erzeugen
-            rotFeature = QgsFeature(self.refData["pointLayer"].fields())
 
-            # Geometrie in Kartenebene umrechnen
-            rotateGeom = self.rotationCoords.rotatePointFeature(feature, aar_direction)
+            if feature['geo_quelle'] == 'profile_object':
+                # Zielfeature erzeugen
+                rotFeature = QgsFeature(self.refData["pointLayer"].fields())
 
-            # Zielpunktgeometrie erzeugen und zum Zielfeature hinzufügen
-            zPoint = QgsPoint(rotateGeom["x_trans"], rotateGeom["y_trans"], rotateGeom["z_trans"])
-            gZPoint = QgsGeometry(zPoint)
-            rotFeature.setGeometry(gZPoint)
+                # Geometrie in Kartenebene umrechnen
+                rotateGeom = self.rotationCoords.rotatePointFeature(feature, aar_direction)
 
-            # Attribute setzen
-            rotFeature.setAttributes(feature.attributes())
+                # Zielpunktgeometrie erzeugen und zum Zielfeature hinzufügen
+                zPoint = QgsPoint(rotateGeom["x_trans"], rotateGeom["y_trans"], rotateGeom["z_trans"])
+                gZPoint = QgsGeometry(zPoint)
+                rotFeature.setGeometry(gZPoint)
 
-            sourceLayerFeatures = self.refData["pointLayer"].getFeatures()
+                # Attribute setzen
+                rotFeature.setAttributes(feature.attributes())
 
-            # Prüfen ob im Ziellayer das Feature bereits vorhanden ist
-            # wenn ja dann löschen und durch Zielfeature ersetzen
-            checker = True
-            for sourceFeature in sourceLayerFeatures:
-                if feature["obj_uuid"] == sourceFeature["obj_uuid"]:
-                    pr.deleteFeatures([sourceFeature.id()])
+                sourceLayerFeatures = self.refData["pointLayer"].getFeatures()
+
+                # Prüfen ob im Ziellayer das Feature bereits vorhanden ist
+                # wenn ja dann löschen und durch Zielfeature ersetzen
+                checker = True
+                for sourceFeature in sourceLayerFeatures:
+                    if feature["obj_uuid"] == sourceFeature["obj_uuid"]:
+                        pr.deleteFeatures([sourceFeature.id()])
+                        pr.addFeatures([rotFeature])
+                        checker = False
+
+                if checker == True:
                     pr.addFeatures([rotFeature])
-                    checker = False
-
-            if checker == True:
-                pr.addFeatures([rotFeature])
 
         self.refData["pointLayer"].removeSelection()
         self.refData["pointLayer"].commitChanges()
