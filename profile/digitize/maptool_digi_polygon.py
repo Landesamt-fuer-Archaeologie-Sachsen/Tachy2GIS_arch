@@ -1,6 +1,6 @@
 from qgis.PyQt.QtCore import pyqtSignal, pyqtSlot
 from qgis.gui import QgsAttributeDialog, QgsAttributeEditorContext
-from qgis.core import QgsFeature, QgsGeometry, QgsFeatureRequest
+from qgis.core import QgsFeature, QgsGeometry, QgsFeatureRequest, QgsMessageLog, Qgis
 
 from .map_tools import PolygonMapTool
 from ..publisher import Publisher
@@ -139,6 +139,7 @@ class MapToolDigiPolygon(PolygonMapTool, MapToolMixin):
         self.digiPolygonLayer.endEditCommand()
 
     def getFeaturesFromEingabelayer(self, bufferGeometry, geoType, aar_direction):
+        print('digiPolygonLayer-wkbType: ', self.digiPolygonLayer.wkbType())
         self.digiPolygonLayer.startEditing()
         pr = self.digiPolygonLayer.dataProvider()
 
@@ -150,6 +151,7 @@ class MapToolDigiPolygon(PolygonMapTool, MapToolMixin):
         selFeatures = []
         for feature in featsSel:
             if not feature.geometry().within(bufferGeometry):
+                print('No feature within buffer geometry!')
                 continue
 
             if geoType == "tachy" and feature["geo_quelle"] != "profile_object":
@@ -170,7 +172,10 @@ class MapToolDigiPolygon(PolygonMapTool, MapToolMixin):
                 # write to table
                 self.writeToTable(feature.fields(), feature)
 
-        pr.addFeatures(selFeatures)
+        try:
+            pr.addFeatures(selFeatures)
+        except Exception as e:
+            QgsMessageLog.logMessage(str(e), 'T2G Archäologie', Qgis.Info)
 
         self.digiPolygonLayer.commitChanges()
         self.digiPolygonLayer.updateExtents()
@@ -204,6 +209,9 @@ class MapToolDigiPolygon(PolygonMapTool, MapToolMixin):
 
         # iterrieren über zu schreibende features
         for feature in features:
+
+            if feature['geo_quelle'] == 'profile_object':
+
             # Zielgeometrie erzeugen
             emptyTargetGeometry = QgsGeometry.fromMultiPolygonXY([])
 

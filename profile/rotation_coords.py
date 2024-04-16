@@ -1,5 +1,5 @@
 from math import pi, cos, sin
-from qgis.core import QgsGeometry, QgsPoint
+from qgis.core import QgsGeometry, QgsPoint, QgsMessageLog, Qgis, QgsWkbTypes
 
 class RotationCoords():
 
@@ -11,8 +11,9 @@ class RotationCoords():
 
     #Transformationsparameter für jede AAR-Direction setzen
     def setAarTransformationParams(self, params):
-
+        print('setAarTransformationParams', params)
         if params['aar_direction'] == 'horizontal':
+            print('horizontal params', params)
             self.transformationParamsHorizontal = params
         if params['aar_direction'] == 'original':
             self.transformationParamsOriginal = params
@@ -24,7 +25,7 @@ class RotationCoords():
     def rotation(self, x, y, z, zAdaption, aar_direction):
 
         if aar_direction == 'horizontal':
-
+            print('transformationParamsHorizontal', self.transformationParamsHorizontal)
             slope_deg = self.transformationParamsHorizontal['slope_deg']
             center_x = self.transformationParamsHorizontal['center_x']
             center_y = self.transformationParamsHorizontal['center_y']
@@ -158,7 +159,7 @@ class RotationCoords():
 
     def rotatePointFeatureFromOrg(self, feature, aar_direction):
 
-        geomFeat = self.castMultipointGeometry(feature.geometry())
+        geomFeat = self.castMultiGeometry2Single(feature.geometry())
 
         rotateGeom = self.rotation(geomFeat.get().x(), geomFeat.get().y(), geomFeat.get().z(), True, aar_direction)
 
@@ -168,13 +169,17 @@ class RotationCoords():
     def rotateLineFeatureFromOrg(self, feature, aar_direction):
 
         geomFeat = feature.geometry()
-        geomType = str(geomFeat.wkbType())[-1]
+
+        geomType = geomFeat.wkbType()
 
         mls = geomFeat.get()
 
-        if geomType == '2':
+
+        if geomType == QgsWkbTypes.LineString  or geomType == QgsWkbTypes.LineStringZ or geomType == QgsWkbTypes.LineString25D:
 
             adjustGeom = QgsGeometry(mls.createEmptyWithSameType())
+
+            print('IN rotateLineFeatureFromOrg', geomFeat)
 
             pointList = []
             mls = geomFeat.get()
@@ -190,9 +195,15 @@ class RotationCoords():
 
             adjustGeom.addPoints(pointList)
 
-            return adjustGeom
+            retAdjustGeom = self.castMultiGeometry2Single(adjustGeom)
 
-        if geomType == '5':
+            print ('retAdjustGeom LINE: ', retAdjustGeom)
+
+            return retAdjustGeom
+
+        if geomType == QgsWkbTypes.MultiLineString or geomType == QgsWkbTypes.MultiLineStringZ or geomType == QgsWkbTypes.MultiLineString25D:
+
+            QgsMessageLog.logMessage('Achtung, Multi-Geometrien werden zu Single-Geometrien umgewandelt!', 'T2G Archäologie', Qgis.Info)
 
             adjustGeom = QgsGeometry(mls.createEmptyWithSameType())
 
@@ -213,17 +224,21 @@ class RotationCoords():
 
                 adjustGeom.addPoints(pointList)
 
-            return adjustGeom
+            retAdjustGeom = self.castMultiGeometry2Single(adjustGeom)
+
+            return retAdjustGeom
 
     def rotatePolygonFeatureFromOrg(self, feature, aar_direction):
 
         geomFeat = feature.geometry()
 
-        geomType = str(geomFeat.wkbType())[-1]
+        print('wkbType_Feature: ', geomFeat.wkbType())
+
+        geomType = geomFeat.wkbType()
 
         mls = geomFeat.get()
 
-        if geomType == '3':
+        if geomType == QgsWkbTypes.Polygon or geomType == QgsWkbTypes.PolygonZ or geomType == QgsWkbTypes.Polygon25D:
 
             adjustGeom = QgsGeometry(mls.createEmptyWithSameType())
 
@@ -240,9 +255,15 @@ class RotationCoords():
 
             adjustGeom.addPoints(pointList)
 
-            return adjustGeom
+            print('adjustGeom', adjustGeom)
 
-        if geomType == '6':
+            retAdjustGeom = self.castMultiGeometry2Single(adjustGeom)
+
+            return retAdjustGeom
+
+        if geomType == QgsWkbTypes.MultiPolygon or geomType == QgsWkbTypes.MultiPolygonZ or geomType == QgsWkbTypes.MultiPolygon25D:
+
+            QgsMessageLog.logMessage('Achtung, Multi-Geometrien werden zu Single-Geometrien umgewandelt!', 'T2G Archäologie', Qgis.Info)
 
             adjustGeom = QgsGeometry(mls.createEmptyWithSameType())
 
@@ -262,61 +283,52 @@ class RotationCoords():
 
                 adjustGeom.addPoints(pointList)
 
-            return adjustGeom
+
+            retAdjustGeom = self.castMultiGeometry2Single(adjustGeom)
+
+            return retAdjustGeom
 
     def rotateLineFeature(self, feature, emptyTargetGeometry, aar_direction):
 
+        targetGeometry = emptyTargetGeometry
+
         geomFeat = feature.geometry()
-        if geomFeat.wkbType() == 2 or geomFeat.wkbType() == 1002 or geomFeat.wkbType() == 3002 or geomFeat.wkbType() == 1005 or geomFeat.wkbType() == 3005:
+        geomFeatWkbType = geomFeat.wkbType()
 
-            #1 point, 2 line, 3 polygon, 5 MultiLineString,6 Multipolygon
-            geomType = str(geomFeat.wkbType())[-1]
+        if geomFeatWkbType == QgsWkbTypes.LineString or geomFeatWkbType == QgsWkbTypes.LineStringZ or geomFeatWkbType == QgsWkbTypes.LineStringZM:
+
             pointList = []
-            if geomType == '2':
-                mls = geomFeat.get()
-                for part in mls.vertices():
-                    rotateGeom = self.rotationReverse(part.x(), part.y(), True, aar_direction)
-                    if emptyTargetGeometry.wkbType() == 1002:
-                        zPoint = QgsPoint(rotateGeom['x_trans'], rotateGeom['y_trans'], rotateGeom['z_trans'])
-                    else:
-                        zPoint = QgsPoint(rotateGeom['x_trans'], rotateGeom['y_trans'], rotateGeom['z_trans'], rotateGeom['z_trans'])
 
-                    pointList.append(zPoint)
+            mls = geomFeat.get()
+            for part in mls.vertices():
+                rotateGeom = self.rotationReverse(part.x(), part.y(), True, aar_direction)
+                zPoint = QgsPoint(rotateGeom['x_trans'], rotateGeom['y_trans'], rotateGeom['z_trans'])
 
-            if geomType == '5':
+                pointList.append(zPoint)
 
-                for poly in geomFeat.parts():
+            targetGeometry = QgsGeometry.fromPolyline(pointList)
 
-                    for part in poly.vertices():
+        else:
+            QgsMessageLog.logMessage('Achtung, die Geometrie ist keine Single-Line Geometrie!', 'T2G Archäologie', Qgis.Info)
 
-                        rotateGeom = self.rotationReverse(part.x(), part.y(), True, aar_direction)
-                        if emptyTargetGeometry.wkbType() == 1005:
-                            zPoint = QgsPoint(rotateGeom['x_trans'], rotateGeom['y_trans'], rotateGeom['z_trans'])
-                        else:
-                            zPoint = QgsPoint(rotateGeom['x_trans'], rotateGeom['y_trans'], rotateGeom['z_trans'], rotateGeom['z_trans'])
-
-                        pointList.append(zPoint)
-
-            emptyTargetGeometry = QgsGeometry.fromPolyline(pointList)
-
-        return emptyTargetGeometry
-
+        return targetGeometry
 
     def rotatePolygonFeature(self, feature, emptyTargetGeometry, aar_direction):
 
         geomFeat = feature.geometry()
-        #1 point, 2 line, 3 polygon, 6 Multipolygon
-        geomType = str(geomFeat.wkbType())[-1]
+        geomFeatWkbType = geomFeat.wkbType()
 
         pointList = []
-        if geomType == '3':
+
+        if geomFeatWkbType == QgsWkbTypes.Polygon or geomFeatWkbType == QgsWkbTypes.PolygonZ or geomFeatWkbType == QgsWkbTypes.PolygonZM:
+
             mls = geomFeat.get()
             for part in mls.vertices():
                 rotateGeom = self.rotationReverse(part.x(), part.y(), True, aar_direction)
                 zPoint = QgsPoint(rotateGeom['x_trans'], rotateGeom['y_trans'], rotateGeom['z_trans'])
                 pointList.append(zPoint)
 
-        if geomType == '6':
+        elif geomFeatWkbType == QgsWkbTypes.MultiPolygon or geomFeatWkbType == QgsWkbTypes.MultiPolygon25D or geomFeatWkbType == QgsWkbTypes.MultiPolygonZ or geomFeatWkbType == QgsWkbTypes.MultiPolygonM or geomFeatWkbType == QgsWkbTypes.MultiPolygonZM:
 
             for poly in geomFeat.parts():
 
@@ -325,10 +337,14 @@ class RotationCoords():
                     zPoint = QgsPoint(rotateGeom['x_trans'], rotateGeom['y_trans'], rotateGeom['z_trans'])
                     pointList.append(zPoint)
 
+        else:
+            QgsMessageLog.logMessage('Achtung, die Geometrie kann nicht verarbeitet werden!', 'T2G Archäologie', Qgis.Info)
+
         emptyTargetGeometry.addPoints(pointList)
 
-        return emptyTargetGeometry
+        retTargetGeometry = self.castMultiGeometry2Single(emptyTargetGeometry)
 
+        return retTargetGeometry
 
     def profileBuffer(self, bufferSize, aar_direction):
 
@@ -355,13 +371,49 @@ class RotationCoords():
     ## \brief cast multipoint geometries to single point geometries
     #
     #
-    def castMultipointGeometry(self, geom):
+    def castMultiGeometry2Single(self, geom):
 
         geoType = geom.wkbType()
+        print('geoType: ', geoType)
 
-        #PointZ or PointZM
-        if geoType == 1001 or geoType == 3001:
-            return geom
+        ret_geom = geom
+
+        #Point25D or PointZ or LineString25D or LineStringZ or Polygon25D or PolygonZ
+        if geoType == QgsWkbTypes.Point25D or geoType == QgsWkbTypes.PointZ or geoType == QgsWkbTypes.LineString25D or geoType == QgsWkbTypes.LineStringZ  or geoType == QgsWkbTypes.Polygon25D or geoType == QgsWkbTypes.PolygonZ:
+            return ret_geom
+
+        #PointM or PointZM
+        if geoType == QgsWkbTypes.PointM or geoType == QgsWkbTypes.PointZM:
+            geom_total = geom.coerceToType(QgsWkbTypes.PointZ)
+
+        #LineString or MultiLineString or MultiLineString25D or MultiLineStringZ or MultiLineStringM or MultiLineStringZM
+        if geoType == QgsWkbTypes.LineString or geoType == QgsWkbTypes.MultiLineString or geoType == QgsWkbTypes.MultiLineString25D or geoType == QgsWkbTypes.MultiLineStringZ or geoType == QgsWkbTypes.MultiLineStringM or geoType == QgsWkbTypes.MultiLineStringZM:
+            #LineString25D
+            geom_total = geom.coerceToType(QgsWkbTypes.LineString25D)
+            print('wtf geom_total: ', geom_total)
+            geoType2 = geom_total[1].wkbType()
+            print('geoType2: ', geoType2)
+
+
+        #Polygon or Multipolygon or MultiPolygon25D or MultiPolygonZ  or MultiPolygonM or MultiPolygonZM
+        if geoType == QgsWkbTypes.Polygon or geoType == QgsWkbTypes.MultiPolygon or geoType == QgsWkbTypes.MultiPolygon25D or geoType == QgsWkbTypes.MultiPolygonZ or geoType == QgsWkbTypes.MultiPolygonM or geoType == QgsWkbTypes.MultiPolygonZM:
+            #Polygon25D
+            geom_total = geom.coerceToType(QgsWkbTypes.Polygon25D)
+
+        if len(geom_total) >= 2:
+            if geom_total[0].isEmpty() or geom_total[0].isGeosValid() == False:
+                ret_geom = geom_total[1]
+            elif geom_total[1].isEmpty() or geom_total[1].isGeosValid() == False:
+                ret_geom = geom_total[0]
+            else:
+                print('Achtung, es wird der erste Teil der Multi-Geometrie verwendet!')
+                ret_geom = geom_total[0]
+        elif len(geom_total) == 1:
+            print('geom_total[0].isGeosValid()', geom_total[0].isGeosValid())
+            ret_geom = geom_total[0]
         else:
-            ret_geom = geom.coerceToType(3001)
-            return ret_geom[0]
+            ret_geom = geom_total
+
+        ret_geom_geoType = ret_geom.wkbType()
+        print('ret_geom_geoType: ', ret_geom_geoType)
+        return ret_geom
