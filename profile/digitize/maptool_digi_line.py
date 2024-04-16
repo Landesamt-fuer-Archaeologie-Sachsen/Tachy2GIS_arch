@@ -1,6 +1,6 @@
 from qgis.PyQt.QtCore import pyqtSignal, pyqtSlot
 from qgis.gui import QgsAttributeDialog, QgsAttributeEditorContext
-from qgis.core import QgsFeature, QgsGeometry, QgsFeatureRequest
+from qgis.core import QgsFeature, QgsGeometry, QgsFeatureRequest, QgsMessageLog, Qgis
 
 from .map_tools import MultilineMapTool
 from ..publisher import Publisher
@@ -156,7 +156,9 @@ class MapToolDigiLine(MultilineMapTool, MapToolMixin):
 
         selFeatures = []
         for feature in featsSel:
+            print('Line feature.geometry()type', feature.geometry().wkbType())
             if not feature.geometry().within(bufferGeometry):
+                print('No Linefeatures within buffer geometry!')
                 continue
 
             if geoType == "tachy" and feature["geo_quelle"] != "profile_object":
@@ -181,7 +183,12 @@ class MapToolDigiLine(MultilineMapTool, MapToolMixin):
                 # write to table
                 self.writeToTable(feature.fields(), feature)
 
-        pr.addFeatures(selFeatures)
+        print('selFeatures', selFeatures)
+
+        try:
+            pr.addFeatures(selFeatures)
+        except Exception as e:
+            QgsMessageLog.logMessage(str(e), 'T2G Archäologie', Qgis.Info)
 
         self.digiLineLayer.commitChanges()
         self.digiLineLayer.updateExtents()
