@@ -124,16 +124,11 @@ class MapToolDigiLine(MultilineMapTool, MapToolMixin):
                 or item.name() == "zeit"
                 or item.name() == "material"
                 or item.name() == "bemerkung"
-                or item.name() == "benerkung"  # Workaround
                 or item.name() == "bef_nr"
                 or item.name() == "fund_nr"
-                or item.name() == "prob_nr"
+                or item.name() == "probe_nr"
             ):
-                # Workaround - In Line Shapedatei hat das Feld "Bemerkung" den Namen benerkung
-                if item.name() == "benerkung":
-                    dataObj["bemerkung"] = feature[item.name()]
-                else:
-                    dataObj[item.name()] = feature[item.name()]
+                dataObj[item.name()] = feature[item.name()]
 
         dataObj["layer"] = self.refData["lineLayer"].sourceName()
 

@@ -711,7 +711,7 @@ class DigitizeCanvas(QgsMapCanvas):
                 or item.name() == "bemerkung"
                 or item.name() == "bef_nr"
                 or item.name() == "fund_nr"
-                or item.name() == "prob_nr"
+                or item.name() == "probe_nr"
             ):
                 dataObj[item.name()] = feature[item.name()]
 

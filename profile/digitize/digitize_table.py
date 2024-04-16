@@ -75,6 +75,8 @@ class DigitizeTable(QTableWidget):
     # @returns
     def insertFeature(self, dataObj):
 
+        print('dataObj', dataObj)
+
         tableHeader = self.horizontalHeader()
 
         rowPosition = self.rowCount()
@@ -120,8 +122,8 @@ class DigitizeTable(QTableWidget):
         self.setItem(rowPosition, 4, befItem)
         tableHeader.setSectionResizeMode(4, QHeaderView.Stretch)
         # Probennr.
-        if "prob_nr" in dataObj:
-            probItem = QTableWidgetItem(str(dataObj['prob_nr']))
+        if "probe_nr" in dataObj:
+            probItem = QTableWidgetItem(str(dataObj['probe_nr']))
         else:
             probItem = QTableWidgetItem('NULL')
 
@@ -221,8 +223,8 @@ class DigitizeTable(QTableWidget):
                             self.item(i, j).setText(str(dataObj['bef_nr']))
 
                     if head == 'Probennr.':
-                        if "prob_nr" in dataObj:
-                            self.item(i, j).setText(str(dataObj['prob_nr']))
+                        if "probe_nr" in dataObj:
+                            self.item(i, j).setText(str(dataObj['probe_nr']))
 
                     if head == 'Fundnr.':
                         if "fund_nr" in dataObj:
