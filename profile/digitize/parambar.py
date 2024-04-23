@@ -237,6 +237,7 @@ class Parambar(QWidget):
         self.action_tool_polygon.setChecked(False)
         self.action_tool_polygon_edit.setChecked(False)
         self.toolIdentify.set_for_feat_form()
+        self.canvasDigitize.setMouseTracking(True)
         self.canvasDigitize.setMapTool(self.toolIdentify)
         self.actionIdentify.setChecked(True)
 

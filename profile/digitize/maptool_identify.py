@@ -1,13 +1,10 @@
 from PyQt5.QtCore import Qt, QPoint, pyqtSlot, pyqtSignal, QCoreApplication, QEvent, QObject
-from PyQt5.QtWidgets import QApplication
 from qgis.core import QgsPointXY, QgsGeometry, QgsFeature
-from qgis.gui import QgsMapToolIdentify, QgsAttributeDialog, QgsAttributeEditorContext, QgsMapTool
+from qgis.gui import QgsAttributeDialog, QgsAttributeEditorContext, QgsMapTool
 
 from ..publisher import Publisher
 
 ## @brief With the MapToolIdentify class a map tool for identify feature attributes is realized
-#
-# The class inherits form QgsMapToolIdentify and MapToolMixin
 #
 # @author Mario Uhlig, VisDat geodatentechnologie GmbH, mario.uhlig@visdat.de
 # @date 2022-28-09
@@ -60,7 +57,7 @@ class MapToolIdentify(QgsMapTool):
         self.only_lines = False
         self.only_polygons = False
         QgsMapTool.__init__(self, self.canvas)
-        self.id_tool = QgsMapToolIdentify(self.canvas)
+        self.search_features = []
         self.featForm = None
         self.lastUUID = None
         self.lastFeature = None
@@ -94,12 +91,24 @@ class MapToolIdentify(QgsMapTool):
 
     def do_action_select_for_edit(self):
         self.pup.publish("removeHoverFeatures", {})
+        if self.lastFeature[1]["geo_quelle"] != "profile_object":
+            self.__iface.messageBar().pushMessage("Error", "Dieses Feature ist nicht editierbar!", level=1, duration=5)
+            return
         if self.only_points:
             self.points_feature_selected_for_edit.emit(self.lastFeature[1])
         elif self.only_lines:
             self.lines_feature_selected_for_edit.emit(self.lastFeature[1])
         elif self.only_polygons:
             self.polygons_feature_selected_for_edit.emit(self.lastFeature[1])
+
+    def setDigiPointLayer(self, digiPointLayer):
+        self.digiPointLayer = digiPointLayer
+
+    def setDigiLineLayer(self, digiLineLayer):
+        self.digiLineLayer = digiLineLayer
+
+    def setDigiPolygonLayer(self, digiPolygonLayer):
+        self.digiPolygonLayer = digiPolygonLayer
 
     def set_for_select_action(self, the_only_geom=""):
         self.only_points = False
@@ -113,6 +122,7 @@ class MapToolIdentify(QgsMapTool):
             self.only_lines = True
         elif the_only_geom == "polygons":
             self.only_polygons = True
+        self._set_search_features()
 
     def set_for_feat_form(self):
         self.only_points = False
@@ -120,24 +130,9 @@ class MapToolIdentify(QgsMapTool):
         self.only_polygons = False
         self.do_action_select_instead = False
         self.setCursor(Qt.WhatsThisCursor)
+        self._set_search_features()
 
-    def close_form(self, event):
-        self.pup.publish("removeHoverFeatures", {})
-
-    def setDigiPointLayer(self, digiPointLayer):
-        self.digiPointLayer = digiPointLayer
-
-    def setDigiLineLayer(self, digiLineLayer):
-        self.digiLineLayer = digiLineLayer
-
-    def setDigiPolygonLayer(self, digiPolygonLayer):
-        self.digiPolygonLayer = digiPolygonLayer
-
-    def canvasMoveEvent(self, e):
-        self.got_moved.emit(QPoint(e.pos().x(), e.pos().y()))
-
-    @pyqtSlot(QPoint)
-    def handleMove(self, q_point):
+    def _set_search_features(self):
         if self.only_points:
             search_layers = [self.digiPointLayer]
         elif self.only_lines:
@@ -147,39 +142,69 @@ class MapToolIdentify(QgsMapTool):
         else:
             search_layers = [self.digiPointLayer, self.digiLineLayer, self.digiPolygonLayer]
 
-        results = self.id_tool.identify(q_point.x(), q_point.y(), search_layers, QgsMapToolIdentify.TopDownAll)
+        self.search_features = [
+            {
+                "layer": layer,
+                "feature": feature
+            }
+            for layer in search_layers
+            for feature in layer.getFeatures()
+        ]
 
-        if len(results) == 0:
+        if self.do_action_select_instead:
+            # in edit mode allow only "profile_object"
+            self.search_features = list(filter(
+                lambda f: f["feature"]["geo_quelle"] == "profile_object",
+                self.search_features
+            ))
+
+    def close_form(self, event):
+        self.pup.publish("removeHoverFeatures", {})
+
+    def canvasMoveEvent(self, e):
+        self.got_moved.emit(QPoint(e.pos().x(), e.pos().y()))
+
+    @pyqtSlot(QPoint)
+    def handleMove(self, q_point):
+        def getDistance(geometry: QgsGeometry, point: QgsPointXY):
+            vertex_distance = geometry.closestVertexWithContext(point)[0]
+            segment_distance = geometry.closestSegmentWithContext(point)[0]
+            if vertex_distance < 0:
+                vertex_distance = float("inf")
+            if segment_distance < 0:
+                segment_distance = float("inf")
+            if segment_distance < vertex_distance:
+                return segment_distance
+            else:
+                return vertex_distance
+
+        if len(self.search_features) == 0:
+            return
+
+        map_point = self.toMapCoordinates(q_point)
+        closest_distances = [getDistance(f["feature"].geometry(), map_point) for f in self.search_features]
+        index_of_nearest = min(range(len(closest_distances)), key=closest_distances.__getitem__)
+
+        vicinity = self.canvas.mapUnitsPerPixel() * 10
+        squared_distance = vicinity * vicinity
+        if closest_distances[index_of_nearest] > squared_distance:
             if self.lastUUID is not None:
                 self.lastUUID = None
                 self.lastFeature = None
                 self.pup.publish("removeHoverFeatures", {})
             return
 
-        final_result = results[0]
-        if len(results) > 1:
-            map_point = self.toMapCoordinates(q_point)
-            closest_distances = [self.getDistance(r.mFeature.geometry(), map_point) for r in results]
-            index_of_nearest = min(range(len(closest_distances)), key=closest_distances.__getitem__)
-            final_result = results[index_of_nearest]
+        final_result = self.search_features[index_of_nearest]
+        if final_result["feature"]["obj_uuid"] == self.lastUUID:
+            return
 
-        if final_result.mFeature["obj_uuid"] != self.lastUUID:
-            self.lastUUID = final_result.mFeature["obj_uuid"]
-            self.lastFeature = (final_result.mLayer, final_result.mFeature)
-            self.pup.publish("removeHoverFeatures", {})
-            self.pup.publish(
-                "addHoverFeatures",
-                {"layer": final_result.mLayer, "features": [final_result.mFeature]}
-            )
-
-    def getDistance(self, geometry: QgsGeometry, point: QgsPointXY):
-        vertex_distance = geometry.closestVertexWithContext(point)[0]
-        segment_distance = geometry.closestSegmentWithContext(point)[0]
-        if vertex_distance < 0:
-            vertex_distance = float("inf")
-        if segment_distance < 0:
-            segment_distance = float("inf")
-        if segment_distance < vertex_distance:
-            return segment_distance
-        else:
-            return vertex_distance
+        self.lastUUID = final_result["feature"]["obj_uuid"]
+        self.lastFeature = (
+            final_result["layer"],
+            final_result["feature"]
+        )
+        self.pup.publish("removeHoverFeatures", {})
+        self.pup.publish(
+            "addHoverFeatures",
+            {"layer": final_result["layer"], "features": [final_result["feature"]]}
+        )
