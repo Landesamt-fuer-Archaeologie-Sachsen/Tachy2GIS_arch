@@ -5,7 +5,7 @@ import shutil
 import time
 
 from qgis.PyQt.QtWidgets import QMessageBox
-from qgis.core import QgsProject, QgsVectorLayer, QgsLayerTreeGroup, QgsLayerTreeLayer, QgsVectorFileWriter, QgsCoordinateReferenceSystem
+from qgis.core import QgsProject, QgsVectorLayer, QgsLayerTreeGroup, QgsLayerTreeLayer, QgsVectorFileWriter, QgsCoordinateReferenceSystem, QgsWkbTypes
 from .transformation_dialog import TransformationDialog
 from .transformation_calculations import TransformationCalculations
 
@@ -28,7 +28,7 @@ class TransformationGui():
 
         self.iface = iFace
         self.dockwidget = dockWidget
-        self.colNameGcpSource = 'Festpunkt'
+        self.colNameGcpSource = '11' #enspricht 'Festpunkt'
         self.transformationDialog = TransformationDialog(self)
         self.paramCalc = TransformationCalculations(self)
         self.transformationParametersDone = False
@@ -378,9 +378,8 @@ class TransformationGui():
             # is 3d Point layer
             #feature.attribute('obj_typ') == 'Georeferenzierung':
             layerType = sourceLayer.wkbType()
-            print('layerType', layerType)
             #1001 PointZ, 3001 PointZM, 1004 MultiPointZ, 3004 MultipointZM
-            if layerType == 1001 or layerType == 3001 or layerType == 1004 or layerType == 3004:
+            if layerType == QgsWkbTypes.PointZ or layerType == QgsWkbTypes.PointZM or layerType == QgsWkbTypes.MultiPointZ or layerType == QgsWkbTypes.MultiPointZM:
                 isValid = True
 
                 #Check that column obj_type is in attributtable
@@ -395,13 +394,14 @@ class TransformationGui():
                     counterGeoref = 0
                     for feature in sourceLayer.getFeatures():
                         #Alt war Georeferenzierung
+
                         if feature.attribute('obj_typ') == self.colNameGcpSource:
                             counterGeoref += 1
 
 
                     if counterGeoref < 2:
                         isValid = False
-                        self.iface.messageBar().pushMessage("Error", "Min. zwei Einträge '"+self.colNameGcpSource+"' in Spalte 'obj_typ' sind notwendig", level=1, duration=5)
+                        self.iface.messageBar().pushMessage("Error", "Min. zwei Einträge 'Festpunkt' in Spalte 'obj_typ' sind notwendig", level=1, duration=5)
                     else:
                         isValid = True
 
@@ -466,24 +466,24 @@ class TransformationGui():
     #  \code{.py}
     #    [{
     #    	'uuid': '{c81ce552-9466-417a-a1fd-2305f81c3051}',
-    #    	'id': 0,
-    #    	'ptnr': 'ALT_01',
+    #    	'fid': 0,
+    #    	'pt_nr': 'ALT_01',
     #    	'geometry': < QgsGeometry: PointZ(451.15690000000000737 956.48540000000002692 102.51779999999999404) > ,
     #    	'x': 451.1569,
     #    	'y': 956.4854,
     #    	'z': 102.5178
     #    }, {
     #    	'uuid': '{0689dab2-f5fa-4db7-a3ff-6c5e343054d9}',
-    #    	'id': 1,
-    #    	'ptnr': 'ALT_12',
+    #    	'fid': 1,
+    #    	'pt_nr': 'ALT_12',
     #    	'geometry': < QgsGeometry: PointZ(483.94339999999999691 1002.8064000000000533 102.33379999999999654) > ,
     #    	'x': 483.9434,
     #    	'y': 1002.8064,
     #    	'z': 102.3338
     #    }, {
     #    	'uuid': '{23934b9c-9ddc-4098-8d61-352c818e32db}',
-    #    	'id': 2,
-    #    	'ptnr': 'ALT_03',
+    #    	'fid': 2,
+    #    	'pt_nr': 'ALT_03',
     #    	'geometry': < QgsGeometry: PointZ(526.23810000000003129 979.89469999999994343 102.5023000000000053) > ,
     #    	'x': 526.2381,
     #    	'y': 979.8947,
@@ -500,12 +500,12 @@ class TransformationGui():
                 point = feature.geometry().constGet()
                 geomType = point.wkbType()
                 #1001 PointZ, 3001 PointZM, -2147483647 Point2.5D
-                if geomType == 1001 or geomType == 3001 or geomType == -2147483647:
+                if geomType == QgsWkbTypes.PointZ or geomType == QgsWkbTypes.PointZM or geomType == QgsWkbTypes.Point25D:
                     try:
                         zVal = point.z()
                     except:
                         zVal = 0
-                    gcpSource.append({'uuid': feature.attribute('uuid'), 'id': feature.attribute('id'), 'ptnr': feature.attribute('ptnr'), 'geometry': feature.geometry(), 'x': point.x(), 'y': point.y(), 'z': zVal})
+                    gcpSource.append({'uuid': feature.attribute('uuid'), 'fid': feature.attribute('fid'), 'pt_nr': feature.attribute('pt_nr'), 'geometry': feature.geometry(), 'x': point.x(), 'y': point.y(), 'z': zVal})
                 else:
                     # 1004 MultiPointZ, 3004 MultipointZM
                     # Workaround um aus Multipointdaten GCP-Punktinfos zu bekommen
@@ -516,7 +516,7 @@ class TransformationGui():
                         zVal = childPoint.z()
                     except:
                         zVal = 0
-                    gcpSource.append({'uuid': feature.attribute('uuid'), 'id': feature.attribute('id'), 'ptnr': feature.attribute('ptnr'), 'geometry': feature.geometry(), 'x': childPoint.x(), 'y': childPoint.y(), 'z': zVal})
+                    gcpSource.append({'uuid': feature.attribute('uuid'), 'fid': feature.attribute('fid'), 'pt_nr': feature.attribute('pt_nr'), 'geometry': feature.geometry(), 'x': childPoint.x(), 'y': childPoint.y(), 'z': zVal})
 
 
         return gcpSource
@@ -529,12 +529,12 @@ class TransformationGui():
     #  \code{.py}
     #    {
     #    	'points': [{
-    #    		'ptnr': 'ALT_01',
+    #    		'pt_nr': 'ALT_01',
     #    		'x': 5460004.380048368,
     #    		'y': 5700036.800403067,
     #    		'z': 50.0
     #    	}, {
-    #    		'ptnr': 'ALT_12',
+    #    		'pt_nr': 'ALT_12',
     #    		'x': 5460046.428512702,
     #    		'y': 5700901.997960591,
     #    		'z': 80.0
@@ -552,7 +552,7 @@ class TransformationGui():
                 for row in reader:
                     if row:
                         #0-NUMMER	1-Position X	2-Position Y	3-Position Z
-                        pointObj = {'ptnr': row[0], 'x': float(row[1]), 'y': float(row[2]), 'z': float(row[3])}
+                        pointObj = {'pt_nr': row[0], 'x': float(row[1]), 'y': float(row[2]), 'z': float(row[3])}
                         targetGCP['points'].append(pointObj)
                     else:
                         print('Leerzeile')
@@ -666,6 +666,7 @@ class TransformationGui():
 
         if self.transformationParametersDone == True:
 
+            #generalValid = True
             generalValid, validationText, detailedText = self.checkInputlayersValidity()
 
             if generalValid == True:
@@ -711,7 +712,7 @@ class TransformationGui():
                     layer.removeSelection()
 
                     #Layer zwischenspeichrern und damit .shp und .idx überschreiben damit Extent des Layers stimmt
-                    self.saveLayerAfterTransformation(layer)
+                    #self.saveLayerAfterTransformation(layer)
 
                     print('Finish Transform of Layer '+layer.name()+' !')
 
@@ -754,6 +755,7 @@ class TransformationGui():
 
         if self.transformationParametersDone == True:
 
+            #generalValid = True
             generalValid, validationText, detailedText = self.checkInputlayersValidity()
 
             if generalValid == True:
@@ -774,8 +776,7 @@ class TransformationGui():
 
                     layerType = layer.wkbType()
                     #Abfrage nach Z und ZM Single Layertypen - layerTranslationXYZ gibt dort keinen korrekten Z Wert aus
-                    #3002 LineStringZM , 3001 PointZM, 3003 PolygonZM
-                    if layerType == 1001 or layerType == 1002 or layerType == 1003 or layerType == 3001 or layerType == 3002 or layerType == 3003:
+                    if layerType == QgsWkbTypes.PointZ or layerType == QgsWkbTypes.LineStringZ  or layerType == QgsWkbTypes.PolygonZ  or layerType == QgsWkbTypes.PointZM  or layerType == QgsWkbTypes.LineStringZM  or layerType == QgsWkbTypes.PolygonZM:
                         #Z-Translation - unbedingt zuerst ausführen sonst Fehler bei Extentberechnung
                         self.paramCalc.layerTranslationZ(layer, 'reverse', self.translationZ)
 
@@ -800,7 +801,7 @@ class TransformationGui():
                     layer.removeSelection()
 
                     #Layer zwischenspeichrern und damit .shp und .idx überschreiben damit Extent des Layers stimmt
-                    self.saveLayerAfterTransformation(layer)
+                    #self.saveLayerAfterTransformation(layer)
 
                     print('Finish Reversetransform of Layer '+layer.name()+' !')
 

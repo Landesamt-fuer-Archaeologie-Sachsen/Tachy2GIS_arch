@@ -45,7 +45,7 @@ class TransformationDialogTable(QTableWidget):
     #  \code{.py}
     #    [{
     #    	'uuid': '{c81ce552-9466-417a-a1fd-2305f81c3051}',
-    #    	'ptnr': 'ALT_01',
+    #    	'pt_nr': 'ALT_01',
     #    	'id': 0,
     #    	'target_x_ptnr': 'ALT_01',
     #    	'target_y_ptnr': 'ALT_01',
@@ -57,7 +57,7 @@ class TransformationDialogTable(QTableWidget):
     #    	'targetPoints': [5460004.38, 5700036.8, 50.0]
     #    }, {
     #    	'uuid': '{0689dab2-f5fa-4db7-a3ff-6c5e343054d9}',
-    #    	'ptnr': 'ALT_12',
+    #    	'pt_nr': 'ALT_12',
     #    	'id': 1,
     #    	'target_x_ptnr': 'ALT_12',
     #    	'target_y_ptnr': 'ALT_12',
@@ -89,9 +89,9 @@ class TransformationDialogTable(QTableWidget):
                 if head == 'UUID':
                     pointObj['uuid'] = self.item(i, j).text()
                 if head == 'PTNR':
-                    pointObj['ptnr'] = self.item(i, j).text()
+                    pointObj['pt_nr'] = self.item(i, j).text()
                 if head == 'ID':
-                    pointObj['id'] = int(self.item(i, j).text())
+                    pointObj['fid'] = int(self.item(i, j).text())
                 if head == 'Quelle X':
                     pointArraySource [0] = float(self.item(i, j).text())
                 if head == 'Quelle Y':
@@ -172,10 +172,10 @@ class TransformationDialogTable(QTableWidget):
         usage = ['3D', '2D', 'Z', 'nein']
         for point in gcpTarget['points']:
 
-            if len(point['ptnr']) > 0:
-                targetX.append(point['ptnr']+' | '+str(round(point['x'], 3)))
-                targetY.append(point['ptnr']+' | '+str(round(point['y'], 3)))
-                targetZ.append(point['ptnr']+' | '+str(round(point['z'], 3)))
+            if len(point['pt_nr']) > 0:
+                targetX.append(point['pt_nr']+' | '+str(round(point['x'], 3)))
+                targetY.append(point['pt_nr']+' | '+str(round(point['y'], 3)))
+                targetZ.append(point['pt_nr']+' | '+str(round(point['z'], 3)))
             else:
                 targetX.append(str(round(point['x'], 3)))
                 targetY.append(str(round(point['y'], 3)))
@@ -188,12 +188,12 @@ class TransformationDialogTable(QTableWidget):
             # UUID
             self.setItem(rowPosition, 0, QTableWidgetItem(pointObj['uuid']))
             # PTNR
-            ptnrItem = QTableWidgetItem(str(pointObj['ptnr']))
+            ptnrItem = QTableWidgetItem(str(pointObj['pt_nr']))
             ptnrItem.setFlags(Qt.ItemIsEnabled)
             self.setItem(rowPosition, 1, ptnrItem)
             gcpTableHeader.setSectionResizeMode(1, QHeaderView.ResizeToContents)
             # ID
-            idItem = QTableWidgetItem(str(pointObj['id']))
+            idItem = QTableWidgetItem(str(pointObj['fid']))
             idItem.setFlags(Qt.ItemIsEnabled)
             self.setItem(rowPosition, 2, idItem)
             gcpTableHeader.setSectionResizeMode(2, QHeaderView.ResizeToContents)
@@ -215,11 +215,11 @@ class TransformationDialogTable(QTableWidget):
 
             # Ziel X
             targetComboX = QComboBox()
-            targetComboX.setObjectName("cb_"+str(pointObj['id'])+"_x")
+            targetComboX.setObjectName("cb_"+str(pointObj['fid'])+"_x")
             targetComboX.addItems(targetX)
             for point in gcpTarget['points']:
-                if pointObj['ptnr'] == point['ptnr']:
-                    idx = targetComboX.findText(point['ptnr']+' | '+str(round(point['x'], 3)))
+                if pointObj['pt_nr'] == point['pt_nr']:
+                    idx = targetComboX.findText(point['pt_nr']+' | '+str(round(point['x'], 3)))
                     if idx >= 0:
                         targetComboX.setCurrentIndex(idx)
             targetComboX.wheelEvent = lambda event: None
@@ -229,11 +229,11 @@ class TransformationDialogTable(QTableWidget):
 
             # Ziel Y
             targetComboY = QComboBox()
-            targetComboY.setObjectName("cb_"+str(pointObj['id'])+"_y")
+            targetComboY.setObjectName("cb_"+str(pointObj['fid'])+"_y")
             targetComboY.addItems(targetY)
             for point in gcpTarget['points']:
-                if pointObj['ptnr'] == point['ptnr']:
-                    idx = targetComboY.findText(point['ptnr']+' | '+str(round(point['y'], 3)))
+                if pointObj['pt_nr'] == point['pt_nr']:
+                    idx = targetComboY.findText(point['pt_nr']+' | '+str(round(point['y'], 3)))
                     if idx >= 0:
                         targetComboY.setCurrentIndex(idx)
             targetComboY.wheelEvent = lambda event: None
@@ -243,11 +243,11 @@ class TransformationDialogTable(QTableWidget):
 
             # Ziel Z
             targetComboZ = QComboBox()
-            targetComboZ.setObjectName("cb_"+str(pointObj['id'])+"_z")
+            targetComboZ.setObjectName("cb_"+str(pointObj['fid'])+"_z")
             targetComboZ.addItems(targetZ)
             for point in gcpTarget['points']:
-                if pointObj['ptnr'] == point['ptnr']:
-                    idx = targetComboZ.findText(point['ptnr']+' | '+str(round(point['z'], 3)))
+                if pointObj['pt_nr'] == point['pt_nr']:
+                    idx = targetComboZ.findText(point['pt_nr']+' | '+str(round(point['z'], 3)))
                     if idx >= 0:
                         targetComboZ.setCurrentIndex(idx)
             targetComboZ.wheelEvent = lambda event: None
@@ -268,13 +268,13 @@ class TransformationDialogTable(QTableWidget):
 
             # Punkt verwenden
             usageCombo = QComboBox()
-            usageCombo.setObjectName("cb_"+str(pointObj['id'])+"_usage")
+            usageCombo.setObjectName("cb_"+str(pointObj['fid'])+"_usage")
             usageCombo.addItems(usage)
             idx = usageCombo.findText('nein')
             if idx >= 0:
                 usageCombo.setCurrentIndex(idx)
             for point in gcpTarget['points']:
-                if pointObj['ptnr'] == point['ptnr']:
+                if pointObj['pt_nr'] == point['pt_nr']:
                     idx = usageCombo.findText('3D')
                     if idx >= 0:
                         usageCombo.setCurrentIndex(idx)
@@ -306,9 +306,9 @@ class TransformationDialogTable(QTableWidget):
         usage = ['3D', '2D', 'Z', 'nein']
         for point in loadedTargetGcp:
 
-            targetX.append(point['ptnr']+' | '+str(round(point['x'], 3)))
-            targetY.append(point['ptnr']+' | '+str(round(point['y'], 3)))
-            targetZ.append(point['ptnr']+' | '+str(round(point['z'], 3)))
+            targetX.append(point['pt_nr']+' | '+str(round(point['x'], 3)))
+            targetY.append(point['pt_nr']+' | '+str(round(point['y'], 3)))
+            targetZ.append(point['pt_nr']+' | '+str(round(point['z'], 3)))
 
 
         for pointObj in loadedGCPData:
@@ -318,12 +318,12 @@ class TransformationDialogTable(QTableWidget):
             self.setItem(rowPosition, 0, QTableWidgetItem(pointObj['uuid'])) # uuid
 
             # PTNR
-            ptnrItem = QTableWidgetItem(str(pointObj['ptnr']))
+            ptnrItem = QTableWidgetItem(str(pointObj['pt_nr']))
             ptnrItem.setFlags(Qt.ItemIsEnabled)
             self.setItem(rowPosition, 1, ptnrItem)
             gcpTableHeader.setSectionResizeMode(1, QHeaderView.ResizeToContents)
             # ID
-            idItem = QTableWidgetItem(str(pointObj['id']))
+            idItem = QTableWidgetItem(str(pointObj['fid']))
             idItem.setFlags(Qt.ItemIsEnabled)
             self.setItem(rowPosition, 2, idItem)
             gcpTableHeader.setSectionResizeMode(2, QHeaderView.ResizeToContents)
@@ -345,7 +345,7 @@ class TransformationDialogTable(QTableWidget):
 
             # Ziel X
             targetComboX = QComboBox()
-            targetComboX.setObjectName("cb_"+str(pointObj['id'])+"_x")
+            targetComboX.setObjectName("cb_"+str(pointObj['fid'])+"_x")
             targetComboX.addItems(targetX)
             idx = targetComboX.findText(pointObj['target_x_ptnr']+' | '+str(round(pointObj['targetPoints'][0], 3)))
             if idx >= 0:
@@ -358,7 +358,7 @@ class TransformationDialogTable(QTableWidget):
 
             # Ziel Y
             targetComboY = QComboBox()
-            targetComboY.setObjectName("cb_"+str(pointObj['id'])+"_y")
+            targetComboY.setObjectName("cb_"+str(pointObj['fid'])+"_y")
             targetComboY.addItems(targetY)
             idx = targetComboY.findText(pointObj['target_y_ptnr']+' | '+str(round(pointObj['targetPoints'][1], 3)))
             if idx >= 0:
@@ -370,7 +370,7 @@ class TransformationDialogTable(QTableWidget):
 
             # Ziel Z
             targetComboZ = QComboBox()
-            targetComboZ.setObjectName("cb_"+str(pointObj['id'])+"_z")
+            targetComboZ.setObjectName("cb_"+str(pointObj['fid'])+"_z")
             targetComboZ.addItems(targetZ)
             idx = targetComboZ.findText(pointObj['target_z_ptnr']+' | '+str(round(pointObj['targetPoints'][2], 3)))
             if idx >= 0:
@@ -393,7 +393,7 @@ class TransformationDialogTable(QTableWidget):
 
             # Punkt verwenden
             usageCombo = QComboBox()
-            usageCombo.setObjectName("cb_"+str(pointObj['id'])+"_usage")
+            usageCombo.setObjectName("cb_"+str(pointObj['fid'])+"_usage")
             usageCombo.addItems(usage)
             idx = usageCombo.findText(pointObj['usage'])
             if idx >= 0:

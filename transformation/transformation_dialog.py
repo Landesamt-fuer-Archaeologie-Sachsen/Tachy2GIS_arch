@@ -312,7 +312,7 @@ class TransformationDialog(QMainWindow):
 
                 reader = csv.DictReader(csvfile, delimiter='\t')
                 for row in reader:
-                    loadedGcpData.append({'uuid': row['UUID'], 'ptnr': row['PTNR'], 'target_x_ptnr': row['TargetX PTNR'], 'target_y_ptnr': row['TargetY PTNR'], 'target_z_ptnr': row['TargetZ PTNR'], 'id': int(row['ID']), 'error_xy': float(row['Error XY']), 'error_z': float(row['Error Z']), 'usage': row['Punkt verwenden'], 'sourcePoints': [float(row['Quelle X']), float(row['Quelle Y']), float(row['Quelle Z'])], 'targetPoints': [float(row['Ziel X']), float(row['Ziel Y']), float(row['Ziel Z'])]})
+                    loadedGcpData.append({'uuid': row['UUID'], 'pt_nr': row['PTNR'], 'target_x_ptnr': row['TargetX PTNR'], 'target_y_ptnr': row['TargetY PTNR'], 'target_z_ptnr': row['TargetZ PTNR'], 'fid': int(row['ID']), 'error_xy': float(row['Error XY']), 'error_z': float(row['Error Z']), 'usage': row['Punkt verwenden'], 'sourcePoints': [float(row['Quelle X']), float(row['Quelle Y']), float(row['Quelle Z'])], 'targetPoints': [float(row['Ziel X']), float(row['Ziel Y']), float(row['Ziel Z'])]})
 
 
             ######## loadedTargetGcp - TargetGCPs #############
@@ -337,7 +337,7 @@ class TransformationDialog(QMainWindow):
 
                     if (lineCounter > startLineTargetGCP) and (lineCounter < startLineSelection - 1):
                         lineArray = line.split('\t')
-                        loadedTargetGcp.append({'ptnr': lineArray[0], 'x': float(lineArray[1]), 'y': float(lineArray[2]), 'z': float(lineArray[3])})
+                        loadedTargetGcp.append({'pt_nr': lineArray[0], 'x': float(lineArray[1]), 'y': float(lineArray[2]), 'z': float(lineArray[3])})
 
                     lineCounter += 1
 
@@ -375,7 +375,7 @@ class TransformationDialog(QMainWindow):
                 csvWriter.writerow(['PTNR', 'Ziel X', 'Ziel Y', 'Ziel Z'])
 
                 for pointObj in self.gcpTarget['points']:
-                    csvWriter.writerow([pointObj['ptnr'], pointObj['x'], pointObj['y'], pointObj['z']])
+                    csvWriter.writerow([pointObj['pt_nr'], pointObj['x'], pointObj['y'], pointObj['z']])
             #Parameter selection
             with open(saveFileName, 'a', newline='') as csvfile:
                 csvWriter = csv.writer(csvfile, delimiter='\t', quotechar='|', quoting=csv.QUOTE_MINIMAL)
@@ -389,8 +389,8 @@ class TransformationDialog(QMainWindow):
                 for gcpObj in GcpData:
                     rowArray = []
                     rowArray.append(gcpObj['uuid'])             #UUID
-                    rowArray.append(gcpObj['ptnr'])             #PTNR
-                    rowArray.append(gcpObj['id'])               #ID
+                    rowArray.append(gcpObj['pt_nr'])             #PTNR
+                    rowArray.append(gcpObj['fid'])               #ID
                     rowArray.append(gcpObj['sourcePoints'][0])  #Quelle X
                     rowArray.append(gcpObj['sourcePoints'][1])  #Quelle Y
                     rowArray.append(gcpObj['sourcePoints'][2])  #Quelle Z
