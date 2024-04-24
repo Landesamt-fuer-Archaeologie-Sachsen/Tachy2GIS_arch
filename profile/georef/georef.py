@@ -435,6 +435,9 @@ class Georef:
 
         view = None
         for feat in lineLayer.getFeatures():
+
+            print('feat', feat)
+
             geom = feat.geometry()
             if QgsWkbTypes.isSingleType(geom.wkbType()):
                 # Singlepart
@@ -442,6 +445,12 @@ class Georef:
             else:
                 # Multipart
                 line = geom.asMultiPolyline()[0]
+
+            print('line', line)
+
+            if not len(line):
+                print('Kein Profil gefunden!')
+                return
 
             pointA = line[0]
             pointB = line[-1]
