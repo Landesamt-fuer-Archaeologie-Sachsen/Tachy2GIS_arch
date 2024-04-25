@@ -580,47 +580,6 @@ class TransformationGui():
         shutil.copytree(sourceShapePath, targetShapePath)
         shutil.copytree(sourceProjectPath, targetProjectPath)
 
-    ## \brief Save layer after transformation and overwrite original data
-    #
-    # A correct "resave" is necessary to ensure that the extent of the layers is correct after the transformations.
-    # - The extent of the layer is stored in the .shp file
-    # - Problem: you cannot overwrite the shapefile directly while the project is open.
-    # - Workaround: Layer will be saved temporarily, then only the shp and shx file will be copied from there and the files can be overwritten
-    #
-    # \param layer
-
-    def saveLayerAfterTransformation(self, layer):
-
-        #ein richtiges "neu abspeichern" ist notwendig, damit die Extent der Layer nach den Transformationen korrekt ist
-        #die extent des Layers ist in der .shp Datei hinterlegt
-        #Problem: man kann das shapefile bei geöffneten Projekt nicht direkt überschreiben
-        #Workaround: Layer wird temporär gespeichert, dann werden lediglich die shp und shx Datei von dort kopiert und die Dateien können überschrieben werden
-
-        sourceUri = layer.dataProvider().dataSourceUri().split('.shp|')[0]
-        #Backuppfad finden und gfl. erzeugen
-        projectPath = QgsProject.instance().readPath("../")
-        backupPath = projectPath+"/Shape/after_transform/"
-        completePath = backupPath+layer.name()+".shp"
-        if not os.path.exists(backupPath):
-            os.makedirs(backupPath)
-
-        #layer in Backuppfad schreiben
-        QgsVectorFileWriter.writeAsVectorFormat(layer, completePath, "UTF-8", layer.crs(), "ESRI Shapefile")
-
-        #.shx und .shp Dateien im Orginal überschreiben
-        #shx
-        source = backupPath+layer.name()+'.shx'
-        target = sourceUri+'.shx'
-        shutil.copy(source, target)
-
-        #shp
-        source = backupPath+layer.name()+'.shp'
-        target = sourceUri+'.shp'
-        shutil.copy(source, target)
-
-        # temporären backupPath Pfad wieder löschen
-        shutil.rmtree(backupPath)
-
     ## \brief Get all inputlayers from the folder "Eingabelayer" of the layertree
     #
     # Inputlayers must be of type vector
@@ -658,7 +617,6 @@ class TransformationGui():
     # - calculate translation in z direction TransformationCalculations.layerTranslationZ()
     # - calculate translation in xy direction TransformationCalculations.layerTranslationXY
     # - recalculate the extent of the layer TransformationCalculations.recalculateLayerExtent()
-    # - save the layer temporarily after transformation saveLayerAfterTransformation()
     # - do some GUI updates
     # - save the current project saveProject()
 
@@ -719,9 +677,6 @@ class TransformationGui():
 
                     layer.removeSelection()
 
-                    #Layer zwischenspeichrern und damit .shp und .idx überschreiben damit Extent des Layers stimmt
-                    #self.saveLayerAfterTransformation(layer)
-
                     print('Finish Transform of Layer '+layer.name()+' !')
 
                 self.setTransformationState2Project(1)
@@ -756,7 +711,6 @@ class TransformationGui():
     # - calculate translation in xy direction TransformationCalculations.layerTranslationXY
     # - do the rotation of the layer TransformationCalculations.layerRotation()
     # - recalculate the extent of the layer TransformationCalculations.recalculateLayerExtent()
-    # - save the layer temporarily after transformation saveLayerAfterTransformation()
     # - do some GUI updates
 
     def startReverseTransformation(self):
@@ -811,9 +765,6 @@ class TransformationGui():
                     self.paramCalc.createLayerSpatialIndex(layer)
 
                     layer.removeSelection()
-
-                    #Layer zwischenspeichrern und damit .shp und .idx überschreiben damit Extent des Layers stimmt
-                    #self.saveLayerAfterTransformation(layer)
 
                     print('Finish Reversetransform of Layer '+layer.name()+' !')
 
