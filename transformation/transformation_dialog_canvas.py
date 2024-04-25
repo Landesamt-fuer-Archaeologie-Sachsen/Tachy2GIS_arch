@@ -133,7 +133,7 @@ class TransformationDialogCanvas(QgsMapCanvas):
     #
     # - Clear canvas element
     # - Validation of the source layer
-    # - Show subset of the source layer - col obj_type = TransformationDialog.colNameGcpSource
+    # - Show subset of the source layer - col obj_typ = TransformationDialog.colNameGcpSource
     # - Marker symbol
     # - Label lyer with Id of the feature
     # - Additional display other input layers
@@ -161,7 +161,7 @@ class TransformationDialogCanvas(QgsMapCanvas):
 
         sourceCrs = self.sourceLayer.crs()
 
-        self.sourceLayer.setSubsetString("obj_type = '" + self.dialogInstance.colNameGcpSource + "'")
+        self.sourceLayer.setSubsetString("obj_typ = '" + self.dialogInstance.colNameGcpSource + "'")
 
         # renderer = layer.renderer()
 
@@ -211,13 +211,13 @@ class TransformationDialogCanvas(QgsMapCanvas):
 
         self.setLayers(listLayers)
 
-    ## \brief Short highlighting of a feature by uuid
+    ## \brief Short highlighting of a feature by obj_uuid
     #
     # \param uuidValue
     def highlightSourceLayer(self, uuidValue):
 
         for feature in self.sourceLayer.getFeatures():
-            uuidFeat = feature.attribute("uuid")
+            uuidFeat = feature.attribute("obj_uuid")
             if uuidFeat == uuidValue:
                 self.flashFeatureIds(
                     self.sourceLayer,
