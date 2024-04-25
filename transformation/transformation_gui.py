@@ -680,6 +680,8 @@ class TransformationGui():
 
                 for layer in inputLayers:
 
+                    print('layer_name: ', layer.name())
+
                     layer.removeSelection()
 
                     layer.setCrs(QgsCoordinateReferenceSystem(self.targetCrs))
@@ -687,9 +689,14 @@ class TransformationGui():
                     self.paramCalc.createLayerSpatialIndex(layer)
 
                     layerType = layer.wkbType()
+
+                    print('layerType: ', layerType)
                     #Abfrage nach Z und ZM Single Layertypen - layerTranslationXYZ gibt dort keinen korrekten Z Wert aus
                     #3002 LineStringZM , 3001 PointZM, 3003 PolygonZM
-                    if layerType == 1001 or layerType == 1002 or layerType == 1003 or layerType == 3001 or layerType == 3002 or layerType == 3003:
+                    if layerType == QgsWkbTypes.PointZM or layerType == QgsWkbTypes.LineStringZM or layerType == QgsWkbTypes.PolygonZM:
+
+                        print('Translation XY')
+
                         #Rotation
                         self.paramCalc.layerRotation(layer, 'forward', self.zAngle)
 
@@ -699,6 +706,7 @@ class TransformationGui():
                         #Translation in X und Y
                         self.paramCalc.layerTranslationXY(layer, 'forward', self.translationX, self.translationY)
                     else:
+                        print('Translation XYZ')
                         #Rotation
                         self.paramCalc.layerRotation(layer, 'forward', self.zAngle)
                         #Translation in X, Y und Z
@@ -768,6 +776,8 @@ class TransformationGui():
 
                 for layer in inputLayers:
 
+                    print('layer_name', layer.name())
+
                     layer.removeSelection()
 
                     layer.setCrs(QgsCoordinateReferenceSystem(self.sourceCrs))
@@ -775,9 +785,11 @@ class TransformationGui():
                     self.paramCalc.createLayerSpatialIndex(layer)
 
                     layerType = layer.wkbType()
+
+                    print('layerType', layerType)
+
                     #Abfrage nach Z und ZM Single Layertypen - layerTranslationXYZ gibt dort keinen korrekten Z Wert aus
-                    if layerType == QgsWkbTypes.PointZ or layerType == QgsWkbTypes.LineStringZ  or layerType == QgsWkbTypes.PolygonZ  or layerType == QgsWkbTypes.PointZM  or layerType == QgsWkbTypes.LineStringZM  or layerType == QgsWkbTypes.PolygonZM:
-                        #Z-Translation - unbedingt zuerst ausführen sonst Fehler bei Extentberechnung
+                    if layerType == QgsWkbTypes.PointZM or layerType == QgsWkbTypes.LineStringZM or layerType == QgsWkbTypes.PolygonZM:                        #Z-Translation - unbedingt zuerst ausführen sonst Fehler bei Extentberechnung
                         self.paramCalc.layerTranslationZ(layer, 'reverse', self.translationZ)
 
                         #Translation in X und Y

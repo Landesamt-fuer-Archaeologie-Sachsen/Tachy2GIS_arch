@@ -3,7 +3,7 @@ import os
 import numpy as np
 import math
 
-from qgis.core import QgsGeometry, QgsApplication, QgsRectangle
+from qgis.core import QgsGeometry, QgsApplication, QgsRectangle, QgsWkbTypes
 from processing.gui import AlgorithmExecutor
 
 from .simil import simil
@@ -164,7 +164,6 @@ class TransformationCalculations():
     def layerTranslationZ(self, layer, tranlationDirection, translationZ):
 
         layerName = layer.name()
-        print('Transformation - Translation Z: ', layerName)
 
         #layer.startEditing()
         layer.beginEditCommand( 'Beginn edit Translation Z' )
@@ -191,11 +190,17 @@ class TransformationCalculations():
                     geomArray.append(v)
 
                 adjustGeom.addPoints(geomArray)
-                provGeom = layer.dataProvider().convertToProviderType(adjustGeom)
+                retAdjustGeom = self.castMultiGeometry2Single(adjustGeom)
+
+                provGeom = layer.dataProvider().convertToProviderType(retAdjustGeom)
                 fid = zFeat.id()
 
+                print('adjustGeom: ', adjustGeom)
+                print('retAdjustGeom: ', retAdjustGeom)
+                print('provGeom: ', provGeom)
+
                 if provGeom == None:
-                    layer.dataProvider().changeGeometryValues({ fid : adjustGeom })
+                    layer.dataProvider().changeGeometryValues({ fid : retAdjustGeom })
                 else:
                     layer.dataProvider().changeGeometryValues({ fid : provGeom })
 
@@ -473,3 +478,44 @@ class TransformationCalculations():
 
         return z
 
+
+    ## \brief cast multipoint geometries to single point geometries
+    #
+    #
+    def castMultiGeometry2Single(self, geom):
+
+        geoType = geom.wkbType()
+        ret_geom = geom
+
+        #Point25D or PointZ or LineString25D or LineStringZ or Polygon25D or PolygonZ
+        if geoType == QgsWkbTypes.Point25D or geoType == QgsWkbTypes.PointZ or geoType == QgsWkbTypes.LineString25D or geoType == QgsWkbTypes.LineStringZ  or geoType == QgsWkbTypes.Polygon25D or geoType == QgsWkbTypes.PolygonZ:
+            return ret_geom
+
+        #PointM or PointZM
+        if geoType == QgsWkbTypes.PointM or geoType == QgsWkbTypes.PointZM:
+            geom_total = geom.coerceToType(QgsWkbTypes.PointZ)
+
+        #LineString or MultiLineString or MultiLineString25D or MultiLineStringZ or MultiLineStringM or MultiLineStringZM
+        if geoType == QgsWkbTypes.LineString or geoType == QgsWkbTypes.MultiLineString or geoType == QgsWkbTypes.MultiLineString25D or geoType == QgsWkbTypes.MultiLineStringZ or geoType == QgsWkbTypes.MultiLineStringM or geoType == QgsWkbTypes.MultiLineStringZM:
+            #LineString25D
+            geom_total = geom.coerceToType(QgsWkbTypes.LineString25D)
+
+        #Polygon or Multipolygon or MultiPolygon25D or MultiPolygonZ  or MultiPolygonM or MultiPolygonZM
+        if geoType == QgsWkbTypes.Polygon or geoType == QgsWkbTypes.MultiPolygon or geoType == QgsWkbTypes.MultiPolygon25D or geoType == QgsWkbTypes.MultiPolygonZ or geoType == QgsWkbTypes.MultiPolygonM or geoType == QgsWkbTypes.MultiPolygonZM:
+            #Polygon25D
+            geom_total = geom.coerceToType(QgsWkbTypes.Polygon25D)
+
+        if len(geom_total) >= 2:
+            if geom_total[0].isEmpty() or geom_total[0].isGeosValid() == False:
+                ret_geom = geom_total[1]
+            elif geom_total[1].isEmpty() or geom_total[1].isGeosValid() == False:
+                ret_geom = geom_total[0]
+            else:
+                print('Achtung, es wird der erste Teil der Multi-Geometrie verwendet!')
+                ret_geom = geom_total[0]
+        elif len(geom_total) == 1:
+            ret_geom = geom_total[0]
+        else:
+            ret_geom = geom_total
+
+        return ret_geom
