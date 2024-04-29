@@ -3,9 +3,8 @@ import os
 from functools import partial
 import math
 import uuid
-import winsound
 
-
+from PyQt5.QtWidgets import QApplication
 from qgis.core import (Qgis,
                        QgsGeometry,
                        QgsLineString,
@@ -1083,7 +1082,7 @@ class MeasurementTab(BASE, WIDGET):
 
     def beepSound(self):
         if self.cbSound.isChecked():
-            winsound.Beep(1000, 100)
+            QApplication.beep(self)
 
 
 MARKERSIZE = 10
