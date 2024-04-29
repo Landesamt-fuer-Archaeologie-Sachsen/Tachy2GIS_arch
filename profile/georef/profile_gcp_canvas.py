@@ -4,6 +4,7 @@ import processing
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QFont, QColor
 from qgis.core import (
+    Qgis,
     QgsPoint,
     QgsFeature,
     QgsGeometry,
@@ -29,7 +30,7 @@ class ProfileGcpCanvas(QgsMapCanvas):
     ## The constructor.
     #
     def __init__(self, dialogInstance, rotationCoords):
-        super(ProfileGcpCanvas, self).__init__()
+        super().__init__(self)
 
         self.pup = Publisher()
 
@@ -153,7 +154,7 @@ class ProfileGcpCanvas(QgsMapCanvas):
         sourcelayerSettings.setFormat(textFormat)
 
         sourcelayerSettings.fieldName = "pt_nr"
-        sourcelayerSettings.placement = 4
+        sourcelayerSettings.placement = Qgis.LabelPlacement.Horizontal
         sourcelayerSettings.enabled = True
 
         sourcelayerSettings = QgsVectorLayerSimpleLabeling(sourcelayerSettings)
