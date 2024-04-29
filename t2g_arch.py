@@ -1155,10 +1155,6 @@ class T2G_Arch:
                                            level=Qgis.Info)
         """
 
-        val = self.config.getValue("Textgröße", "value", '0.70')
-        textadjustment = Textadjustment(self, val)
-        textadjustment.setText()
-
 
     def eventFeatureAdded(self, fid):
         # Wird nirgends mehr verwendet # Sonst Fehler beim Digitalisieren
