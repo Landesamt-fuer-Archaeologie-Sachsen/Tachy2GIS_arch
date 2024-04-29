@@ -52,16 +52,11 @@
 
 """
 from __future__ import absolute_import
-from builtins import str
 from builtins import range
 from builtins import object
 from .transformation import sectionCalc
-#errorhandling is managed here
-from .errorhandling import ErrorHandler
 # the magic happens here
 from .transformation import Magic_Box
-#the export to a shapefile happens here
-from .export import Export
 
 from ..publisher import Publisher
 
@@ -80,10 +75,7 @@ class profileAAR(object):
     def run(self, data):
         """Run method that performs all the real work"""
 
-        # initialize the Errorhandler
-        errorhandler = ErrorHandler()
         magicbox = Magic_Box()
-        export = Export()
 
         '''DEFINE OUTPUT PATH'''
 
