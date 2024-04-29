@@ -52,25 +52,10 @@
 
 """
 
-from __future__ import absolute_import
-
-from builtins import chr
-from builtins import str
-from builtins import range
-from builtins import object
-#from qgis.core import *
-
-#from numpy import std, mean, cross
-
 import numpy as np
 
-import sys
-
-from math import pi, fabs, atan
 
 # columreader in a "table" (list of lists)
-
-
 def columnreader(list_in_list_object, columnindex):
 
     columnvalues = []
@@ -87,8 +72,7 @@ class ErrorHandler(object):
     def __init__(self):
         """init"""
 
-# Checks that have to do on every single Profile
-
+    # Checks that have to do on every single Profile
     def singleprofile(self, coord_proc, view_check, profile_name, selection_check):
 
         errorCheck = False
@@ -99,15 +83,9 @@ class ErrorHandler(object):
 
             # if it is less, print error message
 
-            criticalMessageToBar(self,
-                                 'Error',
-                                 'A profile needs min. 4 points. Error on profile: '
-                                 +str(profile_name))
+            print(self, "Error", "A profile needs min. 4 points. Error on profile: " + str(profile_name))
 
-            printLogMessage(self,
-                            'A profile needs min. 4 points. Error on profile: '
-                            +str(profile_name),
-                            'Error_LOG')
+            print(self, "A profile needs min. 4 points. Error on profile: " + str(profile_name), "Error_LOG")
 
             # cancel execution of the script
 
@@ -119,16 +97,19 @@ class ErrorHandler(object):
 
             # if it is not the same, print error message
 
-            criticalMessageToBar(self,
-                                 'Error',
-                                 'The view column of your data is inconsistant '
-                                 '(either non or two different views are present). Error on profile: '
-                                 + str(profile_name))
+            print(
+                self,
+                "Error",
+                "The view column of your data is inconsistant "
+                "(either non or two different views are present). Error on profile: " + str(profile_name),
+            )
 
-            printLogMessage(self,
-                            'The view column of your data is inconsistant '
-                            '(either non or two different views are present). Error on profile: '
-                            + str(profile_name), 'Error_LOG')
+            print(
+                self,
+                "The view column of your data is inconsistant "
+                "(either non or two different views are present). Error on profile: " + str(profile_name),
+                "Error_LOG",
+            )
 
             # cancel execution of the script
 
@@ -140,14 +121,17 @@ class ErrorHandler(object):
 
             # if it is not the same, print error message
 
-            criticalMessageToBar(self,
-                                 'Error',
-                                 'The view value is not one of the four cardinal directions. '
-                                 'Error on profile: ' + str(profile_name))
+            print(
+                self,
+                "Error",
+                "The view value is not one of the four cardinal directions. " "Error on profile: " + str(profile_name),
+            )
 
-            printLogMessage(self,
-                            'The view value is not one of the four cardinal directions. '
-                            'Error on profile: ' + str(profile_name), 'Error_LOG')
+            print(
+                self,
+                "The view value is not one of the four cardinal directions. " "Error on profile: " + str(profile_name),
+                "Error_LOG",
+            )
 
             # cancel execution of the script
 
@@ -161,15 +145,17 @@ class ErrorHandler(object):
 
                 # if it is not the same, print error message
 
-                criticalMessageToBar(self, 'Error',
-                                     'Only 0 or 1 are allowed in the selection/use. Error on profile: '
-                                     + str(profile_name))
+                print(
+                    self,
+                    "Error",
+                    "Only 0 or 1 are allowed in the selection/use. Error on profile: " + str(profile_name),
+                )
 
-                printLogMessage(self,
-
-                                'Only 0 or 1 are allowed in the selection/use. Error on profile: : '
-                                + str(profile_name),
-                                'Error_LOG')
+                print(
+                    self,
+                    "Only 0 or 1 are allowed in the selection/use. Error on profile: : " + str(profile_name),
+                    "Error_LOG",
+                )
 
                 # cancel execution of the script
 
@@ -181,12 +167,6 @@ class ErrorHandler(object):
 
         for i in range(3):
 
-            xyz = []
-
-            xyz_lower = []
-
-            xyz_upper = []
-
             xyz = columnreader(coord_proc, i)
 
             xyz_lower = np.mean(xyz) - (2 * np.std(xyz))
@@ -197,24 +177,35 @@ class ErrorHandler(object):
 
                 if xyz[j] < xyz_lower or xyz[j] > xyz_upper:
 
-                    criticalMessageToBar(self,
-                                         'Warning',
-                                         'Warning: Profile ' + str(profile_name) +': '
-                                         + chr(120+i) + 'Pt '
-                                         + str(j+1) + ' exceeds the 2std interval of '
-                                         + chr(120+i))
-                    printLogMessage(self,
-                                    'Warning: Profile '
-                                    + str(profile_name)
-                                    +': '+ chr(120+i) + 'Pt '
-                                    + str(j+1) + ' exceeds the 2std interval of '
-                                    + chr(120+i),
-                                    'Error_LOG')
+                    print(
+                        self,
+                        "Warning",
+                        "Warning: Profile "
+                        + str(profile_name)
+                        + ": "
+                        + chr(120 + i)
+                        + "Pt "
+                        + str(j + 1)
+                        + " exceeds the 2std interval of "
+                        + chr(120 + i),
+                    )
+                    print(
+                        self,
+                        "Warning: Profile "
+                        + str(profile_name)
+                        + ": "
+                        + chr(120 + i)
+                        + "Pt "
+                        + str(j + 1)
+                        + " exceeds the 2std interval of "
+                        + chr(120 + i),
+                        "Error_LOG",
+                    )
         return errorCheck
 
     # general checks for the fields of the layer after the import
 
-    def field_check (self, layer, z_field):
+    def field_check(self, layer, z_field):
 
         errorCheck = False
 
@@ -222,19 +213,21 @@ class ErrorHandler(object):
 
         if layer.crs().isGeographic() is True:
 
-            criticalMessageToBar(self, 'Error',
-                                 "Layer "+layer.name()+
-                                 " is not projected. Please choose an projected reference system.")
+            print(
+                self,
+                "Error",
+                "Layer " + layer.name() + " is not projected. Please choose an projected reference system.",
+            )
 
-            printLogMessage(self, "Layer "+layer.name()+
-                            " is not projected. Please choose an projected reference system.",
-                            'Error_LOG')
+            print(
+                self,
+                "Layer " + layer.name() + " is not projected. Please choose an projected reference system.",
+                "Error_LOG",
+            )
 
             # cancel execution of the script
 
             errorCheck = True
-
-
 
         # check the z-field
 
@@ -250,11 +243,9 @@ class ErrorHandler(object):
 
                     # Give a message
 
-                    criticalMessageToBar(self, 'Error',
-                                         'The z-Value needs to be a float. Check the field type of the z-Value')
+                    print(self, "Error", "The z-Value needs to be a float. Check the field type of the z-Value")
 
-                    printLogMessage(self,
-                                    'The z-Value needs to be a float. Check the field type of the z-Value', 'Error_LOG')
+                    print(self, "The z-Value needs to be a float. Check the field type of the z-Value", "Error_LOG")
 
                     # cancel execution of the script
                     errorCheck = True
@@ -269,8 +260,7 @@ class ErrorHandler(object):
 
         if str(value) == "":
 
-            criticalMessageToBar(self, 'Error',
-                                 'Please choose an output file!')
+            print(self, "Error", "Please choose an output file!")
             # cancel execution of the script
             errorCheck = True
         return errorCheck
@@ -291,7 +281,7 @@ class ErrorHandler(object):
 
                 x1pred = xw[i]
 
-                y1pred = intercept + slope*xw[i]
+                y1pred = intercept + slope * xw[i]
 
                 p1 = np.array([x1pred, y1pred])
 
@@ -301,9 +291,9 @@ class ErrorHandler(object):
 
                 x2pred = xw[i]
 
-                y2pred = intercept + slope*xw[i]
+                y2pred = intercept + slope * xw[i]
 
-                #p2 =  scipy.array([x2pred, y2pred])
+                # p2 =  scipy.array([x2pred, y2pred])
 
                 p2 = np.array([x2pred, y2pred])
 
@@ -311,11 +301,12 @@ class ErrorHandler(object):
 
         distance = []
 
-        # Export this value to every point, and give a sum of all distances indicator: sum = 0, fine; sum = max point (this is the bad one) ; sum > max point (maybe more than one are bad)
+        # Export this value to every point, and give a sum of all distances indicator:
+        # sum = 0, fine; sum = max point (this is the bad one) ; sum > max point (maybe more than one are bad)
 
         for i in range(len(xw)):
 
-            p3 = np.array([xw[i],yw[i]])
+            p3 = np.array([xw[i], yw[i]])
 
             distance.append(np.linalg.norm(np.cross(p2 - p1, p1 - p3)) / np.linalg.norm(p2 - p1))
 
