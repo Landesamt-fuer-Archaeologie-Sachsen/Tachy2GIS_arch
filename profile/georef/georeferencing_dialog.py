@@ -391,7 +391,7 @@ class GeoreferencingDialog(QMainWindow):
                     "E": "W",
                 }
                 self.refData["viewDirection"] = opposite_direction[self.refData["viewDirection"]]
-                imageObject = imageObject.transpose(Image.FLIP_LEFT_RIGHT)
+                imageObject = imageObject.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
                 file_name = "flipped_" + file_name
 
             # store file
