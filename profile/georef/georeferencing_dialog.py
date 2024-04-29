@@ -298,8 +298,8 @@ class GeoreferencingDialog(QMainWindow):
             self.adjustSize()
             self.resize(1000, 750)
             sg = QDesktopWidget().availableGeometry()
-            x = (sg.width() - self.width()) / 2.0 + offset
-            y = (sg.height() - self.height()) / 2.0 + offset
+            x = int((sg.width() - self.width()) / 2.0 + offset)
+            y = int((sg.height() - self.height()) / 2.0 + offset)
             self.setGeometry(x, y, self.width(), self.height())
             self.show()
         else:
