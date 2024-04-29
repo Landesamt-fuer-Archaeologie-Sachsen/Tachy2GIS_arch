@@ -34,7 +34,7 @@ class ProfileImageCanvas(QgsMapCanvas):
     # @param dialogInstance pointer to the dialogInstance
 
     def __init__(self, dialogInstance):
-        super(ProfileImageCanvas, self).__init__()
+        super().__init__(self)
 
         self.pup = Publisher()
 
@@ -174,7 +174,7 @@ class ProfileImageCanvas(QgsMapCanvas):
 
         self.toolMove = MapToolMove(self)
 
-        self.move()
+        self.set_map_tool_move_vertex()
 
     ## \brief Create action to pan on the map
     #
@@ -200,7 +200,7 @@ class ProfileImageCanvas(QgsMapCanvas):
 
     ## \brief Set map tool move Vertex
     #
-    def move(self):
+    def set_map_tool_move_vertex(self):
         self.setMapTool(self.toolMove)
         self.toolMove.pressSignal.connect(self.press_point)
         self.toolMove.releaseSignal.connect(self.release_point)
@@ -254,8 +254,7 @@ class ProfileImageCanvas(QgsMapCanvas):
 
             # set extent to the extent of Layer E_Point
             self.setExtentByImageLayer()
-            listLayers = []
-            listLayers.append(self.imageLayer)
+            listLayers = [self.imageLayer]
 
             self.setLayers(listLayers)
 
