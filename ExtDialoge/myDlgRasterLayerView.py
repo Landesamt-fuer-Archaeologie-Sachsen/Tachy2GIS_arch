@@ -22,19 +22,14 @@
  ***************************************************************************/
 """
 
-import os
-
-from qgis.PyQt.QtCore import Qt, pyqtSignal
-from qgis.PyQt import QtWidgets, QtCore, QtGui, uic
+from qgis.PyQt import QtGui, uic
 from qgis.PyQt.QtGui import *
 from qgis.PyQt.QtWidgets import *
 from qgis.core import *
 from qgis.gui import *
-from ..functions import *
-from ..t2g_arch_dockwidget import T2G_ArchDockWidget
+from utils.functions import *
 #from .showPicture import *
-import os, csv, subprocess, re, sys
-
+import os, subprocess
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'myDlgRasterLayerView.ui'))

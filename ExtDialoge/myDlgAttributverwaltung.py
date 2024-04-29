@@ -1,13 +1,10 @@
 # -*- coding: utf-8 -*-
-from qgis.PyQt.QtCore import Qt
-from qgis.PyQt import QtWidgets, QtCore, QtGui, uic
+from qgis.PyQt import uic
 from qgis.PyQt.QtGui import *
 from qgis.PyQt.QtWidgets import *
-from qgis.core import *
-from qgis.gui import *
-from ..functions import *
-from ..t2g_arch_dockwidget import T2G_ArchDockWidget
-import os, csv, operator
+from utils.functions import *
+import os
+
 
 class dlgAttributverwaltung(QtWidgets.QDialog):
     def __init__(self, iface, parent=None):
@@ -77,8 +74,6 @@ class dlgAttributverwaltung(QtWidgets.QDialog):
         wert.sort()
         self.ui.listObjektArt_2.addItems(wert)
         self.ui.labObjektArtCount_2.setText(str(len(self.ui.listObjektArt_2)) + ' Einträge')
-
-
 
     def item_click_Art(self, item):
         if item == None:

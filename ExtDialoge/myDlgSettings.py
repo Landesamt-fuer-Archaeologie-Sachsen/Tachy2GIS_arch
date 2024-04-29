@@ -1,17 +1,13 @@
 # -*- coding: utf-8 -*-
-from qgis.PyQt.QtCore import Qt
-from qgis.PyQt import QtWidgets, QtCore, QtGui, uic
-from qgis.PyQt.QtGui import *
-from qgis.PyQt.QtWidgets import *
+from qgis.PyQt import uic
 from qgis.core import *
 from qgis.gui import *
-from ..functions import *
-from ..textadjustment import *
-from ..t2g_arch_dockwidget import T2G_ArchDockWidget
-import os, csv, operator
+from utils.functions import *
+import os
 
 from configparser import ConfigParser
 import os.path
+
 
 class DlgSettings(QtWidgets.QDialog):
     def __init__(self,t2gArchInstance, config):
@@ -134,9 +130,8 @@ class DlgSettings(QtWidgets.QDialog):
             else:
                 self.ui.tabWidget.setTabVisible(index, True)
 
+
 class Configfile():
-    from configparser import ConfigParser
-    import os.path
 
     def __init__(self,pfad):
         self.__config_object = ConfigParser()
@@ -189,7 +184,6 @@ class Configfile():
         self.__config_object["ListenausgabeProfil"] = {"-": "-"}
 
         self.__config_object["ListenausgabeProbe"] = {"-": "-"}
-
 
     def saveFile(self):
         # Configdaten in Datei speichern

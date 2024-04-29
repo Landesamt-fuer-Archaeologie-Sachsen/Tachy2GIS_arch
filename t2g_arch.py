@@ -24,7 +24,6 @@
 import math
 import operator
 import os
-import subprocess
 import uuid
 
 
@@ -65,28 +64,26 @@ from qgis.PyQt.QtWidgets import (QAction,
                              QToolButton)
 
 from .t2g_arch_dockwidget import T2G_ArchDockWidget
-from .functions import (addPoint3D,
-                        delLayer,
-                        delSelectFeature,
-                        fileFunc,
-                        findLayerInProject,
-                        fileLineCount,
-                        getCustomProjectVariable,
-                        getlayerSelectedFeatures,
-                        isNumber,
-                        makerAndRubberbands,
-                        maxValue,
-                        progressBar,
-                        ProjectSaveFunc,
-                        setCustomProjectVariable)
-from .textadjustment import Textadjustment
-from .toolbar_functions import (openProjectFolder,
-                                saveProject)
-from .identifygeometry import IdentifyGeometry
+from utils.functions import (addPoint3D,
+                             delLayer,
+                             delSelectFeature,
+                             fileFunc,
+                             findLayerInProject,
+                             fileLineCount,
+                             getCustomProjectVariable,
+                             getlayerSelectedFeatures,
+                             isNumber,
+                             makerAndRubberbands,
+                             maxValue,
+                             progressBar,
+                             ProjectSaveFunc,
+                             setCustomProjectVariable)
+from utils.toolbar_functions import (openProjectFolder,
+                                     saveProject)
+from utils.identifygeometry import IdentifyGeometry
 from .ExtDialoge.myDlgGeometryCheck import GeometryCheckDockWidget
 from .ExtDialoge.myDlgRasterLayerView import RasterLayerViewDockWidget
 from .ExtDialoge.myDlgSettings import DlgSettings, Configfile
-from .ExtDialoge.myDwgLookForMissingAttributes import LookForMissingAttributesDockWidget
 
 from .messen.messen import MeasurementTab
 from .transformation.transformation_gui import TransformationGui

@@ -1,11 +1,11 @@
-from qgis.core import (Qgis, 
-                       QgsMessageLog, 
+from qgis.core import (Qgis,
+                       QgsMessageLog,
                        QgsProject)
 from qgis.utils import iface
 import os, subprocess
 from .functions import ProjectSaveFunc
 
-projectPath = QgsProject.instance().readPath('./')  # location of prj files (qgz files)
+projectPath = QgsProject.instance().readPath('../')  # location of prj files (qgz files)
 projectFolderPath = os.path.abspath(os.path.join(projectPath, "./..")) # location of folder contains all data
 
 def openProjectFolder():

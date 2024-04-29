@@ -2,11 +2,8 @@
 # -*- coding=utf-8 -*-
 
 
-from qgis.PyQt.QtSerialPort import QSerialPort
-
-import datetime
-from ..functions import *
-from qgis.PyQt.QtCore import QObject, pyqtSignal, pyqtSlot, QTimer
+from utils.functions import *
+from qgis.PyQt.QtCore import QObject, pyqtSignal, pyqtSlot
 
 
 class FindNextNumber(QObject):

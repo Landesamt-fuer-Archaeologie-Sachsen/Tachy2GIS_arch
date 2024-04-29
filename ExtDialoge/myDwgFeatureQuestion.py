@@ -22,21 +22,13 @@
  ***************************************************************************/
 """
 
-import os
-
-from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5 import QtWidgets, QtCore, QtGui, uic
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from qgis.core import *
 from qgis.gui import *
-from ..functions import *
-from ..t2g_arch_dockwidget import T2G_ArchDockWidget
-import os, csv
-
-
-
-
+from utils.functions import *
+import os
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'myDwgFeatureQuestion.ui'))

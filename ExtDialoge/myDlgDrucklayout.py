@@ -1,12 +1,6 @@
 # -*- coding: utf-8 -*-
-from qgis.PyQt.QtCore import Qt
-from qgis.PyQt import QtWidgets, QtCore, QtGui, uic
-from qgis.PyQt.QtGui import *
-from qgis.PyQt.QtWidgets import *
-from qgis.core import *
-from qgis.gui import *
-from ..functions import *
-from ..t2g_arch_dockwidget import T2G_ArchDockWidget
+from qgis.PyQt import QtGui, uic
+from utils.functions import *
 import os
 
 class dlgDrucklayout(QtWidgets.QDialog):

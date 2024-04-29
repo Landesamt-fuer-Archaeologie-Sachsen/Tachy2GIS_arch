@@ -7,7 +7,6 @@ import winsound
 
 
 from qgis.core import (Qgis,
-                       QgsFeatureRequest,
                        QgsGeometry,
                        QgsLineString,
                        QgsMessageLog,
@@ -43,15 +42,15 @@ from qgis.PyQt.QtWidgets import (QAction,
                              QTableWidgetItem,
                              QShortcut)
 
-from ..functions import (enableAndDisableWidgets,
-                         getCustomProjectVariable,
-                         getLookupDict,
-                         HelpWindow,
-                         findLayerInProject,
-                         layerHasPendingChanges,
-                         setCustomProjectVariable,
-                         showAndHideWidgets)
-from ..toolbar_functions import (saveProject)
+from utils.functions import (enableAndDisableWidgets,
+                             getCustomProjectVariable,
+                             getLookupDict,
+                             HelpWindow,
+                             findLayerInProject,
+                             layerHasPendingChanges,
+                             setCustomProjectVariable,
+                             showAndHideWidgets)
+from utils.toolbar_functions import (saveProject)
 
 
 iconPaths = {

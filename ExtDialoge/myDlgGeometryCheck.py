@@ -22,18 +22,13 @@
  ***************************************************************************/
 """
 
-import os
-
-from qgis.PyQt.QtCore import Qt, pyqtSignal, QVariant
-from qgis.PyQt import QtWidgets, QtCore, QtGui, uic
-from qgis.PyQt.QtGui import *
+from qgis.PyQt.QtCore import QVariant
+from qgis.PyQt import uic
 from qgis.PyQt.QtWidgets import *
 from qgis.core import *
 from qgis.gui import *
-from ..functions import *
-from ..t2g_arch_dockwidget import T2G_ArchDockWidget
-import os, csv
-
+from utils.functions import *
+import os
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'myDlgGeometryCheck.ui'))
