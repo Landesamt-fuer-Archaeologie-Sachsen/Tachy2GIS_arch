@@ -34,7 +34,7 @@ class ProfileImageCanvas(QgsMapCanvas):
     # @param dialogInstance pointer to the dialogInstance
 
     def __init__(self, dialogInstance):
-        super().__init__(self)
+        super().__init__()
 
         self.pup = Publisher()
 
