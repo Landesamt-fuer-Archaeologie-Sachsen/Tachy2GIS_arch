@@ -2,7 +2,7 @@
 # -*- coding=utf-8 -*-
 
 
-from utils.functions import *
+from ..utils.functions import *
 from qgis.PyQt.QtCore import QObject, pyqtSignal, pyqtSlot
 
 

@@ -27,7 +27,7 @@ from qgis.PyQt.QtGui import *
 from qgis.PyQt.QtWidgets import *
 from qgis.core import *
 from qgis.gui import *
-from utils.functions import *
+from ..utils.functions import *
 #from .showPicture import *
 import os, subprocess
 

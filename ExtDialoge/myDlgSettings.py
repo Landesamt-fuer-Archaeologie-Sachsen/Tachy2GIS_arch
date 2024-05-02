@@ -2,7 +2,7 @@
 from qgis.PyQt import uic
 from qgis.core import *
 from qgis.gui import *
-from utils.functions import *
+from ..utils.functions import *
 import os
 
 from configparser import ConfigParser

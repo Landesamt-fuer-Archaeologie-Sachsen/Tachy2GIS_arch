@@ -27,7 +27,7 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from qgis.core import *
 from qgis.gui import *
-from utils.functions import *
+from ..utils.functions import *
 import os
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(

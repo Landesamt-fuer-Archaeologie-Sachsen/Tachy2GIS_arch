@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from qgis.PyQt import QtGui, uic
-from utils.functions import *
+from ..utils.functions import *
 import os
 
 class dlgDrucklayout(QtWidgets.QDialog):

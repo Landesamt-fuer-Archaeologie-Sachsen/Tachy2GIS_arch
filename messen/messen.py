@@ -41,7 +41,7 @@ from qgis.PyQt.QtWidgets import (QAction,
                              QTableWidgetItem,
                              QShortcut)
 
-from utils.functions import (enableAndDisableWidgets,
+from ..utils.functions import (enableAndDisableWidgets,
                              getCustomProjectVariable,
                              getLookupDict,
                              HelpWindow,
@@ -49,7 +49,7 @@ from utils.functions import (enableAndDisableWidgets,
                              layerHasPendingChanges,
                              setCustomProjectVariable,
                              showAndHideWidgets)
-from utils.toolbar_functions import (saveProject)
+from ..utils.toolbar_functions import (saveProject)
 
 
 iconPaths = {

@@ -2,7 +2,7 @@
 from qgis.PyQt import uic
 from qgis.PyQt.QtGui import *
 from qgis.PyQt.QtWidgets import *
-from utils.functions import *
+from ..utils.functions import *
 import os
 
 
