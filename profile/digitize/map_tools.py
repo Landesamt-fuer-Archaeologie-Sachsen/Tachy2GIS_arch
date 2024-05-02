@@ -354,6 +354,8 @@ class PolygonMapTool(QgsMapTool):
         index_of_nearest = min(range(len(distances)), key=distances.__getitem__)
 
         # tolerance needs to be recalculated as user can zoom while moving
+        x = int(x) # must be int for QPoint!
+        y = int(y)
         pt1 = QPoint(x, y)
         pt2 = QPoint(x + 20, y)
         layerPt1 = self.toLayerCoordinates(self.canvas.layer(0), pt1)
@@ -765,6 +767,8 @@ class MultilineMapTool(QgsMapTool):
         index_of_nearest = min(range(len(distances)), key=distances.__getitem__)
 
         # tolerance needs to be recalculated as user can zoom while moving
+        x = int(x) # must be int for QPoint!
+        y = int(y)
         pt1 = QPoint(x, y)
         pt2 = QPoint(x + 20, y)
         layerPt1 = self.toLayerCoordinates(self.canvas.layer(0), pt1)
@@ -1004,6 +1008,8 @@ class PointMapTool(QgsMapTool):
         index_of_nearest = min(range(len(distances)), key=distances.__getitem__)
 
         # tolerance needs to be recalculated as user can zoom while moving
+        x = int(x) # must be int for QPoint!
+        y = int(y)
         pt1 = QPoint(x, y)
         pt2 = QPoint(x + 20, y)
         layerPt1 = self.toLayerCoordinates(self.canvas.layer(0), pt1)
