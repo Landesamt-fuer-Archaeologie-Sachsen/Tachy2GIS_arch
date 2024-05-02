@@ -533,8 +533,7 @@ class GeoreferencingDialog(QMainWindow):
 
         except Exception as e:
             print(f"An exception occurred {type(e)} \n {traceback.format_exc()}")
-            msg = QMessageBox()
-            msg.critical(self,"Fehler bei der Profilentzerrung!","Profil konnte nicht entzerrt werden. Vorgang wurde abgebrochen!",QMessageBox.Abort)
+            QMessageBox.critical(self,"Fehler bei der Profilentzerrung!","Profil konnte nicht entzerrt werden. Vorgang wurde abgebrochen!",QMessageBox.Abort)
 
         self.destroyDialog()
 
