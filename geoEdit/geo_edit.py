@@ -68,15 +68,15 @@ class GeoEdit():
         #Setup "Verschneiden"
         self.dockwidget.butContactClip.setToolTip('Berührend')
         self.dockwidget.butContactClip.setIcon(QIcon(os.path.join(self.iconpath, 'butContactClip.gif')))
-        self.dockwidget.butContactClip.clicked.connect(self.t2gArchInstance.contactClip)
+        self.dockwidget.butContactClip.clicked.connect(self.geoCalc.contactClip)
 
         self.dockwidget.butOutsideClip.setToolTip('Außenliegend')
         self.dockwidget.butOutsideClip.setIcon(QIcon(os.path.join(self.iconpath, 'butOutsideClip.gif')))
-        self.dockwidget.butOutsideClip.clicked.connect(self.t2gArchInstance.outsideClip)
+        self.dockwidget.butOutsideClip.clicked.connect(self.geoCalc.outsideClip)
 
         self.dockwidget.butInsideClip.setToolTip('Innenliegend')
         self.dockwidget.butInsideClip.setIcon(QIcon(os.path.join(self.iconpath, 'butInsideClip.gif')))
-        self.dockwidget.butInsideClip.clicked.connect(self.t2gArchInstance.insideClip)
+        self.dockwidget.butInsideClip.clicked.connect(self.geoCalc.insideClip)
 
         #Setup Sonstiges
         self.dockwidget.butLineRes.setIcon(QIcon(os.path.join(self.iconpath, 'LineRe.gif')))

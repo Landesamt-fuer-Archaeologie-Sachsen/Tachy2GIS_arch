@@ -57,7 +57,7 @@ from qgis.core import (
     QgsVectorLayer,
     QgsWkbTypes,
 )
-from qgis.gui import QgsRubberBand
+
 from qgis.utils import iface, plugins, active_plugins
 
 from .utils.functions import (
@@ -476,8 +476,6 @@ class T2G_Arch:
     def createMaptools(self):
         self.mapTool = IdentifyGeometry(self.mapCanvas)
         self.mapTool.geomIdentified.connect(self.editFeature)
-        self.mapToolSel = IdentifyGeometry(self.mapCanvas)
-        self.mapToolSel.geomIdentified.connect(self.featureSelect2)
 
     def menuActionChanged(self, action, toolButton):
         toolButton.setDefaultAction(action)
@@ -939,109 +937,6 @@ class T2G_Arch:
         layer.endEditCommand()
         layer.commitChanges()
         iface.mapCanvas().refreshAllLayers()
-
-    def contactClip(self):
-        self.mapToolSel = IdentifyGeometry(self.mapCanvas)
-        iface.mapCanvas().setMapTool(self.mapToolSel)
-        self.mapToolSel.geomIdentified.connect(self.featureSelect2)
-        rubberlist = []
-        featurelist = []
-        self.abbruch = False
-        self.selectedFeature = None
-        layer = iface.mapCanvas().currentLayer()
-        try:
-            if layer.type() == QgsMapLayer.VectorLayer:
-                if layer.geometryType() == QgsWkbTypes.PolygonGeometry:
-                    self.createCancellationMessage("Schablone wählen.")
-                    while self.selectedFeature == None:
-                        if self.abbruch == True:
-                            raise NameError
-                        QApplication.processEvents()
-                    while len(featurelist) < 1:
-                        # Feature eins
-                        while self.selectedFeature is None:
-                            if self.abbruch == True:
-                                raise NameError
-                            QApplication.processEvents()
-
-                        if self.selectedLayer.name() == "E_Polygon":
-                            fsel = self.selectedFeature
-                            r = QgsRubberBand(iface.mapCanvas(), True)
-                            r.setToGeometry(fsel.geometry(), None)
-                            r.setColor(QColor(0, 0, 255, 180))
-                            r.setWidth(5)
-                            r.show()
-                            rubberlist.append(r)
-                            featurelist.append(self.selectedFeature)
-                        layer.removeSelection()
-                        self.selectedFeature = None
-                        # Feature zwei
-                        iface.messageBar().popWidget()
-                        self.createCancellationMessage("Schnittobjekt wählen.")
-                        while self.selectedFeature is None:
-                            if self.abbruch == True:
-
-                                for maker in rubberlist:
-                                    iface.mapCanvas().scene().removeItem(maker)
-
-                                raise NameError
-                            QApplication.processEvents()
-                        if self.selectedLayer.name() == "E_Polygon":
-                            featurelist.append(self.selectedFeature)
-                            selection = self.selectedFeature
-
-                for g in featurelist:
-                    if g.id() != featurelist[0].id():
-                        if g.geometry().intersects(fsel.geometry()):
-                            # clipping non selected intersecting features
-                            attributes = g.attributes()
-                            diff = QgsFeature()
-                            diff.setGeometry(g.geometry().difference(fsel.geometry()))
-                            # copy attributes from original feature
-                            diff.setAttributes(attributes)
-                            # add modified feature to layer
-                            ptList = []
-                            geo = diff.geometry().asPolygon()[0]
-                            for i in range(len(geo)):
-                                item = QgsPoint(diff.geometry().vertexAt(i).x(), diff.geometry().vertexAt(i).y())
-                                ptList.append(item)
-                            r = QgsRubberBand(iface.mapCanvas(), True)
-                            r.setToGeometry(QgsGeometry.fromPolyline(ptList), None)
-                            r.setColor(QColor(255, 0, 0))
-                            r.setWidth(5)
-                            r.show()
-                            rubberlist.append(r)
-                            delSelectFeature()
-
-                            box = QMessageBox()
-                            box.setIcon(QMessageBox.Question)
-                            box.setWindowTitle("Frage")
-                            box.setText("Wollen Sie das Ergebnis übernehmen?")
-                            box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-                            ret = box.exec()
-                            if ret == QMessageBox.Yes:
-                                layer.startEditing()
-                                layer.addFeature(diff)
-                                layer.deleteFeature(g.id())
-                                layer.commitChanges()
-                                layer.endEditCommand()
-
-                            elif ret == QMessageBox.No:
-                                layer.deleteFeature(diff.id())
-                                # layer.commitChanges()
-                                # layer.endEditCommand()
-        except NameError:
-            QgsMessageLog.logMessage("Abbruch", "T2G Archäologie", Qgis.Info)
-        for maker in rubberlist:
-            iface.mapCanvas().scene().removeItem(maker)
-
-        # layer.commitChanges()
-        # layer.endEditCommand()
-        layer.removeSelection()
-        iface.actionSelect().trigger()
-        iface.messageBar().clearWidgets()
-        # self.selectedFeature == None
-        self.mapToolSel.geomIdentified.disconnect()
 
     def showRasterGui(self):
         myDlgRasterLayerView = RasterLayerViewDockWidget(iface, iface.mapCanvas())
@@ -1861,90 +1756,10 @@ class T2G_Arch:
         query = "id = " + str(int(self.selectedFeature.attributes()[0]))
         iface.showAttributeTable(self.selectedLayer, query)
 
-    # ToDo: refactoring - geoedit helper
-    def insideClip(self):  # inside
-        layer = iface.mapCanvas().currentLayer()
-        if layer.type() == QgsMapLayer.VectorLayer:
-            if layer.geometryType() == QgsWkbTypes.PolygonGeometry:
-                selection = layer.selectedFeatures()
-                if len(selection) != 0:
-                    fsel = selection[0]
-                    # set layer editable
-                    layer.startEditing()
-                    for g in layer.getFeatures():
-                        if g.id() != fsel.id():
-                            if g.geometry().intersects(fsel.geometry()):
-                                # clipping non selected intersecting features
-                                attributes = g.attributes()
-                                diff = QgsFeature()
-                                diff.setGeometry(g.geometry().difference(fsel.geometry()))
-                                # copy attributes from original feature
-                                diff.setAttributes(attributes)
-                                # add modified feature to layer
-                                layer.addFeature(diff)
-                                # remove old feature
-                                layer.deleteFeature(fsel.id())
-
-                        # refresh the view and clear selection
-                    iface.mapCanvas().refresh()
-                    iface.mapCanvas().currentLayer().selectAll()
-                    iface.mapCanvas().currentLayer().invertSelection()
-
-    # ToDo: refactoring - geoedit helper
-    def outsideClip(self):  # outside
-        layer = iface.mapCanvas().currentLayer()
-        if layer.type() == QgsMapLayer.VectorLayer:
-            if layer.geometryType() == QgsWkbTypes.PolygonGeometry:
-                selection = layer.selectedFeatures()
-                if len(selection) != 0:
-                    fsel = selection[0]
-                    # set layer editable
-                    layer.startEditing()
-                    for g in layer.getFeatures():
-                        if g.id() != fsel.id():
-                            if g.geometry().intersects(fsel.geometry()):
-                                # clipping non selected intersecting features
-                                attributes = g.attributes()
-                                diff = QgsFeature()
-                                diff.setGeometry(fsel.geometry().difference(g.geometry()))
-                                # copy attributes from original feature
-                                diff.setAttributes(attributes)
-                                # add modified feature to layer
-                                layer.addFeature(diff)
-                                # remove old feature
-                                layer.deleteFeature(fsel.id())
-
-                        # refresh the view and clear selection
-                    iface.mapCanvas().refresh()
-                    iface.mapCanvas().currentLayer().selectAll()
-                    iface.mapCanvas().currentLayer().invertSelection()
-
     # ToDo: refactoring - befundlabel helper
     def setAbbruch(self):
         self.abbruch = True
         iface.messageBar().clearWidgets()
-
-    # ToDo: refactoring - inside clip helper (geoedit)
-    def createCancellationMessage(self, text):
-        iface.messageBar().clearWidgets()
-        widgetMessage = iface.messageBar().createMessage(text)
-        button = QPushButton(widgetMessage)
-        button.setText("Abbruch")
-        button.pressed.connect(self.setAbbruch)
-        widgetMessage.layout().addWidget(button)
-        # button = QPushButton(widgetMessage)
-        # button.setText("Weiter")
-        # widgetMessage.layout().addWidget(button)
-        iface.messageBar().pushWidget(widgetMessage, Qgis.Info)
-
-    # ToDo: refactoring - geoedit maptool helper
-    def featureSelect2(self, layer, feature):
-        self.selectedLayer = layer
-        self.selectedFeature = feature
-        iface.setActiveLayer(self.selectedLayer)
-        self.selectedLayer.select(int(self.selectedFeature.id()))
-        # layer.select(int(feature.id()))
-        QgsMessageLog.logMessage(str(layer.name()) + str(feature.id()), "aaa", Qgis.Info)
 
     def selectFeatureChanged(self, fselected, fdeselected):
         QgsMessageLog.logMessage("sel" + str(fselected), "T2G Archäologie", Qgis.Info)
