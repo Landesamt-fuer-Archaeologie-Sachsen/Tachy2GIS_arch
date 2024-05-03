@@ -10,9 +10,7 @@ from qgis.core import (
     QgsVectorLayer,
     QgsLayerTreeGroup,
     QgsLayerTreeLayer,
-    QgsWkbTypes,
-    QgsMessageLog,
-    Qgis,
+    QgsWkbTypes
 )
 from qgis.gui import QgsFileWidget
 
@@ -329,7 +327,7 @@ class Georef:
 
             geoType = g.wkbType()
 
-            if geoType == 1001 or geoType == 3001 or geoType == -2147483647:
+            if geoType == QgsWkbTypes.PointZ or geoType == QgsWkbTypes.PointZM or geoType == QgsWkbTypes.Point25D:
 
                 pointObj = {
                     "obj_uuid": feature.attribute("obj_uuid"),
