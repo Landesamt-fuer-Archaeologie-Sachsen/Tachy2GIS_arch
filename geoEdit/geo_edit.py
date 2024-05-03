@@ -170,8 +170,6 @@ class GeoEdit():
         self.recalculateLayerExtent()
         #Again create spatial index
         self.createLayerSpatialIndex()
-        #Cache layer and thus overwrite .shp and .idx so that the extent of the layer is correct.
-        self.saveLayerAfterTransformation()
         #Selection is lost so the features have to be reselected
         self.reselectFeatures()
 
@@ -286,9 +284,11 @@ class GeoEdit():
         if isinstance(self.sourceLayer, QgsVectorLayer):
             generalValid = True
 
-            layerSourceType = self.sourceLayer.source()[-3:]
+            layerSourceType = self.sourceLayer.dataProvider().storageType()
 
-            if layerSourceType == 'shp':
+            print('layerSourceType', layerSourceType)
+
+            if layerSourceType == 'GPKG':
 
                 validationText = 'Ungültige Geometrien können zu Fehlern bei der Verschiebung führen! Bitte bereinigen Sie die Geometrien im Vorfeld einer Verschiebung! \n\n'
 
@@ -316,9 +316,9 @@ class GeoEdit():
 
             else:
                 generalValid = False
-                validationText = "Sourcelayer ist kein Esri Shapefile"
+                validationText = "Sourcelayer ist kein Geopackage"
                 detailedText = ""
-                self.iface.messageBar().pushMessage("Error", "Sourcelayer ist kein Esri Shapefile", level=1, duration=5)
+                self.iface.messageBar().pushMessage("Error", "Sourcelayer ist kein Geopackage", level=1, duration=5)
 
         else:
             generalValid = False
@@ -332,39 +332,6 @@ class GeoEdit():
     #
     def createLayerSpatialIndex(self):
         self.sourceLayer.dataProvider().createSpatialIndex()
-
-    ## \brief Save sourcelayer after transformation and overwrite original data
-    #
-    # A correct "resave" is necessary to ensure that the extent of the layers is correct after the transformations.
-    # - The extent of the layer is stored in the .shp file
-    # - Problem: you cannot overwrite the shapefile directly while the project is open.
-    # - Workaround: Layer will be saved temporarily, then only the shp and shx file will be copied from there and the files can be overwritten
-    def saveLayerAfterTransformation(self):
-
-        sourceUri = self.sourceLayer.dataProvider().dataSourceUri().split('.shp|')[0]
-        #Backuppfad finden und gfl. erzeugen
-        projectPath = QgsProject.instance().readPath("../")
-        backupPath = projectPath+"/Shape/after_transform/"
-        completePath = backupPath+self.sourceLayer.name()+".shp"
-        if not os.path.exists(backupPath):
-            os.makedirs(backupPath)
-
-        #layer in Backuppfad schreiben
-        QgsVectorFileWriter.writeAsVectorFormat(self.sourceLayer, completePath, "UTF-8", self.sourceLayer.crs(), "ESRI Shapefile")
-
-        #.shx und .shp Dateien im Orginal überschreiben
-        #shx
-        source = backupPath+self.sourceLayer.name()+'.shx'
-        target = sourceUri+'.shx'
-        shutil.copy(source, target)
-
-        #shp
-        source = backupPath+self.sourceLayer.name()+'.shp'
-        target = sourceUri+'.shp'
-        shutil.copy(source, target)
-
-        # temporären backupPath Pfad wieder löschen
-        shutil.rmtree(backupPath)
 
     ## \brief Preselection of comboEingabelayerTransform
     #

@@ -1,8 +1,9 @@
 ## @package QGIS geoEdit extension..
 import shutil
 
-from qgis.core import QgsGeometry, QgsApplication
+from qgis.core import QgsGeometry, QgsApplication, QgsWkbTypes
 from processing.gui import AlgorithmExecutor
+from qgis.PyQt.QtWidgets import QMessageBox
 from qgis import processing
 
 ## @brief The class is used to implement functionalities for translate geometies within the geoEdit Module
@@ -174,13 +175,22 @@ class GeoEditCalculations():
         print("layerType", layerType)
 
         #Abfrage nach Z und ZM Multi Layertypen
-        #1004 MultiPointZ , 1005 MultiLineZ, 1006 MultiPolygonZ
-        if layerType == 1004 or layerType == 1005 or layerType == 1006:
+        if layerType == QgsWkbTypes.PointZ or layerType == QgsWkbTypes.LineStringZ or layerType == QgsWkbTypes.PolygonZ or layerType == QgsWkbTypes.MultiPointZ or layerType == QgsWkbTypes.MultiLineZ or layerType == QgsWkbTypes.MultiPolygonZ:
 
             paramTranslate = { 'DELTA_Y' : tranlationYValue, 'DELTA_X' : tranlationXValue, 'DELTA_Z' : tranlationZValue, 'INPUT': sourceLayer}
 
-        else:
+        elif layerType == QgsWkbTypes.PointZM or layerType == QgsWkbTypes.LineStringZM or layerType == QgsWkbTypes.PolygonZM or layerType == QgsWkbTypes.MultiPointZM or layerType == QgsWkbTypes.MultiLineZM or layerType == QgsWkbTypes.MultiPolygonZM:
+
             paramTranslate = { 'DELTA_Y' : tranlationYValue, 'DELTA_X' : tranlationXValue, 'DELTA_Z' : tranlationZValue, 'DELTA_M' : 0, 'INPUT': sourceLayer}
+
+        else:
+            QMessageBox.critical(
+                self.geoEditInstance ,
+                "Invalider Layer",
+                f"Kann Geometrietyp {layerType} nicht verarbeiten!",
+                QMessageBox.Abort,
+            )
+            print("Kann Geometrietyp nicht verarbeiten ", layerType)
 
         print("paramTranslate ", paramTranslate)
         AlgorithmExecutor.execute_in_place(translateAlg, paramTranslate)
