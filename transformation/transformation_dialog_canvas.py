@@ -4,7 +4,7 @@ from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtWidgets import QAction
 from qgis.PyQt.QtGui import QIcon, QFont, QColor
 from qgis.core import QgsMarkerSymbol, QgsSingleSymbolRenderer, QgsPalLayerSettings, QgsTextFormat, \
-    QgsTextBufferSettings, QgsVectorLayerSimpleLabeling
+    QgsTextBufferSettings, QgsVectorLayerSimpleLabeling, Qgis
 from qgis.gui import QgsMapCanvas, QgsMapToolPan, QgsMapToolZoom
 
 
@@ -195,7 +195,7 @@ class TransformationDialogCanvas(QgsMapCanvas):
         sourcelayerSettings.setFormat(textFormat)
 
         sourcelayerSettings.fieldName = "pt_nr"
-        sourcelayerSettings.placement = 4
+        sourcelayerSettings.placement = Qgis.LabelPlacement.AroundPoint
         sourcelayerSettings.enabled = True
 
         sourcelayerSettings = QgsVectorLayerSimpleLabeling(sourcelayerSettings)
