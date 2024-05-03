@@ -16,7 +16,7 @@ class GeoEditCalculations():
     #
     #  @param geoEditInstance pointer to the geoEditInstance
     def __init__(self, geoEditInstance):
-        self.__geoEditInstance = geoEditInstance
+        self.geoEditInstance = geoEditInstance
 
     ## \brief Absolute translation of sourcelayer in z direction
     #
@@ -66,7 +66,7 @@ class GeoEditCalculations():
     # \param translationZ - Value for translation in z direction
     #
     # - Forward translation: The height of the individual points of the geometry is calculated by adding the translationZ to the current value.
-    # - Reverse translation: The __translationZ is subtracted from the individual points.
+    # - Reverse translation: The translationZ is subtracted from the individual points.
     def layerTranslationZ(self, tranlationDirection, sourceLayer, translationZ):
 
         layerName = sourceLayer.name()
