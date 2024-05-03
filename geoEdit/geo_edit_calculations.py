@@ -239,7 +239,6 @@ class GeoEditCalculations():
                     self.iface.mapCanvas().currentLayer().selectAll()
                     self.iface.mapCanvas().currentLayer().invertSelection()
 
-    # ToDo: refactoring - geoedit helper
     def outsideClip(self):  # outside
         layer = self.iface.mapCanvas().currentLayer()
         if layer.type() == QgsMapLayer.VectorLayer:
@@ -379,7 +378,6 @@ class GeoEditCalculations():
         # layer.select(int(feature.id()))
         QgsMessageLog.logMessage(str(layer.name()) + str(feature.id()), "aaa", Qgis.Info)
 
-    # ToDo: refactoring - inside clip helper (geoedit)
     def createCancellationMessage(self, text):
         self.iface.messageBar().clearWidgets()
         widgetMessage = self.iface.messageBar().createMessage(text)
