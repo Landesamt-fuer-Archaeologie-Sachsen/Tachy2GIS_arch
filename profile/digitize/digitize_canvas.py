@@ -14,7 +14,9 @@ from qgis.core import (
     QgsCategorizedSymbolRenderer,
     QgsRendererCategory,
     QgsRuleBasedLabeling,
+    Qgis,
 )
+
 from qgis.gui import QgsMapCanvas, QgsMapToolPan, QgsMapToolZoom, QgsAttributeDialog
 
 from ..publisher import Publisher
@@ -230,7 +232,7 @@ class DigitizeCanvas(QgsMapCanvas):
                 }
             )
         )
-        symbol_profile_vertex.setPlacement(1)
+        symbol_profile_vertex.setPlacement(Qgis.MarkerLinePlacement.Vertex)
 
         symbol_tachy_vertex = QgsMarkerLineSymbolLayer()
         symbol_tachy_vertex.setSubSymbol(
@@ -244,7 +246,7 @@ class DigitizeCanvas(QgsMapCanvas):
                 }
             )
         )
-        symbol_tachy_vertex.setPlacement(1)
+        symbol_tachy_vertex.setPlacement(Qgis.MarkerLinePlacement.Vertex)
 
         symbol_profile.appendSymbolLayer(symbol_profile_vertex)
         symbol_tachy.appendSymbolLayer(symbol_tachy_vertex)
@@ -334,7 +336,7 @@ class DigitizeCanvas(QgsMapCanvas):
                 }
             )
         )
-        symbol_profile_vertex.setPlacement(1)
+        symbol_profile_vertex.setPlacement(Qgis.MarkerLinePlacement.Vertex)
 
         symbol_tachy_vertex = QgsMarkerLineSymbolLayer()
         symbol_tachy_vertex.setSubSymbol(
@@ -348,7 +350,7 @@ class DigitizeCanvas(QgsMapCanvas):
                 }
             )
         )
-        symbol_tachy_vertex.setPlacement(1)
+        symbol_tachy_vertex.setPlacement(Qgis.MarkerLinePlacement.Vertex)
 
         symbol_profile.appendSymbolLayer(symbol_profile_vertex)
         symbol_tachy.appendSymbolLayer(symbol_tachy_vertex)
@@ -414,7 +416,7 @@ class DigitizeCanvas(QgsMapCanvas):
                 }
             )
         )
-        symbol_profile_vertex.setPlacement(1)
+        symbol_profile_vertex.setPlacement(Qgis.MarkerLinePlacement.Vertex)
 
         symbol_tachy_vertex = QgsMarkerLineSymbolLayer()
         symbol_tachy_vertex.setSubSymbol(
@@ -428,7 +430,7 @@ class DigitizeCanvas(QgsMapCanvas):
                 }
             )
         )
-        symbol_tachy_vertex.setPlacement(1)
+        symbol_tachy_vertex.setPlacement(Qgis.MarkerLinePlacement.Vertex)
 
         symbol_profile.appendSymbolLayer(symbol_profile_vertex)
         symbol_tachy.appendSymbolLayer(symbol_tachy_vertex)
@@ -515,7 +517,7 @@ class DigitizeCanvas(QgsMapCanvas):
                 }
             )
         )
-        symbol_profile_vertex.setPlacement(1)
+        symbol_profile_vertex.setPlacement(Qgis.MarkerLinePlacement.Vertex)
 
         symbol_tachy_vertex = QgsMarkerLineSymbolLayer()
         symbol_tachy_vertex.setSubSymbol(
@@ -529,7 +531,7 @@ class DigitizeCanvas(QgsMapCanvas):
                 }
             )
         )
-        symbol_tachy_vertex.setPlacement(1)
+        symbol_tachy_vertex.setPlacement(Qgis.MarkerLinePlacement.Vertex)
 
         symbol_profile.appendSymbolLayer(symbol_profile_vertex)
         symbol_tachy.appendSymbolLayer(symbol_tachy_vertex)

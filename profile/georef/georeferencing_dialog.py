@@ -46,7 +46,7 @@ from ..profileAAR.profileAAR import profileAAR
 class GeoreferencingDialog(QMainWindow):
     def __init__(self, t2GArchInstance, rotationCoords, iFace):
         print("Start GeoreferencingDialog")
-        super().__init__(self)
+        super().__init__()
         self.iconpath = os.path.join(os.path.dirname(__file__), "...", "Icons")
         self.t2GArchInstance = t2GArchInstance
         self.setAttribute(Qt.WA_DeleteOnClose)
@@ -533,13 +533,7 @@ class GeoreferencingDialog(QMainWindow):
 
         except Exception as e:
             print(f"An exception occurred {type(e)} \n {traceback.format_exc()}")
-            msg = QMessageBox()
-            msg.critical(
-                parent=self,
-                title="Fehler bei der Profilentzerrung!",
-                text="Profil konnte nicht entzerrt werden. Vorgang wurde abgebrochen!",
-                buttons=QMessageBox.Abort,
-            )
+            QMessageBox.critical(self,"Fehler bei der Profilentzerrung!","Profil konnte nicht entzerrt werden. Vorgang wurde abgebrochen!",QMessageBox.Abort)
 
         self.destroyDialog()
 

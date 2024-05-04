@@ -10,11 +10,11 @@ A QGIS project-file (leer.qgz), which serves as a templet can be found in the fo
 
 For more details, see the manual.
 
-Required QGS-version: QGIS 3.20 and higher - we recommend using **QGIS 3.22.7**, as we are still facing problems with higher versions.
+Required QGS-version: QGIS 3.34.6 and higher - we recommend using **QGIS 3.34.6**, as we are still facing problems with higher versions.
 
 
 Tachy2GIS_arch (T2G_arch) ist ein QGIS-Plugin als archäologische Fachschale für die tachymetrische  Grabungsdokumentation. Dazu wird ein weiteres Plugin -  Tachy2GIS - ( <https://github.com/gbv/Tachy2GIS>) benötigt.
 Es soll einen effektiven Arbeitsablauf bei der Dokumentation archäologischer Befunde ermöglichen.
 Um einen hohen Automatisierungsgrad zu ermöglichen, ist das Plugin auf die Verwendung einer vorgegebenen Datenstruktur ausgelegt. Dies umfasst Verzeichnisse und Dateien (Shapefiles). Eine QGIS-Projektdatei (leer.qgz), die als Vorlage dient, befindet sich im Ordner .\Projekt. 
 
-Benötigte QGIS-Version: QGIS 3.20 und höher - wir empfehlen **QGIS 3.22.7**, unter höheren Versionen treten noch Fehler auf.
+Benötigte QGIS-Version: QGIS 3.34.6 und höher - wir empfehlen **QGIS 3.34.6**, unter höheren Versionen treten noch Fehler auf.

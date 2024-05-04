@@ -8,11 +8,11 @@
 
 [general]
 name=T2G Archäologie
-qgisMinimumVersion=3.20
+qgisMinimumVersion=3.34.6
 description=Archäologie-PlugIn für Tachy2Gis
-version=0.8.0
-author=Daniel Timmel
-email=
+version=2.0.0
+author=Landesamt für Archäologie Sachsen
+email=poststelle@lfa.sachsen.de
 
 about=PlugIn zur T2G (Archäologie)
 

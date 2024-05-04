@@ -30,7 +30,7 @@ class ProfileGcpCanvas(QgsMapCanvas):
     ## The constructor.
     #
     def __init__(self, dialogInstance, rotationCoords):
-        super().__init__(self)
+        super().__init__()
 
         self.pup = Publisher()
 

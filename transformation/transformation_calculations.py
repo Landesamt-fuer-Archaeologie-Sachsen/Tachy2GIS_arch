@@ -299,7 +299,7 @@ class TransformationCalculations():
         print("layerType", layerType)
         #Abfrage nach Z und ZM Multi Layertypen
         #1004 MultiPointZ , 1005 MultiLineZ, 1006 MultiPolygonZ
-        if layerType == 1004 or layerType == 1005 or layerType == 1006:
+        if layerType == QgsWkbTypes.PointZ or layerType == QgsWkbTypes.LineStringZ or layerType == QgsWkbTypes.PolygonZ or layerType == QgsWkbTypes.MultiPointZ or layerType == QgsWkbTypes.MultiLineZ or layerType == QgsWkbTypes.MultiPolygonZ:
 
             paramTranslate = { 'DELTA_Y' : tranlationYValue, 'DELTA_X' : tranlationXValue, 'DELTA_Z' : tranlationZValue, 'INPUT': layer}
 
