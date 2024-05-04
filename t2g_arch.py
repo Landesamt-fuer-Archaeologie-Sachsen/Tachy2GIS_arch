@@ -27,14 +27,13 @@ import os
 import uuid
 
 from qgis.PyQt.QtCore import QCoreApplication, QSettings, Qt, QTranslator, qVersion, QVariant
-from qgis.PyQt.QtGui import QIcon, QColor, QCursor
+from qgis.PyQt.QtGui import QIcon, QCursor
 from qgis.PyQt.QtWidgets import (
     QApplication,
     QFileDialog,
     QInputDialog,
     QMenu,
     QMessageBox,
-    QPushButton,
 )
 from qgis.core import (
     Qgis,
@@ -54,9 +53,17 @@ from qgis.core import (
     QgsVectorLayer,
     QgsWkbTypes,
 )
-from qgis.gui import QgsRubberBand, QgisInterface
+from qgis.gui import QgisInterface
 from qgis.utils import plugins, active_plugins
 
+from .ExtDialoge.myDlgGeometryCheck import GeometryCheckDockWidget
+from .ExtDialoge.myDlgRasterLayerView import RasterLayerViewDockWidget
+from .ExtDialoge.myDlgSettings import DlgSettings, Configfile
+from .geoEdit.geo_edit import GeoEdit
+from .messen.messen import MeasurementTab
+from .profile.profile import Profile
+from .t2g_arch_dockwidget import T2G_ArchDockWidget
+from .transformation.transformation_gui import TransformationGui
 from .utils.functions import (
     addPoint3D,
     delLayer,
@@ -74,15 +81,6 @@ from .utils.functions import (
     setCustomProjectVariable,
 )
 from .utils.identifygeometry import IdentifyGeometry
-from .utils.toolbar_functions import openProjectFolder, saveProject
-from .ExtDialoge.myDlgGeometryCheck import GeometryCheckDockWidget
-from .ExtDialoge.myDlgRasterLayerView import RasterLayerViewDockWidget
-from .ExtDialoge.myDlgSettings import DlgSettings, Configfile
-from .geoEdit.geo_edit import GeoEdit
-from .messen.messen import MeasurementTab
-from .profile.profile import Profile
-from .t2g_arch_dockwidget import T2G_ArchDockWidget
-from .transformation.transformation_gui import TransformationGui
 
 VERSION = "GDKE, RLP " + "V 1.0.0" + " für Qgis 3.20 -"
 
@@ -967,7 +965,9 @@ class T2G_Arch:
                     actlayer = layer
                     break
         if actlayer == None:
-            self.iface.messageBar().pushMessage("T2G Archäologie: ", "Keine Objekte gewählt! Abbruch", level=Qgis.Critical)
+            self.iface.messageBar().pushMessage(
+                "T2G Archäologie: ", "Keine Objekte gewählt! Abbruch", level=Qgis.Critical
+            )
             return
         self.iface.actionCopyFeatures().trigger()
         self.iface.setActiveLayer(cutlayer)
