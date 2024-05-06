@@ -8,28 +8,28 @@ from qgis.PyQt.QtWidgets import (
     QToolBar,
     QToolButton,
 )
-from qgis.gui import QgisInterface
 from qgis.core import QgsProject
+from qgis.gui import QgisInterface
 
 from .t2g_arch import T2G_Arch
+from .utils.toolbar_functions import openProjectFolder, saveProject
 
 
 class PluginInterface:
     def __init__(self, iface: QgisInterface):
         """
-        Diese Methode wird von QGIS einmalig aufgerufen.
+        Diese Methode wird von QGIS einmalig beim Start von QGIS aufgerufen.
         (Development: Das Plugin "Plugin Reloader" bewirkt einen erneuten Aufruf.)
         """
         self.iface = iface
         self.toolbar = None
-        self.actions = None
-        self.list_of_actions_disabled_per_default = None
+        self.actions = {}
         self.t2g_arch_instance = None
 
     def initGui(self):
         """
         Diese Methode wird von QGIS aufgerufen, wenn das Plugin geladen wird.
-        Hier können Sie die Benutzeroberfläche des Plugins erstellen und Aktionen hinzufügen.
+        Hier wird die Toolbar des Plugins erstellt und Aktionen hinzugefügt.
         """
         self.setupToolbar()
         QgsProject.instance().readProject.connect(self.onNewProjectLoaded)
@@ -52,16 +52,15 @@ class PluginInterface:
         [2] https://www.riverbankcomputing.com/static/Docs/PyQt5/signals_slots.html
         [3] https://www.riverbankcomputing.com/static/Docs/PyQt5/api/qtcore/qobject.html#description
         """
+        self.onActionStartPlugin(False)
         self.resetToolbar()
         if self.toolbar is not None:
             self.toolbar.deleteLater()
             self.toolbar = None
-        self.list_of_actions_disabled_per_default = None
-        if self.actions is not None:
-            if len(self.actions) > 0:
-                self.iface.removePluginMenu("&T2G Archäologie", self.actions[0])
-            for action in self.actions:
-                action.deleteLater()
+        if isinstance(self.actions, dict):
+            for e in self.actions.values():
+                self.iface.removePluginMenu("&T2G Archäologie", e["QAction"])
+                e["QAction"].deleteLater()
             self.actions = None
 
         QgsProject.instance().readProject.disconnect(self.onNewProjectLoaded)
@@ -80,19 +79,27 @@ class PluginInterface:
             "reverse_line": "LineRe.gif",
             "expand_geometry": "butContactClip.gif",
             "raster_overview": "Thumbs.gif",
+            "hourglass": "hourglass-svgrepo-com.svg",
         }
 
         plugin_dir = os.path.dirname(__file__)
         for iconDescription, iconPath in iconPaths.items():
             iconPaths[iconDescription] = os.path.join(plugin_dir, "Icons", iconPath)
 
-        self.list_of_actions_disabled_per_default = []
+        self.actions = {}
         self.toolbar = QToolBar(self.iface.mainWindow())
         self.toolbar.setObjectName("T2G_Arch")
         self.toolbar.setWindowTitle("T2G-Archäologie Toolbar")
         self.iface.mainWindow().addToolBar(self.toolbar)
 
-        actionStartPlugin = QAction(QIcon(iconPaths["plugin_icon"]), "T2G-Archäologie", self.iface.mainWindow())
+        icon_start = QIcon()
+        icon_start.addPixmap(QPixmap(iconPaths["plugin_icon"]))
+        icon_start.addPixmap(QPixmap(iconPaths["hourglass"]), QIcon.Disabled, QIcon.Off)
+        actionStartPlugin = QAction(icon_start, "T2G-Archäologie", self.iface.mainWindow())
+        self.actions["actionStartPlugin"] = {
+            "QAction": actionStartPlugin,
+            "enabled_per_default": True,
+        }
         actionStartPlugin.triggered.connect(self.onActionStartPlugin)
         actionStartPlugin.setCheckable(True)
         self.toolbar.addAction(actionStartPlugin)
@@ -101,41 +108,57 @@ class PluginInterface:
         icon_show_hide = QIcon()
         icon_show_hide.addPixmap(QPixmap(iconPaths["visible_false"]), QIcon.Normal, QIcon.On)
         icon_show_hide.addPixmap(QPixmap(iconPaths["visible_true"]), QIcon.Normal, QIcon.Off)
-        actionShowHideDockwidget = QAction(
-            icon_show_hide, "Plugin Sichtbarkeit", self.iface.mainWindow()
-        )
+        actionShowHideDockwidget = QAction(icon_show_hide, "Plugin Sichtbarkeit", self.iface.mainWindow())
+        self.actions["actionShowHideDockwidget"] = {
+            "QAction": actionShowHideDockwidget,
+            "enabled_per_default": False,
+        }
         actionShowHideDockwidget.triggered.connect(self.onActionShowHideDockwidget)
         actionShowHideDockwidget.setCheckable(True)
         self.toolbar.addAction(actionShowHideDockwidget)
-        self.list_of_actions_disabled_per_default.append(actionShowHideDockwidget)
 
         actionOpenProjectFolder = QAction(
             QIcon(iconPaths["open_folder"]), "Projektexplorer öffnen", self.iface.mainWindow()
         )
+        self.actions["actionOpenProjectFolder"] = {
+            "QAction": actionOpenProjectFolder,
+            "enabled_per_default": False,
+        }
         actionOpenProjectFolder.triggered.connect(self.onActionOpenProjectFolder)
         self.toolbar.addAction(actionOpenProjectFolder)
-        self.list_of_actions_disabled_per_default.append(actionOpenProjectFolder)
 
         self.toolbar.addSeparator()
 
         actionSaveProject = QAction(QIcon(iconPaths["save_project"]), "Tagesprojekt sichern", self.iface.mainWindow())
+        self.actions["actionSaveProject"] = {
+            "QAction": actionSaveProject,
+            "enabled_per_default": False,
+        }
         actionSaveProject.triggered.connect(self.onActionSaveProject)
         self.toolbar.addAction(actionSaveProject)
-        self.list_of_actions_disabled_per_default.append(actionSaveProject)
 
         menuPointsImport = QMenu()
         actionImportPoints = QAction(QIcon(iconPaths["points_import"]), "Punkt Import", self.iface.mainWindow())
+        self.actions["actionImportPoints"] = {
+            "QAction": actionImportPoints,
+            "enabled_per_default": False,
+        }
         actionImportPoints.triggered.connect(self.onActionImportPoints)
         actionExportPoints = QAction(QIcon(iconPaths["points_export"]), "Punkt Export", self.iface.mainWindow())
+        self.actions["actionExportPoints"] = {
+            "QAction": actionExportPoints,
+            "enabled_per_default": False,
+        }
         actionExportPoints.triggered.connect(self.onActionExportPoints)
         actionProfileExportPoints = QAction(
             QIcon(iconPaths["points_export_profile"]), "Profilentzerrpunkte Export", self.iface.mainWindow()
         )
+        self.actions["actionProfileExportPoints"] = {
+            "QAction": actionProfileExportPoints,
+            "enabled_per_default": False,
+        }
         actionProfileExportPoints.triggered.connect(self.onActionProfileExportPoints)
         menuPointsImport.addActions([actionImportPoints, actionExportPoints, actionProfileExportPoints])
-        self.list_of_actions_disabled_per_default.extend(
-            [actionImportPoints, actionExportPoints, actionProfileExportPoints]
-        )
 
         toolButtonPointsImport = QToolButton(self.iface.mainWindow())
         toolButtonPointsImport.setMenu(menuPointsImport)
@@ -143,18 +166,18 @@ class PluginInterface:
         toolButtonPointsImport.setPopupMode(QToolButton.MenuButtonPopup)
         self.toolbar.addWidget(toolButtonPointsImport)
 
-        self.actions = [actionStartPlugin] + self.list_of_actions_disabled_per_default
-
         self.resetToolbar()
 
     def resetToolbar(self):
-        for action in self.list_of_actions_disabled_per_default:
-            action.setEnabled(False)
-            self.iface.removePluginMenu("&T2G Archäologie", action)
-        self.actions[0].setChecked(False)
+        for action in self.actions.values():
+            if action["QAction"].isCheckable():
+                action["QAction"].setChecked(False)
+            action["QAction"].setEnabled(action["enabled_per_default"])
+            if not action["enabled_per_default"]:
+                self.iface.removePluginMenu("&T2G Archäologie", action["QAction"])
 
     def activateActions(self):
-        for action in self.list_of_actions_disabled_per_default:
+        for action in [e["QAction"] for e in self.actions.values() if not e["enabled_per_default"]]:
             action.setEnabled(True)
             self.iface.addPluginToMenu("&T2G Archäologie", action)
 
@@ -163,8 +186,10 @@ class PluginInterface:
 
     def onProjectClosed(self):
         print("Projekt wurde geschlossen!")
+        self.onActionStartPlugin(False)
 
     def onActionStartPlugin(self, checked):
+        self.actions["actionStartPlugin"]["QAction"].setEnabled(False)
         if checked:
             if not self.t2g_arch_instance:
                 self.t2g_arch_instance = T2G_Arch(self.iface)
@@ -179,27 +204,26 @@ class PluginInterface:
                 self.t2g_arch_instance.unload()
                 self.t2g_arch_instance = None
             self.resetToolbar()
+        self.actions["actionStartPlugin"]["QAction"].setEnabled(True)
 
     def onActionShowHideDockwidget(self, checked):
-        # todo self.openDockWidget
-        pass
+        if self.t2g_arch_instance:
+            self.t2g_arch_instance.openDockWidget(not checked)
 
-    def onActionOpenProjectFolder(self, checked):
-        # self.actionOpenProjectFolder.triggered.connect(openProjectFolder)
-        pass
+    def onActionOpenProjectFolder(self, _):
+        openProjectFolder()
 
-    def onActionSaveProject(self, checked):
-        # self.actionSaveProject.triggered.connect(saveProject)
-        pass
+    def onActionSaveProject(self, _):
+        saveProject()
 
-    def onActionImportPoints(self, checked):
-        # self.actionImportPoints.triggered.connect(self.importPoints)
-        pass
+    def onActionImportPoints(self, _):
+        if self.t2g_arch_instance:
+            self.t2g_arch_instance.importPoints()
 
-    def onActionExportPoints(self, checked):
-        # self.actionExportPoints.triggered.connect(self.exportPoints)
-        pass
+    def onActionExportPoints(self, _):
+        if self.t2g_arch_instance:
+            self.t2g_arch_instance.exportPoints()
 
-    def onActionProfileExportPoints(self, checked):
-        # self.actionProfileExportPoints.triggered.connect(self.exportProfilePoints)
-        pass
+    def onActionProfileExportPoints(self, _):
+        if self.t2g_arch_instance:
+            self.t2g_arch_instance.exportProfilePoints()
