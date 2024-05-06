@@ -1,5 +1,6 @@
 import os
 
+from PyQt5.QtCore import QCoreApplication
 from PyQt5.QtGui import QPixmap
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import (
@@ -94,7 +95,7 @@ class PluginInterface:
 
         icon_start = QIcon()
         icon_start.addPixmap(QPixmap(iconPaths["plugin_icon"]))
-        icon_start.addPixmap(QPixmap(iconPaths["hourglass"]), QIcon.Disabled, QIcon.Off)
+        icon_start.addPixmap(QPixmap(iconPaths["hourglass"]), QIcon.Disabled)
         actionStartPlugin = QAction(icon_start, "T2G-Archäologie", self.iface.mainWindow())
         self.actions["actionStartPlugin"] = {
             "QAction": actionStartPlugin,
@@ -190,6 +191,7 @@ class PluginInterface:
 
     def onActionStartPlugin(self, checked):
         self.actions["actionStartPlugin"]["QAction"].setEnabled(False)
+        QCoreApplication.processEvents()  # give Qt the chance to process signals and display other icon
         if checked:
             if not self.t2g_arch_instance:
                 self.t2g_arch_instance = T2G_Arch(self.iface)
