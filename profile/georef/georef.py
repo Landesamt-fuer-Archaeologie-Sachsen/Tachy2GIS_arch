@@ -14,6 +14,7 @@ from qgis.core import (
 )
 from qgis.gui import QgsFileWidget
 
+from ...utils.functions import natural_sort_key
 from .georeferencing_dialog import GeoreferencingDialog
 
 
@@ -222,7 +223,7 @@ class Georef:
             self.dockwidget.layerProfileGeoref.currentIndexChanged.connect(self.calculateViewDirection2)
 
             self.dockwidget.kreuzLabelRichtung = QLabel("2. Blickrichtung auf das Profil")
-            self.dockwidget.profileViewDirectionComboGeoref_2 = QComboBox()
+            self.dockwidget.profileViewDirectionComboGeoref_2 = QComboBox(self.dockwidget)
             self.dockwidget.profileViewDirectionComboGeoref_2.addItems(
                 [
                     self.dockwidget.profileViewDirectionComboGeoref.itemText(i)
@@ -231,7 +232,7 @@ class Georef:
             )
 
             self.dockwidget.kreuzLabelProfilnummer = QLabel("2. Profilnummer")
-            self.dockwidget.profileIdsComboGeoref_2 = QComboBox()
+            self.dockwidget.profileIdsComboGeoref_2 = QComboBox(self.dockwidget)
             self.dockwidget.profileIdsComboGeoref_2.currentIndexChanged.connect(self.calculateViewDirection2)
             self.dockwidget.profileIdsComboGeoref_2.currentIndexChanged.connect(self.changedProfileImage)
             self.dockwidget.profileIdsComboGeoref_2.addItems(
@@ -516,7 +517,7 @@ class Georef:
                 if feat.attribute('prof_nr'):
                     profileList.append(feat.attribute('prof_nr'))
 
-        return sorted(profileList, key=str.lower)
+        return sorted(profileList, key=natural_sort_key)
 
     ## \brief Preselection of Inputlayers
     #
