@@ -21,21 +21,21 @@
  *                                                                         *
  ***************************************************************************/
 """
+from os import path as os_path
 
-from PyQt5 import QtWidgets, QtCore, QtGui, uic
-from PyQt5.QtGui import *
-from PyQt5.QtWidgets import *
-from qgis.core import *
-from qgis.gui import *
-from ..utils.functions import *
-import os
+from PyQt5.QtCore import pyqtSignal, Qt
+from PyQt5.QtGui import QColor, QIcon, QCursor
+from PyQt5.QtWidgets import QDockWidget, QApplication, QMenu, QTableWidgetItem, QMessageBox
+from qgis.PyQt import uic
+from qgis.core import QgsMessageLog, Qgis, QgsWkbTypes, QgsPoint, QgsGeometry
+from qgis.gui import QgsVertexMarker
 
-FORM_CLASS, _ = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), 'myDwgFeatureQuestion.ui'))
+from ..utils.functions import makerAndRubberbands, PrintClickedPoint, isNumber
+
+FORM_CLASS, _ = uic.loadUiType(os_path.join(os_path.dirname(__file__), "myDwgFeatureQuestion.ui"))
 
 
-class FeatureQuestionDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
-
+class FeatureQuestionDockWidget(QDockWidget, FORM_CLASS):
     closingPlugin = pyqtSignal()
 
     def __init__(self, iface, layer, feature, parent=None):
@@ -48,10 +48,8 @@ class FeatureQuestionDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         # #widgets-and-dialogs-with-auto-connect
         self.setupUi(self)
 
-        pfad = os.path.abspath(os.path.join(os.path.join(os.path.dirname(__file__), "./..")))
-        iconpfad = os.path.join(os.path.join(pfad, 'Icons'))
+        iconpfad = os_path.join(os_path.dirname(__file__), "..", "Icons")
         self.ui = self
-        # self.ui.setWindowIcon(QtGui.QIcon(os.path.join(os.path.dirname(__file__), 'Icons/Schriftfeld.jpg')))
         self.iface = iface
         self.canvas = iface.mapCanvas()
         self.layer = layer
@@ -66,35 +64,33 @@ class FeatureQuestionDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.vertexMaker.setMakerType(QgsVertexMarker.ICON_X)
         self.rubberBand = makerAndRubberbands()
 
-        self.cb = QtWidgets.QApplication.clipboard()
-        self.i = ''
+        self.cb = QApplication.clipboard()
+        self.i = ""
         self.x = None
         self.y = None
         self.z = None
         self.ui.butOK.clicked.connect(self.OK)
         self.ui.butAbbruch.clicked.connect(self.Abbruch)
         self.ui.butFeatureMove.clicked.connect(self.featureMove)
-        self.ui.butFeatureMove.setIcon(QIcon(os.path.join(iconpfad, 'FeatureMove.gif')))
-        self.ui.butFeatureMove.setToolTip('Objekt verschieben')
+        self.ui.butFeatureMove.setIcon(QIcon(os_path.join(iconpfad, "FeatureMove.gif")))
+        self.ui.butFeatureMove.setToolTip("Objekt verschieben")
         self.ui.butFeatureVertexMove.clicked.connect(self.featureVertexMove)
-        self.ui.butFeatureVertexMove.setIcon(QIcon(os.path.join(iconpfad, 'FeatureVertexMove.gif')))
-        self.ui.butFeatureVertexMove.setToolTip('Stützpunkte verschieben')
-        self.ui.txtPoint.setToolTip(
-            'Vormat:@ x.x , y.y , z.z \n @ relative Koordinaten')# \n absolute Koordinaten')
+        self.ui.butFeatureVertexMove.setIcon(QIcon(os_path.join(iconpfad, "FeatureVertexMove.gif")))
+        self.ui.butFeatureVertexMove.setToolTip("Stützpunkte verschieben")
+        self.ui.txtPoint.setToolTip("Format:@ x.x , y.y , z.z \n @ relative Koordinaten")  # \n absolute Koordinaten')
         self.ui.txtPoint.textEdited.connect(self.setTempKoord)
         self.ui.butFangPunkt.clicked.connect(self.koordholen)
-        self.ui.butFangPunkt.setIcon(QIcon(os.path.join(iconpfad, 'Fang_von Punkt.gif')))
-        self.ui.butFangPunkt.setToolTip('Fangen von Punkt')
-
+        self.ui.butFangPunkt.setIcon(QIcon(os_path.join(iconpfad, "Fang_von Punkt.gif")))
+        self.ui.butFangPunkt.setToolTip("Fangen von Punkt")
 
         self.ui.tableWidget.itemChanged.connect(self.vertexEdit)
         self.ui.tableWidget.itemSelectionChanged.connect(self.test)
-        self.ui.tableWidget.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.ui.tableWidget.setContextMenuPolicy(Qt.CustomContextMenu)
         self.ui.tableWidget.customContextMenuRequested.connect(self.on_customContextMenu)
         self.ui.txtPoint_2.textChanged.connect(self.setMarker2)
 
         self.ui.canvas_clicked = PrintClickedPoint(self.iface.mapCanvas(), self.ui)
-        #self.ui.lineEdit.textChanged.connect(self.nearest)
+        # self.ui.lineEdit.textChanged.connect(self.nearest)
 
         self.ui.setup()
 
@@ -107,31 +103,40 @@ class FeatureQuestionDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                 for vertex in part.vertices():
                     koord = {0: vertex.x(), 1: vertex.y(), 2: vertex.z()}
                     self.koordList.append(koord)
-                    QgsMessageLog.logMessage(str(koord), 'T2G Archäologie', Qgis.Info)
+                    QgsMessageLog.logMessage(str(koord), "T2G Archäologie", Qgis.Info)
                     pass
-                QgsMessageLog.logMessage(str(len(self.feature.geometry().get())), 'T2G Archäologie', Qgis.Info)
+                QgsMessageLog.logMessage(str(len(self.feature.geometry().get())), "T2G Archäologie", Qgis.Info)
             pass
         # singlepart
         else:
             if self.layer.geometryType() == QgsWkbTypes.PointGeometry:
-                self.ui.labFeatType.setText('Typ:  Punkt')
-                koord = {0: self.feature.geometry().get().x(), 1: self.feature.geometry().get().y(),
-                         2: self.feature.geometry().get().z()}
+                self.ui.labFeatType.setText("Typ:  Punkt")
+                koord = {
+                    0: self.feature.geometry().get().x(),
+                    1: self.feature.geometry().get().y(),
+                    2: self.feature.geometry().get().z(),
+                }
                 self.koordList.append(koord)
                 # self.ui.txtGrabung.setText(str(self.koordList[0]['x']))
                 self.setMarker(None)
             elif self.layer.geometryType() == QgsWkbTypes.LineGeometry:
-                self.ui.labFeatType.setText('Typ:  Linie')
+                self.ui.labFeatType.setText("Typ:  Linie")
                 for i in range(len(self.feature.geometry().asPolyline()[0])):
-                    koord = {0: self.feature.geometry().vertexAt(i).x(), 1: self.feature.geometry().vertexAt(i).y(),
-                             2: self.feature.geometry().vertexAt(i).z()}
+                    koord = {
+                        0: self.feature.geometry().vertexAt(i).x(),
+                        1: self.feature.geometry().vertexAt(i).y(),
+                        2: self.feature.geometry().vertexAt(i).z(),
+                    }
                     self.koordList.append(koord)
 
             elif self.layer.geometryType() == QgsWkbTypes.PolygonGeometry:
-                self.ui.labFeatType.setText('Typ:  Polygon')
+                self.ui.labFeatType.setText("Typ:  Polygon")
                 for i in range(len(self.feature.geometry().asPolygon()[0])):
-                    koord = {0: self.feature.geometry().vertexAt(i).x(), 1: self.feature.geometry().vertexAt(i).y(),
-                             2: self.feature.geometry().vertexAt(i).z()}
+                    koord = {
+                        0: self.feature.geometry().vertexAt(i).x(),
+                        1: self.feature.geometry().vertexAt(i).y(),
+                        2: self.feature.geometry().vertexAt(i).z(),
+                    }
                     self.koordList.append(koord)
 
         for i in range(len(self.koordList)):
@@ -139,17 +144,16 @@ class FeatureQuestionDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             self.tableWidget.setItem(i, 0, QTableWidgetItem(str(self.koordList[i][0])))
             self.tableWidget.setItem(i, 1, QTableWidgetItem(str(self.koordList[i][1])))
             self.tableWidget.setItem(i, 2, QTableWidgetItem(str(self.koordList[i][2])))
-        self.ui.labPunktcount.setText(str(len(self.koordList)) + ' Punkte')
-        self.rubberBand.setRubberBandPoly(self.koordList,3)
+        self.ui.labPunktcount.setText(str(len(self.koordList)) + " Punkte")
+        self.rubberBand.setRubberBandPoly(self.koordList, 3)
         self.setVertexMarker()
         self.maker.makerClean()
         self.koordholen()
 
     def setVertexMarker(self):
-         for row in range(self.ui.tableWidget.rowCount()):
+        for row in range(self.ui.tableWidget.rowCount()):
             # QgsMessageLog.logMessage(str(item.text()), 'T2G Archäologie', Qgis.Info)
-            self.vertexMaker.setMarker(self.koordList[row][0], self.koordList[row][1], 10,2)
-
+            self.vertexMaker.setMarker(self.koordList[row][0], self.koordList[row][1], 10, 2)
 
     def test(self):
         self.maker.makerClean()
@@ -171,14 +175,16 @@ class FeatureQuestionDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             # QgsMessageLog.logMessage(str(item.column()), 'T2G Archäologie', Qgis.Info)
 
     def on_customContextMenu(self, pos):
-        contextMenu = QtWidgets.QMenu()
+        contextMenu = QMenu()
         clipbordCopy = contextMenu.addAction(
-            QtGui.QIcon(os.path.join(os.path.dirname(__file__), "Icons", "kopieren.jpg")), "kopieren")
+            QIcon(os_path.join(os_path.dirname(__file__), "..", "Icons", "kopieren.jpg")), "kopieren"
+        )
         clipbordCopy.triggered.connect(self.clipboardSetText)
         clipbordInsert = contextMenu.addAction(
-            QtGui.QIcon(os.path.join(os.path.dirname(__file__), "Icons", "einfügen.gif")), "einfügen")
+            QIcon(os_path.join(os_path.dirname(__file__), "..", "Icons", "einfügen.gif")), "einfügen"
+        )
         clipbordInsert.triggered.connect(self.clipboardText)
-        contextMenu.exec_(QtGui.QCursor.pos())
+        contextMenu.exec_(QCursor.pos())
 
     def rubberBandClean(self):
         self.rubberBand.rubberBandClean()
@@ -195,16 +201,16 @@ class FeatureQuestionDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             row = 0
         else:
             row = item.row()
-            #col = item.column()
-        self.maker.setMarker(self.koordList[row][0], self.koordList[row][1],10,2)
+            # col = item.column()
+        self.maker.setMarker(self.koordList[row][0], self.koordList[row][1], 10, 2)
 
     def setMarker2(self):
         self.makerTemp.makerClean()
-        text = self.ui.txtPoint_2.text().split(',')
+        text = self.ui.txtPoint_2.text().split(",")
         self.x = text[0]
         self.y = text[1]
 
-        self.makerTemp.setMarker(self.x, self.y,10,2)
+        self.makerTemp.setMarker(self.x, self.y, 10, 2)
 
     def vertexEdit(self, item):
         # self.ui.lineEdit.setText(str(item.row()))
@@ -218,9 +224,8 @@ class FeatureQuestionDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             if item.column() == 2:
                 self.koordList[item.row()][2] = item.text()
             self.rubberBand.rubberBandClean()
-            self.rubberBand.setRubberBandPoly(self.koordList,3)
-            #self.setMarker(item)
-
+            self.rubberBand.setRubberBandPoly(self.koordList, 3)
+            # self.setMarker(item)
 
     def featureUpdate(self):
         ptList = []
@@ -232,44 +237,50 @@ class FeatureQuestionDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             self.layer.dataProvider().changeGeometryValues({self.feature.id(): QgsGeometry(ptList[0])})
         else:
             self.layer.dataProvider().changeGeometryValues({self.feature.id(): QgsGeometry.fromPolyline(ptList)})
-        QgsMessageLog.logMessage('Geometrie geändert', 'T2G Archäologie', Qgis.Info)
+        QgsMessageLog.logMessage("Geometrie geändert", "T2G Archäologie", Qgis.Info)
         self.layer.commitChanges()
 
     def setTempKoord(self):
 
-        if self.ui.txtPoint.text() == '':
+        if self.ui.txtPoint.text() == "":
             self.i = None
             self.x = None
             self.y = None
             self.z = None
         else:
             try:
-                text = self.ui.txtPoint.text().split(',')
+                text = self.ui.txtPoint.text().split(",")
                 self.i = text[0][0]
                 self.x = text[0][1:]
                 self.y = text[1]
                 self.z = text[2]
-                QgsMessageLog.logMessage(self.i + ',' + self.x + ',' + self.y + ',' + self.z, 'T2G Archäologie',
-                                         Qgis.Info)
+                QgsMessageLog.logMessage(
+                    self.i + "," + self.x + "," + self.y + "," + self.z, "T2G Archäologie", Qgis.Info
+                )
             except Exception as e:
-                QgsMessageLog.logMessage(message='FeatureQuestionDockWidget->setTempKoord: failed: ' + str(e), tag='T2G Archäologie', level=Qgis.MessageLevel.Warning)
+                QgsMessageLog.logMessage(
+                    message="FeatureQuestionDockWidget->setTempKoord: failed: " + str(e),
+                    tag="T2G Archäologie",
+                    level=Qgis.MessageLevel.Warning,
+                )
 
-        if self.i == '#':
-            QgsMessageLog.logMessage('rechne2', 'T2G Archäologie', Qgis.Info)
-            #try:
-            text = self.ui.txtPointTemp.text().split(',')
-            self.i = '@'
-            self.x = float(self.x)-float(text[0])
-            self.y = float(self.y)-float(text[1])
-            #self.z = float(self.z) - 0
-            QgsMessageLog.logMessage(str(self.i) + ',' + str(self.x) + ',' + str(self.y) + ',' + str(self.z), 'T2G Archäologie',
-                                     Qgis.Info)
-            #except:
+        if self.i == "#":
+            QgsMessageLog.logMessage("rechne2", "T2G Archäologie", Qgis.Info)
+            # try:
+            text = self.ui.txtPointTemp.text().split(",")
+            self.i = "@"
+            self.x = float(self.x) - float(text[0])
+            self.y = float(self.y) - float(text[1])
+            # self.z = float(self.z) - 0
+            QgsMessageLog.logMessage(
+                str(self.i) + "," + str(self.x) + "," + str(self.y) + "," + str(self.z), "T2G Archäologie", Qgis.Info
+            )
+            # except:
             #    pass
 
     def featureMove(self):
-        if self.ui.txtPoint.text() == '':
-            QMessageBox.information(None, "Meldung", u"Keine Verschiebungskoordinate eingegeben!")
+        if self.ui.txtPoint.text() == "":
+            QMessageBox.information(None, "Meldung", "Keine Verschiebungskoordinate eingegeben!")
         else:
             tw = self.ui.tableWidget
             tw.selectAll()
@@ -280,17 +291,18 @@ class FeatureQuestionDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         tw = self.ui.tableWidget
         if len(self.ui.tableWidget.selectedItems()) == 0:
             # QgsMessageLog.logMessage('Keine Punkte gewählt', 'T2G Archäologie', Qgis.Info)
-            QMessageBox.information(None, "Meldung", u"Keine Punkte zum verschieben gewählt!")
+            QMessageBox.information(None, "Meldung", "Keine Punkte zum verschieben gewählt!")
             return
 
-        if self.i == '@':
+        if self.i == "@":
             # QMessageBox.information(None, "Meldung", u"@")
 
             rowtemp = -1
             for item in tw.selectedItems():
                 if item.row() > rowtemp:
-                    QgsMessageLog.logMessage(str(tw.item(item.row(), item.column()).text()), 'T2G Archäologie',
-                                             Qgis.Info)
+                    QgsMessageLog.logMessage(
+                        str(tw.item(item.row(), item.column()).text()), "T2G Archäologie", Qgis.Info
+                    )
                     wert = str(float(tw.item(item.row(), 0).text()) + float(self.x))
                     tw.item(item.row(), 0).setText(wert)
                     wert = str(float(tw.item(item.row(), 1).text()) + float(self.y))
@@ -302,9 +314,8 @@ class FeatureQuestionDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             else:
                 return
 
-        elif self.i == '#':
-            QMessageBox.information(None, "Meldung", u"#")
-
+        elif self.i == "#":
+            QMessageBox.information(None, "Meldung", "#")
 
     def closeEvent(self, event):
         self.dwgClose()
@@ -318,8 +329,7 @@ class FeatureQuestionDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.vertexMaker.makerClean()
         self.makerTemp.makerClean()
         self.rubberBandClean()
-        iface.mapCanvas().refreshAllLayers()
-
+        self.iface.mapCanvas().refreshAllLayers()
 
     def koordholen(self):
         self.iface.mapCanvas().setMapTool(self.ui.canvas_clicked)

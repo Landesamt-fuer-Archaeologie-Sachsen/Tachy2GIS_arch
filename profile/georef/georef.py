@@ -3,19 +3,13 @@ import math
 import pathlib
 from functools import partial
 
-from qgis.PyQt.QtWidgets import QMessageBox, QComboBox, QLabel
 from qgis.PyQt.QtCore import Qt, pyqtSlot, QObject
-from qgis.core import (
-    QgsProject,
-    QgsVectorLayer,
-    QgsLayerTreeGroup,
-    QgsLayerTreeLayer,
-    QgsWkbTypes
-)
+from qgis.PyQt.QtWidgets import QMessageBox, QComboBox, QLabel
+from qgis.core import QgsProject, QgsVectorLayer, QgsLayerTreeGroup, QgsLayerTreeLayer, QgsWkbTypes
 from qgis.gui import QgsFileWidget
 
-from ...utils.functions import natural_sort_key
 from .georeferencing_dialog import GeoreferencingDialog
+from ...utils.functions import natural_sort_key
 
 
 ## @brief The class is used to implement functionalities for work with profiles
@@ -310,8 +304,10 @@ class Georef:
         pointLayer = self.dockwidget.layerGcpGeoref.currentLayer().clone()
         # obj_typ 12 entspricht Fotoentzerrpunkt
         pointLayer.setSubsetString(
-            #"obj_typ = '12' and " "prof_nr = '" + profileNumber + "'"
-            "obj_typ = '12' and " "obj_art = 'Profil' and " "prof_nr = '" + profileNumber + "'"
+            # "obj_typ = '12' and " "prof_nr = '" + profileNumber + "'"
+            "obj_typ = '12' and "
+            "obj_art = 'Profil' and "
+            "prof_nr = '" + profileNumber + "'"
         )
 
         # Zielkoordinaten
@@ -435,7 +431,7 @@ class Georef:
         view = None
         for feat in lineLayer.getFeatures():
 
-            print('feat', feat)
+            print("feat", feat)
 
             geom = feat.geometry()
             if QgsWkbTypes.isSingleType(geom.wkbType()):
@@ -445,10 +441,10 @@ class Georef:
                 # Multipart
                 line = geom.asMultiPolyline()[0]
 
-            print('line', line)
+            print("line", line)
 
             if not len(line):
-                print('Kein Profil gefunden!')
+                print("Kein Profil gefunden!")
                 return
 
             pointA = line[0]
@@ -513,9 +509,8 @@ class Georef:
         profileList = []
         for feat in lineLayer.getFeatures():
             # id 2 entspricht "Profil"
-            if feat.attribute('obj_typ') == '2':
-                if feat.attribute('prof_nr'):
-                    profileList.append(feat.attribute('prof_nr'))
+            if feat.attribute("obj_typ") == "2" and feat.attribute("prof_nr"):
+                profileList.append(feat.attribute("prof_nr"))
 
         return sorted(profileList, key=natural_sort_key)
 

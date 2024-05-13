@@ -1,21 +1,34 @@
 ## @package QGIS geoEdit extension..
-import os
 import json
+import os
 
 import processing
 from qgis.PyQt.QtCore import QVariant
-from qgis.core import QgsPointXY, QgsFeature, QgsField, QgsVectorFileWriter, QgsCoordinateTransformContext, QgsProject, QgsVectorLayer, QgsLayerTreeGroup, QgsLayerTreeLayer, QgsPoint, QgsGeometry, QgsFeatureRequest
-
-from .layout import Layout
+from qgis.core import (
+    QgsPointXY,
+    QgsFeature,
+    QgsField,
+    QgsVectorFileWriter,
+    QgsCoordinateTransformContext,
+    QgsProject,
+    QgsVectorLayer,
+    QgsLayerTreeGroup,
+    QgsLayerTreeLayer,
+    QgsPoint,
+    QgsGeometry,
+    QgsFeatureRequest,
+)
 
 from .data_store_plan import DataStorePlan
+from .layout import Layout
 from ..rotation_coords import RotationCoords
+
 
 ## @brief The class is used to implement functionalities for work with profile-plans within the dock widget of the Tachy2GIS_arch plugin
 #
 # @author Mario Uhlig, VisDat geodatentechnologie GmbH, mario.uhlig@visdat.de
 # @date 2022-03-15
-class Plan():
+class Plan:
 
     ## The constructor.
     #  Defines attributes for the Profile
@@ -23,8 +36,8 @@ class Plan():
     #  @param dockWidget pointer to the dockwidget
     #  @param iFace pointer to the iface class
     def __init__(self, t2gArchInstance, iFace):
-        print('init plan')
-        self.__iconpath = os.path.join(os.path.dirname(__file__), '...', 'Icons')
+        print("init plan")
+        self.__iconpath = os.path.join(os.path.dirname(__file__), "...", "Icons")
         self.__t2gArchInstance = t2gArchInstance
         self.__dockwidget = t2gArchInstance.dockwidget
         self.__iface = iFace
@@ -40,23 +53,21 @@ class Plan():
     #
 
     def setup(self):
-        print('Setup plan')
+        print("Setup plan")
 
-        #set datatype filter to profileFotosComboGeoref
-        self.__dockwidget.profilePlanSelect.setFilter('Images (*.jpg)')
+        # set datatype filter to profileFotosComboGeoref
+        self.__dockwidget.profilePlanSelect.setFilter("Images (*.jpg)")
 
         self.layout = Layout(self.__iface)
 
         self.__dockwidget.startPlanBtn.clicked.connect(self.__startPlanCreation)
-
 
     ## \brief Event connections
     #
 
     def createConnects(self):
 
-        self.dataStorePlan.pup.register('pushTransformationParams', self.rotationCoords.setAarTransformationParams)
-
+        self.dataStorePlan.pup.register("pushTransformationParams", self.rotationCoords.setAarTransformationParams)
 
     ## \brief Start digitize dialog
     #
@@ -65,39 +76,40 @@ class Plan():
 
         planData = self.__getSelectedValues()
 
-        baseFilePath = planData['profilePath'][:-4]
+        baseFilePath = planData["profilePath"][:-4]
 
         metaChecker = True
         try:
-            self.__importMetaData(planData['profilePath'])
+            self.__importMetaData(planData["profilePath"])
 
         except ValueError as err:
             metaChecker = False
             self.__iface.messageBar().pushMessage("Error", str(err.args[0]), level=1, duration=3)
 
         if metaChecker == True:
-
             self.dataStorePlan.triggerAarTransformationParams(self.aar_direction)
 
             refData = self.__getInputlayers(True)
 
             self.__exportPlanLayers(refData, baseFilePath)
 
-            self.__iface.messageBar().pushMessage("Hinweis", "Die Daten zum Plan wurden unter "+str(baseFilePath)+" abgelegt", level=3, duration=5)
+            self.__iface.messageBar().pushMessage(
+                "Hinweis", "Die Daten zum Plan wurden unter " + str(baseFilePath) + " abgelegt", level=3, duration=5
+            )
 
-            #self.layout.startLayout(planData)
+            # self.layout.startLayout(planData)
 
     ## \brief get selected values
     #
     #
     def __getSelectedValues(self):
 
-        #Profilbild
+        # Profilbild
         profilePath = self.__dockwidget.profilePlanSelect.filePath()
 
-        planData = {'profilePath': profilePath}
+        planData = {"profilePath": profilePath}
 
-        print('planData', planData)
+        print("planData", planData)
 
         return planData
 
@@ -107,31 +119,34 @@ class Plan():
     def __importMetaData(self, profilePath):
 
         metaFileName = profilePath[:-3]
-        metaFileName = metaFileName + 'meta'
+        metaFileName = metaFileName + "meta"
 
         if os.path.isfile(metaFileName):
 
             with open(metaFileName) as json_file:
                 data = json.load(json_file)
 
-                if data['aar_direction'] == 'horizontal' or data['aar_direction'] == 'absolute height' or data['aar_direction'] == 'original':
+                if (
+                    data["aar_direction"] == "horizontal"
+                    or data["aar_direction"] == "absolute height"
+                    or data["aar_direction"] == "original"
+                ):
 
-                    self.dataStorePlan.addProfileNumber(data['profilnummer'])
-                    self.dataStorePlan.addProfile(data['profil'])
-                    self.dataStorePlan.addProfileFoto(data['profilfoto'])
-                    self.dataStorePlan.addView(data['blickrichtung'])
-                    self.dataStorePlan.addEntzerrungsebene(data['entzerrungsebene'])
-                    self.dataStorePlan.addGcps(data['gcps'])
-                    self.dataStorePlan.addTransformParams(data['transform_params'])
+                    self.dataStorePlan.addProfileNumber(data["profilnummer"])
+                    self.dataStorePlan.addProfile(data["profil"])
+                    self.dataStorePlan.addProfileFoto(data["profilfoto"])
+                    self.dataStorePlan.addView(data["blickrichtung"])
+                    self.dataStorePlan.addEntzerrungsebene(data["entzerrungsebene"])
+                    self.dataStorePlan.addGcps(data["gcps"])
+                    self.dataStorePlan.addTransformParams(data["transform_params"])
 
-                    self.aar_direction = data['aar_direction']
+                    self.aar_direction = data["aar_direction"]
 
                 else:
-                    raise ValueError('AAR direction muss horizontal, absolute height oder original sein!')
+                    raise ValueError("AAR direction muss horizontal, absolute height oder original sein!")
 
         else:
             raise ValueError("Keine .meta Datei zum Profil vorhanden!")
-
 
     ## \brief Get all inputlayers from the folder "Eingabelayer" of the layertree
     #
@@ -146,30 +161,29 @@ class Plan():
         root = QgsProject.instance().layerTreeRoot()
 
         for group in root.children():
-            if isinstance(group, QgsLayerTreeGroup) and group.name() == 'Eingabelayer':
-                 for child in group.children():
-                     if isinstance(child, QgsLayerTreeLayer):
-                         if isClone == True:
+            if isinstance(group, QgsLayerTreeGroup) and group.name() == "Eingabelayer":
+                for child in group.children():
+                    if isinstance(child, QgsLayerTreeLayer):
+                        if isClone == True:
 
-                             if isinstance(child.layer(), QgsVectorLayer):
-                                 inputLayers.append(child.layer().clone())
-                         else:
-                             if isinstance(child.layer(), QgsVectorLayer):
-                                 inputLayers.append(child.layer())
-
+                            if isinstance(child.layer(), QgsVectorLayer):
+                                inputLayers.append(child.layer().clone())
+                        else:
+                            if isinstance(child.layer(), QgsVectorLayer):
+                                inputLayers.append(child.layer())
 
         refData = {}
 
         for layer in inputLayers:
 
-            if layer.name() == 'E_Point':
-                refData['pointLayer'] = layer.clone()
+            if layer.name() == "E_Point":
+                refData["pointLayer"] = layer.clone()
 
-            if layer.name() == 'E_Line':
-                 refData['lineLayer'] = layer.clone()
+            if layer.name() == "E_Line":
+                refData["lineLayer"] = layer.clone()
 
-            if layer.name() == 'E_Polygon':
-                 refData['polygonLayer'] = layer.clone()
+            if layer.name() == "E_Polygon":
+                refData["polygonLayer"] = layer.clone()
 
         return refData
 
@@ -178,34 +192,38 @@ class Plan():
     #
 
     def __exportPlanLayers(self, refData, baseFilePath):
-        
-        #Flexible buffersize from gui
-        bufferGeometry = self.rotationCoords.profileBuffer(self.__dockwidget.profileBufferSpinBox.value(), self.aar_direction)
-        #epsg from pointLayer - Todo search better solution (from meta file)
-        epsgCode = refData['pointLayer'].crs().authid()
 
-        #Punktlayer schreiben
-        selFeaturesPoint = self.__getPointFeaturesFromEingabelayer(refData['pointLayer'], bufferGeometry, 'profile')
-        self.__writeLayer(refData['pointLayer'], selFeaturesPoint, baseFilePath, 'point')
+        # Flexible buffersize from gui
+        bufferGeometry = self.rotationCoords.profileBuffer(
+            self.__dockwidget.profileBufferSpinBox.value(), self.aar_direction
+        )
+        # epsg from pointLayer - Todo search better solution (from meta file)
+        epsgCode = refData["pointLayer"].crs().authid()
 
-        #Linelayer schreiben
-        selFeaturesLine = self.__getLineFeaturesFromEingabelayer(refData['lineLayer'], bufferGeometry, 'profile')
-        self.__writeLayer(refData['lineLayer'], selFeaturesLine, baseFilePath, 'line')        
+        # Punktlayer schreiben
+        selFeaturesPoint = self.__getPointFeaturesFromEingabelayer(refData["pointLayer"], bufferGeometry, "profile")
+        self.__writeLayer(refData["pointLayer"], selFeaturesPoint, baseFilePath, "point")
 
-        #Polygonlayer schreiben
-        selFeaturesPolygon =  self.__getPolygonFeaturesFromEingabelayer(refData['polygonLayer'], bufferGeometry, 'profile')
-        self.__writeLayer(refData['polygonLayer'], selFeaturesPolygon, baseFilePath, 'polygon')   
+        # Linelayer schreiben
+        selFeaturesLine = self.__getLineFeaturesFromEingabelayer(refData["lineLayer"], bufferGeometry, "profile")
+        self.__writeLayer(refData["lineLayer"], selFeaturesLine, baseFilePath, "line")
 
-        #GCP Layer schreiben
+        # Polygonlayer schreiben
+        selFeaturesPolygon = self.__getPolygonFeaturesFromEingabelayer(
+            refData["polygonLayer"], bufferGeometry, "profile"
+        )
+        self.__writeLayer(refData["polygonLayer"], selFeaturesPolygon, baseFilePath, "polygon")
+
+        # GCP Layer schreiben
         gcpLayer, selFeatures = self.__getGcpLayer(epsgCode)
-        self.__writeLayer(gcpLayer, selFeatures, baseFilePath, 'gcp')   
+        self.__writeLayer(gcpLayer, selFeatures, baseFilePath, "gcp")
 
+        ## \brief get points from eingabelayer
 
-    ## \brief get points from eingabelayer
     #
     #
     def __getPointFeaturesFromEingabelayer(self, pointLayer, bufferGeometry, geoType):
-        #aus Eingabelayer holen
+        # aus Eingabelayer holen
 
         bbox = bufferGeometry.boundingBox()
         req = QgsFeatureRequest()
@@ -217,14 +235,13 @@ class Plan():
 
             if feature.geometry().within(bufferGeometry):
 
-                if geoType == 'profile':
-                    if feature['geo_quelle'] == 'profile_object':
-
+                if geoType == "profile":
+                    if feature["geo_quelle"] == "profile_object":
                         rotFeature = QgsFeature(pointLayer.fields())
 
                         rotateGeom = self.rotationCoords.rotatePointFeatureFromOrg(feature, self.aar_direction)
 
-                        zPoint = QgsPoint(rotateGeom['x_trans'], rotateGeom['z_trans'], rotateGeom['z_trans'])
+                        zPoint = QgsPoint(rotateGeom["x_trans"], rotateGeom["z_trans"], rotateGeom["z_trans"])
 
                         gZPoint = QgsGeometry(zPoint)
                         rotFeature.setGeometry(gZPoint)
@@ -250,9 +267,8 @@ class Plan():
 
             if feature.geometry().within(bufferGeometry):
 
-                if geoType == 'profile':
-                    if feature['geo_quelle'] == 'profile_object':
-
+                if geoType == "profile":
+                    if feature["geo_quelle"] == "profile_object":
                         rotFeature = QgsFeature(lineLayer.fields())
 
                         rotateGeom = self.rotationCoords.rotateLineFeatureFromOrg(feature, self.aar_direction)
@@ -281,9 +297,8 @@ class Plan():
 
             if feature.geometry().within(bufferGeometry):
 
-                if geoType == 'profile':
-                    if feature['geo_quelle'] == 'profile_object':
-
+                if geoType == "profile":
+                    if feature["geo_quelle"] == "profile_object":
                         rotFeature = QgsFeature(polygonLayer.fields())
 
                         rotateGeom = self.rotationCoords.rotatePolygonFeatureFromOrg(feature, self.aar_direction)
@@ -306,17 +321,17 @@ class Plan():
 
         # create layer
 
-        gcpLayer = QgsVectorLayer("point?crs="+epsgCode, "gcp_points", "memory")
+        gcpLayer = QgsVectorLayer("point?crs=" + epsgCode, "gcp_points", "memory")
         gcpLayer.startEditing()
         pr = gcpLayer.dataProvider()
 
-        #add attributes
-        
+        # add attributes
+
         attributes = []
-        
+
         for key, value in gcpObj[0].items():
 
-            if key != 'aar_y':
+            if key != "aar_y":
 
                 if isinstance(value, str):
                     attributes.append(QgsField(key, QVariant.String))
@@ -326,19 +341,18 @@ class Plan():
 
         pr.addAttributes(attributes)
         gcpLayer.updateFields()
-        
-    
-        #add features
+
+        # add features
         features = []
         for item in gcpObj:
-            
+
             feat = QgsFeature()
-            feat.setGeometry(QgsGeometry.fromPointXY(QgsPointXY(item['aar_x'],item['aar_z'])))
+            feat.setGeometry(QgsGeometry.fromPointXY(QgsPointXY(item["aar_x"], item["aar_z"])))
 
             attributesFeat = []
 
             for key, value in item.items():
-                if key != 'aar_y':
+                if key != "aar_y":
                     attributesFeat.append(value)
 
             feat.setAttributes(attributesFeat)
@@ -348,22 +362,22 @@ class Plan():
 
         # Rename fields
         for field in gcpLayer.fields():
-            if field.name() == 'aar_x':
+            if field.name() == "aar_x":
                 gcpLayer.startEditing()
                 idx = gcpLayer.fields().indexFromName(field.name())
-                gcpLayer.renameAttribute(idx, 'x_orig')
+                gcpLayer.renameAttribute(idx, "x_orig")
                 gcpLayer.commitChanges()
 
-            if field.name() == 'aar_z':
+            if field.name() == "aar_z":
                 gcpLayer.startEditing()
                 idx = gcpLayer.fields().indexFromName(field.name())
-                gcpLayer.renameAttribute(idx, 'y_orig')
+                gcpLayer.renameAttribute(idx, "y_orig")
                 gcpLayer.commitChanges()
 
-            if field.name() == 'aar_z_org':
+            if field.name() == "aar_z_org":
                 gcpLayer.startEditing()
                 idx = gcpLayer.fields().indexFromName(field.name())
-                gcpLayer.renameAttribute(idx, 'z_orig')
+                gcpLayer.renameAttribute(idx, "z_orig")
                 gcpLayer.commitChanges()
 
         gcpLayer.updateFields()
@@ -378,16 +392,18 @@ class Plan():
     def __writeLayer(self, inputLayer, selFeatures, baseFilePath, layerType):
 
         inputLayer.selectAll()
-        outputLayer = processing.run("native:saveselectedfeatures", {'INPUT': inputLayer, 'OUTPUT': 'memory:'})['OUTPUT']
+        outputLayer = processing.run("native:saveselectedfeatures", {"INPUT": inputLayer, "OUTPUT": "memory:"})[
+            "OUTPUT"
+        ]
         outputLayer.removeSelection()
 
         outputLayer.startEditing()
 
-        #Layer leeren
+        # Layer leeren
         pr = outputLayer.dataProvider()
         pr.truncate()
 
-        #add features
+        # add features
         pr.addFeatures(selFeatures)
 
         outputLayer.commitChanges()
@@ -397,12 +413,11 @@ class Plan():
         outputLayer.endEditCommand()
 
         # Save mem layer as a shapefile
-        fileOutPath = f'{baseFilePath}_{layerType}.shp'
+        fileOutPath = f"{baseFilePath}_{layerType}.shp"
 
         options = QgsVectorFileWriter.SaveVectorOptions()
         options.driverName = "ESRI Shapefile"
 
         QgsVectorFileWriter.writeAsVectorFormatV2(outputLayer, fileOutPath, QgsCoordinateTransformContext(), options)
 
-        print('outputLayer Layer is written to: ', fileOutPath)
-
+        print("outputLayer Layer is written to: ", fileOutPath)

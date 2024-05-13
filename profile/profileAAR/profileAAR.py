@@ -51,21 +51,17 @@
  ***************************************************************************/
 
 """
-from __future__ import absolute_import
-from builtins import range
-from builtins import object
-from .transformation import sectionCalc
-# the magic happens here
-from .transformation import Magic_Box
 
+# the magic happens here
+from .transformation import MagicBox
+from .transformation import sectionCalc
 from ..publisher import Publisher
 
-class profileAAR(object):
 
+class ProfileAAR(object):
     """QGIS Plugin Implementation."""
 
     def __init__(self):
-
         """
         Constructor
         """
@@ -75,24 +71,24 @@ class profileAAR(object):
     def run(self, data):
         """Run method that performs all the real work"""
 
-        magicbox = Magic_Box()
+        magicbox = MagicBox()
 
-        '''DEFINE OUTPUT PATH'''
+        """DEFINE OUTPUT PATH"""
 
-        '''TODO check input data'''
+        """TODO check input data"""
 
         result = data[0]
         transform_param = data[1]
         if result:
 
-            '''GET INPUT FROM GUI TO VARIABLES/PREPARE LIST OF DATA'''
+            """GET INPUT FROM GUI TO VARIABLES/PREPARE LIST OF DATA"""
 
             # GET TEXT FROM METHOD AND DIRECTION
             # Read the method that is selected
-            method = transform_param['method']
+            method = transform_param["method"]
 
             # read the direction, that is selected
-            direction = transform_param['direction']
+            direction = transform_param["direction"]
 
             # PREPARE DATA LIST
             # Go thought all data rows in the selected layer
@@ -114,7 +110,7 @@ class profileAAR(object):
                 profileName = feature[4]
 
                 # fetch geometry
-                #for p in feature:
+                # for p in feature:
                 # getting x and y coordinate
                 x = round(feature[0], 3)
                 y = round(feature[1], 3)
@@ -127,13 +123,13 @@ class profileAAR(object):
 
                 point_id += 1
 
-                coord.append([x,y,z,view, profileName, use, point_id, obj_uuid])
+                coord.append([x, y, z, view, profileName, use, point_id, obj_uuid])
 
                 # write a list of profilenames (unique entries)
                 if profileName not in profile_names:
                     profile_names.append(profileName)
 
-            '''WORK ON EVERY PROFILE IN LOOP'''
+            """WORK ON EVERY PROFILE IN LOOP"""
 
             # CREATE A LIST OF DATA FOR EVERY PROFILE
             # select every single profile in a loop
@@ -176,29 +172,30 @@ class profileAAR(object):
                 profileCheck, fieldCheck, inputCheck = False, False, False
 
                 if fieldCheck is False and inputCheck is False:
-
                     profileCheck = False
 
                 if profileCheck is False and fieldCheck is False and inputCheck is False:
-
                     # Calculating the profile and add it to the list
 
                     transform_return = magicbox.transformation(coord_proc, method, direction)
 
-                    coord_height_list = transform_return['coord_trans']
+                    coord_height_list = transform_return["coord_trans"]
 
                     coord_trans.append(coord_height_list)
 
                     # If checked, the upper right point has to be exportet as point
                     height_points.append(magicbox.height_points(coord_height_list))
 
-                    cutting_line.append(sectionCalc(self,
-                        coord_proc,
-                        transform_return['cutting_start'],
-                        transform_return['linegress'],
-                        transform_return['ns_error']), )
+                    cutting_line.append(
+                        sectionCalc(
+                            coord_proc,
+                            transform_return["cutting_start"],
+                            transform_return["linegress"],
+                            transform_return["ns_error"],
+                        ),
+                    )
 
-                    #return transform_return
-                    transform_return['transformationParams']['cutting_line'] = cutting_line
-                    transform_return['transformationParams']['aar_direction'] = direction
-                    self.pup.publish('aarPointsChanged', transform_return)
+                    # return transform_return
+                    transform_return["transformationParams"]["cutting_line"] = cutting_line
+                    transform_return["transformationParams"]["aar_direction"] = direction
+                    self.pup.publish("aarPointsChanged", transform_return)

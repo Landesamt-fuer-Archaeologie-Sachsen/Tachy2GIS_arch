@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
+
 from qgis.PyQt.QtCore import Qt, QRect
 from qgis.PyQt.QtGui import QIcon, QPainter, QColor
 from qgis.PyQt.QtWidgets import QWidget, QHBoxLayout, QSizePolicy, QToolBar, QAction, QLineEdit, QActionGroup
@@ -25,7 +26,7 @@ class ImageParambar(QWidget):
         super().__init__()
         self.canvasImage = canvasImage
 
-        icon_path = os.path.join(os.path.dirname(__file__), "..", "Icons")
+        icon_path = os.path.join(os.path.dirname(__file__), "..", "..", "Icons")
 
         self.imageToolbar = QToolBar("Edit", self)
         self.action_group = QActionGroup(self)
@@ -40,7 +41,7 @@ class ImageParambar(QWidget):
         self.actionMove.triggered.connect(self.activateMove)
 
         # create component pan:
-        iconPan = QIcon(os.path.join(icon_path, "mActionPan.png"))
+        iconPan = QIcon(QgsApplication.iconPath("mActionPan"))
         self.actionPan = QAction(iconPan, "Pan", self)
         self.actionPan.setCheckable(True)
         self.canvasImage.toolPan.setAction(self.actionPan)
@@ -49,7 +50,7 @@ class ImageParambar(QWidget):
         self.actionPan.triggered.connect(self.activatePan)
 
         # create component zoom in:
-        iconZoomIn = QIcon(os.path.join(icon_path, "mActionZoomIn.png"))
+        iconZoomIn = QIcon(QgsApplication.iconPath("mActionZoomIn"))
         self.actionZoomIn = QAction(iconZoomIn, "Zoom in", self)
         self.actionZoomIn.setCheckable(True)
         self.canvasImage.toolZoomIn.setAction(self.actionZoomIn)
@@ -58,7 +59,7 @@ class ImageParambar(QWidget):
         self.actionZoomIn.triggered.connect(self.activateZoomIn)
 
         # create component zoom out:
-        iconZoomOut = QIcon(os.path.join(icon_path, "mActionZoomOut.png"))
+        iconZoomOut = QIcon(QgsApplication.iconPath("mActionZoomOut"))
         self.actionZoomOut = QAction(iconZoomOut, "Zoom out", self)
         self.actionZoomOut.setCheckable(True)
         self.canvasImage.toolZoomOut.setAction(self.actionZoomOut)
@@ -67,7 +68,7 @@ class ImageParambar(QWidget):
         self.actionZoomOut.triggered.connect(self.activateZoomOut)
 
         # create component zoom to extent:
-        iconExtent = QIcon(os.path.join(icon_path, "mActionZoomToLayer.png"))
+        iconExtent = QIcon(QgsApplication.iconPath("mActionZoomToLayer"))
         self.actionExtent = QAction(iconExtent, "Zoom to layer", self)
         self.action_group.addAction(self.actionExtent)
         self.imageToolbar.addAction(self.actionExtent)

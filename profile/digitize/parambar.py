@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
+
 from qgis.PyQt.QtCore import Qt, QRect
 from qgis.PyQt.QtGui import QIcon, QPainter, QColor
 from qgis.PyQt.QtWidgets import (
@@ -45,9 +46,7 @@ def merge_icons(source_icon, small_icon):
     small_pixmap = small_icon.pixmap(small, small)
     painter = QPainter(pixmap)
     painter.setCompositionMode(QPainter.CompositionMode_SourceOver)
-    painter.drawPixmap(
-        QRect(big - small, big - small, small, small), small_pixmap, small_pixmap.rect()
-    )
+    painter.drawPixmap(QRect(big - small, big - small, small, small), small_pixmap, small_pixmap.rect())
     painter.end()
     return QIcon(pixmap)
 
@@ -149,17 +148,11 @@ class Parambar(QWidget):
         try:
             # layer_id = self.activeLayerCombo.currentData()
             # if self.refData['pointLayer'].id() == layer_id:
-            self.toolDigiPoint.reverseRotation2Eingabelayer(
-                self.refData["pointLayer"].id(), self.aar_direction
-            )
+            self.toolDigiPoint.reverseRotation2Eingabelayer(self.refData["pointLayer"].id(), self.aar_direction)
             # if self.refData['lineLayer'].id() == layer_id:
-            self.toolDigiLine.reverseRotation2Eingabelayer(
-                self.refData["lineLayer"].id(), self.aar_direction
-            )
+            self.toolDigiLine.reverseRotation2Eingabelayer(self.refData["lineLayer"].id(), self.aar_direction)
             # if self.refData['polygonLayer'].id() == layer_id:
-            self.toolDigiPolygon.reverseRotation2Eingabelayer(
-                self.refData["polygonLayer"].id(), self.aar_direction
-            )
+            self.toolDigiPolygon.reverseRotation2Eingabelayer(self.refData["polygonLayer"].id(), self.aar_direction)
 
             infoText = "Objekte wurden erfolgreich in die Eingabelayer geschrieben."
             titleText = "Info"
@@ -175,19 +168,11 @@ class Parambar(QWidget):
         if self.getObjectsAction.isChecked():
             iconImport = QIcon(os.path.join(self.iconpath, "Sichtbar_an.gif"))
             self.getObjectsAction.setIcon(iconImport)
-            bufferGeometry = self.rotationCoords.profileBuffer(
-                self.bufferSpin.value(), self.aar_direction
-            )
+            bufferGeometry = self.rotationCoords.profileBuffer(self.bufferSpin.value(), self.aar_direction)
 
-            self.toolDigiPoint.getFeaturesFromEingabelayer(
-                bufferGeometry, "tachy", self.aar_direction
-            )
-            self.toolDigiLine.getFeaturesFromEingabelayer(
-                bufferGeometry, "tachy", self.aar_direction
-            )
-            self.toolDigiPolygon.getFeaturesFromEingabelayer(
-                bufferGeometry, "tachy", self.aar_direction
-            )
+            self.toolDigiPoint.getFeaturesFromEingabelayer(bufferGeometry, "tachy", self.aar_direction)
+            self.toolDigiLine.getFeaturesFromEingabelayer(bufferGeometry, "tachy", self.aar_direction)
+            self.toolDigiPolygon.getFeaturesFromEingabelayer(bufferGeometry, "tachy", self.aar_direction)
         else:
             iconImport = QIcon(os.path.join(self.iconpath, "Sichtbar_aus.gif"))
             self.getObjectsAction.setIcon(iconImport)
@@ -260,14 +245,12 @@ class Parambar(QWidget):
             QIcon(QgsApplication.iconPath("mActionDuplicateLayer.svg")),
             QIcon(QgsApplication.iconPath("mActionFileSave.svg")),
         )
-        self.takeLayerButton = QAction(
-            iconPan, "Objekte in Eingabelayer schreiben", self
-        )
+        self.takeLayerButton = QAction(iconPan, "Objekte in Eingabelayer schreiben", self)
         self.canvasToolbar.addAction(self.takeLayerButton)
 
     def createPanAction(self):
         # Pan
-        iconPan = QIcon(os.path.join(self.iconpath, "mActionPan.png"))
+        iconPan = QIcon(QgsApplication.iconPath("mActionPan"))
         self.actionPan = QAction(iconPan, "Pan", self)
         self.actionPan.setCheckable(True)
 
@@ -279,7 +262,7 @@ class Parambar(QWidget):
 
     def createIdentifyAction(self):
         # Point
-        iconIdentify = QIcon(os.path.join(self.iconpath, "mActionIdentify.png"))
+        iconIdentify = QIcon(QgsApplication.iconPath("mActionIdentify"))
         self.actionIdentify = QAction(iconIdentify, "Objekte abfragen", self)
         self.actionIdentify.setCheckable(True)
 
@@ -290,7 +273,7 @@ class Parambar(QWidget):
         self.actionIdentify.triggered.connect(self.activateIdentify)
 
     def createActionZoomIn(self):
-        iconZoomIn = QIcon(os.path.join(self.iconpath, "mActionZoomIn.png"))
+        iconZoomIn = QIcon(QgsApplication.iconPath("mActionZoomIn"))
         self.actionZoomIn = QAction(iconZoomIn, "Zoom in", self)
         self.actionZoomIn.setCheckable(True)
 
@@ -302,7 +285,7 @@ class Parambar(QWidget):
         self.actionZoomIn.triggered.connect(self.activateZoomIn)
 
     def createActionZoomOut(self):
-        iconZoomOut = QIcon(os.path.join(self.iconpath, "mActionZoomOut.png"))
+        iconZoomOut = QIcon(QgsApplication.iconPath("mActionZoomOut"))
         self.actionZoomOut = QAction(iconZoomOut, "Zoom out", self)
         self.actionZoomOut.setCheckable(True)
 
@@ -314,7 +297,7 @@ class Parambar(QWidget):
         self.actionZoomOut.triggered.connect(self.activateZoomOut)
 
     def createActionExtent(self):
-        iconExtent = QIcon(os.path.join(self.iconpath, "mActionZoomToLayer.png"))
+        iconExtent = QIcon(QgsApplication.iconPath("mActionZoomToLayer"))
         self.actionExtent = QAction(iconExtent, "Zoom to layer", self)
 
         self.canvasToolbar.addAction(self.actionExtent)
@@ -336,9 +319,7 @@ class Parambar(QWidget):
         self.bufferSpin.setMaximum(5)
         self.bufferSpin.setSingleStep(0.01)
         self.bufferSpin.setValue(1)
-        self.bufferSpin.setToolTip(
-            "Max. Abstand [m] der Eingabelayerobjekte von der Profillinie"
-        )
+        self.bufferSpin.setToolTip("Max. Abstand [m] der Eingabelayerobjekte von der Profillinie")
         self.canvasToolbar.addWidget(self.bufferSpin)
 
     def createLayerauswahl(self):
@@ -346,9 +327,7 @@ class Parambar(QWidget):
         self.canvasToolbar.addSeparator()
         self.labelActiveLayerCombo = QLabel("aktiver\nLayer:")
         self.labelActiveLayerCombo.setAlignment(Qt.AlignVCenter)
-        self.labelActiveLayerCombo.setStyleSheet(
-            "padding-right: 4px; padding-left: 4px"
-        )
+        self.labelActiveLayerCombo.setStyleSheet("padding-right: 4px; padding-left: 4px")
 
         self.activeLayerCombo = QComboBox()
         self.canvasToolbar.addWidget(self.labelActiveLayerCombo)
@@ -450,9 +429,7 @@ class Parambar(QWidget):
             color_shift_icon(icon_geom, QColor(0, 160, 255, 80)),
             QIcon(QgsApplication.iconPath("mActionToggleEditing.svg")),
         )
-        self.action_tool_line_edit = QAction(
-            icon_edit, "Linie editieren\n(1) Linie und (2) Punkt auswählen", self
-        )
+        self.action_tool_line_edit = QAction(icon_edit, "Linie editieren\n(1) Linie und (2) Punkt auswählen", self)
         self.action_tool_line_edit.setCheckable(True)
         self.action_group_line.addAction(self.action_tool_line_edit)
         self.canvasToolbar.addAction(self.action_tool_line_edit)
@@ -513,9 +490,7 @@ class Parambar(QWidget):
             color_shift_icon(icon_geom, QColor(0, 160, 255, 80)),
             QIcon(QgsApplication.iconPath("mActionToggleEditing.svg")),
         )
-        self.action_tool_point_edit = QAction(
-            icon_edit, "Punkt auswählen\nzum erneuten Editieren", self
-        )
+        self.action_tool_point_edit = QAction(icon_edit, "Punkt auswählen\nzum erneuten Editieren", self)
         self.action_tool_point_edit.setCheckable(True)
         self.action_group_point.addAction(self.action_tool_point_edit)
         self.canvasToolbar.addAction(self.action_tool_point_edit)
@@ -575,15 +550,9 @@ class Parambar(QWidget):
         self.refData = refData
 
         self.activeLayerCombo.clear()
-        self.activeLayerCombo.addItem(
-            self.refData["pointLayer"].sourceName(), self.refData["pointLayer"].id()
-        )
-        self.activeLayerCombo.addItem(
-            self.refData["lineLayer"].sourceName(), self.refData["lineLayer"].id()
-        )
-        self.activeLayerCombo.addItem(
-            self.refData["polygonLayer"].sourceName(), self.refData["polygonLayer"].id()
-        )
+        self.activeLayerCombo.addItem(self.refData["pointLayer"].sourceName(), self.refData["pointLayer"].id())
+        self.activeLayerCombo.addItem(self.refData["lineLayer"].sourceName(), self.refData["lineLayer"].id())
+        self.activeLayerCombo.addItem(self.refData["polygonLayer"].sourceName(), self.refData["polygonLayer"].id())
 
         # select lineLayer per default:
         self.activeLayerCombo.setCurrentIndex(1)
@@ -591,9 +560,7 @@ class Parambar(QWidget):
         self.activeLayerCombo.resize(self.activeLayerCombo.sizeHint())
 
     def updateCoordinate(self, coordObj):
-        retObj = self.rotationCoords.rotationReverse(
-            coordObj["x"], coordObj["y"], True, self.aar_direction
-        )
+        retObj = self.rotationCoords.rotationReverse(coordObj["x"], coordObj["y"], True, self.aar_direction)
 
         self.coordLineEdit.setText(
             str("{:.3f}".format(round(retObj["x_trans"], 3)))

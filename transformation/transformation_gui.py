@@ -5,15 +5,24 @@ import shutil
 import time
 
 from qgis.PyQt.QtWidgets import QMessageBox
-from qgis.core import QgsProject, QgsVectorLayer, QgsLayerTreeGroup, QgsLayerTreeLayer, QgsVectorFileWriter, QgsCoordinateReferenceSystem, QgsWkbTypes
-from .transformation_dialog import TransformationDialog
+from qgis.core import (
+    QgsProject,
+    QgsVectorLayer,
+    QgsLayerTreeGroup,
+    QgsLayerTreeLayer,
+    QgsCoordinateReferenceSystem,
+    QgsWkbTypes,
+)
+
 from .transformation_calculations import TransformationCalculations
+from .transformation_dialog import TransformationDialog
+
 
 ## @brief The class is used to implement GUI functionalities for transformation within the dock widget of the Tachy2GIS_arch plugin
 #
 # @author Mario Uhlig, VisDat geodatentechnologie GmbH, mario.uhlig@visdat.de
 # @date 2020-10-19
-class TransformationGui():
+class TransformationGui:
 
     ## The constructor.
     #  Defines attributes for the transformation
@@ -28,7 +37,7 @@ class TransformationGui():
 
         self.iface = iFace
         self.dockwidget = dockWidget
-        self.colNameGcpSource = '11' #enspricht 'Festpunkt'
+        self.colNameGcpSource = "11"  # enspricht 'Festpunkt'
         self.transformationDialog = TransformationDialog(self)
         self.paramCalc = TransformationCalculations(self)
         self.transformationParametersDone = False
@@ -36,7 +45,7 @@ class TransformationGui():
         self.translationX = float("NAN")
         self.translationY = float("NAN")
         self.translationZ = float("NAN")
-        self.defaultEpsg = QgsCoordinateReferenceSystem('EPSG:31469')
+        self.defaultEpsg = QgsCoordinateReferenceSystem("EPSG:31469")
 
     ## @brief Initializes the functionality for transformation modul
     # - Reads the transformation status and any transformation parameters from the QGIS project file
@@ -45,7 +54,7 @@ class TransformationGui():
     def setup(self):
 
         transformationStateId, transformationStatelong = self.getTransformationStateFromProject()
-        #1 - Vektordaten wurden transformiert oder 2 - Transformation wurde zurückgesetzt.
+        # 1 - Vektordaten wurden transformiert oder 2 - Transformation wurde zurückgesetzt.
         if transformationStateId == 1 or transformationStateId == 2:
             self.transformationParametersDone = True
         else:
@@ -55,7 +64,7 @@ class TransformationGui():
         self.setTransformationStateGUI(transformationStateId, transformationStatelong)
         self.setTransformationParametersGUI(self.translationX, self.translationY, self.translationZ, self.zAngle)
 
-        #Preselection Inputlayer
+        # Preselection Inputlayer
         self.preselectionComboInputlayers()
 
         self.dockwidget.projectionSelectionTransform.setCrs(self.defaultEpsg)
@@ -71,7 +80,7 @@ class TransformationGui():
     def saveProject(self):
 
         projectFile = QgsProject.instance().fileName()
-        print('Save projectfile: ', projectFile)
+        print("Save projectfile: ", projectFile)
         if projectFile != "":
             QgsProject.instance().write(projectFile)
 
@@ -84,7 +93,7 @@ class TransformationGui():
 
         inputLayers = self.getInputlayers(False)
         for layer in inputLayers:
-            if layer.name() == 'E_Point':
+            if layer.name() == "E_Point":
                 self.dockwidget.comboEingabelayerTransform.setLayer(layer)
 
     ## \brief Set transformation state of the current Project in GUI
@@ -95,12 +104,12 @@ class TransformationGui():
     # @param textValue The text value of the transformation state
     def setTransformationStateGUI(self, stateId, textValue):
 
-        #0 - noch keine Transformation 1 - Vektordaten wurden transformiert oder 2 - Transformation wurde zurückgesetzt.
-        if stateId  == 0:
+        # 0 - noch keine Transformation 1 - Vektordaten wurden transformiert oder 2 - Transformation wurde zurückgesetzt.
+        if stateId == 0:
             styleText = "QLabel {color : grey;}"
-        if stateId  == 1:
+        if stateId == 1:
             styleText = "QLabel {color : green;}"
-        if stateId  == 2:
+        if stateId == 2:
             styleText = "QLabel {color : grey;}"
 
         self.dockwidget.transformationStateText.setStyleSheet(styleText)
@@ -114,10 +123,11 @@ class TransformationGui():
 
         projectSettings = QgsProject.instance()
         transformationStateId = projectSettings.readNumEntry("transformation_state_id", "int", 0)[0]
-        transformationStatelong = projectSettings.readEntry("transformation_state_long", "text", "Es wurde bisher keine Transformation ausgeführt.")[0]
+        transformationStatelong = projectSettings.readEntry(
+            "transformation_state_long", "text", "Es wurde bisher keine Transformation ausgeführt."
+        )[0]
 
         return transformationStateId, transformationStatelong
-
 
     ## \brief Set tranformation state of the current project
     # Save it to project file - saveProject()
@@ -125,18 +135,20 @@ class TransformationGui():
     def setTransformationState2Project(self, stateId):
 
         projectSettings = QgsProject.instance()
-        #stateId 0 - Es wurde bisher keine Transformation ausgeführt.
+        # stateId 0 - Es wurde bisher keine Transformation ausgeführt.
         if stateId == 0:
             projectSettings.writeEntry("transformation_state_id", "int", stateId)
-            projectSettings.writeEntry("transformation_state_long", "text", str('Es wurde bisher keine Transformation ausgeführt.'))
-        #stateId 1 - Vektordaten wurden transformiert.
+            projectSettings.writeEntry(
+                "transformation_state_long", "text", str("Es wurde bisher keine Transformation ausgeführt.")
+            )
+        # stateId 1 - Vektordaten wurden transformiert.
         if stateId == 1:
             projectSettings.writeEntry("transformation_state_id", "int", stateId)
-            projectSettings.writeEntry("transformation_state_long", "text", str('Vektordaten wurden transformiert.'))
-        #stateId 2 - Transformation wurde zurückgesetzt.
+            projectSettings.writeEntry("transformation_state_long", "text", str("Vektordaten wurden transformiert."))
+        # stateId 2 - Transformation wurde zurückgesetzt.
         if stateId == 2:
             projectSettings.writeEntry("transformation_state_id", "int", stateId)
-            projectSettings.writeEntry("transformation_state_long", "text", str('Transformation wurde zurückgesetzt.'))
+            projectSettings.writeEntry("transformation_state_long", "text", str("Transformation wurde zurückgesetzt."))
 
         self.saveProject()
 
@@ -250,9 +262,11 @@ class TransformationGui():
             gcpSource = self.getLocalGCPs(sourceLayer)
             success, targetGCP = self.getTargetCoordinates(targetGCPFile)
             if success == True:
-                self.transformationDialog.showTransformationDialog(sourceLayer, inputLayers, QgsCoordinateReferenceSystem(self.targetCrs), gcpSource, targetGCP)
+                self.transformationDialog.showTransformationDialog(
+                    sourceLayer, inputLayers, QgsCoordinateReferenceSystem(self.targetCrs), gcpSource, targetGCP
+                )
         else:
-            print('Validation', False)
+            print("Validation", False)
 
     ## \brief Open messagebox before reverse calculation of the transformation starts
     #
@@ -261,7 +275,9 @@ class TransformationGui():
         self.transformMsgBox = QMessageBox()
         self.transformMsgBox.setIcon(QMessageBox.Warning)
         self.transformMsgBox.setWindowTitle("Transformation zurücksetzen")
-        self.transformMsgBox.setText("Es werden alle Eingabelayer mit ihrem aktuellen Inhalt entsprechend der Transformationsparameter zurücktransformiert.")
+        self.transformMsgBox.setText(
+            "Es werden alle Eingabelayer mit ihrem aktuellen Inhalt entsprechend der Transformationsparameter zurücktransformiert."
+        )
         self.transformMsgBox.setStandardButtons((QMessageBox.Ok | QMessageBox.Cancel))
         self.transformMsgBox.buttonClicked.connect(self.resetTransformation)
         self.transformMsgBox.exec_()
@@ -277,13 +293,12 @@ class TransformationGui():
         self.validityMsgBox.setText(validationText)
 
         self.validityMsgBox.setDetailedText(detailedText)
-        #self.validityMsgBox.setWidget(scroll)
-        #self.validityMsgBox.setStyleSheet("QScrollArea{min-width:300 px; min-height: 400px}")
+        # self.validityMsgBox.setWidget(scroll)
+        # self.validityMsgBox.setStyleSheet("QScrollArea{min-width:300 px; min-height: 400px}")
         self.validityMsgBox.setIcon(QMessageBox.Warning)
         self.validityMsgBox.setWindowTitle("Gültigkeitsprüfung der Eingabelayer")
         self.validityMsgBox.setStandardButtons((QMessageBox.Cancel))
         self.validityMsgBox.exec_()
-
 
     ## \brief Opens a message box with background informations
     #
@@ -294,8 +309,8 @@ class TransformationGui():
         self.infoTranssformMsgBox = QMessageBox()
         self.infoTranssformMsgBox.setText(infoText)
 
-        #self.validityMsgBox.setWidget(scroll)
-        #self.validityMsgBox.setStyleSheet("QScrollArea{min-width:300 px; min-height: 400px}")
+        # self.validityMsgBox.setWidget(scroll)
+        # self.validityMsgBox.setStyleSheet("QScrollArea{min-width:300 px; min-height: 400px}")
         self.infoTranssformMsgBox.setWindowTitle("Hintergrundinformationen")
         self.infoTranssformMsgBox.setStandardButtons((QMessageBox.Ok))
         self.infoTranssformMsgBox.exec_()
@@ -312,7 +327,6 @@ class TransformationGui():
 
         self.validityMessageBox(validationText, detailedText)
 
-
     ## \brief Check the validity of the inputlayers
     #
     # Uses QgsGeometry --> validateGeometry()
@@ -323,13 +337,13 @@ class TransformationGui():
         generalValid = True
         inputLayers = self.getInputlayers(True)
 
-        validationText = 'Ungültige Geometrien können zu Transformationsfehlern führen! Bitte bereinigen Sie die Geometrien im Vorfeld einer Transformation! \n\n'
-        detailedText = ''
+        validationText = "Ungültige Geometrien können zu Transformationsfehlern führen! Bitte bereinigen Sie die Geometrien im Vorfeld einer Transformation! \n\n"
+        detailedText = ""
         for layer in inputLayers:
 
-            detailedText += '\n'+layer.name()+'\n----------------------\n'
+            detailedText += "\n" + layer.name() + "\n----------------------\n"
 
-            validationFeatureText = ''
+            validationFeatureText = ""
 
             for i, feat in enumerate(layer.getFeatures()):
 
@@ -340,10 +354,10 @@ class TransformationGui():
                 else:
 
                     for singleError in validationError:
-                        validationFeatureText += 'FeatureId '+str(feat.id())+': '+singleError.what()+'\n'
+                        validationFeatureText += "FeatureId " + str(feat.id()) + ": " + singleError.what() + "\n"
 
             if not validationFeatureText:
-                validationFeatureText = 'Geometrien sind gültig!\n'
+                validationFeatureText = "Geometrien sind gültig!\n"
             else:
                 generalValid = False
 
@@ -356,9 +370,9 @@ class TransformationGui():
 
     def resetTransformation(self, btn):
 
-        if btn.text() == 'OK':
+        if btn.text() == "OK":
             self.startReverseTransformation()
-            #self.enableTransformation(True)
+            # self.enableTransformation(True)
 
     ## \brief check valid sourcelayer
     # prueft auf Spalten Anzahl (4)
@@ -376,46 +390,57 @@ class TransformationGui():
             isValid = True
 
             # is 3d Point layer
-            #feature.attribute('obj_typ') == 'Georeferenzierung':
+            # feature.attribute('obj_typ') == 'Georeferenzierung':
             layerType = sourceLayer.wkbType()
-            #1001 PointZ, 3001 PointZM, 1004 MultiPointZ, 3004 MultipointZM
-            if layerType == QgsWkbTypes.PointZ or layerType == QgsWkbTypes.PointZM or layerType == QgsWkbTypes.MultiPointZ or layerType == QgsWkbTypes.MultiPointZM:
+            # 1001 PointZ, 3001 PointZM, 1004 MultiPointZ, 3004 MultipointZM
+            if (
+                layerType == QgsWkbTypes.PointZ
+                or layerType == QgsWkbTypes.PointZM
+                or layerType == QgsWkbTypes.MultiPointZ
+                or layerType == QgsWkbTypes.MultiPointZM
+            ):
                 isValid = True
 
-                #Check that column obj_type is in attributtable
-                field_index = sourceLayer.fields().indexFromName('obj_typ')
+                # Check that column obj_type is in attributtable
+                field_index = sourceLayer.fields().indexFromName("obj_typ")
 
                 if field_index == -1:
-                    self.iface.messageBar().pushMessage("Error", "Im Eingabelayer fehlt die Spalte 'obj_typ'", level=1, duration=5)
+                    self.iface.messageBar().pushMessage(
+                        "Error", "Im Eingabelayer fehlt die Spalte 'obj_typ'", level=1, duration=5
+                    )
                     isValid = False
                 else:
                     isValid = True
 
                     counterGeoref = 0
                     for feature in sourceLayer.getFeatures():
-                        #Alt war Georeferenzierung
+                        # Alt war Georeferenzierung
 
-                        if feature.attribute('obj_typ') == self.colNameGcpSource:
+                        if feature.attribute("obj_typ") == self.colNameGcpSource:
                             counterGeoref += 1
-
 
                     if counterGeoref < 2:
                         isValid = False
-                        self.iface.messageBar().pushMessage("Error", "Min. zwei Einträge 'Festpunkt' in Spalte 'obj_typ' sind notwendig", level=1, duration=5)
+                        self.iface.messageBar().pushMessage(
+                            "Error",
+                            "Min. zwei Einträge 'Festpunkt' in Spalte 'obj_typ' sind notwendig",
+                            level=1,
+                            duration=5,
+                        )
                     else:
                         isValid = True
 
             else:
                 isValid = False
-                self.iface.messageBar().pushMessage("Error", "Sourcelayer muss PointZ, PointZM, MultiPointZ oder MultipointZM sein", level=1, duration=5)
+                self.iface.messageBar().pushMessage(
+                    "Error", "Sourcelayer muss PointZ, PointZM, MultiPointZ oder MultipointZM sein", level=1, duration=5
+                )
 
         else:
             isValid = False
             self.iface.messageBar().pushMessage("Error", "Sourcelayer ist kein Vektorlayer", level=1, duration=5)
 
-
         return isValid
-
 
     ## \brief Check Valid GCP File
     # - checks for number of columns (4)
@@ -433,24 +458,34 @@ class TransformationGui():
         if os.path.isfile(filePath) == True:
             isValid = True
 
-            with open(filePath, newline='') as csvfile:
-                reader = csv.DictReader(csvfile, delimiter='\t')
+            with open(filePath, newline="") as csvfile:
+                reader = csv.DictReader(csvfile, delimiter="\t")
 
-                #check Anzahl Zeilen > 1
+                # check Anzahl Zeilen > 1
                 if len(list(reader)) >= checkCountRows:
                     isValid = True
 
-                    #check Anzahl Spalten == 4
+                    # check Anzahl Spalten == 4
                     for row in reader:
                         if len(row) == checkCountColumns:
                             isValid = True
                         else:
                             isValid = False
-                            self.iface.messageBar().pushMessage("Error", "GCP Datei ist ungültig: Anzahl Spalten ungleich "+str(checkCountColumns), level=1, duration=5)
+                            self.iface.messageBar().pushMessage(
+                                "Error",
+                                "GCP Datei ist ungültig: Anzahl Spalten ungleich " + str(checkCountColumns),
+                                level=1,
+                                duration=5,
+                            )
 
                 else:
                     isValid = False
-                    self.iface.messageBar().pushMessage("Error", "GCP Datei ist ungültig: min. "+str(checkCountRows)+" Zeilen notwendig", level=1, duration=5)
+                    self.iface.messageBar().pushMessage(
+                        "Error",
+                        "GCP Datei ist ungültig: min. " + str(checkCountRows) + " Zeilen notwendig",
+                        level=1,
+                        duration=5,
+                    )
 
         else:
 
@@ -496,16 +531,30 @@ class TransformationGui():
         gcpSource = []
 
         for feature in sourceLayer.getFeatures():
-            if feature.attribute('obj_typ') == self.colNameGcpSource:
+            if feature.attribute("obj_typ") == self.colNameGcpSource:
                 point = feature.geometry().constGet()
                 geomType = point.wkbType()
-                #1001 PointZ, 3001 PointZM, -2147483647 Point2.5D
-                if geomType == QgsWkbTypes.PointZ or geomType == QgsWkbTypes.PointZM or geomType == QgsWkbTypes.Point25D:
+                # 1001 PointZ, 3001 PointZM, -2147483647 Point2.5D
+                if (
+                    geomType == QgsWkbTypes.PointZ
+                    or geomType == QgsWkbTypes.PointZM
+                    or geomType == QgsWkbTypes.Point25D
+                ):
                     try:
                         zVal = point.z()
                     except:
                         zVal = 0
-                    gcpSource.append({'uuid': feature.attribute('uuid'), 'fid': feature.attribute('fid'), 'pt_nr': feature.attribute('pt_nr'), 'geometry': feature.geometry(), 'x': point.x(), 'y': point.y(), 'z': zVal})
+                    gcpSource.append(
+                        {
+                            "uuid": feature.attribute("uuid"),
+                            "fid": feature.attribute("fid"),
+                            "pt_nr": feature.attribute("pt_nr"),
+                            "geometry": feature.geometry(),
+                            "x": point.x(),
+                            "y": point.y(),
+                            "z": zVal,
+                        }
+                    )
                 else:
                     # 1004 MultiPointZ, 3004 MultipointZM
                     # Workaround um aus Multipointdaten GCP-Punktinfos zu bekommen
@@ -516,8 +565,17 @@ class TransformationGui():
                         zVal = childPoint.z()
                     except:
                         zVal = 0
-                    gcpSource.append({'uuid': feature.attribute('uuid'), 'fid': feature.attribute('fid'), 'pt_nr': feature.attribute('pt_nr'), 'geometry': feature.geometry(), 'x': childPoint.x(), 'y': childPoint.y(), 'z': zVal})
-
+                    gcpSource.append(
+                        {
+                            "uuid": feature.attribute("uuid"),
+                            "fid": feature.attribute("fid"),
+                            "pt_nr": feature.attribute("pt_nr"),
+                            "geometry": feature.geometry(),
+                            "x": childPoint.x(),
+                            "y": childPoint.y(),
+                            "z": zVal,
+                        }
+                    )
 
         return gcpSource
 
@@ -544,18 +602,18 @@ class TransformationGui():
 
     def getTargetCoordinates(self, filePath):
         targetGCP = {}
-        targetGCP['points'] = []
+        targetGCP["points"] = []
 
         try:
-            with open(filePath, newline='') as csvfile:
-                reader = csv.reader(csvfile, delimiter='\t')
+            with open(filePath, newline="") as csvfile:
+                reader = csv.reader(csvfile, delimiter="\t")
                 for row in reader:
                     if row:
-                        #0-NUMMER	1-Position X	2-Position Y	3-Position Z
-                        pointObj = {'pt_nr': row[0], 'x': float(row[1]), 'y': float(row[2]), 'z': float(row[3])}
-                        targetGCP['points'].append(pointObj)
+                        # 0-NUMMER	1-Position X	2-Position Y	3-Position Z
+                        pointObj = {"pt_nr": row[0], "x": float(row[1]), "y": float(row[2]), "z": float(row[3])}
+                        targetGCP["points"].append(pointObj)
                     else:
-                        print('Leerzeile')
+                        print("Leerzeile")
             return True, targetGCP
         except:
             self.iface.messageBar().pushMessage("GCP-File", "Datei kann nicht eingelesen werden!", level=1, duration=5)
@@ -568,14 +626,14 @@ class TransformationGui():
 
     def backupBeforeTransformation(self):
 
-        #Backuppfad finden und gfl. erzeugen
+        # Backuppfad finden und gfl. erzeugen
         projectPath = QgsProject.instance().readPath("../")
-        sourceProjectPath = projectPath+"/Projekt/"
-        sourceShapePath = projectPath+"/Shape/"
+        sourceProjectPath = projectPath + "/Projekt/"
+        sourceShapePath = projectPath + "/Shape/"
         folderName = str(time.strftime("%Y-%m-%d_%H-%M-%S"))
-        backupPath = projectPath+"/Backup Transformation/backup_"+folderName+"/"
-        targetShapePath = backupPath+"Shape/"
-        targetProjectPath = backupPath+"Projekt/"
+        backupPath = projectPath + "/Backup Transformation/backup_" + folderName + "/"
+        targetShapePath = backupPath + "Shape/"
+        targetProjectPath = backupPath + "Projekt/"
 
         shutil.copytree(sourceShapePath, targetShapePath)
         shutil.copytree(sourceProjectPath, targetProjectPath)
@@ -593,16 +651,16 @@ class TransformationGui():
         root = QgsProject.instance().layerTreeRoot()
 
         for group in root.children():
-            if isinstance(group, QgsLayerTreeGroup) and group.name() == 'Eingabelayer':
-                 for child in group.children():
-                     if isinstance(child, QgsLayerTreeLayer):
-                         if isClone == True:
+            if isinstance(group, QgsLayerTreeGroup) and group.name() == "Eingabelayer":
+                for child in group.children():
+                    if isinstance(child, QgsLayerTreeLayer):
+                        if isClone == True:
 
-                             if isinstance(child.layer(), QgsVectorLayer):
-                                 inputLayers.append(child.layer().clone())
-                         else:
-                             if isinstance(child.layer(), QgsVectorLayer):
-                                 inputLayers.append(child.layer())
+                            if isinstance(child.layer(), QgsVectorLayer):
+                                inputLayers.append(child.layer().clone())
+                        else:
+                            if isinstance(child.layer(), QgsVectorLayer):
+                                inputLayers.append(child.layer())
 
         return inputLayers
 
@@ -624,13 +682,13 @@ class TransformationGui():
 
         if self.transformationParametersDone == True:
 
-            #generalValid = True
+            # generalValid = True
             generalValid, validationText, detailedText = self.checkInputlayersValidity()
 
             if generalValid == True:
 
-                #Workaround - unklar warum die Parameter aus Projekt aufgerufen werden muessen um das die XYZ Transformation (Z wird sonst nicht richtig gesetzt) richtig funktioniert???
-                #Eigentlich muss der Aufruf hier nicht stehen
+                # Workaround - unklar warum die Parameter aus Projekt aufgerufen werden muessen um das die XYZ Transformation (Z wird sonst nicht richtig gesetzt) richtig funktioniert???
+                # Eigentlich muss der Aufruf hier nicht stehen
                 self.getTransformationParametersFromProject()
 
                 inputLayers = self.getInputlayers(False)
@@ -638,7 +696,7 @@ class TransformationGui():
 
                 for layer in inputLayers:
 
-                    print('layer_name: ', layer.name())
+                    print("layer_name: ", layer.name())
 
                     layer.removeSelection()
 
@@ -648,36 +706,42 @@ class TransformationGui():
 
                     layerType = layer.wkbType()
 
-                    print('layerType: ', layerType)
-                    #Abfrage nach Z und ZM Single Layertypen - layerTranslationXYZ gibt dort keinen korrekten Z Wert aus
-                    #3002 LineStringZM , 3001 PointZM, 3003 PolygonZM
-                    if layerType == QgsWkbTypes.PointZM or layerType == QgsWkbTypes.LineStringZM or layerType == QgsWkbTypes.PolygonZM:
+                    print("layerType: ", layerType)
+                    # Abfrage nach Z und ZM Single Layertypen - layerTranslationXYZ gibt dort keinen korrekten Z Wert aus
+                    # 3002 LineStringZM , 3001 PointZM, 3003 PolygonZM
+                    if (
+                        layerType == QgsWkbTypes.PointZM
+                        or layerType == QgsWkbTypes.LineStringZM
+                        or layerType == QgsWkbTypes.PolygonZM
+                    ):
 
-                        print('Translation XY')
+                        print("Translation XY")
 
-                        #Rotation
-                        self.paramCalc.layerRotation(layer, 'forward', self.zAngle)
+                        # Rotation
+                        self.paramCalc.layerRotation(layer, "forward", self.zAngle)
 
-                        #Z-Translation - unbedingt zuerst ausführen sonst Fehler bei Extentberechnung
-                        self.paramCalc.layerTranslationZ(layer, 'forward', self.translationZ)
+                        # Z-Translation - unbedingt zuerst ausführen sonst Fehler bei Extentberechnung
+                        self.paramCalc.layerTranslationZ(layer, "forward", self.translationZ)
 
-                        #Translation in X und Y
-                        self.paramCalc.layerTranslationXY(layer, 'forward', self.translationX, self.translationY)
+                        # Translation in X und Y
+                        self.paramCalc.layerTranslationXY(layer, "forward", self.translationX, self.translationY)
                     else:
-                        print('Translation XYZ')
-                        #Rotation
-                        self.paramCalc.layerRotation(layer, 'forward', self.zAngle)
-                        #Translation in X, Y und Z
-                        self.paramCalc.layerTranslationXYZ(layer, 'forward', self.translationX, self.translationY, self.translationZ)
+                        print("Translation XYZ")
+                        # Rotation
+                        self.paramCalc.layerRotation(layer, "forward", self.zAngle)
+                        # Translation in X, Y und Z
+                        self.paramCalc.layerTranslationXYZ(
+                            layer, "forward", self.translationX, self.translationY, self.translationZ
+                        )
 
-                    #Recalculate Extent
+                    # Recalculate Extent
                     self.paramCalc.recalculateLayerExtent(layer)
 
                     self.paramCalc.createLayerSpatialIndex(layer)
 
                     layer.removeSelection()
 
-                    print('Finish Transform of Layer '+layer.name()+' !')
+                    print("Finish Transform of Layer " + layer.name() + " !")
 
                 self.setTransformationState2Project(1)
 
@@ -687,7 +751,7 @@ class TransformationGui():
 
                 self.setTransformationStateGUI(transformationStateId, transformationStatelong)
 
-                #self.enableTransformation(False)
+                # self.enableTransformation(False)
 
                 self.iface.mapCanvas().refresh()
 
@@ -698,8 +762,9 @@ class TransformationGui():
                 self.validityMessageBox(validationText, detailedText)
 
         else:
-            self.iface.messageBar().pushMessage("Tranformationsparameter", "Berechnen Sie zuerst die Transformationsparameter!", level=1, duration=5)
-
+            self.iface.messageBar().pushMessage(
+                "Tranformationsparameter", "Berechnen Sie zuerst die Transformationsparameter!", level=1, duration=5
+            )
 
     ## \brief Starts the reverse process of the transformation of inputLayers
     #
@@ -717,20 +782,20 @@ class TransformationGui():
 
         if self.transformationParametersDone == True:
 
-            #generalValid = True
+            # generalValid = True
             generalValid, validationText, detailedText = self.checkInputlayersValidity()
 
             if generalValid == True:
 
-                #Workaround - unklar warum die Parameter aus Projekt aufgerufen werden muessen um das die XYZ Transformation (Z wird sonst nicht richtig gesetzt) richtig funktioniert???
-                #Eigentlich muss der Aufruf hier nicht stehen
+                # Workaround - unklar warum die Parameter aus Projekt aufgerufen werden muessen um das die XYZ Transformation (Z wird sonst nicht richtig gesetzt) richtig funktioniert???
+                # Eigentlich muss der Aufruf hier nicht stehen
                 self.getTransformationParametersFromProject()
 
                 inputLayers = self.getInputlayers(False)
 
                 for layer in inputLayers:
 
-                    print('layer_name', layer.name())
+                    print("layer_name", layer.name())
 
                     layer.removeSelection()
 
@@ -740,33 +805,39 @@ class TransformationGui():
 
                     layerType = layer.wkbType()
 
-                    print('layerType', layerType)
+                    print("layerType", layerType)
 
-                    #Abfrage nach Z und ZM Single Layertypen - layerTranslationXYZ gibt dort keinen korrekten Z Wert aus
-                    if layerType == QgsWkbTypes.PointZM or layerType == QgsWkbTypes.LineStringZM or layerType == QgsWkbTypes.PolygonZM:                        #Z-Translation - unbedingt zuerst ausführen sonst Fehler bei Extentberechnung
-                        self.paramCalc.layerTranslationZ(layer, 'reverse', self.translationZ)
+                    # Abfrage nach Z und ZM Single Layertypen - layerTranslationXYZ gibt dort keinen korrekten Z Wert aus
+                    if (
+                        layerType == QgsWkbTypes.PointZM
+                        or layerType == QgsWkbTypes.LineStringZM
+                        or layerType == QgsWkbTypes.PolygonZM
+                    ):  # Z-Translation - unbedingt zuerst ausführen sonst Fehler bei Extentberechnung
+                        self.paramCalc.layerTranslationZ(layer, "reverse", self.translationZ)
 
-                        #Translation in X und Y
-                        self.paramCalc.layerTranslationXY(layer, 'reverse', self.translationX, self.translationY)
+                        # Translation in X und Y
+                        self.paramCalc.layerTranslationXY(layer, "reverse", self.translationX, self.translationY)
 
-                        #Rotation
-                        self.paramCalc.layerRotation(layer, 'reverse', self.zAngle)
+                        # Rotation
+                        self.paramCalc.layerRotation(layer, "reverse", self.zAngle)
 
                     else:
-                        #Translation in X, Y und Z
-                        self.paramCalc.layerTranslationXYZ(layer, 'reverse', self.translationX, self.translationY, self.translationZ)
+                        # Translation in X, Y und Z
+                        self.paramCalc.layerTranslationXYZ(
+                            layer, "reverse", self.translationX, self.translationY, self.translationZ
+                        )
 
-                        #Rotation
-                        self.paramCalc.layerRotation(layer, 'reverse', self.zAngle)
+                        # Rotation
+                        self.paramCalc.layerRotation(layer, "reverse", self.zAngle)
 
-                    #Recalculate Extent
+                    # Recalculate Extent
                     self.paramCalc.recalculateLayerExtent(layer)
 
                     self.paramCalc.createLayerSpatialIndex(layer)
 
                     layer.removeSelection()
 
-                    print('Finish Reversetransform of Layer '+layer.name()+' !')
+                    print("Finish Reversetransform of Layer " + layer.name() + " !")
 
                 self.setTransformationState2Project(2)
 
@@ -776,9 +847,11 @@ class TransformationGui():
 
                 self.setTransformationStateGUI(transformationStateId, transformationStatelong)
 
-                self.setTransformationParametersGUI(self.translationX, self.translationY, self.translationZ, self.zAngle)
+                self.setTransformationParametersGUI(
+                    self.translationX, self.translationY, self.translationZ, self.zAngle
+                )
 
-                #self.enableTransformation(True)
+                # self.enableTransformation(True)
 
                 self.iface.mapCanvas().refresh()
 
@@ -786,4 +859,9 @@ class TransformationGui():
                 self.validityMessageBox(validationText, detailedText)
 
         else:
-            self.iface.messageBar().pushMessage("Tranformationsparameter", "Zurücksetzen der Transformation nicht möglich - keine Transformationsparameter vorhanden!", level=1, duration=5)
+            self.iface.messageBar().pushMessage(
+                "Tranformationsparameter",
+                "Zurücksetzen der Transformation nicht möglich - keine Transformationsparameter vorhanden!",
+                level=1,
+                duration=5,
+            )

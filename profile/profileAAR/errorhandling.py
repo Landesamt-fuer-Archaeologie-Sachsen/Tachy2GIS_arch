@@ -57,11 +57,9 @@ import numpy as np
 
 # columreader in a "table" (list of lists)
 def columnreader(list_in_list_object, columnindex):
-
     columnvalues = []
 
     for i in range(len(list_in_list_object)):
-
         columnvalues.append(list_in_list_object[i][columnindex])
 
     return columnvalues
@@ -80,7 +78,6 @@ class ErrorHandler(object):
         # check if actual profile has less then 4 points
 
         if len(coord_proc) <= 3:
-
             # if it is less, print error message
 
             print(self, "Error", "A profile needs min. 4 points. Error on profile: " + str(profile_name))
@@ -94,7 +91,6 @@ class ErrorHandler(object):
         # check if the view value is the same in all features
 
         if len(view_check) != 1:
-
             # if it is not the same, print error message
 
             print(
@@ -118,18 +114,19 @@ class ErrorHandler(object):
         # check if the view is one of the four cardinal directions
 
         if view_check[0].upper() not in ["N", "E", "S", "W"]:
-
             # if it is not the same, print error message
 
             print(
                 self,
                 "Error",
-                "The view value is not one of the four cardinal directions. " "Error on profile: " + str(profile_name),
+                "The view value is not one of the four cardinal directions. ",
+                "Error on profile: " + str(profile_name),
             )
 
             print(
                 self,
-                "The view value is not one of the four cardinal directions. " "Error on profile: " + str(profile_name),
+                "The view value is not one of the four cardinal directions. ",
+                "Error on profile: " + str(profile_name),
                 "Error_LOG",
             )
 
@@ -142,7 +139,6 @@ class ErrorHandler(object):
         for i in range(len(selection_check)):
 
             if str(selection_check[i]) not in ["1", "0"]:
-
                 # if it is not the same, print error message
 
                 print(
@@ -176,7 +172,6 @@ class ErrorHandler(object):
             for j in range(len(xyz)):
 
                 if xyz[j] < xyz_lower or xyz[j] > xyz_upper:
-
                     print(
                         self,
                         "Warning",
@@ -212,7 +207,6 @@ class ErrorHandler(object):
         # Check if the vectorlayer is projected
 
         if layer.crs().isGeographic() is True:
-
             print(
                 self,
                 "Error",
@@ -240,7 +234,6 @@ class ErrorHandler(object):
                 # if the z value is not a float
 
                 if field.typeName() != "Real" and field.typeName() != "double":
-
                     # Give a message
 
                     print(self, "Error", "The z-Value needs to be a float. Check the field type of the z-Value")
@@ -259,7 +252,6 @@ class ErrorHandler(object):
         errorCheck = False
 
         if str(value) == "":
-
             print(self, "Error", "Please choose an output file!")
             # cancel execution of the script
             errorCheck = True
@@ -278,7 +270,6 @@ class ErrorHandler(object):
             # Predict the value for the minmal x
 
             if xw[i] == min(xw):
-
                 x1pred = xw[i]
 
                 y1pred = intercept + slope * xw[i]
@@ -288,7 +279,6 @@ class ErrorHandler(object):
             # Predict the value for the maximal x
 
             if xw[i] == max(xw):
-
                 x2pred = xw[i]
 
                 y2pred = intercept + slope * xw[i]
@@ -305,7 +295,6 @@ class ErrorHandler(object):
         # sum = 0, fine; sum = max point (this is the bad one) ; sum > max point (maybe more than one are bad)
 
         for i in range(len(xw)):
-
             p3 = np.array([xw[i], yw[i]])
 
             distance.append(np.linalg.norm(np.cross(p2 - p1, p1 - p3)) / np.linalg.norm(p2 - p1))

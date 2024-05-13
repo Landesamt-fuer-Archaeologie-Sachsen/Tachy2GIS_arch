@@ -27,7 +27,11 @@ class MapToolMixin:
             aktcode = self.getCustomProjectVariable("aktcode")
             feature["aktcode"] = aktcode
         except Exception as e:
-            QgsMessageLog.logMessage(message='MapToolMixin->setPlaceholders: no aktcode: ' + str(e), tag='T2G Archäologie', level=Qgis.MessageLevel.Warning)
+            QgsMessageLog.logMessage(
+                message="MapToolMixin->setPlaceholders: no aktcode: " + str(e),
+                tag="T2G Archäologie",
+                level=Qgis.MessageLevel.Warning,
+            )
 
         # obj_type
         feature["obj_typ"] = "Befund"

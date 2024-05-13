@@ -21,23 +21,21 @@
  *                                                                         *
  ***************************************************************************/
 """
+from os import path as os_path
 
-import os
-
-from qgis.PyQt import QtGui, QtWidgets, uic
+from PyQt5.QtWidgets import QDockWidget
+from qgis.PyQt import uic
 from qgis.PyQt.QtCore import pyqtSignal
 
-FORM_CLASS, _ = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), 't2g_arch_dockwidget_base.ui'))
+FORM_CLASS, _ = uic.loadUiType(os_path.join(os_path.dirname(__file__), "t2g_arch_dockwidget_base.ui"))
 
 
-class T2G_ArchDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
-
+class T2GArchDockWidget(QDockWidget, FORM_CLASS):
     closingPlugin = pyqtSignal()
 
     def __init__(self, parent=None):
         """Constructor."""
-        super(T2G_ArchDockWidget, self).__init__(parent)
+        super(T2GArchDockWidget, self).__init__(parent)
         # Set up the user interface from Designer.
         # After setupUI you can access any designer object by doing
         # self.<objectname>, and you can use autoconnect slots - see
@@ -49,8 +47,10 @@ class T2G_ArchDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.closingPlugin.emit()
         event.accept()
 
+    @staticmethod
     def eLayerListe():
-        return ['E_Line', 'E_Polygon', 'E_Point']
+        return ["E_Line", "E_Polygon", "E_Point"]
 
+    @staticmethod
     def eFeldListe():
-        return ['Objekttyp', 'Objektart', 'Schnitt Nr', 'Planum', 'Material', 'Befund Nr', 'Fund Nr']
+        return ["Objekttyp", "Objektart", "Schnitt Nr", "Planum", "Material", "Befund Nr", "Fund Nr"]

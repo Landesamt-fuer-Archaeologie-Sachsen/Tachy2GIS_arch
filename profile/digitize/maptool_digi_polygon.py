@@ -1,10 +1,10 @@
 from qgis.PyQt.QtCore import pyqtSignal, pyqtSlot
-from qgis.gui import QgsAttributeDialog, QgsAttributeEditorContext
 from qgis.core import QgsFeature, QgsGeometry, QgsFeatureRequest, QgsMessageLog, Qgis
+from qgis.gui import QgsAttributeDialog, QgsAttributeEditorContext
 
 from .map_tools import PolygonMapTool
-from ..publisher import Publisher
 from .maptool_mixin import MapToolMixin
+from ..publisher import Publisher
 
 
 class MapToolDigiPolygon(PolygonMapTool, MapToolMixin):
@@ -13,7 +13,7 @@ class MapToolDigiPolygon(PolygonMapTool, MapToolMixin):
 
     def __init__(self, canvas, iFace, rotationCoords, dataStoreDigitize):
         self.canvas = canvas
-        self.__iface = iFace
+        self.iface = iFace
         self.rotationCoords = rotationCoords
         self.dataStoreDigitize = dataStoreDigitize
         self.pup = Publisher()
@@ -150,7 +150,7 @@ class MapToolDigiPolygon(PolygonMapTool, MapToolMixin):
         selFeatures = []
         for feature in featsSel:
             if not feature.geometry().within(bufferGeometry):
-                print('No feature within buffer geometry!')
+                print("No feature within buffer geometry!")
                 continue
 
             if geoType == "tachy" and feature["geo_quelle"] != "profile_object":
@@ -174,7 +174,7 @@ class MapToolDigiPolygon(PolygonMapTool, MapToolMixin):
         try:
             pr.addFeatures(selFeatures)
         except Exception as e:
-            QgsMessageLog.logMessage(str(e), 'T2G Archäologie', Qgis.Info)
+            QgsMessageLog.logMessage(str(e), "T2G Archäologie", Qgis.Info)
 
         self.digiPolygonLayer.commitChanges()
         self.digiPolygonLayer.updateExtents()
@@ -209,7 +209,7 @@ class MapToolDigiPolygon(PolygonMapTool, MapToolMixin):
         # iterrieren über zu schreibende features
         for feature in features:
 
-            if feature['geo_quelle'] == 'profile_object':
+            if feature["geo_quelle"] == "profile_object":
 
                 # Zielgeometrie erzeugen
                 emptyTargetGeometry = QgsGeometry.fromMultiPolygonXY([])

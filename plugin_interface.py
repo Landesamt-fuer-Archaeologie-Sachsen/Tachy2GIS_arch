@@ -12,7 +12,7 @@ from qgis.PyQt.QtWidgets import (
 from qgis.core import QgsProject
 from qgis.gui import QgisInterface
 
-from .t2g_arch import T2G_Arch
+from .t2g_arch import T2gArch
 from .utils.toolbar_functions import openProjectFolder, saveProject
 
 
@@ -194,7 +194,7 @@ class PluginInterface:
         QCoreApplication.processEvents()  # give Qt the chance to process signals and display other icon
         if checked:
             if not self.t2g_arch_instance:
-                self.t2g_arch_instance = T2G_Arch(self.iface)
+                self.t2g_arch_instance = T2gArch(self.iface)
                 self.t2g_arch_instance.initGui()
             if self.t2g_arch_instance.startAndStopPlugin(start=True):
                 self.activateActions()

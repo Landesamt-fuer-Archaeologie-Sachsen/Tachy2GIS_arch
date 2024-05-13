@@ -9,7 +9,8 @@
 
 from ..publisher import Publisher
 
-class DataStoreDigitize():
+
+class DataStoreDigitize:
 
     ## The constructor.
     # Creates labels with styles
@@ -17,7 +18,7 @@ class DataStoreDigitize():
 
     def __init__(self):
 
-        print('init_dataStore_digitize')
+        print("init_dataStore_digitize")
 
         self.pup = Publisher()
 
@@ -32,13 +33,11 @@ class DataStoreDigitize():
         self.aarTransformationParamsOriginal = None
         self.epsg = None
 
-
     def addProfileNumber(self, profilnummer):
         self.profileNumber = profilnummer
 
     def getProfileNumber(self):
         return self.profileNumber
-
 
     def addProfile(self, profil):
         self.profil = profil
@@ -59,11 +58,11 @@ class DataStoreDigitize():
         self.gcps = gcps
 
     def addTransformParams(self, aarTransformationParams):
-        if aarTransformationParams['aar_direction'] == 'horizontal':
+        if aarTransformationParams["aar_direction"] == "horizontal":
             self.aarTransformationParamsHorizontal = aarTransformationParams
-        if aarTransformationParams['aar_direction'] == 'absolute height':
+        if aarTransformationParams["aar_direction"] == "absolute height":
             self.aarTransformationParamsAbsolute = aarTransformationParams
-        if aarTransformationParams['aar_direction'] == 'original':
+        if aarTransformationParams["aar_direction"] == "original":
             self.aarTransformationParamsOriginal = aarTransformationParams
 
     def getGcps(self):
@@ -71,13 +70,13 @@ class DataStoreDigitize():
 
     def getAarTransformationParams(self, aar_direction):
 
-        if aar_direction == 'horizontal':
+        if aar_direction == "horizontal":
             return self.aarTransformationParamsHorizontal
-        if aar_direction == 'absolute height':
+        if aar_direction == "absolute height":
             return self.aarTransformationParamsAbsolute
-        if aar_direction == 'original':
+        if aar_direction == "original":
             return self.aarTransformationParamsOriginal
 
     def triggerAarTransformationParams(self, aar_direction):
-        print('wurde getriggert',  self.getAarTransformationParams(aar_direction))
-        self.pup.publish('pushTransformationParams', self.getAarTransformationParams(aar_direction))
+        print("wurde getriggert", self.getAarTransformationParams(aar_direction))
+        self.pup.publish("pushTransformationParams", self.getAarTransformationParams(aar_direction))

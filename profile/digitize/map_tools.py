@@ -233,11 +233,7 @@ class PolygonMapTool(QgsMapTool):
                 return
 
             # find indexes of vertices:
-            index_list = [
-                i
-                for i, m in enumerate(self.markers)
-                if m.center() == self.selectingMarker.center()
-            ]
+            index_list = [i for i, m in enumerate(self.markers) if m.center() == self.selectingMarker.center()]
             if len(index_list) < 1:
                 return
             rotate_amount = index_list[0] + 1
@@ -340,10 +336,7 @@ class PolygonMapTool(QgsMapTool):
                 return None
             points_list = [vertex.center() for vertex in self.markers]
         else:
-            if (
-                not self.list_of_snapping_points
-                or len(self.list_of_snapping_points) < 1
-            ):
+            if not self.list_of_snapping_points or len(self.list_of_snapping_points) < 1:
                 return None
             points_list = self.list_of_snapping_points
 
@@ -354,7 +347,7 @@ class PolygonMapTool(QgsMapTool):
         index_of_nearest = min(range(len(distances)), key=distances.__getitem__)
 
         # tolerance needs to be recalculated as user can zoom while moving
-        x = int(x) # must be int for QPoint!
+        x = int(x)  # must be int for QPoint!
         y = int(y)
         pt1 = QPoint(x, y)
         pt2 = QPoint(x + 20, y)
@@ -619,11 +612,7 @@ class MultilineMapTool(QgsMapTool):
                 self.reverse_points()
 
             # find indexes of vertices:
-            index_list = [
-                i
-                for i, m in enumerate(self.markers)
-                if m.center() == self.selectingMarker.center()
-            ]
+            index_list = [i for i, m in enumerate(self.markers) if m.center() == self.selectingMarker.center()]
             if len(index_list) < 1:
                 return
             rotate_amount = index_list[0] + 1
@@ -753,10 +742,7 @@ class MultilineMapTool(QgsMapTool):
                 return None
             points_list = [vertex.center() for vertex in self.markers]
         else:
-            if (
-                not self.list_of_snapping_points
-                or len(self.list_of_snapping_points) < 1
-            ):
+            if not self.list_of_snapping_points or len(self.list_of_snapping_points) < 1:
                 return None
             points_list = self.list_of_snapping_points
 
@@ -767,7 +753,7 @@ class MultilineMapTool(QgsMapTool):
         index_of_nearest = min(range(len(distances)), key=distances.__getitem__)
 
         # tolerance needs to be recalculated as user can zoom while moving
-        x = int(x) # must be int for QPoint!
+        x = int(x)  # must be int for QPoint!
         y = int(y)
         pt1 = QPoint(x, y)
         pt2 = QPoint(x + 20, y)
@@ -906,11 +892,7 @@ class PointMapTool(QgsMapTool):
                 return
 
             # find indexes of vertices:
-            index_list = [
-                i
-                for i, m in enumerate(self.markers)
-                if m.center() == self.selectingMarker.center()
-            ]
+            index_list = [i for i, m in enumerate(self.markers) if m.center() == self.selectingMarker.center()]
             if len(index_list) < 1:
                 return
             self.isFinished = False
@@ -994,10 +976,7 @@ class PointMapTool(QgsMapTool):
                 return None
             points_list = [vertex.center() for vertex in self.markers]
         else:
-            if (
-                not self.list_of_snapping_points
-                or len(self.list_of_snapping_points) < 1
-            ):
+            if not self.list_of_snapping_points or len(self.list_of_snapping_points) < 1:
                 return None
             points_list = self.list_of_snapping_points
 
@@ -1008,7 +987,7 @@ class PointMapTool(QgsMapTool):
         index_of_nearest = min(range(len(distances)), key=distances.__getitem__)
 
         # tolerance needs to be recalculated as user can zoom while moving
-        x = int(x) # must be int for QPoint!
+        x = int(x)  # must be int for QPoint!
         y = int(y)
         pt1 = QPoint(x, y)
         pt2 = QPoint(x + 20, y)

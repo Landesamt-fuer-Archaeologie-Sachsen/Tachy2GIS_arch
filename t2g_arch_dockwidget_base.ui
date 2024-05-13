@@ -769,7 +769,7 @@
                </property>
                <property name="icon">
                 <iconset>
-                 <normaloff>messen/Icons/Befundnr.gif</normaloff>messen/Icons/Befundnr.gif</iconset>
+                 <normaloff>Icons/Befundnr.gif</normaloff>Icons/Befundnr.gif</iconset>
                </property>
                <property name="iconSize">
                 <size>
@@ -838,7 +838,7 @@
                </property>
                <property name="icon">
                 <iconset>
-                 <normalon>../../../../../../.local/share/QGIS/QGIS3/profiles/default/python/.designer/backup/Icons/suchen.gif</normalon>
+                 <normalon>Icons/suchen.gif</normalon>
                 </iconset>
                </property>
                <property name="autoDefault">
@@ -1270,7 +1270,7 @@
               </property>
               <property name="icon">
                <iconset>
-                <normaloff>../../../../../../.local/share/QGIS/QGIS3/profiles/default/python/plugins/tachy2gis_arch/Icons/butContactClip.gif</normaloff>../../../../../../.local/share/QGIS/QGIS3/profiles/default/python/plugins/tachy2gis_arch/Icons/butContactClip.gif</iconset>
+                <normaloff>Icons/butContactClip.gif</normaloff>Icons/butContactClip.gif</iconset>
               </property>
               <property name="iconSize">
                <size>
@@ -1299,7 +1299,7 @@
               </property>
               <property name="icon">
                <iconset>
-                <normaloff>../../../../../../.local/share/QGIS/QGIS3/profiles/default/python/plugins/tachy2gis_arch/Icons/butInsideClip.gif</normaloff>../../../../../../.local/share/QGIS/QGIS3/profiles/default/python/plugins/tachy2gis_arch/Icons/butInsideClip.gif</iconset>
+                <normaloff>Icons/butInsideClip.gif</normaloff>Icons/butInsideClip.gif</iconset>
               </property>
               <property name="iconSize">
                <size>
@@ -1328,7 +1328,7 @@
               </property>
               <property name="icon">
                <iconset>
-                <normaloff>../../../../../../.local/share/QGIS/QGIS3/profiles/default/python/plugins/tachy2gis_arch/Icons/butOutsideClip.gif</normaloff>../../../../../../.local/share/QGIS/QGIS3/profiles/default/python/plugins/tachy2gis_arch/Icons/butOutsideClip.gif</iconset>
+                <normaloff>Icons/butOutsideClip.gif</normaloff>Icons/butOutsideClip.gif</iconset>
               </property>
               <property name="iconSize">
                <size>
@@ -1367,7 +1367,7 @@
               </property>
               <property name="icon">
                <iconset>
-                <normalon>../../../../../../.local/share/QGIS/QGIS3/profiles/default/python/plugins/tachy2gis_arch/Icons/LineRe.gif</normalon>
+                <normalon>Icons/LineRe.gif</normalon>
                </iconset>
               </property>
               <property name="iconSize">
@@ -1400,7 +1400,7 @@
           </property>
           <property name="icon">
            <iconset>
-            <normaloff>../../../../../../.local/share/QGIS/QGIS3/profiles/default/python/plugins/tachy2gis_arch/Icons/Thumbs.gif</normaloff>../../../../../../.local/share/QGIS/QGIS3/profiles/default/python/plugins/tachy2gis_arch/Icons/Thumbs.gif</iconset>
+            <normaloff>Icons/Thumbs.gif</normaloff>Icons/Thumbs.gif</iconset>
           </property>
          </widget>
          <widget class="QPushButton" name="pushButton_5">
@@ -1417,7 +1417,7 @@
           </property>
           <property name="icon">
            <iconset>
-            <normaloff>../../../../../../.local/share/QGIS/QGIS3/profiles/default/python/plugins/tachy2gis_arch/Icons/cut.gif</normaloff>../../../../../../.local/share/QGIS/QGIS3/profiles/default/python/plugins/tachy2gis_arch/Icons/cut.gif</iconset>
+            <normaloff>Icons/cut.gif</normaloff>Icons/cut.gif</iconset>
           </property>
          </widget>
          <widget class="QPushButton" name="pushButton_7">
@@ -1434,7 +1434,7 @@
           </property>
           <property name="icon">
            <iconset>
-            <normaloff>../../../../../../.local/share/QGIS/QGIS3/profiles/default/python/plugins/tachy2gis_arch/Icons/cutmaskdel.gif</normaloff>../../../../../../.local/share/QGIS/QGIS3/profiles/default/python/plugins/tachy2gis_arch/Icons/cutmaskdel.gif</iconset>
+            <normaloff>Icons/cutmaskdel.gif</normaloff>Icons/cutmaskdel.gif</iconset>
           </property>
          </widget>
          <widget class="QPushButton" name="pushButton_4">
@@ -1451,7 +1451,7 @@
           </property>
           <property name="icon">
            <iconset>
-            <normaloff>../../../../../../.local/share/QGIS/QGIS3/profiles/default/python/plugins/tachy2gis_arch/Icons/V_Jpg-Tif.gif</normaloff>../../../../../../.local/share/QGIS/QGIS3/profiles/default/python/plugins/tachy2gis_arch/Icons/V_Jpg-Tif.gif</iconset>
+            <normaloff>Icons/V_Jpg-Tif.gif</normaloff>Icons/V_Jpg-Tif.gif</iconset>
           </property>
           <property name="iconSize">
            <size>
@@ -1474,7 +1474,7 @@
           </property>
           <property name="icon">
            <iconset>
-            <normaloff>../../../../../../.local/share/QGIS/QGIS3/profiles/default/python/plugins/tachy2gis_arch/Icons/cutmask.gif</normaloff>../../../../../../.local/share/QGIS/QGIS3/profiles/default/python/plugins/tachy2gis_arch/Icons/cutmask.gif</iconset>
+            <normaloff>Icons/cutmask.gif</normaloff>Icons/cutmask.gif</iconset>
           </property>
          </widget>
          <widget class="Line" name="line_2">
@@ -1538,7 +1538,7 @@
         </property>
         <property name="icon">
          <iconset>
-          <normaloff>../../../../../../.local/share/QGIS/QGIS3/profiles/default/python/plugins/tachy2gis_arch/Icons/Einstellungen.gif</normaloff>../../../../../../.local/share/QGIS/QGIS3/profiles/default/python/plugins/tachy2gis_arch/Icons/Einstellungen.gif</iconset>
+          <normaloff>Icons/Einstellungen.gif</normaloff>Icons/Einstellungen.gif</iconset>
         </property>
         <property name="iconSize">
          <size>

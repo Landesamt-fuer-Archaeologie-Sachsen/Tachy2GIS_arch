@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
+from operator import itemgetter
 from typing import List
+
+import numpy as np
+from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtGui import QColor, QBrush
 from qgis.PyQt.QtWidgets import (
     QTableWidget,
     QTableWidgetItem,
@@ -8,13 +13,9 @@ from qgis.PyQt.QtWidgets import (
     QRadioButton,
     QMessageBox,
 )
-from qgis.PyQt.QtCore import Qt
-from qgis.PyQt.QtGui import QColor, QBrush
-import numpy as np
-from operator import itemgetter
 
-from ..publisher import Publisher
 from .residuals import Residuals
+from ..publisher import Publisher
 
 
 ## @brief With the TransformationDialogTable class a table based on QTableWidget is realized

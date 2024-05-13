@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
+
 import processing
 from qgis.PyQt.QtGui import QFont
 from qgis.core import (
@@ -16,7 +17,6 @@ from qgis.core import (
     QgsRuleBasedLabeling,
     Qgis,
 )
-
 from qgis.gui import QgsMapCanvas, QgsMapToolPan, QgsMapToolZoom, QgsAttributeDialog
 
 from ..publisher import Publisher
@@ -36,8 +36,6 @@ class DigitizeCanvas(QgsMapCanvas):
 
     def __init__(self, dialogInstance, iFace):
         super(DigitizeCanvas, self).__init__()
-
-        self.__iface = iFace
 
         self.pup = Publisher()
 
@@ -119,20 +117,32 @@ class DigitizeCanvas(QgsMapCanvas):
 
         # rule-based labeling
         root = QgsRuleBasedLabeling.Rule(QgsPalLayerSettings())
-        rule_pt = QgsRuleBasedLabeling.Rule(self.createLabelSettings("""
+        rule_pt = QgsRuleBasedLabeling.Rule(
+            self.createLabelSettings(
+                """
             'Punkt ' + "ptnr"
-        """).settings())
+        """
+            ).settings()
+        )
         rule_pt.settings().isExpression = True
-        rule_pt.setFilterExpression("""
+        rule_pt.setFilterExpression(
+            """
             "obj_typ" = 'Fotoentzerrpunkt' OR "obj_typ" = 'Fund' OR "obj_typ" = 'Probe' 
-        """)
-        rule_bef = QgsRuleBasedLabeling.Rule(self.createLabelSettings("""
+        """
+        )
+        rule_bef = QgsRuleBasedLabeling.Rule(
+            self.createLabelSettings(
+                """
             'Befund ' + "bef_nr"
-        """).settings())
+        """
+            ).settings()
+        )
         rule_bef.settings().isExpression = True
-        rule_bef.setFilterExpression("""
+        rule_bef.setFilterExpression(
+            """
             "obj_typ" = 'Befund' 
-        """)
+        """
+        )
         root.appendChild(rule_bef)
         root.appendChild(rule_pt)
 
@@ -212,13 +222,9 @@ class DigitizeCanvas(QgsMapCanvas):
         pr.truncate()
 
         # Renderer
-        symbol_profile = QgsLineSymbol.createSimple(
-            {"line_style": "solid", "color": "black", "width": "0.8"}
-        )
+        symbol_profile = QgsLineSymbol.createSimple({"line_style": "solid", "color": "black", "width": "0.8"})
 
-        symbol_tachy = QgsLineSymbol.createSimple(
-            {"line_style": "solid", "color": "grey", "width": "0.8"}
-        )
+        symbol_tachy = QgsLineSymbol.createSimple({"line_style": "solid", "color": "grey", "width": "0.8"})
 
         symbol_profile_vertex = QgsMarkerLineSymbolLayer()
         symbol_profile_vertex.setSubSymbol(
@@ -267,20 +273,32 @@ class DigitizeCanvas(QgsMapCanvas):
 
         # rule-based labeling
         root = QgsRuleBasedLabeling.Rule(QgsPalLayerSettings())
-        rule_prof = QgsRuleBasedLabeling.Rule(self.createLabelSettings("""
+        rule_prof = QgsRuleBasedLabeling.Rule(
+            self.createLabelSettings(
+                """
             'Profil ' + "prof_nr"
-        """).settings())
+        """
+            ).settings()
+        )
         rule_prof.settings().isExpression = True
-        rule_prof.setFilterExpression("""
+        rule_prof.setFilterExpression(
+            """
             "obj_typ" = 'Profil'
-        """)
-        rule_bef = QgsRuleBasedLabeling.Rule(self.createLabelSettings("""
+        """
+        )
+        rule_bef = QgsRuleBasedLabeling.Rule(
+            self.createLabelSettings(
+                """
             'Befund ' + "bef_nr"
-        """).settings())
+        """
+            ).settings()
+        )
         rule_bef.settings().isExpression = True
-        rule_bef.setFilterExpression("""
+        rule_bef.setFilterExpression(
+            """
             "obj_typ" = 'Befund' 
-        """)
+        """
+        )
         root.appendChild(rule_bef)
         root.appendChild(rule_prof)
 
@@ -451,13 +469,19 @@ class DigitizeCanvas(QgsMapCanvas):
 
         # rule-based labeling
         root = QgsRuleBasedLabeling.Rule(QgsPalLayerSettings())
-        rule_bef = QgsRuleBasedLabeling.Rule(self.createLabelSettings("""
+        rule_bef = QgsRuleBasedLabeling.Rule(
+            self.createLabelSettings(
+                """
             'Befund ' + "bef_nr"
-        """).settings())
+        """
+            ).settings()
+        )
         rule_bef.settings().isExpression = True
-        rule_bef.setFilterExpression("""
+        rule_bef.setFilterExpression(
+            """
             "obj_typ" = 'Befund' 
-        """)
+        """
+        )
         root.appendChild(rule_bef)
 
         # Apply rule-based labeling to the layer

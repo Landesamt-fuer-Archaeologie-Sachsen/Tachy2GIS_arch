@@ -1,15 +1,28 @@
 # -*- coding: utf-8 -*-
-import os
 import csv
+import os
+
 from qgis.PyQt.QtCore import Qt
-from qgis.PyQt.QtWidgets import QWidget, QMainWindow, QAction, QVBoxLayout, QLabel, QPushButton, QSizePolicy, QLineEdit, QFileDialog
 from qgis.PyQt.QtGui import QIcon
+from qgis.PyQt.QtWidgets import (
+    QWidget,
+    QMainWindow,
+    QAction,
+    QVBoxLayout,
+    QLabel,
+    QPushButton,
+    QSizePolicy,
+    QLineEdit,
+    QFileDialog,
+)
+from qgis.core import QgsApplication
 from qgis.gui import QgsMessageBar
 
-from .transformation_dialog_table import TransformationDialogTable
-from .transformation_dialog_parambar import TransformationDialogParambar
-from .transformation_dialog_canvas import TransformationDialogCanvas
 from .transformation_calculations import TransformationCalculations
+from .transformation_dialog_canvas import TransformationDialogCanvas
+from .transformation_dialog_parambar import TransformationDialogParambar
+from .transformation_dialog_table import TransformationDialogTable
+
 
 ## @brief With the TransformationDialog class a dialog window for the calculation of transformation parameters is realized
 #
@@ -18,13 +31,14 @@ from .transformation_calculations import TransformationCalculations
 # @author Mario Uhlig, VisDat geodatentechnologie GmbH, mario.uhlig@visdat.de
 # @date 2020-10-19
 
+
 class TransformationDialog(QMainWindow):
 
     def __init__(self, t2GArchInstance):
 
         super(TransformationDialog, self).__init__()
 
-        self.iconpath = os.path.join(os.path.dirname(__file__), 'Icons')
+        self.iconpath = os.path.join(os.path.dirname(__file__), "Icons")
 
         self.t2GArchInstance = t2GArchInstance
         self.colNameGcpSource = t2GArchInstance.colNameGcpSource
@@ -43,7 +57,7 @@ class TransformationDialog(QMainWindow):
         self.targetCrs = None
         self.gcpTarget = None
 
-        self.rememberExportTxtFolder = '.'
+        self.rememberExportTxtFolder = "."
 
         self.createMenu()
         self.createComponents()
@@ -59,19 +73,18 @@ class TransformationDialog(QMainWindow):
 
         self.statusBar()
 
-
         self.statusBar().reformat()
-        self.statusBar().setStyleSheet('background-color: #FFF8DC;')
+        self.statusBar().setStyleSheet("background-color: #FFF8DC;")
         self.statusBar().setStyleSheet("QStatusBar::item {border: none;}")
 
-        exitAct = QAction(QIcon(os.path.join(self.iconpath , 'Ok_grau.png')), 'Exit', self)
+        exitAct = QAction(QIcon(os.path.join(self.iconpath, "Ok_grau.png")), "Exit", self)
 
-        exitAct.setShortcut('Ctrl+Q')
-        exitAct.setStatusTip('Anwendung schließen')
+        exitAct.setShortcut("Ctrl+Q")
+        exitAct.setStatusTip("Anwendung schließen")
         exitAct.triggered.connect(self.close)
 
         menubar = self.menuBar()
-        fileMenu = menubar.addMenu('&Datei')
+        fileMenu = menubar.addMenu("&Datei")
         fileMenu.addAction(exitAct)
 
     ## \brief ECreates the components of the window
@@ -86,28 +99,28 @@ class TransformationDialog(QMainWindow):
     # @returns
     def createComponents(self):
 
-        #messageBar
+        # messageBar
         self.messageBar = QgsMessageBar()
 
-        #Canvas Element
+        # Canvas Element
         self.canvasTransform = TransformationDialogCanvas(self)
 
-        #Actions
+        # Actions
         self.createActions()
 
-        #Toolbars
+        # Toolbars
         self.createToolbars()
 
-        #Coordinates in statusBar
+        # Coordinates in statusBar
         self.createStatusBar()
 
-        #TransformationParamsBar
+        # TransformationParamsBar
         self.transformationParamsBar = TransformationDialogParambar(self)
 
-        #GcpTable
+        # GcpTable
         self.gcpTable = TransformationDialogTable(self)
 
-        #paramCalc
+        # paramCalc
         self.paramCalc = TransformationCalculations(self)
 
     ## \brief Event connections
@@ -123,12 +136,12 @@ class TransformationDialog(QMainWindow):
     #
     def createActions(self):
 
-        #Export
-        iconExport = QIcon(os.path.join(self.iconpath, 'mActionSaveGCPpointsAs.png'))
+        # Export
+        iconExport = QIcon(QgsApplication.iconPath("mActionSaveGCPpointsAs"))
         self.actionExport = QAction(iconExport, "Export data", self)
 
-        #Import
-        iconImport = QIcon(os.path.join(self.iconpath, 'mActionLoadGCPpoints.png'))
+        # Import
+        iconImport = QIcon(QgsApplication.iconPath("mActionLoadGCPpoints"))
         self.actionImport = QAction(iconImport, "Import data", self)
 
     ## \brief create toolbars
@@ -137,14 +150,14 @@ class TransformationDialog(QMainWindow):
     # - toolbarExchange
     def createToolbars(self):
 
-        #Toolbar Kartennavigation
+        # Toolbar Kartennavigation
         self.toolbarMap = self.addToolBar("Kartennavigation")
         self.toolbarMap.addAction(self.canvasTransform.actionPan)
         self.toolbarMap.addAction(self.canvasTransform.actionZoomIn)
         self.toolbarMap.addAction(self.canvasTransform.actionZoomOut)
         self.toolbarMap.addAction(self.canvasTransform.actionExtent)
 
-        #Toolbar Datenaustausch
+        # Toolbar Datenaustausch
         self.toolbarExchange = self.addToolBar("Datenaustausch")
         self.toolbarExchange.addAction(self.actionExport)
         self.toolbarExchange.addAction(self.actionImport)
@@ -175,7 +188,7 @@ class TransformationDialog(QMainWindow):
         widgetCentral = QWidget()
 
         grid = QVBoxLayout()
-        grid.setContentsMargins(0,0,0,0)
+        grid.setContentsMargins(0, 0, 0, 0)
         widgetCentral.setLayout(grid)
         self.setCentralWidget(widgetCentral)
 
@@ -198,7 +211,9 @@ class TransformationDialog(QMainWindow):
         conditionsValid = self.checkTransformationConditions(GcpData)
 
         if conditionsValid == True:
-            zAngle, translationX, translationY, globalError2D, translationZ, GcpDataResiduals, globalErrorZ = self.paramCalc.calcTransformationParams(GcpData)
+            zAngle, translationX, translationY, globalError2D, translationZ, GcpDataResiduals, globalErrorZ = (
+                self.paramCalc.calcTransformationParams(GcpData)
+            )
             self.zAngle = zAngle
             self.translationX = translationX
             self.translationY = translationY
@@ -207,7 +222,9 @@ class TransformationDialog(QMainWindow):
             self.globalErrorZ = globalErrorZ
             self.GcpDataResiduals = GcpDataResiduals
 
-            self.transformationParamsBar.showTransformationParamsMessage(zAngle, translationX, translationY, globalError2D, translationZ, globalErrorZ)
+            self.transformationParamsBar.showTransformationParamsMessage(
+                zAngle, translationX, translationY, globalError2D, translationZ, globalErrorZ
+            )
             self.gcpTable.updateGcpTableResiduals(GcpDataResiduals)
 
             self.takeParametersBtn.setEnabled(True)
@@ -235,8 +252,8 @@ class TransformationDialog(QMainWindow):
 
     def checkTransformationConditions(self, GcpData):
 
-        #mindestens zwei XY- Punktpaare
-        #mindestens zwei Höhenwerte
+        # mindestens zwei XY- Punktpaare
+        # mindestens zwei Höhenwerte
         conditionsValid = False
 
         if len(GcpData) < 3:
@@ -250,24 +267,34 @@ class TransformationDialog(QMainWindow):
             arrayZ = []
 
             for pointObj in GcpData:
-                if pointObj['usage'] == '3D' or pointObj['usage'] == '2D':
+                if pointObj["usage"] == "3D" or pointObj["usage"] == "2D":
                     countXY += 1
 
-                if pointObj['usage'] == '3D' or pointObj['usage'] == 'Z':
-                    arrayZ.append(pointObj['sourcePoints'][2])
+                if pointObj["usage"] == "3D" or pointObj["usage"] == "Z":
+                    arrayZ.append(pointObj["sourcePoints"][2])
 
-                if pointObj['usage'] == '3D' or pointObj['usage'] == 'Z':
+                if pointObj["usage"] == "3D" or pointObj["usage"] == "Z":
                     countZ += 1
 
-            #Pruefung auf Anzahl XY-Werte >=2
+            # Pruefung auf Anzahl XY-Werte >=2
             if countXY < 2:
                 conditionsValid = False
-                self.messageBar.pushMessage("Error", "Zu geringe Anzahl an XY-Georeferenzierungspunkten für eine 2D Transformation!", level=1, duration=5)
+                self.messageBar.pushMessage(
+                    "Error",
+                    "Zu geringe Anzahl an XY-Georeferenzierungspunkten für eine 2D Transformation!",
+                    level=1,
+                    duration=5,
+                )
 
-            #Pruefung auf Anzahl Z-Werte >= 2
+            # Pruefung auf Anzahl Z-Werte >= 2
             if countZ < 2:
                 conditionsValid = False
-                self.messageBar.pushMessage("Error", "Zu geringe Anzahl an Z-Georeferenzierungspunkten für die 1D Höhentransformation!", level=1, duration=5)
+                self.messageBar.pushMessage(
+                    "Error",
+                    "Zu geringe Anzahl an Z-Georeferenzierungspunkten für die 1D Höhentransformation!",
+                    level=1,
+                    duration=5,
+                )
 
         return conditionsValid
 
@@ -277,7 +304,7 @@ class TransformationDialog(QMainWindow):
     # \param y y-coordinate
 
     def setCoordinatesOnStatusBar(self, x, y):
-        self.coordLineEdit.setText(str(round(x, 2))+','+str(round(y, 2)))
+        self.coordLineEdit.setText(str(round(x, 2)) + "," + str(round(y, 2)))
 
     ## \brief Import a textfile with GCP-Data
     #
@@ -287,62 +314,81 @@ class TransformationDialog(QMainWindow):
         dialog = QFileDialog(self)
         dialog.setNameFilter("Text Files (*.txt)")
         openFileName = dialog.getOpenFileName()[0]
-        print('Import GCP Data from '+openFileName)
+        print("Import GCP Data from " + openFileName)
 
         if openFileName:
 
             ######## loadedGcpData - Parameter selection #############
             loadedGcpData = []
             startLineSelection = 0
-            with open(openFileName, 'r', newline='') as csvfile:
+            with open(openFileName, "r", newline="") as csvfile:
 
-                reader = csv.reader(csvfile, delimiter='\t', quotechar='|')
+                reader = csv.reader(csvfile, delimiter="\t", quotechar="|")
 
                 for row in reader:
                     startLineSelection += 1
-                    if row[0] == 'Parameter selection':
+                    if row[0] == "Parameter selection":
                         break
 
             csvfile.close()
 
-            with open(openFileName, 'r') as csvfile:
+            with open(openFileName, "r") as csvfile:
 
                 for i in range(startLineSelection):
                     next(csvfile)
 
-                reader = csv.DictReader(csvfile, delimiter='\t')
+                reader = csv.DictReader(csvfile, delimiter="\t")
                 for row in reader:
-                    loadedGcpData.append({'uuid': row['UUID'], 'pt_nr': row['PTNR'], 'target_x_ptnr': row['TargetX PTNR'], 'target_y_ptnr': row['TargetY PTNR'], 'target_z_ptnr': row['TargetZ PTNR'], 'fid': int(row['ID']), 'error_xy': float(row['Error XY']), 'error_z': float(row['Error Z']), 'usage': row['Punkt verwenden'], 'sourcePoints': [float(row['Quelle X']), float(row['Quelle Y']), float(row['Quelle Z'])], 'targetPoints': [float(row['Ziel X']), float(row['Ziel Y']), float(row['Ziel Z'])]})
-
+                    loadedGcpData.append(
+                        {
+                            "uuid": row["UUID"],
+                            "pt_nr": row["PTNR"],
+                            "target_x_ptnr": row["TargetX PTNR"],
+                            "target_y_ptnr": row["TargetY PTNR"],
+                            "target_z_ptnr": row["TargetZ PTNR"],
+                            "fid": int(row["ID"]),
+                            "error_xy": float(row["Error XY"]),
+                            "error_z": float(row["Error Z"]),
+                            "usage": row["Punkt verwenden"],
+                            "sourcePoints": [float(row["Quelle X"]), float(row["Quelle Y"]), float(row["Quelle Z"])],
+                            "targetPoints": [float(row["Ziel X"]), float(row["Ziel Y"]), float(row["Ziel Z"])],
+                        }
+                    )
 
             ######## loadedTargetGcp - TargetGCPs #############
             loadedTargetGcp = []
 
             startLineTargetGCP = 0
-            with open(openFileName, 'r', newline='') as csvfile:
+            with open(openFileName, "r", newline="") as csvfile:
 
-                reader = csv.reader(csvfile, delimiter='\t', quotechar='|')
+                reader = csv.reader(csvfile, delimiter="\t", quotechar="|")
 
                 for row in reader:
                     startLineTargetGCP += 1
-                    if row[0] == 'TargetGCPs':
+                    if row[0] == "TargetGCPs":
                         break
 
             csvfile.close()
 
-            with open(openFileName, 'r') as csvfile:
+            with open(openFileName, "r") as csvfile:
 
                 lineCounter = 0
                 for line in csvfile:
 
                     if (lineCounter > startLineTargetGCP) and (lineCounter < startLineSelection - 1):
-                        lineArray = line.split('\t')
-                        loadedTargetGcp.append({'pt_nr': lineArray[0], 'x': float(lineArray[1]), 'y': float(lineArray[2]), 'z': float(lineArray[3])})
+                        lineArray = line.split("\t")
+                        loadedTargetGcp.append(
+                            {
+                                "pt_nr": lineArray[0],
+                                "x": float(lineArray[1]),
+                                "y": float(lineArray[2]),
+                                "z": float(lineArray[3]),
+                            }
+                        )
 
                     lineCounter += 1
 
-
-            print('Finish load GCP Data from '+openFileName)
+            print("Finish load GCP Data from " + openFileName)
 
             self.gcpTable.updateGcpTableFromImport(loadedGcpData, loadedTargetGcp)
 
@@ -351,67 +397,82 @@ class TransformationDialog(QMainWindow):
     def exportTxt(self):
 
         dialog = QFileDialog(self)
-        saveFile = QFileDialog.getSaveFileName(dialog, "Speichern unter", self.rememberExportTxtFolder, "Textdatei(*.txt)")
+        saveFile = QFileDialog.getSaveFileName(
+            dialog, "Speichern unter", self.rememberExportTxtFolder, "Textdatei(*.txt)"
+        )
         saveFileName = saveFile[0]
 
-        #Just to remember last loacation of the last saved file
+        # Just to remember last loacation of the last saved file
         self.rememberExportTxtFolder = os.path.dirname(saveFileName)
 
         GcpData = self.gcpTable.getGcpTableData()
 
         if saveFileName:
 
-            #transformationParameters
-            with open(saveFileName, 'w', newline='') as csvfile:
-                csvWriter = csv.writer(csvfile, delimiter='\t', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-                csvWriter.writerow(['TransformationParameters'])
-                csvWriter.writerow(['Rotation', 'Translation X', 'Translation Y', 'Translation Z', 'Error 2D', 'Error Z'])
-                csvWriter.writerow([self.zAngle, self.translationX, self.translationY, self.translationZ, self.globalError2D, self.globalErrorZ])
-            #TargetGCPs
-            with open(saveFileName, 'a', newline='') as csvfile:
-                csvWriter = csv.writer(csvfile, delimiter='\t', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-                csvWriter.writerow(['TargetGCPs'])
+            # transformationParameters
+            with open(saveFileName, "w", newline="") as csvfile:
+                csvWriter = csv.writer(csvfile, delimiter="\t", quotechar="|", quoting=csv.QUOTE_MINIMAL)
+                csvWriter.writerow(["TransformationParameters"])
+                csvWriter.writerow(
+                    ["Rotation", "Translation X", "Translation Y", "Translation Z", "Error 2D", "Error Z"]
+                )
+                csvWriter.writerow(
+                    [
+                        self.zAngle,
+                        self.translationX,
+                        self.translationY,
+                        self.translationZ,
+                        self.globalError2D,
+                        self.globalErrorZ,
+                    ]
+                )
+            # TargetGCPs
+            with open(saveFileName, "a", newline="") as csvfile:
+                csvWriter = csv.writer(csvfile, delimiter="\t", quotechar="|", quoting=csv.QUOTE_MINIMAL)
+                csvWriter.writerow(["TargetGCPs"])
 
-                csvWriter.writerow(['PTNR', 'Ziel X', 'Ziel Y', 'Ziel Z'])
+                csvWriter.writerow(["PTNR", "Ziel X", "Ziel Y", "Ziel Z"])
 
-                for pointObj in self.gcpTarget['points']:
-                    csvWriter.writerow([pointObj['pt_nr'], pointObj['x'], pointObj['y'], pointObj['z']])
-            #Parameter selection
-            with open(saveFileName, 'a', newline='') as csvfile:
-                csvWriter = csv.writer(csvfile, delimiter='\t', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-                csvWriter.writerow(['Parameter selection'])
+                for pointObj in self.gcpTarget["points"]:
+                    csvWriter.writerow([pointObj["pt_nr"], pointObj["x"], pointObj["y"], pointObj["z"]])
+            # Parameter selection
+            with open(saveFileName, "a", newline="") as csvfile:
+                csvWriter = csv.writer(csvfile, delimiter="\t", quotechar="|", quoting=csv.QUOTE_MINIMAL)
+                csvWriter.writerow(["Parameter selection"])
                 exportHeaders = self.gcpTable.colHeaders.copy()
-                exportHeaders.append('TargetX PTNR')
-                exportHeaders.append('TargetY PTNR')
-                exportHeaders.append('TargetZ PTNR')
+                exportHeaders.append("TargetX PTNR")
+                exportHeaders.append("TargetY PTNR")
+                exportHeaders.append("TargetZ PTNR")
                 csvWriter.writerow(exportHeaders)
 
                 for gcpObj in GcpData:
                     rowArray = []
-                    rowArray.append(gcpObj['uuid'])             #UUID
-                    rowArray.append(gcpObj['pt_nr'])             #PTNR
-                    rowArray.append(gcpObj['fid'])               #ID
-                    rowArray.append(gcpObj['sourcePoints'][0])  #Quelle X
-                    rowArray.append(gcpObj['sourcePoints'][1])  #Quelle Y
-                    rowArray.append(gcpObj['sourcePoints'][2])  #Quelle Z
-                    rowArray.append(gcpObj['targetPoints'][0])  #Ziel X
-                    rowArray.append(gcpObj['targetPoints'][1])  #Ziel Y
-                    rowArray.append(gcpObj['targetPoints'][2])  #Ziel Z
-                    rowArray.append(gcpObj['error_xy'])         #Error XY
-                    rowArray.append(gcpObj['error_z'])          #Error Z
-                    rowArray.append(gcpObj['usage'])            #Punkt verwenden
-                    rowArray.append(gcpObj['target_x_ptnr'])    #Target PTNR
-                    rowArray.append(gcpObj['target_y_ptnr'])    #Target PTNR
-                    rowArray.append(gcpObj['target_z_ptnr'])    #Target PTNR
+                    rowArray.append(gcpObj["uuid"])  # UUID
+                    rowArray.append(gcpObj["pt_nr"])  # PTNR
+                    rowArray.append(gcpObj["fid"])  # ID
+                    rowArray.append(gcpObj["sourcePoints"][0])  # Quelle X
+                    rowArray.append(gcpObj["sourcePoints"][1])  # Quelle Y
+                    rowArray.append(gcpObj["sourcePoints"][2])  # Quelle Z
+                    rowArray.append(gcpObj["targetPoints"][0])  # Ziel X
+                    rowArray.append(gcpObj["targetPoints"][1])  # Ziel Y
+                    rowArray.append(gcpObj["targetPoints"][2])  # Ziel Z
+                    rowArray.append(gcpObj["error_xy"])  # Error XY
+                    rowArray.append(gcpObj["error_z"])  # Error Z
+                    rowArray.append(gcpObj["usage"])  # Punkt verwenden
+                    rowArray.append(gcpObj["target_x_ptnr"])  # Target PTNR
+                    rowArray.append(gcpObj["target_y_ptnr"])  # Target PTNR
+                    rowArray.append(gcpObj["target_z_ptnr"])  # Target PTNR
 
                     csvWriter.writerow(rowArray)
 
-            print('Finish write GCP Data to '+saveFileName)
+            print("Finish write GCP Data to " + saveFileName)
 
     ## \brief Function to output current parameters
     #
     def takeTransformParams(self):
-        self.t2GArchInstance.setTransformationParameters(self.translationX, self.translationY, self.translationZ, self.zAngle, self.targetCrs)
+        self.t2GArchInstance.setTransformationParameters(
+            self.translationX, self.translationY, self.translationZ, self.zAngle, self.targetCrs
+        )
         self.close()
 
     ## \brief Function to restore the complete window

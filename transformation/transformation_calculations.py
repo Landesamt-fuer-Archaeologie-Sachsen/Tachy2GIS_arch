@@ -1,19 +1,20 @@
 # -*- coding: utf-8 -*-
-import os
-import numpy as np
 import math
 
-from qgis.core import QgsGeometry, QgsApplication, QgsRectangle, QgsWkbTypes
+import numpy as np
 from processing.gui import AlgorithmExecutor
+from qgis.core import QgsGeometry, QgsApplication, QgsRectangle, QgsWkbTypes
 
-from .simil import simil
+from .simil import Simil
+
 
 ## @brief Core calculations for the transformation
 #
 # @author Mario Uhlig, VisDat geodatentechnologie GmbH, mario.uhlig@visdat.de
 # @date 2020-11-09
 
-class TransformationCalculations():
+
+class TransformationCalculations:
 
     ## The constructor.
     #
@@ -36,21 +37,21 @@ class TransformationCalculations():
         translationZ, residualsZ, globalErrorZ = self.calcTransformationZ(GcpData)
 
         # Rueckgabe
-        for i in range(0,len(GcpData)):
-            if GcpData[i]['usage'] == '3D' or GcpData[i]['usage'] == 'Z':
-                for z in range(0,len(residualsZ)):
-                    if GcpData[i]['uuid'] == residualsZ[z][3]:
-                        GcpData[i]['errorZ'] = residualsZ[z][2]
+        for i in range(0, len(GcpData)):
+            if GcpData[i]["usage"] == "3D" or GcpData[i]["usage"] == "Z":
+                for z in range(0, len(residualsZ)):
+                    if GcpData[i]["uuid"] == residualsZ[z][3]:
+                        GcpData[i]["errorZ"] = residualsZ[z][2]
             else:
-                GcpData[i]['errorZ'] = -99999
+                GcpData[i]["errorZ"] = -99999
 
-        for i in range(0,len(GcpData)):
-            if GcpData[i]['usage'] == '3D' or GcpData[i]['usage'] == '2D':
-                for z in range(0,len(pointError2D)):
-                    if GcpData[i]['uuid'] == pointError2D[z][7]:
-                        GcpData[i]['errorXY'] = pointError2D[z][6]
+        for i in range(0, len(GcpData)):
+            if GcpData[i]["usage"] == "3D" or GcpData[i]["usage"] == "2D":
+                for z in range(0, len(pointError2D)):
+                    if GcpData[i]["uuid"] == pointError2D[z][7]:
+                        GcpData[i]["errorXY"] = pointError2D[z][6]
             else:
-                GcpData[i]['errorXY'] = -99999
+                GcpData[i]["errorXY"] = -99999
 
         return zAngle, translationX, translationY, globalError2D, translationZ, GcpData, globalErrorZ
 
@@ -69,50 +70,50 @@ class TransformationCalculations():
         targetPointsWithId = []
 
         for pointObj in GcpData:
-            if pointObj['usage'] == '3D' or pointObj['usage'] == '2D':
-                selectedSourcePoints = pointObj['sourcePoints'].copy()
-                selectedSourcePoints.append(pointObj['uuid'])
+            if pointObj["usage"] == "3D" or pointObj["usage"] == "2D":
+                selectedSourcePoints = pointObj["sourcePoints"].copy()
+                selectedSourcePoints.append(pointObj["uuid"])
 
-                selectedTargetPoints = pointObj['targetPoints'].copy()
-                selectedTargetPoints.append(pointObj['uuid'])
+                selectedTargetPoints = pointObj["targetPoints"].copy()
+                selectedTargetPoints.append(pointObj["uuid"])
 
                 sourcePointsWithId.append(selectedSourcePoints)
                 targetPointsWithId.append(selectedTargetPoints)
 
         # set z value to 0 to force a 2d transformation, ohne id
-        sourcePoints2D = np.array(sourcePointsWithId)[:,0:2]
-        sourcePoints2D = np.insert(sourcePoints2D, 2, values = 0, axis=1)
-        targetPoints2D = np.array(targetPointsWithId)[:,0:2]
-        targetPoints2D = np.insert(targetPoints2D, 2, values = 0, axis=1)
+        sourcePoints2D = np.array(sourcePointsWithId)[:, 0:2]
+        sourcePoints2D = np.insert(sourcePoints2D, 2, values=0, axis=1)
+        targetPoints2D = np.array(targetPointsWithId)[:, 0:2]
+        targetPoints2D = np.insert(targetPoints2D, 2, values=0, axis=1)
 
-        sourcePoints2D = np.array(sourcePoints2D)[:,0:2]
-        sourcePoints2D = np.insert(sourcePoints2D, 2, values = 0, axis=1)
+        sourcePoints2D = np.array(sourcePoints2D)[:, 0:2]
+        sourcePoints2D = np.insert(sourcePoints2D, 2, values=0, axis=1)
         sourcePoints2D = sourcePoints2D.astype(float)
-        targetPoints2D = np.array(targetPoints2D)[:,0:2]
-        targetPoints2D = np.insert(targetPoints2D, 2, values = 0, axis=1)
+        targetPoints2D = np.array(targetPoints2D)[:, 0:2]
+        targetPoints2D = np.insert(targetPoints2D, 2, values=0, axis=1)
         targetPoints2D = targetPoints2D.astype(float)
 
-        #start estimation of the 2D parameters
-        m, r, t = simil.process(sourcePoints2D, targetPoints2D, scale=False)
-        #euler from rotation matrix
+        # start estimation of the 2D parameters
+        m, r, t = Simil.process(sourcePoints2D, targetPoints2D, scale=False)
+        # euler from rotation matrix
         E = self.rotMat2Euler(r)
-        #zAngle
-        zAngle = (E[2]*180/math.pi)*-1
-        #translation x and y
+        # zAngle
+        zAngle = (E[2] * 180 / math.pi) * -1
+        # translation x and y
         translationX = t[0][0].item()
         translationY = t[1][0].item()
 
-        #check if translationX and Y Value are type complex, then just use real part (when all points have the same coordinates)
+        # check if translationX and Y Value are type complex, then just use real part (when all points have the same coordinates)
         if isinstance(translationX, complex):
             translationX = translationX.real
 
         if isinstance(translationY, complex):
             translationY = translationY.real
 
-        #estimate 2d error
-        globalError2D, pointError2D = self.estimateError2d([m,r,t], sourcePointsWithId, targetPointsWithId)
+        # estimate 2d error
+        globalError2D, pointError2D = self.estimateError2d([m, r, t], sourcePointsWithId, targetPointsWithId)
 
-        #print('translationX', translationX)
+        # print('translationX', translationX)
         return zAngle, translationX, translationY, globalError2D, pointError2D
 
     ## \brief Calculates the Z-translation for the transformation
@@ -131,25 +132,24 @@ class TransformationCalculations():
         targetPointsZWithId = []
 
         for pointObj in GcpData:
-            if pointObj['usage'] == '3D' or pointObj['usage'] == 'Z':
+            if pointObj["usage"] == "3D" or pointObj["usage"] == "Z":
+                selectedSourcePointsZ = pointObj["sourcePoints"].copy()
+                selectedSourcePointsZ.append(pointObj["uuid"])
 
-                selectedSourcePointsZ = pointObj['sourcePoints'].copy()
-                selectedSourcePointsZ.append(pointObj['uuid'])
-
-                selectedTargetPointsZ = pointObj['targetPoints'].copy()
-                selectedTargetPointsZ.append(pointObj['uuid'])
+                selectedTargetPointsZ = pointObj["targetPoints"].copy()
+                selectedTargetPointsZ.append(pointObj["uuid"])
 
                 sourcePointsZWithId.append(selectedSourcePointsZ)
                 targetPointsZWithId.append(selectedTargetPointsZ)
 
-        sourcePointsZ = np.array(sourcePointsZWithId)[:,2]
+        sourcePointsZ = np.array(sourcePointsZWithId)[:, 2]
         sourcePointsZ = sourcePointsZ.astype(float)
-        targetPointsZ = np.array(targetPointsZWithId)[:,2]
+        targetPointsZ = np.array(targetPointsZWithId)[:, 2]
         targetPointsZ = targetPointsZ.astype(float)
 
-        #calculation of z translation
+        # calculation of z translation
         translationZ = self.calculate1dTranslationParams(sourcePointsZ, targetPointsZ)
-        #error calculation
+        # error calculation
         residualsZ, globalErrorZ = self.estimateError1d(translationZ, sourcePointsZWithId, targetPointsZWithId)
 
         return translationZ, residualsZ, globalErrorZ
@@ -165,25 +165,25 @@ class TransformationCalculations():
 
         layerName = layer.name()
 
-        #layer.startEditing()
-        layer.beginEditCommand( 'Beginn edit Translation Z' )
+        # layer.startEditing()
+        layer.beginEditCommand("Beginn edit Translation Z")
         for zFeat in layer.getFeatures():
 
-            g = zFeat.geometry() #QgsGeometry
+            g = zFeat.geometry()  # QgsGeometry
             geomType = g.type()
 
-            #line - 1, polygon - 2
+            # line - 1, polygon - 2
             if geomType == 1 or geomType == 2:
 
-                mls = g.get() #QgsMultiPolygon
+                mls = g.get()  # QgsMultiPolygon
 
                 adjustGeom = QgsGeometry(mls.createEmptyWithSameType())
                 geomArray = []
                 for v in mls.vertices():
 
-                    if tranlationDirection == 'forward':
+                    if tranlationDirection == "forward":
                         newZVal = v.z() + translationZ
-                    if tranlationDirection == 'reverse':
+                    if tranlationDirection == "reverse":
                         newZVal = v.z() - translationZ
 
                     v.setZ(newZVal)
@@ -195,28 +195,27 @@ class TransformationCalculations():
                 provGeom = layer.dataProvider().convertToProviderType(retAdjustGeom)
                 fid = zFeat.id()
 
-                print('adjustGeom: ', adjustGeom)
-                print('retAdjustGeom: ', retAdjustGeom)
-                print('provGeom: ', provGeom)
+                print("adjustGeom: ", adjustGeom)
+                print("retAdjustGeom: ", retAdjustGeom)
+                print("provGeom: ", provGeom)
 
                 if provGeom == None:
-                    layer.dataProvider().changeGeometryValues({ fid : retAdjustGeom })
+                    layer.dataProvider().changeGeometryValues({fid: retAdjustGeom})
                 else:
-                    layer.dataProvider().changeGeometryValues({ fid : provGeom })
+                    layer.dataProvider().changeGeometryValues({fid: provGeom})
 
-            #point - 0
+            # point - 0
             if geomType == 0:
-                if tranlationDirection == 'forward':
+                if tranlationDirection == "forward":
                     g.get().setZ(g.get().z() + translationZ)
-                if tranlationDirection == 'reverse':
+                if tranlationDirection == "reverse":
                     g.get().setZ(g.get().z() - translationZ)
 
                 fid = zFeat.id()
-                layer.dataProvider().changeGeometryValues({ fid : g })
+                layer.dataProvider().changeGeometryValues({fid: g})
 
         layer.dataProvider().createSpatialIndex()
         layer.endEditCommand()
-
 
     ## \brief layer rotation
     #
@@ -227,19 +226,18 @@ class TransformationCalculations():
 
     def layerRotation(self, layer, rotationDirection, zAngle):
 
-        print('Transformation - Rotation: ', layer.name())
-        #Rotation
-        if rotationDirection == 'forward':
+        print("Transformation - Rotation: ", layer.name())
+        # Rotation
+        if rotationDirection == "forward":
             angleValue = zAngle * -1
-        if rotationDirection == 'reverse':
+        if rotationDirection == "reverse":
             angleValue = zAngle
 
         layer.startEditing()
-        rotateAlg = QgsApplication.processingRegistry().createAlgorithmById('native:rotatefeatures')
-        paramRotate = { 'ANCHOR' : '0,0', 'ANGLE' : angleValue, 'INPUT': layer}
+        rotateAlg = QgsApplication.processingRegistry().createAlgorithmById("native:rotatefeatures")
+        paramRotate = {"ANCHOR": "0,0", "ANGLE": angleValue, "INPUT": layer}
         AlgorithmExecutor.execute_in_place(rotateAlg, paramRotate)
         layer.commitChanges()
-
 
     ## \brief layer translation X and Y
     #
@@ -253,21 +251,20 @@ class TransformationCalculations():
 
         layerName = layer.name()
 
-        if tranlationDirection == 'forward':
+        if tranlationDirection == "forward":
             tranlationXValue = translationX
             tranlationYValue = translationY
-        if tranlationDirection == 'reverse':
+        if tranlationDirection == "reverse":
             tranlationXValue = translationX * -1
             tranlationYValue = translationY * -1
 
-        print('Transformation - Translation X and Y: ', layerName)
+        print("Transformation - Translation X and Y: ", layerName)
 
         layer.startEditing()
-        translateAlg = QgsApplication.processingRegistry().createAlgorithmById('native:translategeometry')
-        paramTranslate = { 'DELTA_Y' : tranlationYValue, 'DELTA_X' : tranlationXValue, 'INPUT': layer}
+        translateAlg = QgsApplication.processingRegistry().createAlgorithmById("native:translategeometry")
+        paramTranslate = {"DELTA_Y": tranlationYValue, "DELTA_X": tranlationXValue, "INPUT": layer}
         AlgorithmExecutor.execute_in_place(translateAlg, paramTranslate)
         layer.commitChanges()
-
 
     ## \brief layer translation X, Y and Z direction
     #
@@ -281,30 +278,48 @@ class TransformationCalculations():
 
         layerName = layer.name()
 
-        if tranlationDirection == 'forward':
+        if tranlationDirection == "forward":
             tranlationXValue = translationX
             tranlationYValue = translationY
             tranlationZValue = translationZ
-        if tranlationDirection == 'reverse':
+        if tranlationDirection == "reverse":
             tranlationXValue = translationX * -1
             tranlationYValue = translationY * -1
             tranlationZValue = translationZ * -1
 
-        print('Transformation - Translation X, Y and Z: ', layerName)
+        print("Transformation - Translation X, Y and Z: ", layerName)
 
         layer.startEditing()
-        translateAlg = QgsApplication.processingRegistry().createAlgorithmById('native:translategeometry')
+        translateAlg = QgsApplication.processingRegistry().createAlgorithmById("native:translategeometry")
 
         layerType = layer.wkbType()
         print("layerType", layerType)
-        #Abfrage nach Z und ZM Multi Layertypen
-        #1004 MultiPointZ , 1005 MultiLineZ, 1006 MultiPolygonZ
-        if layerType == QgsWkbTypes.PointZ or layerType == QgsWkbTypes.LineStringZ or layerType == QgsWkbTypes.PolygonZ or layerType == QgsWkbTypes.MultiPointZ or layerType == QgsWkbTypes.MultiLineZ or layerType == QgsWkbTypes.MultiPolygonZ:
+        # Abfrage nach Z und ZM Multi Layertypen
+        # 1004 MultiPointZ , 1005 MultiLineZ, 1006 MultiPolygonZ
+        if (
+            layerType == QgsWkbTypes.PointZ
+            or layerType == QgsWkbTypes.LineStringZ
+            or layerType == QgsWkbTypes.PolygonZ
+            or layerType == QgsWkbTypes.MultiPointZ
+            or layerType == QgsWkbTypes.MultiLineZ
+            or layerType == QgsWkbTypes.MultiPolygonZ
+        ):
 
-            paramTranslate = { 'DELTA_Y' : tranlationYValue, 'DELTA_X' : tranlationXValue, 'DELTA_Z' : tranlationZValue, 'INPUT': layer}
+            paramTranslate = {
+                "DELTA_Y": tranlationYValue,
+                "DELTA_X": tranlationXValue,
+                "DELTA_Z": tranlationZValue,
+                "INPUT": layer,
+            }
 
         else:
-            paramTranslate = { 'DELTA_Y' : tranlationYValue, 'DELTA_X' : tranlationXValue, 'DELTA_Z' : tranlationZValue, 'DELTA_M' : 0, 'INPUT': layer}
+            paramTranslate = {
+                "DELTA_Y": tranlationYValue,
+                "DELTA_X": tranlationXValue,
+                "DELTA_Z": tranlationZValue,
+                "DELTA_M": 0,
+                "INPUT": layer,
+            }
 
         print("paramTranslate ", paramTranslate)
         AlgorithmExecutor.execute_in_place(translateAlg, paramTranslate)
@@ -319,7 +334,6 @@ class TransformationCalculations():
         targetExtent = QgsRectangle()
         targetExtent.setMinimal()
         for feat in layer.getFeatures():
-
             bbox = feat.geometry().boundingBox()
             targetExtent.combineExtentWith(bbox)
 
@@ -337,20 +351,20 @@ class TransformationCalculations():
     # @param R The rotation matrix
     # @returns Eul The Euler angles [E1, E2, E3]
     def rotMat2Euler(self, R):
-        if R[0,2] == 1 or R[0,2] == -1:
-          #special case
-          E3 = 0 #set arbitrarily
-          dlta = math.atan2(R[0,1],R[0,2])
-          if R[0,2] == -1:
-            E2 = pi/2
-            E1 = E3 + dlta
-          else:
-            E2 = -pi/2
-            E1 = -E3 + dlta
+        if R[0, 2] == 1 or R[0, 2] == -1:
+            # special case
+            E3 = 0  # set arbitrarily
+            dlta = math.atan2(R[0, 1], R[0, 2])
+            if R[0, 2] == -1:
+                E2 = math.pi / 2
+                E1 = E3 + dlta
+            else:
+                E2 = -math.pi / 2
+                E1 = -E3 + dlta
         else:
-          E2 = - math.asin(R[0,2])
-          E1 = math.atan2(R[1,2]/math.cos(E2), R[2,2]/math.cos(E2))
-          E3 = math.atan2(R[0,1]/math.cos(E2), R[0,0]/math.cos(E2))
+            E2 = -math.asin(R[0, 2])
+            E1 = math.atan2(R[1, 2] / math.cos(E2), R[2, 2] / math.cos(E2))
+            E3 = math.atan2(R[0, 1] / math.cos(E2), R[0, 0] / math.cos(E2))
 
         Eul = [E1, E2, E3]
         return Eul
@@ -366,21 +380,21 @@ class TransformationCalculations():
         # total error as std
         e = 0
         # get the transformation parameters
-        #m = scale =  1
+        # m = scale =  1
         m = transform[0]
-        #r Rotationmatrx
+        # r Rotationmatrx
         r = transform[1]
-        #t Translationmatrix
+        # t Translationmatrix
         t = transform[2]
 
-        originNoId = np.array(origin)[:,0:2]
+        originNoId = np.array(origin)[:, 0:2]
         originNoId = originNoId.astype(float)
-        originNoId = np.insert(originNoId, 2, values = 0, axis=1)
-        targetNoId = np.array(target)[:,0:2]
+        originNoId = np.insert(originNoId, 2, values=0, axis=1)
+        targetNoId = np.array(target)[:, 0:2]
         targetNoId = targetNoId.astype(float)
-        targetNoId = np.insert(targetNoId, 2, values = 0, axis=1)
+        targetNoId = np.insert(targetNoId, 2, values=0, axis=1)
 
-        #print(m, r,t)
+        # print(m, r,t)
         origin2 = []
         for i in originNoId:
             origin2.append(m * r @ i[0:3] + t)
@@ -406,7 +420,7 @@ class TransformationCalculations():
             # Fehler für den Punkt
             e_point = math.sqrt((dx * dx + dy * dy))
 
-            error_container.append([ox,oy,dx,tx,ty,dy,e_point,pointId])
+            error_container.append([ox, oy, dx, tx, ty, dy, e_point, pointId])
 
         if N == 0:
             e = 0
@@ -424,18 +438,17 @@ class TransformationCalculations():
     def estimateError1d(self, translation_z, origin, target):
         # total error as std
 
-        sourcePointsZ = np.array(origin)[:,2]
+        sourcePointsZ = np.array(origin)[:, 2]
         sourcePointsZ = sourcePointsZ.astype(float)
-        targetPointsZ = np.array(target)[:,2]
+        targetPointsZ = np.array(target)[:, 2]
         targetPointsZ = targetPointsZ.astype(float)
 
         residuals = []
 
         N = len(origin)
         for i in range(N):
-            z_residuals = targetPointsZ[i]  - (sourcePointsZ[i] + translation_z)
+            z_residuals = targetPointsZ[i] - (sourcePointsZ[i] + translation_z)
             residuals.append([targetPointsZ[i], sourcePointsZ[i], z_residuals, origin[i][3]])
-
 
         sourcePointsZ_t = np.vstack([sourcePointsZ, np.ones(len(sourcePointsZ))]).T
         linegress, rsd, rank, s = np.linalg.lstsq(sourcePointsZ_t, targetPointsZ, rcond=None)
@@ -452,10 +465,12 @@ class TransformationCalculations():
         dC = np.diag(C)
 
         if (dC < 0.0).any():
-            print('\n{0}\ndetected a negative number in your'
-                          'covariance matrix. Taking the absolute value'
-                          'of the diagonal. something is probably wrong'
-                          'with your data or model'.format(dC))
+            print(
+                "\n{0}\ndetected a negative number in your"
+                "covariance matrix. Taking the absolute value"
+                "of the diagonal. something is probably wrong"
+                "with your data or model".format(dC)
+            )
             dC = np.abs(dC)
 
         se = np.sqrt(dC)  # standard error
@@ -478,7 +493,6 @@ class TransformationCalculations():
 
         return z
 
-
     ## \brief cast multipoint geometries to single point geometries
     #
     #
@@ -487,22 +501,43 @@ class TransformationCalculations():
         geoType = geom.wkbType()
         ret_geom = geom
 
-        #Point25D or PointZ or LineString25D or LineStringZ or Polygon25D or PolygonZ
-        if geoType == QgsWkbTypes.Point25D or geoType == QgsWkbTypes.PointZ or geoType == QgsWkbTypes.LineString25D or geoType == QgsWkbTypes.LineStringZ  or geoType == QgsWkbTypes.Polygon25D or geoType == QgsWkbTypes.PolygonZ:
+        # Point25D or PointZ or LineString25D or LineStringZ or Polygon25D or PolygonZ
+        if (
+            geoType == QgsWkbTypes.Point25D
+            or geoType == QgsWkbTypes.PointZ
+            or geoType == QgsWkbTypes.LineString25D
+            or geoType == QgsWkbTypes.LineStringZ
+            or geoType == QgsWkbTypes.Polygon25D
+            or geoType == QgsWkbTypes.PolygonZ
+        ):
             return ret_geom
 
-        #PointM or PointZM
+        # PointM or PointZM
         if geoType == QgsWkbTypes.PointM or geoType == QgsWkbTypes.PointZM:
             geom_total = geom.coerceToType(QgsWkbTypes.PointZ)
 
-        #LineString or MultiLineString or MultiLineString25D or MultiLineStringZ or MultiLineStringM or MultiLineStringZM
-        if geoType == QgsWkbTypes.LineString or geoType == QgsWkbTypes.MultiLineString or geoType == QgsWkbTypes.MultiLineString25D or geoType == QgsWkbTypes.MultiLineStringZ or geoType == QgsWkbTypes.MultiLineStringM or geoType == QgsWkbTypes.MultiLineStringZM:
-            #LineString25D
+        # LineString or MultiLineString or MultiLineString25D or MultiLineStringZ or MultiLineStringM or MultiLineStringZM
+        if (
+            geoType == QgsWkbTypes.LineString
+            or geoType == QgsWkbTypes.MultiLineString
+            or geoType == QgsWkbTypes.MultiLineString25D
+            or geoType == QgsWkbTypes.MultiLineStringZ
+            or geoType == QgsWkbTypes.MultiLineStringM
+            or geoType == QgsWkbTypes.MultiLineStringZM
+        ):
+            # LineString25D
             geom_total = geom.coerceToType(QgsWkbTypes.LineString25D)
 
-        #Polygon or Multipolygon or MultiPolygon25D or MultiPolygonZ  or MultiPolygonM or MultiPolygonZM
-        if geoType == QgsWkbTypes.Polygon or geoType == QgsWkbTypes.MultiPolygon or geoType == QgsWkbTypes.MultiPolygon25D or geoType == QgsWkbTypes.MultiPolygonZ or geoType == QgsWkbTypes.MultiPolygonM or geoType == QgsWkbTypes.MultiPolygonZM:
-            #Polygon25D
+        # Polygon or Multipolygon or MultiPolygon25D or MultiPolygonZ  or MultiPolygonM or MultiPolygonZM
+        if (
+            geoType == QgsWkbTypes.Polygon
+            or geoType == QgsWkbTypes.MultiPolygon
+            or geoType == QgsWkbTypes.MultiPolygon25D
+            or geoType == QgsWkbTypes.MultiPolygonZ
+            or geoType == QgsWkbTypes.MultiPolygonM
+            or geoType == QgsWkbTypes.MultiPolygonZM
+        ):
+            # Polygon25D
             geom_total = geom.coerceToType(QgsWkbTypes.Polygon25D)
 
         if len(geom_total) >= 2:
@@ -511,7 +546,7 @@ class TransformationCalculations():
             elif geom_total[1].isEmpty() or geom_total[1].isGeosValid() == False:
                 ret_geom = geom_total[0]
             else:
-                print('Achtung, es wird der erste Teil der Multi-Geometrie verwendet!')
+                print("Achtung, es wird der erste Teil der Multi-Geometrie verwendet!")
                 ret_geom = geom_total[0]
         elif len(geom_total) == 1:
             ret_geom = geom_total[0]

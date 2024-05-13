@@ -498,7 +498,7 @@
                   </property>
                   <property name="icon">
                    <iconset>
-                    <normaloff>Icons/Sichtbar_an.gif</normaloff>Icons/Sichtbar_an.gif</iconset>
+                    <normaloff>../Icons/Sichtbar_an.gif</normaloff>../Icons/Sichtbar_an.gif</iconset>
                   </property>
                   <property name="checkable">
                    <bool>false</bool>
@@ -980,7 +980,7 @@
             </property>
             <property name="icon">
              <iconset>
-              <normaloff>Icons/Sound.gif</normaloff>Icons/Sound.gif</iconset>
+              <normaloff>../Icons/Sound.gif</normaloff>../Icons/Sound.gif</iconset>
             </property>
             <property name="checked">
              <bool>true</bool>

@@ -4,6 +4,7 @@ from qgis.gui import QgsAttributeDialog, QgsAttributeEditorContext, QgsMapTool
 
 from ..publisher import Publisher
 
+
 ## @brief With the MapToolIdentify class a map tool for identify feature attributes is realized
 #
 # @author Mario Uhlig, VisDat geodatentechnologie GmbH, mario.uhlig@visdat.de
@@ -143,20 +144,14 @@ class MapToolIdentify(QgsMapTool):
             search_layers = [self.digiPointLayer, self.digiLineLayer, self.digiPolygonLayer]
 
         self.search_features = [
-            {
-                "layer": layer,
-                "feature": feature
-            }
-            for layer in search_layers
-            for feature in layer.getFeatures()
+            {"layer": layer, "feature": feature} for layer in search_layers for feature in layer.getFeatures()
         ]
 
         if self.do_action_select_instead:
             # in edit mode allow only "profile_object"
-            self.search_features = list(filter(
-                lambda f: f["feature"]["geo_quelle"] == "profile_object",
-                self.search_features
-            ))
+            self.search_features = list(
+                filter(lambda f: f["feature"]["geo_quelle"] == "profile_object", self.search_features)
+            )
 
     def close_form(self, event):
         self.pup.publish("removeHoverFeatures", {})
@@ -199,12 +194,6 @@ class MapToolIdentify(QgsMapTool):
             return
 
         self.lastUUID = final_result["feature"]["obj_uuid"]
-        self.lastFeature = (
-            final_result["layer"],
-            final_result["feature"]
-        )
+        self.lastFeature = (final_result["layer"], final_result["feature"])
         self.pup.publish("removeHoverFeatures", {})
-        self.pup.publish(
-            "addHoverFeatures",
-            {"layer": final_result["layer"], "features": [final_result["feature"]]}
-        )
+        self.pup.publish("addHoverFeatures", {"layer": final_result["layer"], "features": [final_result["feature"]]})

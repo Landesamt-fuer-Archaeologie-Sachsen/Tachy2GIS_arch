@@ -62,7 +62,7 @@ from .ExtDialoge.myDlgSettings import DlgSettings, Configfile
 from .geoEdit.geo_edit import GeoEdit
 from .messen.messen import MeasurementTab
 from .profile.profile import Profile
-from .t2g_arch_dockwidget import T2G_ArchDockWidget
+from .t2g_arch_dockwidget import T2GArchDockWidget
 from .transformation.transformation_gui import TransformationGui
 from .utils.functions import (
     addPoint3D,
@@ -109,7 +109,7 @@ for iconDescription, iconPath in iconPaths.items():
     iconPaths[iconDescription] = os.path.join(plugin_dir, "Icons", iconPath)
 
 
-class T2G_Arch:
+class T2gArch:
 
     def __init__(self, iface: QgisInterface):
         if Qgis.QGIS_VERSION_INT < 32000:
@@ -119,6 +119,8 @@ class T2G_Arch:
             raise SystemExit
 
         self.iface = iface
+        self.plugin_name_tag = "T2G Archäologie"
+
         self.layerPoint = None
         self.layerLine = None
         self.layerPoly = None
@@ -147,7 +149,7 @@ class T2G_Arch:
         self.iconpfad = os.path.join(os.path.join(os.path.dirname(__file__), "Icons"))
 
     def initGui(self):
-        self.dockwidget = T2G_ArchDockWidget()
+        self.dockwidget = T2GArchDockWidget()
         self.setupModules()
         self.setupConnections()
         self.createMaptools()
@@ -186,11 +188,11 @@ class T2G_Arch:
             self.rubberBand = makerAndRubberbands()
             self.pointMaker = makerAndRubberbands()
 
-            self.layerLine = QgsProject.instance().mapLayersByName(T2G_ArchDockWidget.eLayerListe()[0])[0]
+            self.layerLine = QgsProject.instance().mapLayersByName(T2GArchDockWidget.eLayerListe()[0])[0]
             self.layerLineId = self.layerLine.id()
-            self.layerPoly = QgsProject.instance().mapLayersByName(T2G_ArchDockWidget.eLayerListe()[1])[0]
+            self.layerPoly = QgsProject.instance().mapLayersByName(T2GArchDockWidget.eLayerListe()[1])[0]
             self.layerPolyId = self.layerPoly.id()
-            self.layerPoint = QgsProject.instance().mapLayersByName(T2G_ArchDockWidget.eLayerListe()[2])[0]
+            self.layerPoint = QgsProject.instance().mapLayersByName(T2GArchDockWidget.eLayerListe()[2])[0]
             self.layerPointId = self.layerPoint.id()
             self.layerMesspoint = QgsProject.instance().mapLayersByName("Messpunkte")[0]
 
@@ -274,17 +276,17 @@ class T2G_Arch:
         self.getMaxValues()
 
         self.iface.messageBar().pushMessage(
-            "T2G Archäologie: ", "Aufsatz Archäologie für T2G ist einsatzbereit.", level=Qgis.Info
+            self.plugin_name_tag, "Aufsatz Archäologie für T2G ist einsatzbereit.", level=Qgis.Info
         )
-        QgsMessageLog.logMessage("Aufsatz Archäologie für T2G ist einsatzbereit.", "T2G Archäologie", Qgis.Info)
+        QgsMessageLog.logMessage("Aufsatz Archäologie für T2G ist einsatzbereit.", self.plugin_name_tag, Qgis.Info)
 
         delSelectFeature()
         self.selectFeatures = []
-        QgsMessageLog.logMessage("Überprüfe UUID", "T2G Archäologie", Qgis.Info)
-        self.iface.messageBar().pushMessage("T2G Archäologie: ", "Überprüfe UUID.", level=Qgis.Info)
+        QgsMessageLog.logMessage("Überprüfe UUID", self.plugin_name_tag, Qgis.Info)
+        self.iface.messageBar().pushMessage(self.plugin_name_tag, "Überprüfe UUID.", level=Qgis.Info)
         # >uuid ereugen wenn Feld uuid leer
-        list = [self.layerPoly, self.layerLine, self.layerPoint, self.layerMesspoint]
-        for layer in list:
+        layer_list = [self.layerPoly, self.layerLine, self.layerPoint, self.layerMesspoint]
+        for layer in layer_list:
             layer.startEditing()
             if layer.dataProvider().fieldNameIndex("uuid") == -1:
                 layer.dataProvider().addAttributes([QgsField("uuid", QVariant.String, len=50)])
@@ -434,7 +436,7 @@ class T2G_Arch:
         result = QMessageBox.information(
             None,
             "WICHTIG",
-            "Dateiformat:\nptnr  x  y  z\n" "\nMöchten Sie fortfahren?",
+            "Dateiformat:\nptnr  x  y  z\n\nMöchten Sie fortfahren?",
             QMessageBox.Ok | QMessageBox.Cancel,
         )
         if result == QMessageBox.Ok:
@@ -452,7 +454,7 @@ class T2G_Arch:
                 setCustomProjectVariable("maxWerteAktualisieren", False)
 
                 if dateiFormat == ".csv":
-                    QgsMessageLog.logMessage("Point import- read data from .csv", "T2G Archäologie", Qgis.Info)
+                    QgsMessageLog.logMessage("Point import- read data from .csv", self.plugin_name_tag, Qgis.Info)
                     with open(inputFile[0]) as file:
                         lineCount = fileLineCount(inputFile[0])
                         progress.setText(f"{lineCount} Punkte werden importiert")
@@ -474,12 +476,12 @@ class T2G_Arch:
                             except:
                                 QgsMessageLog.logMessage(
                                     f"Point import: Could not read point in line {pointNumber}",
-                                    "T2G Archäologie",
+                                    self.plugin_name_tag,
                                     Qgis.Info,
                                 )
                             pointNumber += 1
                 elif dateiFormat == ".txt":
-                    QgsMessageLog.logMessage("Point import- read data from .txt", "T2G Archäologie", Qgis.Info)
+                    QgsMessageLog.logMessage("Point import- read data from .txt", self.plugin_name_tag, Qgis.Info)
                     with open(inputFile[0]) as file:
                         lines = file.readlines()
                         lineCount = len(lines)
@@ -509,12 +511,12 @@ class T2G_Arch:
                                     except:
                                         QgsMessageLog.logMessage(
                                             f"Point import: Could not read point in line {pointNumber}",
-                                            "T2G Archäologie",
+                                            self.plugin_name_tag,
                                             Qgis.Info,
                                         )
                                 else:
                                     self.iface.messageBar().pushMessage(
-                                        "T2G Archäologie: ",
+                                        self.plugin_name_tag,
                                         f"Fehler! Falscher Spaltentrenner oder vorhandene Kopfzeile in Zeile {pointNumber}.",
                                         level=Qgis.Critical,
                                     )
@@ -531,7 +533,7 @@ class T2G_Arch:
                                 except:
                                     QgsMessageLog.logMessage(
                                         f"Point import: Could not read point in line {pointNumber}",
-                                        "T2G Archäologie",
+                                        self.plugin_name_tag,
                                         Qgis.Info,
                                     )
 
@@ -540,11 +542,11 @@ class T2G_Arch:
 
                 if objCount > 0:
                     self.iface.messageBar().pushMessage(
-                        "T2G Archäologie: ", f"{objCount} Punkte eingetragen.", level=Qgis.Info
+                        self.plugin_name_tag, f"{objCount} Punkte eingetragen.", level=Qgis.Info
                     )
                 else:
                     self.iface.messageBar().pushMessage(
-                        "T2G Archäologie: ", "Keine Punkte eingetragen.", level=Qgis.Critical
+                        self.plugin_name_tag, "Keine Punkte eingetragen.", level=Qgis.Critical
                     )
 
     def exportPoints(self):
@@ -638,7 +640,7 @@ class T2G_Arch:
                 for part in parts:
                     for vertex in part.vertices():
                         koordlist.append({"x": vertex.x(), "y": vertex.y()})
-                QgsMessageLog.logMessage(str(koordlist[0]["x"]), "T2G Archäologie", Qgis.Info)
+                QgsMessageLog.logMessage(str(koordlist[0]["x"]), self.plugin_name_tag, Qgis.Info)
                 pointAx = koordlist[0]["x"]
                 pointAy = koordlist[0]["y"]
                 pointBx = koordlist[-0]["x"]
@@ -684,7 +686,7 @@ class T2G_Arch:
         # such2 = '"obj_typ"='+ '\''+ AW_FOTOENTZERRPUNKT + '\' and '
         such2 = '"' + FN_DEF_FOTOENTZERRPUNKT + '"=' + "'" + AW_FOTOENTZERRPUNKT + "' and "
         it = profPointLayer.getFeatures(QgsFeatureRequest(QgsExpression(str(such2 + suchstr))))
-        QgsMessageLog.logMessage(str(such2 + suchstr), "T2G Archäologie", Qgis.Info)
+        QgsMessageLog.logMessage(str(such2 + suchstr), self.plugin_name_tag, Qgis.Info)
         ids = [i.id() for i in it]
         profPointLayer.selectByIds(ids)
         if profPointLayer.selectedFeatureCount() == 0:
@@ -702,7 +704,7 @@ class T2G_Arch:
                 for part in parts:
                     for vertex in part.vertices():
                         koordlist.append({"x": vertex.x(), "y": vertex.y(), "z": vertex.z()})
-                        QgsMessageLog.logMessage(str(vertex.z()), "T2G Archäologie", Qgis.Info)
+                        QgsMessageLog.logMessage(str(vertex.z()), self.plugin_name_tag, Qgis.Info)
                 x = koordlist[0]["x"]
                 y = koordlist[0]["y"]
                 z = koordlist[0]["z"]
@@ -717,7 +719,7 @@ class T2G_Arch:
             try:
                 value = str(feat["aktcode"]) + "_" + str(feat["pt_nr"])  # Fehler
             except Exception as e:
-                QgsMessageLog.logMessage(str(e), "T2G Archäologie", Qgis.Info)
+                QgsMessageLog.logMessage(str(e), self.plugin_name_tag, Qgis.Info)
                 pass
             ###
             msgout = "%s, %s, %s, %s, %s, %s, %s\n" % (value, x, y, z, profnr, view, 1)
@@ -850,7 +852,7 @@ class T2G_Arch:
         self.ProjPfad = os.path.abspath(os.path.join(self.QgisDateiPfad, "./.."))
 
         # Config-Datei abarbeiten
-        QgsMessageLog.logMessage("Projekt Config.ini laden.", "T2G Archäologie", Qgis.Info)
+        QgsMessageLog.logMessage("Projekt Config.ini laden.", self.plugin_name_tag, Qgis.Info)
         self.config = Configfile(os.path.join(self.ProjPfad, "_System_/config.ini"))
         myDlgSettingsView = DlgSettings(self, self.config)
         myDlgSettingsView.setup()
@@ -864,26 +866,26 @@ class T2G_Arch:
             self.watch.start(int(autoSaveTime) * 60000)
             QgsMessageLog.logMessage(
                 "Auto Backup: An, " + "Takt " + autoSaveTime + " min", 'T2G Archäologie', Qgis.Info)
-            self.iface.messageBar().pushMessage(u"T2G Archäologie: ", u"Auto Backup: An, " + "Takt " + autoSaveTime + " min",
+            self.iface.messageBar().pushMessage(uself.plugin_name_tag, u"Auto Backup: An, " + "Takt " + autoSaveTime + " min",
                                            level=Qgis.Info)
         else:
             self.watch.stop()
             QgsMessageLog.logMessage(
                 "Auto Backup: Aus", 'T2G Archäologie', Qgis.Info)
-            self.iface.messageBar().pushMessage(u"T2G Archäologie: ", u"Auto Backup: Aus.",
+            self.iface.messageBar().pushMessage(uself.plugin_name_tag, u"Auto Backup: Aus.",
                                            level=Qgis.Info)
         """
 
     def eventFeatureAdded(self, fid):
         # Wird nirgends mehr verwendet # Sonst Fehler beim Digitalisieren
         # self.newFeaturesIds.append(fid)
-        QgsMessageLog.logMessage(str(fid) + " neu", "T2G Archäologie", Qgis.Info)
+        QgsMessageLog.logMessage(str(fid) + " neu", self.plugin_name_tag, Qgis.Info)
 
     def eventEditingStarted(self):
         # QgsMessageLog.logMessage('Änderung Start', 'T2G Archäologie', Qgis.Info)
         # self.valueTemp1 = int(getCustomProjectVariable('nextBefNr'))
         # setCustomProjectVariable('maxWerteAktualisieren', 'False')
-        QgsMessageLog.logMessage("Beginne Änderung", "T2G Archäologie", Qgis.Info)
+        QgsMessageLog.logMessage("Beginne Änderung", self.plugin_name_tag, Qgis.Info)
         self.__lastMaxNumber = []
         self.__lastMaxNumber.append(self.measurementTab.txtNextBef.text())
         self.__lastMaxNumber.append(self.measurementTab.txtNextFund.text())
@@ -901,7 +903,7 @@ class T2G_Arch:
         field = lyr.fields()[idx]
         QgsMessageLog.logMessage(
             f"Attribut in layer {lyr.name()} geändert: id={fid}, field={field.name()}, value={value}",
-            "T2G Archäologie",
+            self.plugin_name_tag,
             Qgis.Info,
         )
         if isNumber(str(value)):
@@ -966,7 +968,7 @@ class T2G_Arch:
                     break
         if actlayer == None:
             self.iface.messageBar().pushMessage(
-                "T2G Archäologie: ", "Keine Objekte gewählt! Abbruch", level=Qgis.Critical
+                self.plugin_name_tag, "Keine Objekte gewählt! Abbruch", level=Qgis.Critical
             )
             return
         self.iface.actionCopyFeatures().trigger()
@@ -984,7 +986,7 @@ class T2G_Arch:
         listOfIds = [feat.id() for feat in cutlayer.getFeatures()]
         cutlayer.deleteFeatures(listOfIds)
         cutlayer.commitChanges()
-        self.iface.messageBar().pushMessage("T2G Archäologie: ", "Maskenlayer gelöscht", level=Qgis.Info)
+        self.iface.messageBar().pushMessage(self.plugin_name_tag, "Maskenlayer gelöscht", level=Qgis.Info)
 
     # ToDo: refactoring - tab: "Tools Raster"
     def rasterCut(self):
@@ -992,7 +994,9 @@ class T2G_Arch:
         layer = self.iface.mapCanvas().currentLayer()
 
         if layer.type() != QgsMapLayer.RasterLayer:
-            self.iface.messageBar().pushMessage("T2G Archäologie: ", "Layer ist kein Rasterlayer!", level=Qgis.Critical)
+            self.iface.messageBar().pushMessage(
+                self.plugin_name_tag, "Layer ist kein Rasterlayer!", level=Qgis.Critical
+            )
             return
 
         box = QMessageBox()
@@ -1030,7 +1034,7 @@ class T2G_Arch:
         elif box.clickedButton() == buttonN:
             if cutlayer.featureCount() == 0:
                 self.iface.messageBar().pushMessage(
-                    "T2G Archäologie: ", "Keine Objekte auf Maskenlayer vorhanden! Abbruch", level=Qgis.Critical
+                    self.plugin_name_tag, "Keine Objekte auf Maskenlayer vorhanden! Abbruch", level=Qgis.Critical
                 )
                 return
         else:
@@ -1040,7 +1044,7 @@ class T2G_Arch:
         self.iface.setActiveLayer(layer)
 
         # Layerpfad in Variable speichern
-        input = os.path.abspath(str(layer.source()))
+        input_path = os.path.abspath(str(layer.source()))
         # Programmteil zum schneideen des Bildes
         try:
             # Maskenlayerpfad in Variable speichern
@@ -1053,9 +1057,9 @@ class T2G_Arch:
             temp_input_raster = None
             temp_output_raster = None
             # Pfad Eingaberaster in Variable speichern
-            temp_input_raster = input
+            temp_input_raster = input_path
             # Pfad Ausgaberaster in Variable speichern
-            temp_output_raster = os.path.splitext(input)[0] + "_cut" + os.path.splitext(input)[1]
+            temp_output_raster = os.path.splitext(input_path)[0] + "_cut" + os.path.splitext(input_path)[1]
 
             items = ("keine", "75", "50", "25")
             kompress = None
@@ -1101,7 +1105,7 @@ class T2G_Arch:
             output_file = dlg.getSaveFileName(
                 None,
                 "Speicherpfad",
-                input,
+                input_path,
                 "GeoTif (*.tif);;Jpeg mit World (*.jpg);;Alle (*.*)",
                 initialFilter=initFilter,
             )
@@ -1132,11 +1136,11 @@ class T2G_Arch:
                 # Layer Koordinatensystem setzen
                 rasterlayer.setCrs(QgsCoordinateReferenceSystem(outputsrs))
         except Exception as e:
-            QgsMessageLog.logMessage(str(e), "T2G Archäologie", Qgis.Info)
+            QgsMessageLog.logMessage(str(e), self.plugin_name_tag, Qgis.Info)
             # temp. geschnittenes Bild löschen
             fileFunc().file_del(temp_output_raster)
         finally:
-            QgsMessageLog.logMessage("datei löschen", "T2G Archäologie", Qgis.Info)
+            QgsMessageLog.logMessage("datei löschen", self.plugin_name_tag, Qgis.Info)
             # temp. geschnittenes Bild löschen
             fileFunc().file_del(temp_output_raster)
 
@@ -1161,14 +1165,14 @@ class T2G_Arch:
             QgsProject.instance().removeMapLayer(layer.id())
             a = 0
             for layer in QgsProject.instance().mapLayers().values():
-                QgsMessageLog.logMessage(layer.source(), "T2G Archäologie", Qgis.Info)
-                if input in layer.source():
+                QgsMessageLog.logMessage(layer.source(), self.plugin_name_tag, Qgis.Info)
+                if input_path in layer.source():
                     a = a + 1
             if a == 0:
-                fileFunc().file_del(input)
+                fileFunc().file_del(input_path)
             else:
                 self.iface.messageBar().pushMessage(
-                    "T2G Archäologie: ",
+                    self.plugin_name_tag,
                     "Datei ist mehrfach als Layer eingefügt und kann nicht gelöscht werden.",
                     level=Qgis.Critical,
                 )
@@ -1183,17 +1187,17 @@ class T2G_Arch:
         layer = self.iface.mapCanvas().currentLayer()
         if layer.type() == QgsMapLayer.RasterLayer and layer.source()[-3:] == "tif":
             # self.file2temp()
-            input = os.path.abspath(str(layer.source()))
+            input_path = os.path.abspath(str(layer.source()))
             outputsrs = layer.crs().authid()
-            QgsMessageLog.logMessage(input, "T2G Archäologie", Qgis.Info)
+            QgsMessageLog.logMessage(input_path, self.plugin_name_tag, Qgis.Info)
 
             try:
                 layername = layer.name()
-                input = str(layer.source())
+                input_path = str(layer.source())
 
-                inputtemp = input  # r'C:/temp/#T2G-Arch#/temp.tif'
+                inputtemp = input_path  # r'C:/temp/#T2G-Arch#/temp.tif'
                 # r'C:/temp/#T2G-Arch#/temp_transf.jpg'
-                outputtemp = os.path.splitext(input)[0] + "_transf" + os.path.splitext(input)[1]
+                outputtemp = os.path.splitext(input_path)[0] + "_transf" + os.path.splitext(input_path)[1]
 
                 string = (
                     r"gdal_translate -of JPEG -scale -co worldfile=yes " + '"' + inputtemp + '" "' + outputtemp + '"'
@@ -1201,7 +1205,7 @@ class T2G_Arch:
                 os.system(string)
 
                 output_file = QFileDialog.getSaveFileName(
-                    None, "Speicherpfad", os.path.splitext(input)[0], "Jpeg mit World (*.jpg);;Alle (*.*)"
+                    None, "Speicherpfad", os.path.splitext(input_path)[0], "Jpeg mit World (*.jpg);;Alle (*.*)"
                 )
                 if output_file[0] != "":
                     fileFunc().file_copy(outputtemp, output_file[0][:-4] + ".jpg")
@@ -1233,15 +1237,15 @@ class T2G_Arch:
                         QgsProject.instance().removeMapLayer(layer.id())
                         a = 0
                         for layer in QgsProject.instance().mapLayers().values():
-                            QgsMessageLog.logMessage(layer.source(), "T2G Archäologie", Qgis.Info)
-                            if input in layer.source():
+                            QgsMessageLog.logMessage(layer.source(), self.plugin_name_tag, Qgis.Info)
+                            if input_path in layer.source():
                                 a = a + 1
                         if a == 0:
-                            fileFunc().file_del(input)
-                            fileFunc().file_del(input[:-4] + ".wld")
+                            fileFunc().file_del(input_path)
+                            fileFunc().file_del(input_path[:-4] + ".wld")
                         else:
                             self.iface.messageBar().pushMessage(
-                                "T2G Archäologie: ",
+                                self.plugin_name_tag,
                                 "Datei ist mehrfach als Layer eingefügt und kann nicht gelöscht werden.",
                                 level=Qgis.Critical,
                             )
@@ -1252,14 +1256,14 @@ class T2G_Arch:
                         pass
 
             except Exception as e:
-                QgsMessageLog.logMessage(str(e), "T2G Archäologie", Qgis.Info)
+                QgsMessageLog.logMessage(str(e), self.plugin_name_tag, Qgis.Info)
             finally:
                 fileFunc().file_del(outputtemp)
                 fileFunc().file_del(outputtemp[:-4] + ".wld")
                 fileFunc().file_del(outputtemp[:-4] + ".tif.aux.xml")
         else:
             self.iface.messageBar().pushMessage(
-                "T2G Archäologie: ", "Layer ist kein Rasterlayer oder eine GeoTif!", level=Qgis.Critical
+                self.plugin_name_tag, "Layer ist kein Rasterlayer oder eine GeoTif!", level=Qgis.Critical
             )
 
     # ToDo: refactoring - increments values in measurement tab
@@ -1291,7 +1295,7 @@ class T2G_Arch:
                         if ProbNrMax < max3:
                             ProbNrMax = max3
                 except Exception as e:
-                    QgsMessageLog.logMessage(str(e), "T2G Archäologie", Qgis.Info)
+                    QgsMessageLog.logMessage(str(e), self.plugin_name_tag, Qgis.Info)
 
                 try:
                     if len([feat["prof_nr"] for feat in layer.getFeatures()]) > 0:
@@ -1299,7 +1303,7 @@ class T2G_Arch:
                         if ProfNrMax < max4:
                             ProfNrMax = max4
                 except Exception as e:
-                    QgsMessageLog.logMessage(str(e), "T2G Archäologie", Qgis.Info)
+                    QgsMessageLog.logMessage(str(e), self.plugin_name_tag, Qgis.Info)
 
                 self.measurementTab.txtNextBef.setText(str(BefNrMax + 1))
                 self.measurementTab.txtNextFund.setText(str(FundNrMax + 1))
@@ -1312,7 +1316,7 @@ class T2G_Arch:
                 setCustomProjectVariable("nextProbNr", str(ProbNrMax + 1))
 
             self.iface.messageBar().pushMessage(
-                "T2G Archäologie: ", "Nächste zu vergebende Nummern wurden aktuallisiert.", level=Qgis.Info
+                self.plugin_name_tag, "Nächste zu vergebende Nummern wurden aktuallisiert.", level=Qgis.Info
             )
             setCustomProjectVariable("maxWerteAktualisieren", False)
             # self.autoNummer()
@@ -1406,7 +1410,7 @@ class T2G_Arch:
         meldung = True
         for layer in layerlist:
             a = a + 1
-            QgsMessageLog.logMessage(str(suchstr), "T2G Archäologie", Qgis.Info)
+            QgsMessageLog.logMessage(str(suchstr), self.plugin_name_tag, Qgis.Info)
             it = layer.getFeatures(QgsFeatureRequest(expr))
             ids = [i.id() for i in it]
             layer.selectByIds(ids)
@@ -1431,23 +1435,23 @@ class T2G_Arch:
         result = QMessageBox.warning(
             None,
             "Achtung",
-            "Wollen Sie wirklich alle Objekte\n " "auf den Eingabelayern löschen?",
+            "Wollen Sie wirklich alle Objekte\n auf den Eingabelayern löschen?",
             QMessageBox.Ok,
             QMessageBox.Abort,
         )
         if result == QMessageBox.Ok:
-            list = [self.layerPoly, self.layerLine, self.layerPoint, self.layerMesspoint]
-            for layer in list:
+            layer_list = [self.layerPoly, self.layerLine, self.layerPoint, self.layerMesspoint]
+            for layer in layer_list:
                 # layer =  QgsProject.instance().mapLayersByName(layername)[0]
                 layer.startEditing()
                 QgsMessageLog.logMessage(
-                    "Alle Objekte auf Layer " + layer.name() + " gelöscht.", "T2G Archäologie", Qgis.Info
+                    "Alle Objekte auf Layer " + layer.name() + " gelöscht.", self.plugin_name_tag, Qgis.Info
                 )
                 listOfIds = [feat.id() for feat in layer.getFeatures()]
                 layer.deleteFeatures(listOfIds)
                 layer.commitChanges()
         else:
-            QgsMessageLog.logMessage("Abbruch", "T2G Archäologie", Qgis.Info)
+            QgsMessageLog.logMessage("Abbruch", self.plugin_name_tag, Qgis.Info)
 
     # ToDo: refactoring- Tab "Tools Allgemein"
     def myDlgFeatureCheckShow(self):
@@ -1486,11 +1490,11 @@ class T2G_Arch:
             QgsProject.instance().setFileName(origFileName)
 
         # if projectSaveFunc().project_save(unicode(self.ProjPfad)) == 'False':
-        #    self.iface.messageBar().pushMessage(u"T2G Archäologie: ", u"Auto Backup: Fehler!",
+        #    self.iface.messageBar().pushMessage(uself.plugin_name_tag, u"Auto Backup: Fehler!",
         #                                   level=Qgis.Critical)
         #    QgsMessageLog.logMessage("Auto Backup: Fehler!", 'T2G Archäologie', Qgis.Critical)
         # else:
-        #    self.iface.messageBar().pushMessage(u"T2G Archäologie: ", u"Auto Backup: Erstellt!",
+        #    self.iface.messageBar().pushMessage(uself.plugin_name_tag, u"Auto Backup: Erstellt!",
         #                                   level=Qgis.Info)
         #    QgsMessageLog.logMessage("Auto Backup: Erstellt.", 'T2G Archäologie', Qgis.Info)
 
@@ -1604,9 +1608,9 @@ class T2G_Arch:
         )
         FeatureSelect.triggered.connect(self.featureSelect)
         # FeatureSelectExit = contextMenu.addAction(
-        #    QtGui.QIcon(os.path.join(os.path.dirname(__file__), "Icons", "FeatureSelect.gif")), "Auswahl beenden.")
+        #    QIcon(os.path.join(os.path.dirname(__file__), "Icons", "FeatureSelect.gif")), "Auswahl beenden.")
         # FeatureSelectExit.triggered.connect(self.featureSelectedExit)
-        QgsMessageLog.logMessage(str(feature.id()), "T2G Archäologie", Qgis.Info)
+        QgsMessageLog.logMessage(str(feature.id()), self.plugin_name_tag, Qgis.Info)
         contextMenu.addSeparator()
 
         attrs = self.selectedFeature.attributes()
@@ -1662,24 +1666,24 @@ class T2G_Arch:
         self.iface.messageBar().clearWidgets()
 
     def selectFeatureChanged(self, fselected, fdeselected):
-        QgsMessageLog.logMessage("sel" + str(fselected), "T2G Archäologie", Qgis.Info)
+        QgsMessageLog.logMessage("sel" + str(fselected), self.plugin_name_tag, Qgis.Info)
         for value in fselected:
             if len(fselected) == 1:
                 layer = getlayerSelectedFeatures()
-                QgsMessageLog.logMessage("eins selectiert" + str(fselected), "T2G Archäologie", Qgis.Info)
+                QgsMessageLog.logMessage("eins selectiert" + str(fselected), self.plugin_name_tag, Qgis.Info)
                 QgsMessageLog.logMessage(
-                    "select " + str(layer.name()) + " " + str(fselected), "T2G Archäologie", Qgis.Info
+                    "select " + str(layer.name()) + " " + str(fselected), self.plugin_name_tag, Qgis.Info
                 )
                 self.selFeatureTemp = layer.selectedFeatures()[0]
             if value in self.selectFeatures:
                 pass
             else:
                 self.selectFeatures.append(value)
-        QgsMessageLog.logMessage("desel" + str(fdeselected), "T2G Archäologie", Qgis.Info)
+        QgsMessageLog.logMessage("desel" + str(fdeselected), self.plugin_name_tag, Qgis.Info)
         for value in fdeselected:
             if value in self.selectFeatures:
                 self.selectFeatures.remove(value)
-        QgsMessageLog.logMessage("liste" + str(self.selectFeatures), "T2G Archäologie", Qgis.Info)
+        QgsMessageLog.logMessage("liste" + str(self.selectFeatures), self.plugin_name_tag, Qgis.Info)
 
     def _is_project_from_tachy_geopackage(self):
         if not QgsProject.instance().fileName():

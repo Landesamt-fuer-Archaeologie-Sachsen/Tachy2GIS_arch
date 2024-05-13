@@ -21,22 +21,31 @@
  *                                                                         *
  ***************************************************************************/
 """
+import subprocess
+from os import path as os_path, stat as os_stat, startfile, system
 
-from qgis.PyQt import QtGui, uic
-from qgis.PyQt.QtGui import *
-from qgis.PyQt.QtWidgets import *
-from qgis.core import *
-from qgis.gui import *
-from ..utils.functions import *
-#from .showPicture import *
-import os, subprocess
+from PyQt5.QtCore import pyqtSignal, Qt, QCoreApplication
+from PyQt5.QtGui import QIcon, QCursor
+from PyQt5.QtWidgets import (
+    QDockWidget,
+    QHeaderView,
+    QTableWidgetItem,
+    QMenu,
+    QApplication,
+    QMessageBox,
+    QFileDialog,
+    QInputDialog,
+    QDialog,
+)
+from qgis.PyQt import uic
+from qgis.core import QgsProject, QgsMapLayer, QgsMessageLog, Qgis
 
-FORM_CLASS, _ = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), 'myDlgRasterLayerView.ui'))
+from ..utils.functions import progressBar, fileFunc
+
+FORM_CLASS, _ = uic.loadUiType(os_path.join(os_path.dirname(__file__), "myDlgRasterLayerView.ui"))
 
 
-class RasterLayerViewDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
-
+class RasterLayerViewDockWidget(QDockWidget, FORM_CLASS):
     closingPlugin = pyqtSignal()
 
     def __init__(self, iface, parent=None):
@@ -49,17 +58,15 @@ class RasterLayerViewDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         # #widgets-and-dialogs-with-auto-connect
         self.setupUi(self)
 
-        pfad = os.path.abspath(os.path.join(os.path.join(os.path.dirname(__file__), "./..")))
-        self.iconpfad = os.path.join(os.path.join(pfad, 'Icons'))
+        self.iconpfad = os_path.join(os_path.dirname(__file__), "..", "Icons")
         self.ui = self
-        #self.ui.setWindowIcon(QtGui.QIcon(os.path.join(os.path.dirname(__file__), 'Icons/Thumbs.gif')))
         self.iface = iface
         self.canvas = iface.mapCanvas()
         self.layer = None
         self.singleView = False
         self.viewlist = []
         self.currentItem = None
-        self.statusString = ''
+        self.statusString = ""
         self.suchstrlist = []
         self.row = None
         self.column = None
@@ -70,80 +77,84 @@ class RasterLayerViewDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.ui.tableWidget.itemSelectionChanged.connect(self.status)
         self.ui.tableWidget.cellClicked.connect(self.on_cellClicked)
         self.ui.tableWidget.cellChanged.connect(self.on_cellChanged)
-        self.ui.tableWidget.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.ui.tableWidget.setContextMenuPolicy(Qt.CustomContextMenu)
         self.ui.tableWidget.customContextMenuRequested.connect(self.on_customContextMenu)
         self.ui.butSave.clicked.connect(self.saveBitmap)
-        self.ui.butSave.setIcon(QIcon(os.path.join(self.iconpfad, 'media-floppy.png')))
-        self.ui.butSave.setToolTip('Ausgewählte Bilder in anderem Order kopieren')
+        self.ui.butSave.setIcon(QIcon(os_path.join(self.iconpfad, "media-floppy.png")))
+        self.ui.butSave.setToolTip("Ausgewählte Bilder in anderem Order kopieren")
 
         self.ui.butSave_2.clicked.connect(self.savePictureList)
-        self.ui.butSave_2.setIcon(QIcon(os.path.join(self.iconpfad, 'floppyList.gif')))
-        self.ui.butSave_2.setToolTip('Ausgewählte Bilder als Liste exportieren')
+        self.ui.butSave_2.setIcon(QIcon(os_path.join(self.iconpfad, "floppyList.gif")))
+        self.ui.butSave_2.setToolTip("Ausgewählte Bilder als Liste exportieren")
 
         self.ui.butFilter.clicked.connect(self.setFilter)
-        self.ui.butFilter.setIcon(QIcon(os.path.join(self.iconpfad, 'Filter.gif')))
-        self.ui.butFilter.setToolTip('Auswahl mit Filter')
+        self.ui.butFilter.setIcon(QIcon(os_path.join(self.iconpfad, "Filter.gif")))
+        self.ui.butFilter.setToolTip("Auswahl mit Filter")
 
         self.ui.butFilterDel.clicked.connect(self.delFilter)
-        self.ui.butFilterDel.setIcon(QIcon(os.path.join(self.iconpfad, 'FilterAllLayerEnt.gif')))
-        self.ui.butFilterDel.setToolTip('Filter löschen')
+        self.ui.butFilterDel.setIcon(QIcon(os_path.join(self.iconpfad, "FilterAllLayerEnt.gif")))
+        self.ui.butFilterDel.setToolTip("Filter löschen")
 
         self.ui.butchecked.clicked.connect(self.on_checked)
-        self.ui.butchecked.setIcon(QIcon(os.path.join(self.iconpfad, 'checked.gif')))
-        self.ui.butchecked.setToolTip('Alle an')
+        self.ui.butchecked.setIcon(QIcon(os_path.join(self.iconpfad, "checked.gif")))
+        self.ui.butchecked.setToolTip("Alle an")
         self.ui.butunchecked.clicked.connect(self.on_unchecked)
-        self.ui.butunchecked.setIcon(QIcon(os.path.join(self.iconpfad, 'unchecked.gif')))
-        self.ui.butunchecked.setToolTip('Alle aus')
+        self.ui.butunchecked.setIcon(QIcon(os_path.join(self.iconpfad, "unchecked.gif")))
+        self.ui.butunchecked.setToolTip("Alle aus")
 
         self.ui.butsingleView.clicked.connect(self.setSingleView)
-        self.ui.butsingleView.setIcon(QIcon(os.path.join(self.iconpfad, 'Ok_grau.png')))
-        self.ui.butsingleView.setToolTip('Nur ein Layer sichtbar')
+        self.ui.butsingleView.setIcon(QIcon(os_path.join(self.iconpfad, "Ok_grau.png")))
+        self.ui.butsingleView.setToolTip("Nur ein Layer sichtbar")
 
         QgsProject.instance().legendLayersAdded.connect(self.setup)
         QgsProject.instance().layersRemoved.connect(self.setup)
 
-        #self.sp.valueChanged.connect(self.on_setOpacity)
+        # self.sp.valueChanged.connect(self.on_setOpacity)
         self.setup()
 
     def setup(self):
         self.tableWidget.setRowCount(0)
         header = self.tableWidget.horizontalHeader()
-        header.setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)
-        #header.setSectionResizeMode(0,QtWidgets.QHeaderView.Stretch)
-        i=0
+        header.setSectionResizeMode(QHeaderView.ResizeToContents)
+        # header.setSectionResizeMode(0, QHeaderView.Stretch)
+        i = 0
         self.tableWidget.setSortingEnabled(True)
         try:
             for layer in QgsProject.instance().mapLayers().values():
-                #QgsMessageLog.logMessage(str(layer.type()), 'T2G Archäologie', Qgis.Info)
+                # QgsMessageLog.logMessage(str(layer.type()), 'T2G Archäologie', Qgis.Info)
                 if layer.type() == QgsMapLayer.RasterLayer:
-                    if 'http://' in layer.source() or 'https://' in layer.source():
+                    if "http://" in layer.source() or "https://" in layer.source():
                         continue
                     self.tableWidget.insertRow(i)
-                    #pic = QtGui.QIcon(layer.source())
-                    #image = QTableWidgetItem()
-                    #image.setData(Qt.DecorationRole,pic)
+                    # pic = QIcon(layer.source())
+                    # image = QTableWidgetItem()
+                    # image.setData(Qt.DecorationRole,pic)
                     chkItem = QTableWidgetItem()
                     chkItem.setText(str(layer.name()))
                     if QgsProject.instance().layerTreeRoot().findLayer(layer.id()).itemVisibilityChecked():
-                        chkItem.setCheckState(QtCore.Qt.Checked)
+                        chkItem.setCheckState(Qt.Checked)
                     else:
-                        chkItem.setCheckState(QtCore.Qt.Unchecked)
+                        chkItem.setCheckState(Qt.Unchecked)
                     self.tableWidget.setItem(i, 0, chkItem)
-                    erw = os.path.splitext(str(layer.source()))[1]
+                    erw = os_path.splitext(str(layer.source()))[1]
                     self.tableWidget.setItem(i, 1, QTableWidgetItem(str(erw)))
                     self.tableWidget.setItem(i, 2, QTableWidgetItem(str(layer.source())))
-                    dateigroesse = str(round(float(os.stat(layer.source()).st_size)/1000000,2))
-                    self.tableWidget.setItem(i, 3, QTableWidgetItem(str(dateigroesse) + ' MB'))
+                    dateigroesse = str(round(float(os_stat(layer.source()).st_size) / 1000000, 2))
+                    self.tableWidget.setItem(i, 3, QTableWidgetItem(str(dateigroesse) + " MB"))
                     self.tableWidget.setItem(i, 4, QTableWidgetItem(str(layer.id())))
-                    #self.sp.setValue(1)#(layer.renderer().opacity())
-                    #self.tableWidget.setItem(i, 5, self.sp)
-                    opacity = str(round(layer.renderer().opacity() * 100, 1)) + ' %'
+                    # self.sp.setValue(1)#(layer.renderer().opacity())
+                    # self.tableWidget.setItem(i, 5, self.sp)
+                    opacity = str(round(layer.renderer().opacity() * 100, 1)) + " %"
                     self.tableWidget.setItem(i, 5, QTableWidgetItem(opacity))
 
-                    i=i+1
+                    i = i + 1
         except Exception as e:
-            QgsMessageLog.logMessage(message='RasterLayerViewDockWidget->setup: failed: ' + str(e), tag='T2G Archäologie', level=Qgis.MessageLevel.Warning)
-        self.tableWidget.setColumnHidden(4,True)
+            QgsMessageLog.logMessage(
+                message="RasterLayerViewDockWidget->setup: failed: " + str(e),
+                tag="T2G Archäologie",
+                level=Qgis.MessageLevel.Warning,
+            )
+        self.tableWidget.setColumnHidden(4, True)
         self.status()
 
     def status(self):
@@ -151,45 +162,40 @@ class RasterLayerViewDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             view = 0
             picturelist = []
             for row in range(self.ui.tableWidget.rowCount()):
-                item = self.ui.tableWidget.item(row,0)
+                item = self.ui.tableWidget.item(row, 0)
                 picturelist.append(self.tableWidget.item(row, 2).text())
-                if item.checkState() == QtCore.Qt.Checked:
-                     view = view + 1
+                if item.checkState() == Qt.Checked:
+                    view = view + 1
             picturelist = sorted(set(picturelist), key=picturelist.index)
             selectCount = len(self.tableWidget.selectedIndexes())
             layerCount = self.ui.tableWidget.rowCount()
 
-            self.ui.label_2.setText(' ' + str(view))
-            self.ui.label_4.setText(' ' + str(selectCount))
-            self.ui.label_6.setText(' ' + str(layerCount))
-            self.ui.label_8.setText(' ' + str(len(picturelist)))
-            #self.ui.label.setText('  Ansicht: ' + str(view) + ' - Auswahl: ' + str(selectCount) + ' - Layer: ' + str(layerCount))
+            self.ui.label_2.setText(" " + str(view))
+            self.ui.label_4.setText(" " + str(selectCount))
+            self.ui.label_6.setText(" " + str(layerCount))
+            self.ui.label_8.setText(" " + str(len(picturelist)))
+            # self.ui.label.setText('  Ansicht: ' + str(view) + ' - Auswahl: ' + str(selectCount) + ' - Layer: ' + str(layerCount))
         except Exception as e:
-            QgsMessageLog.logMessage(str(e), 'T2G Archäologie', level=Qgis.MessageLevel.Warning)
+            QgsMessageLog.logMessage(str(e), "T2G Archäologie", level=Qgis.MessageLevel.Warning)
 
     def on_customContextMenu(self, pos):
-        contextMenu = QtWidgets.QMenu()
-        layOn = contextMenu.addAction(
-            QtGui.QIcon(os.path.join(self.iconpfad, "Sichtbar_an.gif")), " an")
+        contextMenu = QMenu()
+        layOn = contextMenu.addAction(QIcon(os_path.join(self.iconpfad, "Sichtbar_an.gif")), " an")
         layOn.triggered.connect(self.layerVisibilityOn)
-        layOff = contextMenu.addAction(
-            QtGui.QIcon(os.path.join(self.iconpfad, "Sichtbar_aus.gif")), " aus")
+        layOff = contextMenu.addAction(QIcon(os_path.join(self.iconpfad, "Sichtbar_aus.gif")), " aus")
         layOff.triggered.connect(self.layerVisibilityOff)
-        trans = contextMenu.addAction(
-            QtGui.QIcon(os.path.join(self.iconpfad, "transp.png")), " Transparenz")
+        trans = contextMenu.addAction(QIcon(os_path.join(self.iconpfad, "transp.png")), " Transparenz")
         trans.triggered.connect(self.setOpacity)
-        expl = contextMenu.addAction(
-            QtGui.QIcon(os.path.join(self.iconpfad, "ordner-open.png")), " Explorer")
+        expl = contextMenu.addAction(QIcon(os_path.join(self.iconpfad, "ordner-open.png")), " Explorer")
         expl.triggered.connect(self.openExplorer)
-        open = contextMenu.addAction(
-            QtGui.QIcon(os.path.join(self.iconpfad, "Edit.bmp")), " Bearbeiten")
+        open = contextMenu.addAction(QIcon(os_path.join(self.iconpfad, "Edit.bmp")), " Bearbeiten")
         open.triggered.connect(self.openApp)
-        #rasterMerge = contextMenu.addAction(
-        #    QtGui.QIcon(os.path.join(self.iconpfad, "Edit.bmp")), " Bearbeiten")
-        #rasterMerge.triggered.connect(self.rasterMerge)
-        contextMenu.exec_(QtGui.QCursor.pos())
+        # rasterMerge = contextMenu.addAction(
+        #    QtGui.QIcon(os_path.join(self.iconpfad, "Edit.bmp")), " Bearbeiten")
+        # rasterMerge.triggered.connect(self.rasterMerge)
+        contextMenu.exec_(QCursor.pos())
 
-    def on_cellClicked(self,row,column):
+    def on_cellClicked(self, row, column):
         self.row = row
         self.column = column
 
@@ -198,17 +204,17 @@ class RasterLayerViewDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         for item in self.tableWidget.selectedIndexes():
             id = self.tableWidget.item(item.row(), 4).text()
             for layer in QgsProject.instance().mapLayers().values():
-                    if str(layer.id()) == id:
-                        layerList.append(layer)
+                if str(layer.id()) == id:
+                    layerList.append(layer)
 
-        opa = Opacity(self.iface,layerList)
+        opa = Opacity(self.iface, layerList)
         while opa.close == False:
             QApplication.processEvents()
-        QgsMessageLog.logMessage('weiter', 'opa', Qgis.Info)
+        QgsMessageLog.logMessage("weiter", "opa", Qgis.Info)
         if opa.opacity is None:
-            opacity = '100,0 %'
+            opacity = "100,0 %"
         else:
-            opacity = str(round(opa.opacity * 100,1)) + ' %'
+            opacity = str(round(opa.opacity * 100, 1)) + " %"
         for item in self.tableWidget.selectedIndexes():
             self.tableWidget.item(item.row(), 5).setText(opacity)
 
@@ -218,7 +224,7 @@ class RasterLayerViewDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             item2 = self.ui.tableWidget.item(item.row(), 4)
             id = item2.text()
             QgsProject.instance().layerTreeRoot().findLayer(id).setItemVisibilityChecked(True)
-            item1.setCheckState(QtCore.Qt.Checked)
+            item1.setCheckState(Qt.Checked)
             self.ui.tableWidget.clearSelection()
 
     def layerVisibilityOff(self):
@@ -227,7 +233,7 @@ class RasterLayerViewDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             item2 = self.ui.tableWidget.item(item.row(), 4)
             id = item2.text()
             QgsProject.instance().layerTreeRoot().findLayer(id).setItemVisibilityChecked(False)
-            item1.setCheckState(QtCore.Qt.Unchecked)
+            item1.setCheckState(Qt.Unchecked)
             self.ui.tableWidget.clearSelection()
 
     def on_checked(self):
@@ -237,54 +243,56 @@ class RasterLayerViewDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
     def on_unchecked(self):
         self.ui.tableWidget.selectAll()
-        #self.ui.tableWidget.clearSelection()
+        # self.ui.tableWidget.clearSelection()
         self.layerVisibilityOff()
         self.status()
 
     def openExplorer(self):
-        pfad = ''
+        pfad = ""
         for item in self.tableWidget.selectedIndexes():
-            pfad = pfad + '"' + self.tableWidget.item(item.row(), 2).text() + '"' + ','
-            #pfad = pfad + self.tableWidget.item(item.row(), 2).text() + ','
-            #break
-        pfad = pfad.replace('/','\\')[:-1] #+ '"'
-        QgsMessageLog.logMessage(str(pfad), 'T2G Archäologie', Qgis.Info)
+            pfad = pfad + '"' + self.tableWidget.item(item.row(), 2).text() + '"' + ","
+            # pfad = pfad + self.tableWidget.item(item.row(), 2).text() + ','
+            # break
+        pfad = pfad.replace("/", "\\")[:-1]  # + '"'
+        QgsMessageLog.logMessage(str(pfad), "T2G Archäologie", Qgis.Info)
         subprocess.Popen("explorer.exe /e, /select, " + pfad)
-        subprocess.Popen(r"C:\Windows\System32\rundll32.exe C:\Programme (x86)\Windows Photo Viewer\PhotoViewer.dll " + pfad)
+        subprocess.Popen(
+            r"C:\Windows\System32\rundll32.exe C:\Programme (x86)\Windows Photo Viewer\PhotoViewer.dll " + pfad
+        )
 
     def openApp(self):
         for item in self.tableWidget.selectedIndexes():
             pfad = self.tableWidget.item(item.row(), 2).text()
-            pfad = os.path.realpath(pfad)
-            os.startfile(pfad)
+            pfad = os_path.realpath(pfad)
+            startfile(pfad)
 
     def rasterMerge(self):
-        pfad = ''
+        pfad = ""
         for item in self.tableWidget.selectedIndexes():
             value = self.tableWidget.item(item.row(), 2).text()
-            pfad = pfad + value + ' '
-        pfad = pfad.replace('/', '\\')[:-1]
+            pfad = pfad + value + " "
+        pfad = pfad.replace("/", "\\")[:-1]
         for item in self.tableWidget.selectedIndexes():
             value = self.tableWidget.item(item.row(), 2).text()
-            QgsMessageLog.logMessage(str(value) , 'T2G Archäologie', Qgis.Info)
-            string = r'gdal_merge -ot Float32 -of GTiff -o C:/444.tif C:/111.tif'# + value  + '"'
-            os.system(string)
+            QgsMessageLog.logMessage(str(value), "T2G Archäologie", Qgis.Info)
+            string = r"gdal_merge -ot Float32 -of GTiff -o C:/444.tif C:/111.tif"  # + value  + '"'
+            system(string)
 
     def on_cellChanged(self, row, column):
-        QgsMessageLog.logMessage(str(row), 'T2G Archäologie', Qgis.Info)
+        QgsMessageLog.logMessage(str(row), "T2G Archäologie", Qgis.Info)
         try:
             if column == 0:
                 id = self.tableWidget.item(row, 4).text()
                 name = self.tableWidget.item(row, 0).text()
                 QgsProject.instance().layerTreeRoot().findLayer(id).setName(name)
         except Exception as e:
-            QgsMessageLog.logMessage(str(e), 'T2G Archäologie', Qgis.Info)
+            QgsMessageLog.logMessage(str(e), "T2G Archäologie", Qgis.Info)
 
-    def on_itemClicked(self,item):
+    def on_itemClicked(self, item):
         try:
             if item.column() == 0 or self.singleView == True:
                 id = self.tableWidget.item(item.row(), 4).text()
-                if item.checkState() == QtCore.Qt.Checked:
+                if item.checkState() == Qt.Checked:
                     QgsProject.instance().layerTreeRoot().findLayer(id).setItemVisibilityChecked(True)
                 else:
                     QgsProject.instance().layerTreeRoot().findLayer(id).setItemVisibilityChecked(False)
@@ -300,68 +308,77 @@ class RasterLayerViewDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
             if self.singleView == True:
                 item1 = self.ui.tableWidget.item(item.row(), 0)
-                item1.setCheckState(QtCore.Qt.Checked)
+                item1.setCheckState(Qt.Checked)
 
         except Exception as e:
-            QgsMessageLog.logMessage(str(e), 'T2G Archäologie', Qgis.Info)
+            QgsMessageLog.logMessage(str(e), "T2G Archäologie", Qgis.Info)
 
         self.status()
 
-    def on_currentItemChanged(self,current,previous):
+    def on_currentItemChanged(self, current, previous):
         try:
             if self.singleView == True:
                 id = self.tableWidget.item(previous.row(), 4).text()
                 QgsProject.instance().layerTreeRoot().findLayer(id).setItemVisibilityChecked(False)
                 item = self.tableWidget.item(previous.row(), 0)
-                item.setCheckState(QtCore.Qt.Unchecked)
+                item.setCheckState(Qt.Unchecked)
 
                 id = self.tableWidget.item(current.row(), 4).text()
                 QgsProject.instance().layerTreeRoot().findLayer(id).setItemVisibilityChecked(True)
                 item = self.tableWidget.item(current.row(), 0)
-                item.setCheckState(QtCore.Qt.Checked)
+                item.setCheckState(Qt.Checked)
         except Exception as e:
-            QgsMessageLog.logMessage(str(e), 'T2G Archäologie', Qgis.Info)
+            QgsMessageLog.logMessage(str(e), "T2G Archäologie", Qgis.Info)
 
     def saveBitmap(self):
         selectCount = len(self.tableWidget.selectedIndexes())
         if selectCount == 0:
-            QMessageBox.information(None, "Meldung", u"Keine Einträge ausgewählt!")
+            QMessageBox.information(None, "Meldung", "Keine Einträge ausgewählt!")
             return
         else:
-            dst_root = QFileDialog.getExistingDirectory(None, 'Speicherpfad',
-                                                        QgsProject.instance().readPath('./../Jobs'))
-        if dst_root == '':
+            dst_root = QFileDialog.getExistingDirectory(
+                None, "Speicherpfad", QgsProject.instance().readPath("./../Jobs")
+            )
+        if dst_root == "":
             return
-        progress = progressBar('Fortschritt')
+        progress = progressBar("Fortschritt")
         QCoreApplication.processEvents()
 
         progress.setMaximum(selectCount)
         dateiGroesse = 0
         for item in self.tableWidget.selectedIndexes():
-            v = float(self.tableWidget.item(item.row(), 3).text().split(' ')[0])
+            v = float(self.tableWidget.item(item.row(), 3).text().split(" ")[0])
             dateiGroesse = dateiGroesse + v
 
         picturelist = []
         for item in self.tableWidget.selectedIndexes():
             picturelist.append(self.tableWidget.item(item.row(), 2).text())
-        picturelist = sorted(set(picturelist),key=picturelist.index)
+        picturelist = sorted(set(picturelist), key=picturelist.index)
         count = 1
 
         for i in range(len(picturelist)):
             if progress.close == False:
                 progress.setValue(count)
-                progress.setText(str(count) + ' von ' + str(len(picturelist)) + ' Bilder kopiert'+ ' (' + str(round(dateiGroesse,2)) +' MB)')
+                progress.setText(
+                    str(count)
+                    + " von "
+                    + str(len(picturelist))
+                    + " Bilder kopiert"
+                    + " ("
+                    + str(round(dateiGroesse, 2))
+                    + " MB)"
+                )
                 src_dir = picturelist[i]
-                head, tail = os.path.split(src_dir)
-                fileFunc().file_copy(src_dir,os.path.join(dst_root,tail))
-                #wld Datei kopieren
-                tailsplit = tail.split('.')
+                head, tail = os_path.split(src_dir)
+                fileFunc().file_copy(src_dir, os_path.join(dst_root, tail))
+                # wld Datei kopieren
+                tailsplit = tail.split(".")
 
-                fileFunc().file_copy(src_dir, os.path.join(dst_root, tailsplit[0] + '.wld'))
-                fileFunc().file_copy(src_dir, os.path.join(dst_root, tail + '.aux.xml'))
+                fileFunc().file_copy(src_dir, os_path.join(dst_root, tailsplit[0] + ".wld"))
+                fileFunc().file_copy(src_dir, os_path.join(dst_root, tail + ".aux.xml"))
                 count = count + 1
                 QCoreApplication.processEvents()
-                QgsMessageLog.logMessage(str(os.path.join(dst_root,tail)), 'T2G Archäologie', Qgis.Info)
+                QgsMessageLog.logMessage(str(os_path.join(dst_root, tail)), "T2G Archäologie", Qgis.Info)
             else:
                 break
         pass
@@ -369,60 +386,68 @@ class RasterLayerViewDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     def savePictureList(self):
         selectCount = len(self.tableWidget.selectedIndexes())
         if selectCount == 0:
-            QMessageBox.information(None, "Meldung", u"Keine Einträge ausgewählt!")
+            QMessageBox.information(None, "Meldung", "Keine Einträge ausgewählt!")
             return
         else:
-            output_file = QFileDialog.getSaveFileName(None, 'Speicherpfad',
-                                                      QgsProject.instance().readPath('./../Jobs'),
-                                                      'Excel (*.csv);;Text mit Tab (*.txt);;Alle Dateien (*.*)')
-            if output_file[0] != '':
+            output_file = QFileDialog.getSaveFileName(
+                None,
+                "Speicherpfad",
+                QgsProject.instance().readPath("./../Jobs"),
+                "Excel (*.csv);;Text mit Tab (*.txt);;Alle Dateien (*.*)",
+            )
+            if output_file[0] != "":
                 erw = str(output_file[1])
-                output_file = open(output_file[0], 'w')
-                output_file.write('Layername\tTyp\tPfad\tGröße\n')
+                output_file = open(output_file[0], "w")
+                output_file.write("Layername\tTyp\tPfad\tGröße\n")
                 for item in self.tableWidget.selectedIndexes():
                     name = self.tableWidget.item(item.row(), 0).text()
                     typ = self.tableWidget.item(item.row(), 1).text()
                     pfad = self.tableWidget.item(item.row(), 2).text()
                     groesse = self.tableWidget.item(item.row(), 3).text()
-                    if erw == 'Excel (*.csv)':
-                        line = '%s, %s, %s, %s\n' % ('"'+name+'"','"'+ typ+'"','"'+ pfad+'"','"'+groesse+'"')
-                        line = line.replace(' ', '')
-                    elif erw == 'Text mit Tab (*.txt)':
-                        line = '%s, %s, %s, %s\n' % (name + '\t',typ + '\t',pfad + '\t',groesse)
-                        line = line.replace('\t,', '\t')
-                    QgsMessageLog.logMessage(str(line), 'T2G Archäologie', Qgis.Info)
+                    if erw == "Excel (*.csv)":
+                        line = "%s, %s, %s, %s\n" % (
+                            '"' + name + '"',
+                            '"' + typ + '"',
+                            '"' + pfad + '"',
+                            '"' + groesse + '"',
+                        )
+                        line = line.replace(" ", "")
+                    elif erw == "Text mit Tab (*.txt)":
+                        line = "%s, %s, %s, %s\n" % (name + "\t", typ + "\t", pfad + "\t", groesse)
+                        line = line.replace("\t,", "\t")
+                    QgsMessageLog.logMessage(str(line), "T2G Archäologie", Qgis.Info)
 
                     output_file.write(str(line))
                 output_file.close()
 
     def setFilter(self):
         find = False
-        #suchstr, ok = QInputDialog.getText(self, 'Suche', 'Suchstring')
+        # suchstr, ok = QInputDialog.getText(self, 'Suche', 'Suchstring')
 
-        #self.suchstrlist = ("keine", "100", "75", "50", "25")
-        suchstr, ok = QInputDialog.getItem(None, 'Suche', 'Zeichenfolge eingeben', self.suchstrlist, 0, True)
+        # self.suchstrlist = ("keine", "100", "75", "50", "25")
+        suchstr, ok = QInputDialog.getItem(None, "Suche", "Zeichenfolge eingeben", self.suchstrlist, 0, True)
         if ok != True:
             return
 
         self.layerVisibilityOff()
         for row in range(self.ui.tableWidget.rowCount()):
-            item = self.ui.tableWidget.item(row,0)
-            item2 = self.ui.tableWidget.item(row,4)
+            item = self.ui.tableWidget.item(row, 0)
+            item2 = self.ui.tableWidget.item(row, 4)
             text = item.text()
             id = item2.text()
 
             if suchstr in text:
-                item.setCheckState(QtCore.Qt.Checked)
+                item.setCheckState(Qt.Checked)
                 QgsProject.instance().layerTreeRoot().findLayer(id).setItemVisibilityChecked(True)
                 self.ui.tableWidget.showRow(row)
                 find = True
             else:
-                item.setCheckState(QtCore.Qt.Unchecked)
+                item.setCheckState(Qt.Unchecked)
                 QgsProject.instance().layerTreeRoot().findLayer(id).setItemVisibilityChecked(False)
                 self.ui.tableWidget.hideRow(row)
 
         if find == False:
-             QMessageBox.information(None, "Meldung", u"Keine Einträge gefunden!")
+            QMessageBox.information(None, "Meldung", "Keine Einträge gefunden!")
         else:
             self.suchstrlist.append(suchstr)
         self.status()
@@ -433,12 +458,12 @@ class RasterLayerViewDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         self.status()
 
     def setSingleView(self):
-        QgsMessageLog.logMessage('klick', 'T2G Archäologie', Qgis.Info)
+        QgsMessageLog.logMessage("klick", "T2G Archäologie", Qgis.Info)
         try:
             if self.singleView == False:
-                self.ui.butsingleView.setIcon(QIcon(os.path.join(self.iconpfad, 'Ok.png')))
+                self.ui.butsingleView.setIcon(QIcon(os_path.join(self.iconpfad, "Ok.png")))
                 self.singleView = True
-                #self.checkRowList = []
+                # self.checkRowList = []
                 for layer in QgsProject.instance().mapLayers().values():
                     if layer.type() == QgsMapLayer.RasterLayer:
                         if QgsProject.instance().layerTreeRoot().findLayer(layer.id()).itemVisibilityChecked():
@@ -447,19 +472,19 @@ class RasterLayerViewDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                 self.on_unchecked()
                 self.status()
             else:
-                self.ui.butsingleView.setIcon(QIcon(os.path.join(self.iconpfad, 'Ok_grau.png')))
+                self.ui.butsingleView.setIcon(QIcon(os_path.join(self.iconpfad, "Ok_grau.png")))
                 self.singleView = False
                 for i in range(len(self.viewlist)):
-                    QgsProject.instance().layerTreeRoot().findLayer(self.viewlist [i]).setItemVisibilityChecked(True)
-                    QgsMessageLog.logMessage(str(self.viewlist [i]), 'T2G Archäologie', Qgis.Info)
-                    id = self.ui.tableWidget.item(self.currentItem['row'], 4).text()
-                    if id  not in self.viewlist:
+                    QgsProject.instance().layerTreeRoot().findLayer(self.viewlist[i]).setItemVisibilityChecked(True)
+                    QgsMessageLog.logMessage(str(self.viewlist[i]), "T2G Archäologie", Qgis.Info)
+                    id = self.ui.tableWidget.item(self.currentItem["row"], 4).text()
+                    if id not in self.viewlist:
                         QgsProject.instance().layerTreeRoot().findLayer(id).setItemVisibilityChecked(False)
                 self.viewlist = []
                 self.setup()
 
         except Exception as e:
-            QgsMessageLog.logMessage(str(e), 'T2G Archäologie', Qgis.Info)
+            QgsMessageLog.logMessage(str(e), "T2G Archäologie", Qgis.Info)
 
     def OK(self):
         self.ui.close()
@@ -471,11 +496,11 @@ class RasterLayerViewDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         event.accept()
 
 
-FORM_CLASS, _ = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), 'opacity.ui'))
+FORM_CLASS, _ = uic.loadUiType(os_path.join(os_path.dirname(__file__), "opacity.ui"))
 
-class Opacity(QtWidgets.QDialog, FORM_CLASS):
-    def __init__(self, iface,layerlist, parent=None):
+
+class Opacity(QDialog, FORM_CLASS):
+    def __init__(self, iface, layerlist, parent=None):
         super(Opacity, self).__init__(parent)
         self.setupUi(self)
         self.ui = self
@@ -487,14 +512,15 @@ class Opacity(QtWidgets.QDialog, FORM_CLASS):
         self.close = False
         self.ui.mOpacityWidget.setOpacity(self.opacity)
 
-        QgsMessageLog.logMessage('klick'+str(self.opacity), 'T2G Archäologie', Qgis.Info)
-    def setOpasity(self,value):
+        QgsMessageLog.logMessage("klick" + str(self.opacity), "T2G Archäologie", Qgis.Info)
+
+    def setOpasity(self, value):
         for layer in self.layerlist:
             layer.renderer().setOpacity(float(value))
             layer.triggerRepaint()
         self.opacity = float(value)
 
     def closeEvent(self, event):
-        #self.opacity = self.ui.mOpacityWidget.opacity
+        # self.opacity = self.ui.mOpacityWidget.opacity
         self.close = True
         event.accept()

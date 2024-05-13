@@ -2,18 +2,19 @@
 import os
 
 from PyQt5.QtCore import pyqtSlot
-from qgis.PyQt.QtWidgets import QWidget, QMainWindow, QAction, QVBoxLayout
 from qgis.PyQt.QtGui import QIcon
+from qgis.PyQt.QtWidgets import QWidget, QMainWindow, QAction, QVBoxLayout
 from qgis.core import QgsPointXY
 from qgis.gui import QgsMessageBar
 
-from .parambar import Parambar
 from .digitize_canvas import DigitizeCanvas
 from .digitize_table import DigitizeTable
-from .maptool_identify import MapToolIdentify
-from .maptool_digi_point import MapToolDigiPoint
 from .maptool_digi_line import MapToolDigiLine
+from .maptool_digi_point import MapToolDigiPoint
 from .maptool_digi_polygon import MapToolDigiPolygon
+from .maptool_identify import MapToolIdentify
+from .parambar import Parambar
+
 
 ## @brief With the GeoreferencingDialog class a dialog window for the georeferencing of profiles is realized
 #

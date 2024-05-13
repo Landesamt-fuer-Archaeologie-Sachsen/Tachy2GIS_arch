@@ -1,106 +1,100 @@
-from datetime import date, datetime
-import os
-from functools import partial
 import math
+import os
 import uuid
+from datetime import date, datetime
+from functools import partial
 
 from PyQt5.QtWidgets import QApplication
-from qgis.core import (Qgis,
-                       QgsGeometry,
-                       QgsLineString,
-                       QgsMessageLog,
-                       QgsSnappingUtils,
-                       QgsPoint,
-                       QgsPointXY,
-                       QgsPolygon,
-                       QgsProject,
-                       QgsRectangle,
-                       QgsVectorLayerUtils,
-                       QgsWkbTypes)
-from qgis.gui import (QgsMapTool,
-                      QgsSnapIndicator,
-                      QgsRubberBand,
-                      QgsVertexMarker)
-from qgis.utils import (iface,
-                        plugins)
-
 from qgis.PyQt import uic
-from qgis.PyQt.QtCore import (Qt,
-                          QTimer,
-                          QVariant)
-from qgis.PyQt.QtGui import (QColor,
-                         QCursor,
-                         QIcon,
-                         QKeySequence)
-from qgis.PyQt.QtWidgets import (QAction,
-                             QComboBox,
-                             QLineEdit,
-                             QMenu,
-                             QMessageBox,
-                             QHeaderView,
-                             QTableWidgetItem,
-                             QShortcut)
+from qgis.PyQt.QtCore import Qt, QTimer, QVariant
+from qgis.PyQt.QtGui import QColor, QCursor, QIcon, QKeySequence
+from qgis.PyQt.QtWidgets import (
+    QAction,
+    QComboBox,
+    QLineEdit,
+    QMenu,
+    QMessageBox,
+    QHeaderView,
+    QTableWidgetItem,
+    QShortcut,
+)
+from qgis.core import (
+    Qgis,
+    QgsGeometry,
+    QgsLineString,
+    QgsMessageLog,
+    QgsSnappingUtils,
+    QgsPoint,
+    QgsPointXY,
+    QgsPolygon,
+    QgsProject,
+    QgsRectangle,
+    QgsVectorLayerUtils,
+    QgsWkbTypes,
+    QgsApplication,
+)
+from qgis.gui import QgsMapTool, QgsSnapIndicator, QgsRubberBand, QgsVertexMarker
+from qgis.utils import iface, plugins
 
-from ..utils.functions import (enableAndDisableWidgets,
-                             getCustomProjectVariable,
-                             getLookupDict,
-                             HelpWindow,
-                             findLayerInProject,
-                             layerHasPendingChanges,
-                             setCustomProjectVariable,
-                             showAndHideWidgets)
-from ..utils.toolbar_functions import (saveProject)
-
+from ..utils.functions import (
+    enableAndDisableWidgets,
+    getCustomProjectVariable,
+    getLookupDict,
+    HelpWindow,
+    findLayerInProject,
+    layerHasPendingChanges,
+    setCustomProjectVariable,
+    showAndHideWidgets,
+)
+from ..utils.toolbar_functions import saveProject
 
 iconPaths = {
-    'free': 'Icons/Frei.gif',
-    'circle_2_points_radius': 'Icons/Circle2PR',
-    'circle_2_points_diameter': 'Icons/Circle2P',
-    'delete_vertex': 'Icons/delVertex.png',
-    'rectangle': 'Icons/Rectangle.gif',
-    'polygons': 'Icons/mActionCapturePolygon.png',
-    'lines': 'Icons/mActionCaptureLine.png',
-    'points': 'Icons/mActionCapturePoint.png',
-    'tachy2gis_visible': 'Icons/Sichtbar_an.gif',
-    'tachy2gis_not_visible': 'Icons/Sichtbar_aus.gif',
-    'add_vertex': 'Icons/addVertex.png'
+    "free": "../Icons/Frei.gif",
+    "circle_2_points_radius": "../Icons/Circle2PR",
+    "circle_2_points_diameter": "../Icons/Circle2P",
+    "delete_vertex": "../Icons/delVertex.png",
+    "rectangle": "../Icons/Rectangle.gif",
+    "tachy2gis_visible": "../Icons/Sichtbar_an.gif",
+    "tachy2gis_not_visible": "../Icons/Sichtbar_aus.gif",
+    "add_vertex": "../Icons/addVertex.png",
 }
+
 for iconDescription, iconPath in iconPaths.items():
-    iconPaths[iconDescription] = os.path.join(
-        os.path.dirname(__file__), iconPath)
+    iconPaths[iconDescription] = os.path.join(os.path.dirname(__file__), iconPath)
 
+iconPaths.update(
+    {
+        "polygons": QgsApplication.iconPath("mActionCapturePolygon"),
+        "lines": QgsApplication.iconPath("mActionCaptureLine"),
+        "points": QgsApplication.iconPath("mActionCapturePoint"),
+    }
+)
 
-polygonsLayerName = 'E_Polygon'
-linesLayerName = 'E_Line'
-pointsLayerName = 'E_Point'
+polygonsLayerName = "E_Polygon"
+linesLayerName = "E_Line"
+pointsLayerName = "E_Point"
 
-layers = {
-    'polygons': polygonsLayerName,
-    'lines': linesLayerName,
-    'points': pointsLayerName
-}
+layers = {"polygons": polygonsLayerName, "lines": linesLayerName, "points": pointsLayerName}
 
 connectedSignalsDict = {}
 
-
-WIDGET, BASE = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), 'messen.ui'))
+WIDGET, BASE = uic.loadUiType(os.path.join(os.path.dirname(__file__), "messen.ui"))
 
 projectVariables = [
-    'obj_typ_polygons',
-    'obj_art_polygons',
-    'obj_spez_polygons',
-    'obj_typ_lines',
-    'obj_art_lines',
-    'obj_typ_points',
-    'obj_art_points',
-    'schnitt_nr',
-    'planum_nr',
-    'zbs',
-    'prof_nr',
-    'pt_nr',
-    'fund_nr',
-    'probe_nr',
+    "obj_typ_polygons",
+    "obj_art_polygons",
+    "obj_spez_polygons",
+    "obj_typ_lines",
+    "obj_art_lines",
+    "obj_typ_points",
+    "obj_art_points",
+    "schnitt_nr",
+    "planum_nr",
+    "zbs",
+    "prof_nr",
+    "pt_nr",
+    "fund_nr",
+    "probe_nr",
 ]
 
 
@@ -154,42 +148,28 @@ class MeasurementTab(BASE, WIDGET):
 
     def createKeys(self):
 
-        self.createKey(QKeySequence(Qt.Key_Return),
-                       iface.mapCanvas(), self.saveGeometry)
+        self.createKey(QKeySequence(Qt.Key_Return), iface.mapCanvas(), self.saveGeometry)
         self.createKey(QKeySequence(Qt.Key_Return), self, self.saveGeometry)
-        self.createKey(QKeySequence(Qt.Key_Enter),
-                       iface.mapCanvas(), self.saveGeometry)
+        self.createKey(QKeySequence(Qt.Key_Enter), iface.mapCanvas(), self.saveGeometry)
         self.createKey(QKeySequence(Qt.Key_Enter), self, self.saveGeometry)
 
-        self.createKey(QKeySequence("Shift+L"), iface.mapCanvas(),
-                       self.deleteCurrentDigitizing)
-        self.createKey(QKeySequence("Shift+L"), self,
-                       self.deleteCurrentDigitizing)
+        self.createKey(QKeySequence("Shift+L"), iface.mapCanvas(), self.deleteCurrentDigitizing)
+        self.createKey(QKeySequence("Shift+L"), self, self.deleteCurrentDigitizing)
 
-        self.createKey(QKeySequence("Shift+Z"), iface.mapCanvas(),
-                       self.deleteLastVertexFromCoordsTable)
-        self.createKey(QKeySequence("Shift+Z"), self,
-                       self.deleteLastVertexFromCoordsTable)
+        self.createKey(QKeySequence("Shift+Z"), iface.mapCanvas(), self.deleteLastVertexFromCoordsTable)
+        self.createKey(QKeySequence("Shift+Z"), self, self.deleteLastVertexFromCoordsTable)
 
-        self.createKey(QKeySequence("Shift+K"), iface.mapCanvas(),
-                       self.openCloseCoordinatesGroupBox)
-        self.createKey(QKeySequence("Shift+K"), self,
-                       self.openCloseCoordinatesGroupBox)
+        self.createKey(QKeySequence("Shift+K"), iface.mapCanvas(), self.openCloseCoordinatesGroupBox)
+        self.createKey(QKeySequence("Shift+K"), self, self.openCloseCoordinatesGroupBox)
 
-        self.createKey(QKeySequence("Shift+A"), iface.mapCanvas(),
-                       self.openCloseAttributesGroupBox)
-        self.createKey(QKeySequence("Shift+A"), self,
-                       self.openCloseAttributesGroupBox)
+        self.createKey(QKeySequence("Shift+A"), iface.mapCanvas(), self.openCloseAttributesGroupBox)
+        self.createKey(QKeySequence("Shift+A"), self, self.openCloseAttributesGroupBox)
 
-        self.createKey(QKeySequence("Shift+N"), iface.mapCanvas(),
-                       self.openCloseNumberGroupBox)
-        self.createKey(QKeySequence("Shift+N"), self,
-                       self.openCloseNumberGroupBox)
+        self.createKey(QKeySequence("Shift+N"), iface.mapCanvas(), self.openCloseNumberGroupBox)
+        self.createKey(QKeySequence("Shift+N"), self, self.openCloseNumberGroupBox)
 
-        self.createKey(QKeySequence("Shift+M"), iface.mapCanvas(),
-                       self.openCloseMeasurementPointsGroupBox)
-        self.createKey(QKeySequence("Shift+M"), self,
-                       self.openCloseMeasurementPointsGroupBox)
+        self.createKey(QKeySequence("Shift+M"), iface.mapCanvas(), self.openCloseMeasurementPointsGroupBox)
+        self.createKey(QKeySequence("Shift+M"), self, self.openCloseMeasurementPointsGroupBox)
 
     def createKey(self, sequence, parent, slot):
         shortcut = QShortcut(sequence, parent)
@@ -214,48 +194,30 @@ class MeasurementTab(BASE, WIDGET):
         self.createMeasurementPointsTable()
 
     def connectSignals(self):
-        self.cbFixTxtReference.stateChanged.connect(
-            self.setReferenceNumberProjectVariable)
-        self.cmbLayerType.currentIndexChanged.connect(
-            self.adjustDigitizingToGeometryType)
+        self.cbFixTxtReference.stateChanged.connect(self.setReferenceNumberProjectVariable)
+        self.cmbLayerType.currentIndexChanged.connect(self.adjustDigitizingToGeometryType)
         iface.mapCanvas().mapToolSet.connect(self.setDigitizeAction)
-        connectedSignalsDict['setDigitizeAction'] = self.setDigitizeAction
+        connectedSignalsDict["setDigitizeAction"] = self.setDigitizeAction
         self.actionDigitize.triggered.connect(self.activateDigitizeTool)
-        self.butT2GShow.clicked.connect(
-            lambda: self.showHideTachy2GisInstance(True))
+        self.butT2GShow.clicked.connect(lambda: self.showHideTachy2GisInstance(True))
         self.btnClear.clicked.connect(self.deleteCurrentDigitizing)
         self.coordsTableWidget.cellChanged.connect(self.setNewCoordinate)
-        self.coordsTableWidget.customContextMenuRequested.connect(
-            self.openCoordsTableMenu)
-        self.coordsTableWidget.itemSelectionChanged.connect(
-            self.highlightMarker)
-        self.measurementsTableWidget.cellClicked.connect(
-            self.zoomToAndSelectFeature)
+        self.coordsTableWidget.customContextMenuRequested.connect(self.openCoordsTableMenu)
+        self.coordsTableWidget.itemSelectionChanged.connect(self.highlightMarker)
+        self.measurementsTableWidget.cellClicked.connect(self.zoomToAndSelectFeature)
         self.btnCreateFeature.clicked.connect(self.saveGeometry)
-        self.cmbObjectType_1.currentIndexChanged.connect(
-            self.comboObjectTypeChanged)
-        self.cmbObjectType_2.currentIndexChanged.connect(
-            self.comboObjectArtChanged)
-        self.cmbObjectType_3.currentIndexChanged.connect(
-            self.comboObjectSpezChanged)
-        self.btnResetAutoAttributes.clicked.connect(
-            self.resetAutoAttributeValues)
-        self.cbActivateAutoAttributes.stateChanged.connect(
-            self.setAutoAttributeMode)
-        self.schnitt_nr.editingFinished.connect(
-            partial(self.onLineEditingFinished, self.schnitt_nr))
-        self.planum_nr.editingFinished.connect(
-            partial(self.onLineEditingFinished, self.planum_nr))
-        self.zbs.editingFinished.connect(
-            partial(self.onLineEditingFinished, self.zbs))
-        self.prof_nr.editingFinished.connect(
-            partial(self.onLineEditingFinished, self.prof_nr))
-        self.pt_nr.editingFinished.connect(
-            partial(self.onLineEditingFinished, self.pt_nr))
-        self.fund_nr.editingFinished.connect(
-            partial(self.onLineEditingFinished, self.fund_nr))
-        self.probe_nr.editingFinished.connect(
-            partial(self.onLineEditingFinished, self.probe_nr))
+        self.cmbObjectType_1.currentIndexChanged.connect(self.comboObjectTypeChanged)
+        self.cmbObjectType_2.currentIndexChanged.connect(self.comboObjectArtChanged)
+        self.cmbObjectType_3.currentIndexChanged.connect(self.comboObjectSpezChanged)
+        self.btnResetAutoAttributes.clicked.connect(self.resetAutoAttributeValues)
+        self.cbActivateAutoAttributes.stateChanged.connect(self.setAutoAttributeMode)
+        self.schnitt_nr.editingFinished.connect(partial(self.onLineEditingFinished, self.schnitt_nr))
+        self.planum_nr.editingFinished.connect(partial(self.onLineEditingFinished, self.planum_nr))
+        self.zbs.editingFinished.connect(partial(self.onLineEditingFinished, self.zbs))
+        self.prof_nr.editingFinished.connect(partial(self.onLineEditingFinished, self.prof_nr))
+        self.pt_nr.editingFinished.connect(partial(self.onLineEditingFinished, self.pt_nr))
+        self.fund_nr.editingFinished.connect(partial(self.onLineEditingFinished, self.fund_nr))
+        self.probe_nr.editingFinished.connect(partial(self.onLineEditingFinished, self.probe_nr))
         self.btnSaveProject.clicked.connect(saveProject)
         self.btnHelp.clicked.connect(self.showHelp)
 
@@ -273,38 +235,23 @@ class MeasurementTab(BASE, WIDGET):
         self.deactivateKeys()
 
     def disconnectSignals(self):
-        signal = connectedSignalsDict.get('setDigitizeAction')
+        signal = connectedSignalsDict.get("setDigitizeAction")
         if signal:
             iface.mapCanvas().mapToolSet.disconnect(signal)
-            connectedSignalsDict.pop('setDigitizeAction')
-        signal = connectedSignalsDict.get('resetToNewProject')
+            connectedSignalsDict.pop("setDigitizeAction")
+        signal = connectedSignalsDict.get("resetToNewProject")
 
     def fillCmbLayerType(self):
 
         cmbLayerTypeDict = {
-
-            'no_layer': {
-                'description': 'Keine Auswahl',
-                'icon': QIcon()
-            },
-            'polygons': {
-                'description': 'Polygone',
-                'icon': QIcon(iconPaths['polygons'])
-            },
-            'lines': {
-                'description': 'Linien',
-                'icon': QIcon(iconPaths['lines'])
-            },
-            'points': {
-                'description': 'Punkte',
-                'icon': QIcon(iconPaths['points'])
-            }
-
+            "no_layer": {"description": "Keine Auswahl", "icon": QIcon()},
+            "polygons": {"description": "Polygone", "icon": QIcon(iconPaths["polygons"])},
+            "lines": {"description": "Linien", "icon": QIcon(iconPaths["lines"])},
+            "points": {"description": "Punkte", "icon": QIcon(iconPaths["points"])},
         }
 
         for editingTypeValue, editingTypeInfo in cmbLayerTypeDict.items():
-            self.cmbLayerType.addItem(
-                editingTypeInfo['icon'], editingTypeInfo['description'], editingTypeValue)
+            self.cmbLayerType.addItem(editingTypeInfo["icon"], editingTypeInfo["description"], editingTypeValue)
 
     def createCoordsTable(self):
         self.coordsTableWidget.setContextMenuPolicy(Qt.CustomContextMenu)
@@ -314,17 +261,22 @@ class MeasurementTab(BASE, WIDGET):
     def createMeasurementPointsTable(self):
         self.measurementsTableWidget.setContextMenuPolicy(Qt.CustomContextMenu)
         self.measurementsTableWidget.horizontalHeader().setStretchLastSection(True)
-        self.measurementsTableWidget.horizontalHeader(
-        ).setSectionResizeMode(QHeaderView.Stretch)
+        self.measurementsTableWidget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
     def setDigitizeAction(self, e):
         try:
-            if e.toolName() not in ['digitizepolygons_tachy2gis',
-                                    'digitizelines_tachy2gis',
-                                    'digitizepoints_tachy2gis']:
+            if e.toolName() not in [
+                "digitizepolygons_tachy2gis",
+                "digitizelines_tachy2gis",
+                "digitizepoints_tachy2gis",
+            ]:
                 self.actionDigitize.setChecked(False)
         except Exception as e:
-            QgsMessageLog.logMessage(message='MeasurementTab->setDigitizeAction: ' + str(e), tag='T2G Archäologie', level=Qgis.MessageLevel.Warning)
+            QgsMessageLog.logMessage(
+                message="MeasurementTab->setDigitizeAction: " + str(e),
+                tag="T2G Archäologie",
+                level=Qgis.MessageLevel.Warning,
+            )
             return
 
     def findLayerToEdit(self, geometryType):
@@ -353,68 +305,59 @@ class MeasurementTab(BASE, WIDGET):
             self.widgetCmbPolygonDigitizingMode,
             self.widgetDigitizingButtons,
             self.qgsGroupBoxNextValues,
-            self.qgsGroupBoxMeasurementPoints
+            self.qgsGroupBoxMeasurementPoints,
         ]
 
         showAndHideWidgets(widgetsToShow, widgetsToHide)
 
     def fillTxtReference(self):
-        referenceNumber = getCustomProjectVariable('aktcode')
+        referenceNumber = getCustomProjectVariable("aktcode")
         if referenceNumber != QVariant():
             self.txtReference.setText(referenceNumber)
 
     def fillCmbPolygonDigitizingMode(self):
 
         cmbPolygonDigitizingMode = {
-
-            'free': {
-                'description': 'Frei',
-                'icon': QIcon(iconPaths['free'])
+            "free": {"description": "Frei", "icon": QIcon(iconPaths["free"])},
+            "circle_2_points_radius": {
+                "description": "Kreis mit 2 Punkten (Radius)",
+                "icon": QIcon(iconPaths["circle_2_points_radius"]),
             },
-            'circle_2_points_radius': {
-                'description': 'Kreis mit 2 Punkten (Radius)',
-                'icon': QIcon(iconPaths['circle_2_points_radius'])
+            "circle_2_points_diameter": {
+                "description": "Kreis mit 2 Punkten (Durchmesser)",
+                "icon": QIcon(iconPaths["circle_2_points_diameter"]),
             },
-            'circle_2_points_diameter': {
-                'description': 'Kreis mit 2 Punkten (Durchmesser)',
-                'icon': QIcon(iconPaths['circle_2_points_diameter'])
-            },
-            'rectangle': {
-                'description': 'Rechteck',
-                'icon': QIcon(iconPaths['rectangle'])
-            }
-
+            "rectangle": {"description": "Rechteck", "icon": QIcon(iconPaths["rectangle"])},
         }
 
         for editingTypeValue, editingTypeInfo in cmbPolygonDigitizingMode.items():
             self.cmbPolygonDigitizingMode.addItem(
-                editingTypeInfo['icon'], editingTypeInfo['description'], editingTypeValue)
+                editingTypeInfo["icon"], editingTypeInfo["description"], editingTypeValue
+            )
 
     def setReferenceNumberProjectVariable(self):
 
         if self.cbFixTxtReference.isChecked():
             referenceNumber = self.txtReference.text()
-            if referenceNumber == '':
-                iface.messageBar().pushMessage("T2G Archäologie",
-                                               "Bitte eine Maßnahmennummer angeben")
+            if referenceNumber == "":
+                iface.messageBar().pushMessage("T2G Archäologie", "Bitte eine Maßnahmennummer angeben")
                 self.cbFixTxtReference.setCheckState(0)
                 return
             if not self.tachy2GisPlugin:
                 self.tachy2GisPlugin = self.getTachy2GisInstance()
                 if not self.tachy2GisPlugin:
-                    iface.messageBar().pushMessage("T2G Archäologie",
-                                                   "Bitte Tachy2GIS-3DViewer installieren und aktivieren", Qgis.Warning)
+                    iface.messageBar().pushMessage(
+                        "T2G Archäologie", "Bitte Tachy2GIS-3DViewer installieren und aktivieren", Qgis.Warning
+                    )
                     self.cbFixTxtReference.setCheckState(0)
                     return
-                self.tachy2GisPlugin.dlg.closingPlugin.connect(
-                    self.resetOnTachy2GisClose)
+                self.tachy2GisPlugin.dlg.closingPlugin.connect(self.resetOnTachy2GisClose)
 
             self.startTachy2GisInstance()
             self.createObjectsForTachy2GisWatch()
 
-            setCustomProjectVariable('aktcode', referenceNumber)
-            enableAndDisableWidgets(
-                [self.cmbLayerType], [self.txtReference])
+            setCustomProjectVariable("aktcode", referenceNumber)
+            enableAndDisableWidgets([self.cmbLayerType], [self.txtReference])
             self.activateKeys()
         else:
             self.resetTabToBeginning()
@@ -427,14 +370,15 @@ class MeasurementTab(BASE, WIDGET):
 
     def resetOnTachy2GisClose(self):
         self.cbFixTxtReference.setCheckState(0)
-        iface.messageBar().pushMessage("T2G Archäologie",
-                                       "Tachy2GIS-3DViewer wurde gestoppt, Digitalisierung abgebrochen", Qgis.Warning)
+        iface.messageBar().pushMessage(
+            "T2G Archäologie", "Tachy2GIS-3DViewer wurde gestoppt, Digitalisierung abgebrochen", Qgis.Warning
+        )
         self.setReferenceNumberProjectVariable()
         self.tachy2GisVisible = False
 
     def getTachy2GisInstance(self):
         for pluginName, plugin in plugins.items():
-            if pluginName.lower() == 'tachy2gis':
+            if pluginName.lower() == "tachy2gis":
                 return plugin
 
     def startTachy2GisInstance(self):
@@ -446,21 +390,15 @@ class MeasurementTab(BASE, WIDGET):
             self.showHideTachy2GisInstance()
 
     def setTachy2GisToGeometry(self, geometryType):
-        if geometryType == 'polygons':
-            self.tachy2GisPlugin.dlg.targetLayerComboBox.setCurrentText(
-                'E_Polygon')
-            self.tachy2GisPlugin.dlg.sourceLayerComboBox.setCurrentText(
-                'E_Polygon')
-        elif geometryType == 'lines':
-            self.tachy2GisPlugin.dlg.targetLayerComboBox.setCurrentText(
-                'E_Line')
-            self.tachy2GisPlugin.dlg.sourceLayerComboBox.setCurrentText(
-                'E_Line')
-        elif geometryType == 'points':
-            self.tachy2GisPlugin.dlg.targetLayerComboBox.setCurrentText(
-                'E_Point')
-            self.tachy2GisPlugin.dlg.sourceLayerComboBox.setCurrentText(
-                'E_Point')
+        if geometryType == "polygons":
+            self.tachy2GisPlugin.dlg.targetLayerComboBox.setCurrentText("E_Polygon")
+            self.tachy2GisPlugin.dlg.sourceLayerComboBox.setCurrentText("E_Polygon")
+        elif geometryType == "lines":
+            self.tachy2GisPlugin.dlg.targetLayerComboBox.setCurrentText("E_Line")
+            self.tachy2GisPlugin.dlg.sourceLayerComboBox.setCurrentText("E_Line")
+        elif geometryType == "points":
+            self.tachy2GisPlugin.dlg.targetLayerComboBox.setCurrentText("E_Point")
+            self.tachy2GisPlugin.dlg.sourceLayerComboBox.setCurrentText("E_Point")
         self.tachy2GisPlugin.setPickable()
 
     def showHideTachy2GisInstance(self, open=True):
@@ -469,14 +407,13 @@ class MeasurementTab(BASE, WIDGET):
                 iface.removeDockWidget(self.tachy2GisPlugin.dlg)
 
             self.tachy2GisVisible = False
-            self.butT2GShow.setIcon(QIcon(iconPaths['tachy2gis_not_visible']))
+            self.butT2GShow.setIcon(QIcon(iconPaths["tachy2gis_not_visible"]))
         else:
             if open:
                 if not self.tachy2GisPlugin.dlg.isVisible():
-                    iface.addDockWidget(Qt.BottomDockWidgetArea,
-                                        self.tachy2GisPlugin.dlg)
+                    iface.addDockWidget(Qt.BottomDockWidgetArea, self.tachy2GisPlugin.dlg)
                 self.tachy2GisVisible = True
-                self.butT2GShow.setIcon(QIcon(iconPaths['tachy2gis_visible']))
+                self.butT2GShow.setIcon(QIcon(iconPaths["tachy2gis_visible"]))
 
     def activateDigitizeTool(self):
         if self.actionDigitize.isChecked():
@@ -503,15 +440,20 @@ class MeasurementTab(BASE, WIDGET):
         self.resetObjectsForTachy2GisWatch()
         self.resetDigitizing()
 
-        if geometryType == 'no_layer':
-            showAndHideWidgets([], [self.widgetDigitizingTools,
-                                    self.qgsGroupBoxAttributes,
-                                    self.widgetCmbPolygonDigitizingMode,
-                                    self.qgsGroupBoxSettings,
-                                    self.widgetDigitizingButtons,
-                                    self.qgsGroupBoxNextValues,
-                                    self.qgsGroupBoxCoordinates,
-                                    self.qgsGroupBoxMeasurementPoints])
+        if geometryType == "no_layer":
+            showAndHideWidgets(
+                [],
+                [
+                    self.widgetDigitizingTools,
+                    self.qgsGroupBoxAttributes,
+                    self.widgetCmbPolygonDigitizingMode,
+                    self.qgsGroupBoxSettings,
+                    self.widgetDigitizingButtons,
+                    self.qgsGroupBoxNextValues,
+                    self.qgsGroupBoxCoordinates,
+                    self.qgsGroupBoxMeasurementPoints,
+                ],
+            )
             if self.digitizeTool:
                 self.digitizeTool = None
             if self.markersAndRubberBand:
@@ -521,57 +463,60 @@ class MeasurementTab(BASE, WIDGET):
 
         self.layerToEdit = self.findLayerToEdit(geometryType)
         if not self.layerToEdit:
-            iface.messageBar().pushMessage("T2G Archäologie",
-                                           f"Bitte den Layer {layers[geometryType]} ins Projekt laden", Qgis.Warning)
+            iface.messageBar().pushMessage(
+                "T2G Archäologie", f"Bitte den Layer {layers[geometryType]} ins Projekt laden", Qgis.Warning
+            )
             self.cmbLayerType.setCurrentIndex(0)
             return
         if layerHasPendingChanges(self.layerToEdit):
-            iface.messageBar().pushMessage("T2G Archäologie",
-                                           f"Der Layer {layers[geometryType]} ist im Editiermodus. Bitte das Editieren beenden.", Qgis.Warning)
+            iface.messageBar().pushMessage(
+                "T2G Archäologie",
+                f"Der Layer {layers[geometryType]} ist im Editiermodus. Bitte das Editieren beenden.",
+                Qgis.Warning,
+            )
             self.cmbLayerType.setCurrentIndex(0)
             return
 
-        showAndHideWidgets([self.widgetDigitizingTools,
-                            self.qgsGroupBoxSettings,
-                            self.qgsGroupBoxCoordinates,
-                            self.qgsGroupBoxNextValues,
-                            self.qgsGroupBoxMeasurementPoints,
-                            self.widgetDigitizingButtons], [])
+        showAndHideWidgets(
+            [
+                self.widgetDigitizingTools,
+                self.qgsGroupBoxSettings,
+                self.qgsGroupBoxCoordinates,
+                self.qgsGroupBoxNextValues,
+                self.qgsGroupBoxMeasurementPoints,
+                self.widgetDigitizingButtons,
+            ],
+            [],
+        )
 
-        self.markersAndRubberBand = self.createMarkersAndRubberBand(
-            geometryType)
+        self.markersAndRubberBand = self.createMarkersAndRubberBand(geometryType)
 
         self.actionDigitize.setIcon(QIcon(iconPaths[geometryType]))
-        self.digitizeTool = DigitizeTool(geometryType,
-                                         self)
+        self.digitizeTool = DigitizeTool(geometryType, self)
         self.btnDigitizeTool.setDefaultAction(self.actionDigitize)
 
         self.setTachy2GisToGeometry(geometryType)
 
-        if geometryType == 'polygons':
-            self.actionDigitize.setText('Polygone zeichnen')
-            showAndHideWidgets([self.qgsGroupBoxAttributes,
-                                self.widgetCmbPolygonDigitizingMode],
-                               [])
+        if geometryType == "polygons":
+            self.actionDigitize.setText("Polygone zeichnen")
+            showAndHideWidgets([self.qgsGroupBoxAttributes, self.widgetCmbPolygonDigitizingMode], [])
 
-        elif geometryType == 'lines':
-            self.actionDigitize.setText('Linien zeichnen')
-            showAndHideWidgets([self.qgsGroupBoxAttributes],
-                               [self.widgetCmbPolygonDigitizingMode])
+        elif geometryType == "lines":
+            self.actionDigitize.setText("Linien zeichnen")
+            showAndHideWidgets([self.qgsGroupBoxAttributes], [self.widgetCmbPolygonDigitizingMode])
 
-        elif geometryType == 'points':
-            self.actionDigitize.setText('Punkte zeichnen')
-            showAndHideWidgets([self.qgsGroupBoxAttributes],
-                               [self.widgetCmbPolygonDigitizingMode])
+        elif geometryType == "points":
+            self.actionDigitize.setText("Punkte zeichnen")
+            showAndHideWidgets([self.qgsGroupBoxAttributes], [self.widgetCmbPolygonDigitizingMode])
         self.geometryType = geometryType
         self.setAttributes()
         self.startTachyWatch()
 
     def setAutoAttributeMode(self):
         if self.cbActivateAutoAttributes.isChecked():
-            setCustomProjectVariable('autoAttribute', True)
+            setCustomProjectVariable("autoAttribute", True)
         else:
-            setCustomProjectVariable('autoAttribute', False)
+            setCustomProjectVariable("autoAttribute", False)
 
     def clearObjectCombos(self):
         self.cmbObjectType_1.blockSignals(True)
@@ -588,49 +533,40 @@ class MeasurementTab(BASE, WIDGET):
         self.clearObjectCombos()
         self.fillComboObjectType()
 
-        if self.geometryType != 'polygons':
+        if self.geometryType != "polygons":
             self.cmbObjectType_3.hide()
         else:
             self.cmbObjectType_3.show()
 
-        objTypeGeometry = getCustomProjectVariable(
-            f"obj_typ_{self.geometryType}")
+        objTypeGeometry = getCustomProjectVariable(f"obj_typ_{self.geometryType}")
         if objTypeGeometry:
-            self.cmbObjectType_1.setCurrentIndex(
-                self.cmbObjectType_1.findData(objTypeGeometry))
+            self.cmbObjectType_1.setCurrentIndex(self.cmbObjectType_1.findData(objTypeGeometry))
 
     def comboObjectTypeChanged(self):
         self.fillComboObjectArt()
-        setCustomProjectVariable(
-            f"obj_typ_{self.geometryType}", self.cmbObjectType_1.currentData())
+        setCustomProjectVariable(f"obj_typ_{self.geometryType}", self.cmbObjectType_1.currentData())
 
-        objArtGeometry = getCustomProjectVariable(
-            f"obj_art_{self.geometryType}")
+        objArtGeometry = getCustomProjectVariable(f"obj_art_{self.geometryType}")
         if objArtGeometry:
-            self.cmbObjectType_2.setCurrentIndex(
-                self.cmbObjectType_2.findData(objArtGeometry))
+            self.cmbObjectType_2.setCurrentIndex(self.cmbObjectType_2.findData(objArtGeometry))
 
     def comboObjectArtChanged(self):
-        setCustomProjectVariable(
-            f'obj_art_{self.geometryType}', self.cmbObjectType_2.currentData())
-        if self.geometryType != 'polygons':
+        setCustomProjectVariable(f"obj_art_{self.geometryType}", self.cmbObjectType_2.currentData())
+        if self.geometryType != "polygons":
             return
 
         self.fillComboObjectSpez()
 
-        objSpezGeometry = getCustomProjectVariable(
-            f"obj_spez_{self.geometryType}")
+        objSpezGeometry = getCustomProjectVariable(f"obj_spez_{self.geometryType}")
         if objSpezGeometry:
-            self.cmbObjectType_3.setCurrentIndex(
-                self.cmbObjectType_3.findData(objSpezGeometry))
+            self.cmbObjectType_3.setCurrentIndex(self.cmbObjectType_3.findData(objSpezGeometry))
 
     def comboObjectSpezChanged(self):
-        setCustomProjectVariable(
-            f'obj_spez_{self.geometryType}', self.cmbObjectType_3.currentData())
+        setCustomProjectVariable(f"obj_spez_{self.geometryType}", self.cmbObjectType_3.currentData())
 
     def resetAutoAttributeValues(self):
         for variable in projectVariables:
-            setCustomProjectVariable(variable, '')
+            setCustomProjectVariable(variable, "")
         self.cmbObjectType_1.setCurrentIndex(0)
         self.cmbObjectType_2.setCurrentIndex(0)
         self.cmbObjectType_3.setCurrentIndex(0)
@@ -648,10 +584,9 @@ class MeasurementTab(BASE, WIDGET):
         self.cmbObjectType_2.clear()
         self.cmbObjectType_3.clear()
         geom_typ = int(self.layerToEdit.geometryType())
-        s1_layer = QgsProject.instance().mapLayersByName('obj_type_s1')[0]
-        obj_types = getLookupDict(
-            s1_layer, 'class_id', 's1', f'geom_typ = {geom_typ}')
-        self.cmbObjectType_1.addItem('', None)
+        s1_layer = QgsProject.instance().mapLayersByName("obj_type_s1")[0]
+        obj_types = getLookupDict(s1_layer, "class_id", "s1", f"geom_typ = {geom_typ}")
+        self.cmbObjectType_1.addItem("", None)
         for fid, description in obj_types.items():
             self.cmbObjectType_1.addItem(description, fid)
         self.cmbObjectType_1.blockSignals(False)
@@ -661,10 +596,9 @@ class MeasurementTab(BASE, WIDGET):
         self.cmbObjectType_2.clear()
         self.cmbObjectType_3.clear()
         s1_fid = self.cmbObjectType_1.currentData()
-        s2_layer = QgsProject.instance().mapLayersByName('obj_type_s2')[0]
-        obj_types = getLookupDict(
-            s2_layer, 'fid', 's2', f'obj_type_relation_s1_s2_s1_class_id = {s1_fid}')
-        self.cmbObjectType_2.addItem('', None)
+        s2_layer = QgsProject.instance().mapLayersByName("obj_type_s2")[0]
+        obj_types = getLookupDict(s2_layer, "fid", "s2", f"obj_type_relation_s1_s2_s1_class_id = {s1_fid}")
+        self.cmbObjectType_2.addItem("", None)
         for fid, description in obj_types.items():
             self.cmbObjectType_2.addItem(description, fid)
         self.cmbObjectType_2.blockSignals(False)
@@ -673,20 +607,19 @@ class MeasurementTab(BASE, WIDGET):
         self.cmbObjectType_3.blockSignals(True)
         self.cmbObjectType_3.clear()
         s2_fid = self.cmbObjectType_2.currentData()
-        s3_layer = QgsProject.instance().mapLayersByName('obj_type_s3')[0]
-        obj_types = getLookupDict(
-            s3_layer, 'fid', 's3', f'obj_type_relation_s2_s3_fid_s2 = {s2_fid}')
-        self.cmbObjectType_3.addItem('', None)
+        s3_layer = QgsProject.instance().mapLayersByName("obj_type_s3")[0]
+        obj_types = getLookupDict(s3_layer, "fid", "s3", f"obj_type_relation_s2_s3_fid_s2 = {s2_fid}")
+        self.cmbObjectType_3.addItem("", None)
         for fid, description in obj_types.items():
             self.cmbObjectType_3.addItem(description, fid)
         self.cmbObjectType_3.blockSignals(False)
 
     def createMarkersAndRubberBand(self, geometryType):
-        if geometryType == 'polygons':
+        if geometryType == "polygons":
             geom = QgsWkbTypes.PolygonGeometry
-        elif geometryType == 'lines':
+        elif geometryType == "lines":
             geom = QgsWkbTypes.LineGeometry
-        elif geometryType == 'points':
+        elif geometryType == "points":
             geom = QgsWkbTypes.PointGeometry
         return MarkersAndRubberBand(geom)
 
@@ -709,17 +642,18 @@ class MeasurementTab(BASE, WIDGET):
         self.resetDigitizing()
 
     def startTachyWatch(self):
-        iface.messageBar().pushMessage("Tachy2GisArch",
-                                       f"Verbindung zu Tachy2Gis aufgebaut. Punkte für {layers[self.geometryType]} können erfasst werden.", duration=10)
-        QgsMessageLog.logMessage(
-            'Tachy2Gis watch started', 'T2G Archäologie', Qgis.Info)
+        iface.messageBar().pushMessage(
+            "Tachy2GisArch",
+            f"Verbindung zu Tachy2Gis aufgebaut. Punkte für {layers[self.geometryType]} können erfasst werden.",
+            duration=10,
+        )
+        QgsMessageLog.logMessage("Tachy2Gis watch started", "T2G Archäologie", Qgis.Info)
         self.watch.start(150)
         self.tachyWatchActive = True
 
     def stopTachyWatch(self):
         if self.tachyWatchActive:
-            QgsMessageLog.logMessage(
-                'Tachy2Gis watch stopped', 'T2G Archäologie', Qgis.Info)
+            QgsMessageLog.logMessage("Tachy2Gis watch stopped", "T2G Archäologie", Qgis.Info)
         self.watch.stop()
         self.tachyWatchActive = True
 
@@ -749,8 +683,7 @@ class MeasurementTab(BASE, WIDGET):
             return
         oldCoordinate = self.vertices[row][column]
         try:
-            newCoordinate = float(
-                self.coordsTableWidget.item(row, column).text())
+            newCoordinate = float(self.coordsTableWidget.item(row, column).text())
             if oldCoordinate != newCoordinate:
                 self.markersAndRubberBand.removeHighlightMarkers()
                 x, y, z = self.vertices[row]
@@ -769,11 +702,9 @@ class MeasurementTab(BASE, WIDGET):
 
     def openCoordsTableMenu(self, pos):
         coordsTableMenu = QMenu()
-        delVertex = coordsTableMenu.addAction(
-            QIcon(iconPaths['delete_vertex']), " Vertex löschen")
+        delVertex = coordsTableMenu.addAction(QIcon(iconPaths["delete_vertex"]), " Vertex löschen")
         delVertex.triggered.connect(self.deleteVertexFromCoordsTable)
-        addVertex = coordsTableMenu.addAction(
-            QIcon(iconPaths['add_vertex']), " Vertex hinzufügen")
+        addVertex = coordsTableMenu.addAction(QIcon(iconPaths["add_vertex"]), " Vertex hinzufügen")
         addVertex.triggered.connect(self.setInsertAtIndex)
         coordsTableMenu.exec_(QCursor.pos())
 
@@ -818,61 +749,57 @@ class MeasurementTab(BASE, WIDGET):
         for vertex in self.vertices:
             point = QgsPoint(vertex[0], vertex[1], vertex[2])
             qgsPoints.append(point)
-        if self.geometryType == 'polygons':
+        if self.geometryType == "polygons":
             polygonGeometryType = self.cmbPolygonDigitizingMode.currentData()
-            if polygonGeometryType == 'free':
+            if polygonGeometryType == "free":
                 return QgsPolygon(QgsLineString(qgsPoints))
-            elif polygonGeometryType == 'circle_2_points_radius':
+            elif polygonGeometryType == "circle_2_points_radius":
                 return self.createCircleRadiusGeometry()
-            elif polygonGeometryType == 'circle_2_points_diameter':
+            elif polygonGeometryType == "circle_2_points_diameter":
                 return self.createCircleDiameterGeometry()
-            elif polygonGeometryType == 'rectangle':
+            elif polygonGeometryType == "rectangle":
                 return self.createRectangleGeometry()
 
-        elif self.geometryType == 'lines':
+        elif self.geometryType == "lines":
             return QgsLineString(qgsPoints)
-        elif self.geometryType == 'points':
+        elif self.geometryType == "points":
             return qgsPoints
 
     def createCircleRadiusGeometry(self):
         if self.verticesCount > 2:
-            iface.messageBar().pushMessage("T2G Archäologie",
-                                           f"Nur zwei Punkte erlaubt (Modus: Kreis mit 2 Punkten (Radius))", Qgis.Warning)
+            iface.messageBar().pushMessage(
+                "T2G Archäologie", f"Nur zwei Punkte erlaubt (Modus: Kreis mit 2 Punkten (Radius))", Qgis.Warning
+            )
             return False
-        point1 = QgsPoint(float(self.vertices[0][0]), float(
-            self.vertices[0][1]), float(self.vertices[0][2]))
-        point2 = QgsPoint(float(self.vertices[1][0]), float(
-            self.vertices[1][1]), float(self.vertices[1][2]))
+        point1 = QgsPoint(float(self.vertices[0][0]), float(self.vertices[0][1]), float(self.vertices[0][2]))
+        point2 = QgsPoint(float(self.vertices[1][0]), float(self.vertices[1][1]), float(self.vertices[1][2]))
         radius = point1.distance3D(point2)
         geom = self.createCircleGeometry(point1, radius, 30)
         return geom
 
     def createCircleDiameterGeometry(self):
         if self.verticesCount > 2:
-            iface.messageBar().pushMessage("T2G Archäologie",
-                                           f"Nur zwei Punkte erlaubt (Modus: Kreis mit 2 Punkten (Durchmesser))", Qgis.Warning)
+            iface.messageBar().pushMessage(
+                "T2G Archäologie", f"Nur zwei Punkte erlaubt (Modus: Kreis mit 2 Punkten (Durchmesser))", Qgis.Warning
+            )
             return False
-        point1 = QgsPoint(float(self.vertices[0][0]), float(
-            self.vertices[0][1]), float(self.vertices[0][2]))
-        point2 = QgsPoint(float(self.vertices[1][0]), float(
-            self.vertices[1][1]), float(self.vertices[1][2]))
-        x = (point1.x()+point2.x())/2
-        y = (point1.y()+point2.y())/2
-        center = QgsPoint((point1.x()+point2.x())/2,
-                          (point1.y()+point2.y())/2, float(self.vertices[1][2]))
+        point1 = QgsPoint(float(self.vertices[0][0]), float(self.vertices[0][1]), float(self.vertices[0][2]))
+        point2 = QgsPoint(float(self.vertices[1][0]), float(self.vertices[1][1]), float(self.vertices[1][2]))
+        x = (point1.x() + point2.x()) / 2
+        y = (point1.y() + point2.y()) / 2
+        center = QgsPoint((point1.x() + point2.x()) / 2, (point1.y() + point2.y()) / 2, float(self.vertices[1][2]))
         radius = point1.distance3D(center)
         geom = self.createCircleGeometry(center, radius, 30)
         return geom
 
     def createRectangleGeometry(self):
         if self.verticesCount > 2:
-            iface.messageBar().pushMessage("T2G Archäologie",
-                                           f"Nur zwei Punkte erlaubt (Modus: Rechteck))", Qgis.Warning)
+            iface.messageBar().pushMessage(
+                "T2G Archäologie", f"Nur zwei Punkte erlaubt (Modus: Rechteck))", Qgis.Warning
+            )
             return False
-        point1 = QgsPoint(float(self.vertices[0][0]), float(
-            self.vertices[0][1]), float(self.vertices[0][2]))
-        point2 = QgsPoint(float(self.vertices[1][0]), float(
-            self.vertices[1][1]), float(self.vertices[1][2]))
+        point1 = QgsPoint(float(self.vertices[0][0]), float(self.vertices[0][1]), float(self.vertices[0][2]))
+        point2 = QgsPoint(float(self.vertices[1][0]), float(self.vertices[1][1]), float(self.vertices[1][2]))
         rect = QgsRectangle(point1.x(), point1.y(), point2.x(), point2.y())
         geom = QgsGeometry.fromRect(rect)
         return geom
@@ -881,14 +808,13 @@ class MeasurementTab(BASE, WIDGET):
         pts = []
         for i in range(segments):
             theta = i * (2.0 * math.pi / segments)
-            p = QgsPoint(point.x() + radius * math.cos(theta),
-                         point.y() + radius * math.sin(theta), point.z())
+            p = QgsPoint(point.x() + radius * math.cos(theta), point.y() + radius * math.sin(theta), point.z())
             pts.append(p)
         pts.append(pts[0])
         return QgsGeometry.fromPolyline(pts)
 
     def checkGeometry(self, geom):
-        if self.geometryType == 'polygons' or self.geometryType == 'lines':
+        if self.geometryType == "polygons" or self.geometryType == "lines":
             if isinstance(geom, QgsPolygon) or isinstance(geom, QgsLineString):
                 geomClone = geom.clone()
                 return QgsGeometry(geomClone).isGeosValid()
@@ -898,22 +824,20 @@ class MeasurementTab(BASE, WIDGET):
                 return False
 
     def createFeatureFromGeometry(self, geom):
-        uuidFeature = self.layerToEdit.dataProvider().fieldNameIndex('obj_uuid')
-        if self.geometryType == 'polygons' or self.geometryType == 'lines':
-            attr = {uuidFeature: '{' + str(uuid.uuid4())+'}'}
-            feature = QgsVectorLayerUtils.createFeature(layer=self.layerToEdit,
-                                                        geometry=QgsGeometry(
-                                                            geom),
-                                                        attributes=attr)
+        uuidFeature = self.layerToEdit.dataProvider().fieldNameIndex("obj_uuid")
+        if self.geometryType == "polygons" or self.geometryType == "lines":
+            attr = {uuidFeature: "{" + str(uuid.uuid4()) + "}"}
+            feature = QgsVectorLayerUtils.createFeature(
+                layer=self.layerToEdit, geometry=QgsGeometry(geom), attributes=attr
+            )
             return feature
-        elif self.geometryType == 'points':
+        elif self.geometryType == "points":
             features = []
             for pt in geom:
-                attr = {uuidFeature: '{' + str(uuid.uuid4())+'}'}
-                feature = QgsVectorLayerUtils.createFeature(layer=self.layerToEdit,
-                                                            geometry=QgsGeometry(
-                                                                pt),
-                                                            attributes=attr)
+                attr = {uuidFeature: "{" + str(uuid.uuid4()) + "}"}
+                feature = QgsVectorLayerUtils.createFeature(
+                    layer=self.layerToEdit, geometry=QgsGeometry(pt), attributes=attr
+                )
 
                 features.append(feature)
             return features
@@ -930,8 +854,11 @@ class MeasurementTab(BASE, WIDGET):
             return
 
         if layerHasPendingChanges(self.layerToEdit):
-            iface.messageBar().pushMessage("T2G Archäologie",
-                                           f"Der Layer {layers[self.geometryType]} ist im Editiermodus. Bitte das Editieren beenden.", Qgis.Warning)
+            iface.messageBar().pushMessage(
+                "T2G Archäologie",
+                f"Der Layer {layers[self.geometryType]} ist im Editiermodus. Bitte das Editieren beenden.",
+                Qgis.Warning,
+            )
             return
         for point in self.vertices:
             if point[2] == 0:
@@ -948,16 +875,16 @@ class MeasurementTab(BASE, WIDGET):
         if geom == False:
             return
 
-        if self.geometryType == 'polygons' or self.geometryType == 'lines':
+        if self.geometryType == "polygons" or self.geometryType == "lines":
             if self.checkGeometry(geom):
                 feature = self.createFeatureFromGeometry(geom)
-                _, features = self.layerToEdit.dataProvider().addFeatures([
-                    feature])
+                _, features = self.layerToEdit.dataProvider().addFeatures([feature])
             else:
-                iface.messageBar().pushMessage("T2G Archäologie",
-                                               f"Die Geometrie ist ungültig. Bitte korrigieren oder löschen", Qgis.Warning)
+                iface.messageBar().pushMessage(
+                    "T2G Archäologie", f"Die Geometrie ist ungültig. Bitte korrigieren oder löschen", Qgis.Warning
+                )
                 return
-        elif self.geometryType == 'points':
+        elif self.geometryType == "points":
             features = self.createFeatureFromGeometry(geom)
             _, features = self.layerToEdit.dataProvider().addFeatures(features)
 
@@ -972,7 +899,7 @@ class MeasurementTab(BASE, WIDGET):
             self.beepSound()
 
     def addMeasurementPoints(self):
-        measurementPointsLayer = findLayerInProject('Messpunkte')
+        measurementPointsLayer = findLayerInProject("Messpunkte")
         if not measurementPointsLayer:
             return
         measurementPointsLayer.startEditing()
@@ -983,35 +910,29 @@ class MeasurementTab(BASE, WIDGET):
             x = self.vertices[i][0]
             y = self.vertices[i][1]
             z = self.vertices[i][2]
-            uuidPoint = '{' + str(uuid.uuid4()) + '}'
-            attL = {1: dateOfMeasurement, 4: str(
-                x), 5: str(y), 6: str(z), 8: uuidPoint}
+            uuidPoint = "{" + str(uuid.uuid4()) + "}"
+            attL = {1: dateOfMeasurement, 4: str(x), 5: str(y), 6: str(z), 8: uuidPoint}
             pt = QgsPoint(float(x), float(y), float(z))
-            features.append(QgsVectorLayerUtils.createFeature(measurementPointsLayer,
-                                                              QgsGeometry(pt),
-                                                              attL,
-                                                              measurementPointsLayer.createExpressionContext()))
+            features.append(
+                QgsVectorLayerUtils.createFeature(
+                    measurementPointsLayer, QgsGeometry(pt), attL, measurementPointsLayer.createExpressionContext()
+                )
+            )
 
         for feat in features:
             measurementPointsLayer.dataProvider().addFeatures([feat])
-            QgsMessageLog.logMessage(
-                str(x)+'|'+str(y)+'|'+str(z), 'Messpunkte', Qgis.Info)
+            QgsMessageLog.logMessage(str(x) + "|" + str(y) + "|" + str(z), "Messpunkte", Qgis.Info)
 
         measurementPointsLayer.commitChanges()
-
-
 
     def addLastMeasurementsToTable(self, features):
         for feat in features:
             timeOfMeasurement = str(datetime.now().strftime("%H:%M:%S"))
             row = self.measurementsTableWidget.rowCount()
             self.measurementsTableWidget.insertRow(row)
-            self.measurementsTableWidget.setItem(
-                row, 0, QTableWidgetItem(str(timeOfMeasurement)))
-            self.measurementsTableWidget.setItem(
-                row, 1, QTableWidgetItem(self.layerToEdit.name()))
-            self.measurementsTableWidget.setItem(
-                row, 2, QTableWidgetItem(str(feat.id())))
+            self.measurementsTableWidget.setItem(row, 0, QTableWidgetItem(str(timeOfMeasurement)))
+            self.measurementsTableWidget.setItem(row, 1, QTableWidgetItem(self.layerToEdit.name()))
+            self.measurementsTableWidget.setItem(row, 2, QTableWidgetItem(str(feat.id())))
 
     def zoomToAndSelectFeature(self, row, column):
         layerName = self.measurementsTableWidget.item(row, 1).text()
@@ -1023,33 +944,49 @@ class MeasurementTab(BASE, WIDGET):
 
     # ToDo: refactoring
     def nextValues(self):
-        if self.zbs.text() != '':
+        if self.zbs.text() != "":
             try:
-                if int(self.zbs.text()) >= int(self.txtNextBef.text()) and not '_' in self.zbs.text():
-                    self.txtNextBef.setText(str(int(self.zbs.text())+1))
+                if int(self.zbs.text()) >= int(self.txtNextBef.text()) and not "_" in self.zbs.text():
+                    self.txtNextBef.setText(str(int(self.zbs.text()) + 1))
             except Exception as e:
-                QgsMessageLog.logMessage(message='MeasurementTab->nextValues: no setText: ' + str(e), tag='T2G Archäologie', level=Qgis.MessageLevel.Warning)
-        if self.fund_nr.txtFundNr.text() != '':
+                QgsMessageLog.logMessage(
+                    message="MeasurementTab->nextValues: no setText: " + str(e),
+                    tag="T2G Archäologie",
+                    level=Qgis.MessageLevel.Warning,
+                )
+        if self.fund_nr.txtFundNr.text() != "":
             try:
-                if int(self.fund_nr.text()) >= int(self.txtNextFund.text() and not '_' in self.fund_nr.text()):
-                    self.txtNextFund.setText(str(int(self.fund_nr.text())+1))
+                if int(self.fund_nr.text()) >= int(self.txtNextFund.text() and not "_" in self.fund_nr.text()):
+                    self.txtNextFund.setText(str(int(self.fund_nr.text()) + 1))
             except Exception as e:
-                QgsMessageLog.logMessage(message='MeasurementTab->nextValues: no setText: ' + str(e), tag='T2G Archäologie', level=Qgis.MessageLevel.Warning)
-        if self.prof_nr.text() != '':
+                QgsMessageLog.logMessage(
+                    message="MeasurementTab->nextValues: no setText: " + str(e),
+                    tag="T2G Archäologie",
+                    level=Qgis.MessageLevel.Warning,
+                )
+        if self.prof_nr.text() != "":
             try:
-                if int(self.prof_nr.text()) >= int(self.txtNextProf.text() and not '_' in self.prof_nr.text()):
-                    self.txtNextProf.setText(str(int(self.prof_nr.text())+1))
+                if int(self.prof_nr.text()) >= int(self.txtNextProf.text() and not "_" in self.prof_nr.text()):
+                    self.txtNextProf.setText(str(int(self.prof_nr.text()) + 1))
             except Exception as e:
-                QgsMessageLog.logMessage(message='MeasurementTab->nextValues: no setText: ' + str(e), tag='T2G Archäologie', level=Qgis.MessageLevel.Warning)
-        if self.probe_nr.text() != '':
+                QgsMessageLog.logMessage(
+                    message="MeasurementTab->nextValues: no setText: " + str(e),
+                    tag="T2G Archäologie",
+                    level=Qgis.MessageLevel.Warning,
+                )
+        if self.probe_nr.text() != "":
             try:
-                if int(self.probe_nr.text()) >= int(self.txtNextProb.text() and not '_' in self.probe_nr.text()):
-                    self.txtNextProb.setText(str(int(self.probe_nr.text())+1))
+                if int(self.probe_nr.text()) >= int(self.txtNextProb.text() and not "_" in self.probe_nr.text()):
+                    self.txtNextProb.setText(str(int(self.probe_nr.text()) + 1))
             except Exception as e:
-                QgsMessageLog.logMessage(message='MeasurementTab->nextValues: no setText: ' + str(e), tag='T2G Archäologie', level=Qgis.MessageLevel.Warning)
+                QgsMessageLog.logMessage(
+                    message="MeasurementTab->nextValues: no setText: " + str(e),
+                    tag="T2G Archäologie",
+                    level=Qgis.MessageLevel.Warning,
+                )
 
     def showHelp(self):
-        helpHtmPath = os.path.join(os.path.dirname(__file__), 'Tips.htm')
+        helpHtmPath = os.path.join(os.path.dirname(__file__), "Tips.htm")
         self.helpWindow.run(helpHtmPath, None, 280, 300)
 
     def updatePointCount(self):
@@ -1059,9 +996,9 @@ class MeasurementTab(BASE, WIDGET):
             self.lblPointCount.setText(f"{self.verticesCount} Punkte")
 
     def onLineEditingFinished(self, widget: QLineEdit):
-        if self.geometryType == 'no_layer':
+        if self.geometryType == "no_layer":
             return
-        setCustomProjectVariable(f'{widget.objectName()}', widget.text())
+        setCustomProjectVariable(f"{widget.objectName()}", widget.text())
         self.nextValues()
 
     def openCloseCoordinatesGroupBox(self):
@@ -1215,13 +1152,12 @@ class DigitizeTool(QgsMapTool):
 
     def connectSignals(self):
         QgsProject.instance().snappingConfigChanged.connect(self.adjustSnappingToNewConfig)
-        connectedSignalsDict['adjustSnappingToNewConfig'] = self.adjustSnappingToNewConfig
+        connectedSignalsDict["adjustSnappingToNewConfig"] = self.adjustSnappingToNewConfig
 
     def disconnectSignals(self):
-        if connectedSignalsDict.get('adjustSnappingToNewConfig'):
-            QgsProject.instance().snappingConfigChanged.disconnect(
-                self.adjustSnappingToNewConfig)
-            connectedSignalsDict.pop('adjustSnappingToNewConfig')
+        if connectedSignalsDict.get("adjustSnappingToNewConfig"):
+            QgsProject.instance().snappingConfigChanged.disconnect(self.adjustSnappingToNewConfig)
+            connectedSignalsDict.pop("adjustSnappingToNewConfig")
 
     def adjustSnappingToNewConfig(self):
         self.snapConfig = QgsProject.instance().snappingConfig()
@@ -1248,19 +1184,15 @@ class DigitizeTool(QgsMapTool):
             numberRows = coordsTable.rowCount()
             self.vertices.append((point.x(), point.y(), zValue))
             coordsTable.insertRow(numberRows)
-            coordsTable.setItem(
-                numberRows, 0, QTableWidgetItem(str(point.x())))
-            coordsTable.setItem(
-                numberRows, 1, QTableWidgetItem(str(point.y())))
+            coordsTable.setItem(numberRows, 0, QTableWidgetItem(str(point.x())))
+            coordsTable.setItem(numberRows, 1, QTableWidgetItem(str(point.y())))
             coordsTable.setItem(numberRows, 2, QTableWidgetItem(str(zValue)))
         else:
             numberRows = self.measurementGui.insertAtIndex
             self.vertices.insert(numberRows, (point.x(), point.y(), zValue))
             coordsTable.insertRow(numberRows)
-            coordsTable.setItem(
-                numberRows, 0, QTableWidgetItem(str(point.x())))
-            coordsTable.setItem(
-                numberRows, 1, QTableWidgetItem(str(point.y())))
+            coordsTable.setItem(numberRows, 0, QTableWidgetItem(str(point.x())))
+            coordsTable.setItem(numberRows, 1, QTableWidgetItem(str(point.y())))
             coordsTable.setItem(numberRows, 2, QTableWidgetItem(str(zValue)))
             self.measurementGui.insertAtIndex = -1
 

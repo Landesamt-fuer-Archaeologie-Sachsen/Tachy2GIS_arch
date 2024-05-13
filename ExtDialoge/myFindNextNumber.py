@@ -1,9 +1,9 @@
-
 # -*- coding=utf-8 -*-
+from PyQt5.QtCore import pyqtSignal
+from qgis.PyQt.QtCore import QObject, pyqtSlot
+from qgis.core import QgsMessageLog, Qgis, QgsExpression, QgsProject, QgsFeatureRequest
 
-
-from ..utils.functions import *
-from qgis.PyQt.QtCore import QObject, pyqtSignal, pyqtSlot
+from ..utils.functions import getCustomProjectVariable, isNumber, delSelectFeature
 
 
 class FindNextNumber(QObject):
@@ -11,12 +11,12 @@ class FindNextNumber(QObject):
 
     def __init__(self, parent=None):
         super(self.__class__, self).__init__(parent)
-        #self.pollingTimer = QTimer()
-        #self.pollingTimer.timeout.connect(self.poll)
-        #self.ser = QSerialPort()
-        #self.ser.setBaudRate(baudRate)
-        #self.hasLogFile = False
-        #self.logFileName = ''
+        # self.pollingTimer = QTimer()
+        # self.pollingTimer.timeout.connect(self.poll)
+        # self.ser = QSerialPort()
+        # self.ser.setBaudRate(baudRate)
+        # self.hasLogFile = False
+        # self.logFileName = ''
         self.befNr = 0
         self.fundNr = 0
         self.profNr = 0
@@ -32,10 +32,10 @@ class FindNextNumber(QObject):
         self.nextNumberEmit.emit()
 
     def getMaxValues(self):
-        if getCustomProjectVariable('maxWerteAktualisieren') == True:
-            layerLine = QgsProject.instance().mapLayersByName('E_Line')[0]
-            layerPoly = QgsProject.instance().mapLayersByName('E_Polygon')[0]
-            layerPoint = QgsProject.instance().mapLayersByName('E_Point')[0]
+        if getCustomProjectVariable("maxWerteAktualisieren") == True:
+            layerLine = QgsProject.instance().mapLayersByName("E_Line")[0]
+            layerPoly = QgsProject.instance().mapLayersByName("E_Polygon")[0]
+            layerPoint = QgsProject.instance().mapLayersByName("E_Point")[0]
             layerlist = [layerLine, layerPoly, layerPoint]
 
             self.befNr = 0
@@ -45,20 +45,20 @@ class FindNextNumber(QObject):
 
             for layer in layerlist:
 
-                max1 = self.maxValue(layer, 'bef_nr')
-                #QgsMessageLog.logMessage(str(max1), 'T2G Archäologie', Qgis.Info)
+                max1 = self.maxValue(layer, "bef_nr")
+                # QgsMessageLog.logMessage(str(max1), 'T2G Archäologie', Qgis.Info)
                 if self.befNr < max1:
                     self.befNr = max1
 
-                max2 = self.maxValue(layer, 'fund_nr')
+                max2 = self.maxValue(layer, "fund_nr")
                 if self.fundNr < max2:
                     self.fundNr = max2
 
-                max3 = self.maxValue(layer, 'prob_nr')
+                max3 = self.maxValue(layer, "prob_nr")
                 if self.probNr < max3:
                     self.probNr = max3
 
-                max4 = self.maxValue(layer, 'prof_nr')
+                max4 = self.maxValue(layer, "prof_nr")
                 if self.profNr < max4:
                     self.profNr = max4
 
@@ -67,14 +67,14 @@ class FindNextNumber(QObject):
             self.profNr = self.profNr + 1
             self.probNr = self.probNr + 1
 
-            QgsMessageLog.logMessage('1  '+str(self.befNr), 'T2G Archäologie', Qgis.Info)
-            QgsMessageLog.logMessage('2  '+str(self.fundNr), 'T2G Archäologie', Qgis.Info)
-            QgsMessageLog.logMessage('3  '+str(self.profNr), 'T2G Archäologie', Qgis.Info)
-            QgsMessageLog.logMessage('4  '+str(self.probNr), 'T2G Archäologie', Qgis.Info)
+            QgsMessageLog.logMessage("1  " + str(self.befNr), "T2G Archäologie", Qgis.Info)
+            QgsMessageLog.logMessage("2  " + str(self.fundNr), "T2G Archäologie", Qgis.Info)
+            QgsMessageLog.logMessage("3  " + str(self.profNr), "T2G Archäologie", Qgis.Info)
+            QgsMessageLog.logMessage("4  " + str(self.probNr), "T2G Archäologie", Qgis.Info)
 
     def maxValue(self, layer, fieldname):
 
-        suchstr = fieldname + '!=' + '\'' + '' + '\''
+        suchstr = fieldname + "!=" + "'" + "" + "'"
         expr = QgsExpression(suchstr)
         it = layer.getFeatures(QgsFeatureRequest(expr))
         ids = [i.id() for i in it]
@@ -94,7 +94,7 @@ class FindNextNumber(QObject):
                             # Zahl aus String extrahieren
                             index = 0
                             a = 0
-                            zahl = ''
+                            zahl = ""
                             while index < len(attrs[idField]):
                                 letter = attrs[idField][index]
                                 if isNumber(letter):

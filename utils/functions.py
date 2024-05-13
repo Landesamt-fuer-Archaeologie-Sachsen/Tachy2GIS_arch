@@ -6,9 +6,7 @@ import os.path
 import re
 import shutil
 import time
-from datetime import *  # date, datetime
 
-from qgis.PyQt import QtWidgets
 from qgis.PyQt.QtCore import Qt, QUrl, pyqtSignal
 from qgis.PyQt.QtGui import QColor
 from qgis.PyQt.QtWidgets import QDesktopWidget, QGridLayout, QMessageBox, QLabel, QProgressBar, QTextBrowser, QWidget
@@ -584,7 +582,7 @@ def setAliasName():
     # <Alias Namen erzeugen
 
 
-class progressBar(QtWidgets.QWidget):
+class progressBar(QWidget):
     def __init__(self, titel):
         super().__init__()
         self.setWindowTitle(titel)

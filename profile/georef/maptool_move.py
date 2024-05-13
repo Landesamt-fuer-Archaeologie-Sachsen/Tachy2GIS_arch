@@ -1,11 +1,11 @@
-from qgis.gui import QgsMapTool
 from qgis.PyQt.QtCore import Qt, pyqtSignal
+from qgis.gui import QgsMapTool
+
 
 class MapToolMove(QgsMapTool):
-
-    pressSignal = pyqtSignal('QgsPointXY')
-    releaseSignal = pyqtSignal('QgsPointXY')
-    moveSignal = pyqtSignal('QgsPointXY')
+    pressSignal = pyqtSignal("QgsPointXY")
+    releaseSignal = pyqtSignal("QgsPointXY")
+    moveSignal = pyqtSignal("QgsPointXY")
 
     def __init__(self, canvas):
         QgsMapTool.__init__(self, canvas)
@@ -33,7 +33,7 @@ class MapToolMove(QgsMapTool):
 
     def canvasReleaseEvent(self, event):
         if self.active == True:
-            #Get the click
+            # Get the click
             x = event.pos().x()
             y = event.pos().y()
 

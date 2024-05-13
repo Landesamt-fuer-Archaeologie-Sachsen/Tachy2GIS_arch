@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-import os
 import json
+import os
 import pathlib
 import tempfile
 import traceback
@@ -9,7 +9,9 @@ from shutil import rmtree
 
 import osgeo_utils.gdal_merge
 from PIL import Image, ImageDraw
+from osgeo import gdal
 from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import (
     QWidget,
     QMainWindow,
@@ -21,20 +23,17 @@ from qgis.PyQt.QtWidgets import (
     QMessageBox,
     QDesktopWidget,
 )
-from qgis.PyQt.QtGui import QIcon
-from osgeo import gdal
 from qgis.core import QgsGeometry
 from qgis.gui import QgsMessageBar
 
-from .profile_image_canvas import ProfileImageCanvas
-from .profile_gcp_canvas import ProfileGcpCanvas
-from .profile_georef_table import GeorefTable
-from .image_parambar import ImageParambar
+from .data_store_georef import DataStoreGeoref
 from .gcp_parambar import GcpParambar
 from .image_georef import ImageGeoref
-from .data_store_georef import DataStoreGeoref
-
-from ..profileAAR.profileAAR import profileAAR
+from .image_parambar import ImageParambar
+from .profile_gcp_canvas import ProfileGcpCanvas
+from .profile_georef_table import GeorefTable
+from .profile_image_canvas import ProfileImageCanvas
+from ..profileAAR.profileAAR import ProfileAAR
 
 
 ## @brief With the GeoreferencingDialog class a dialog window for the georeferencing of profiles is realized
@@ -47,7 +46,9 @@ class GeoreferencingDialog(QMainWindow):
     def __init__(self, t2GArchInstance, rotationCoords, iFace):
         print("Start GeoreferencingDialog")
         super().__init__()
-        self.iconpath = os.path.join(os.path.dirname(__file__), "...", "Icons")
+        self.style_button_enabled = "background-color: green; width: 200px"
+        self.style_button_disabled = "background-color: lightgrey; width: 200px"
+        self.iconpath = os.path.join(os.path.dirname(__file__), "..", "..", "Icons")
         self.t2GArchInstance = t2GArchInstance
         self.setAttribute(Qt.WA_DeleteOnClose)
         self.refData = None
@@ -94,18 +95,18 @@ class GeoreferencingDialog(QMainWindow):
     def check_for_enable_startBtn(self, _=None):
         if len(self.dataStoreGeoref.imagePoints) < 4:
             self.startGeorefBtn.setEnabled(False)
-            self.startGeorefBtn.setStyleSheet("background-color: lightgrey; width: 200px")
+            self.startGeorefBtn.setStyleSheet(self.style_button_disabled)
         else:
             self.startGeorefBtn.setEnabled(True)
-            self.startGeorefBtn.setStyleSheet("background-color: green; width: 200px")
+            self.startGeorefBtn.setStyleSheet(self.style_button_enabled)
 
     def check_for_enable_startBtn_kreuz(self, _=None):
         if self.clipping_polygon.isNull() or len(self.dataStoreGeoref.imagePoints) < 4:
             self.startGeorefBtn.setEnabled(False)
-            self.startGeorefBtn.setStyleSheet("background-color: lightgrey; width: 200px")
+            self.startGeorefBtn.setStyleSheet(self.style_button_disabled)
         else:
             self.startGeorefBtn.setEnabled(True)
-            self.startGeorefBtn.setStyleSheet("background-color: green; width: 200px")
+            self.startGeorefBtn.setStyleSheet(self.style_button_enabled)
 
     ## \brief Create different menus
     #
@@ -162,7 +163,7 @@ class GeoreferencingDialog(QMainWindow):
         self.georefTable = GeorefTable(self, self.dataStoreGeoref)
 
         # profileAAR
-        self.profileAAR = profileAAR()
+        self.profileAAR = ProfileAAR()
 
         # Bildgeoreferenzierung
         self.imageGeoref = ImageGeoref()
@@ -212,7 +213,7 @@ class GeoreferencingDialog(QMainWindow):
 
         self.startGeorefBtn = QPushButton("Profil entzerren", self)
 
-        self.startGeorefBtn.setStyleSheet("background-color: green; width: 200px")
+        self.startGeorefBtn.setStyleSheet(self.style_button_enabled)
 
         self.toolbarMap.addWidget(self.startGeorefBtn)
 
@@ -345,7 +346,7 @@ class GeoreferencingDialog(QMainWindow):
         print(self.refData)
 
         self.startGeorefBtn.setEnabled(False)
-        self.startGeorefBtn.setStyleSheet("background-color: lightgrey; width: 200px")
+        self.startGeorefBtn.setStyleSheet(self.style_button_disabled)
         if self.ref_data_pair:
             self.toolbarMap.addWidget(QLabel("   Benötigt Referenzierungspunkte und ein Beschneidungspolygon!"))
             self.canvasImage.pup.register("imagePointCoordinates", self.check_for_enable_startBtn_kreuz)
@@ -533,7 +534,12 @@ class GeoreferencingDialog(QMainWindow):
 
         except Exception as e:
             print(f"An exception occurred {type(e)} \n {traceback.format_exc()}")
-            QMessageBox.critical(self,"Fehler bei der Profilentzerrung!","Profil konnte nicht entzerrt werden. Vorgang wurde abgebrochen!",QMessageBox.Abort)
+            QMessageBox.critical(
+                self,
+                "Fehler bei der Profilentzerrung!",
+                "Profil konnte nicht entzerrt werden. Vorgang wurde abgebrochen!",
+                QMessageBox.Abort,
+            )
 
         self.destroyDialog()
 

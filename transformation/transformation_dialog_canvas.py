@@ -1,10 +1,19 @@
 # -*- coding: utf-8 -*-
 import os
+
 from qgis.PyQt.QtCore import Qt
-from qgis.PyQt.QtWidgets import QAction
 from qgis.PyQt.QtGui import QIcon, QFont, QColor
-from qgis.core import QgsMarkerSymbol, QgsSingleSymbolRenderer, QgsPalLayerSettings, QgsTextFormat, \
-    QgsTextBufferSettings, QgsVectorLayerSimpleLabeling, Qgis
+from qgis.PyQt.QtWidgets import QAction
+from qgis.core import (
+    QgsMarkerSymbol,
+    QgsSingleSymbolRenderer,
+    QgsPalLayerSettings,
+    QgsTextFormat,
+    QgsTextBufferSettings,
+    QgsVectorLayerSimpleLabeling,
+    Qgis,
+    QgsApplication,
+)
 from qgis.gui import QgsMapCanvas, QgsMapToolPan, QgsMapToolZoom
 
 
@@ -23,7 +32,7 @@ class TransformationDialogCanvas(QgsMapCanvas):
 
         super(TransformationDialogCanvas, self).__init__()
 
-        self.iconpath = os.path.join(os.path.dirname(__file__), 'Icons')
+        self.iconpath = os.path.join(os.path.dirname(__file__), "Icons")
 
         self.dialogInstance = dialogInstance
 
@@ -49,7 +58,7 @@ class TransformationDialogCanvas(QgsMapCanvas):
     #
     def createActionPan(self):
 
-        iconPan = QIcon(os.path.join(self.iconpath, 'mActionPan.png'))
+        iconPan = QIcon(QgsApplication.iconPath("mActionPan"))
         self.actionPan = QAction(iconPan, "Pan", self)
         self.actionPan.setCheckable(True)
 
@@ -64,7 +73,7 @@ class TransformationDialogCanvas(QgsMapCanvas):
     #
     def createActionZoomIn(self):
 
-        iconZoomIn = QIcon(os.path.join(self.iconpath, 'mActionZoomIn.png'))
+        iconZoomIn = QIcon(QgsApplication.iconPath("mActionZoomIn"))
         self.actionZoomIn = QAction(iconZoomIn, "Zoom in", self)
         self.actionZoomIn.setCheckable(True)
 
@@ -77,7 +86,7 @@ class TransformationDialogCanvas(QgsMapCanvas):
     #
     def createActionZoomOut(self):
 
-        iconZoomOut = QIcon(os.path.join(self.iconpath, 'mActionZoomOut.png'))
+        iconZoomOut = QIcon(QgsApplication.iconPath("mActionZoomOut"))
         self.actionZoomOut = QAction(iconZoomOut, "Zoom out", self)
         self.actionZoomOut.setCheckable(True)
 
@@ -90,7 +99,7 @@ class TransformationDialogCanvas(QgsMapCanvas):
     #
     def createActionExtent(self):
 
-        iconExtent = QIcon(os.path.join(self.iconpath, 'mActionZoomToLayer.png'))
+        iconExtent = QIcon(QgsApplication.iconPath("mActionZoomToLayer"))
         self.actionExtent = QAction(iconExtent, "Zoom to layer", self)
 
         self.actionExtent.triggered.connect(self.setExtentBySourceLayer)
@@ -152,12 +161,7 @@ class TransformationDialogCanvas(QgsMapCanvas):
         # check validation of Layers
         for layer in self.inputLayers:
             if not layer.isValid():
-                self.messageBar.pushMessage(
-                    "Error",
-                    "Layer " + layer.name() + " failed to load!",
-                    level=1,
-                    duration=5
-                )
+                self.messageBar.pushMessage("Error", "Layer " + layer.name() + " failed to load!", level=1, duration=5)
 
         sourceCrs = self.sourceLayer.crs()
 
@@ -165,7 +169,7 @@ class TransformationDialogCanvas(QgsMapCanvas):
 
         # renderer = layer.renderer()
 
-        symbol = QgsMarkerSymbol.createSimple({'name': 'circle', 'color': 'red', 'size': '2'})
+        symbol = QgsMarkerSymbol.createSimple({"name": "circle", "color": "red", "size": "2"})
 
         self.sourceLayer.setRenderer(QgsSingleSymbolRenderer(QgsMarkerSymbol()))
         self.sourceLayer.renderer().setSymbol(symbol)
@@ -225,5 +229,5 @@ class TransformationDialogCanvas(QgsMapCanvas):
                     startColor=QColor(Qt.green),
                     endColor=QColor(Qt.green),
                     flashes=5,
-                    duration=500
+                    duration=500,
                 )

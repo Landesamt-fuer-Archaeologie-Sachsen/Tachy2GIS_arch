@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
-from qgis.PyQt.QtWidgets import QTableWidget, QTableWidgetItem, QHeaderView, QComboBox
 from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtWidgets import QTableWidget, QTableWidgetItem, QHeaderView, QComboBox
+
 
 ## @brief With the TransformationDialogTable class a table based on QTableWidget is realized
 #
 # @author Mario Uhlig, VisDat geodatentechnologie GmbH, mario.uhlig@visdat.de
 # @date 2020-10-19
+
 
 class TransformationDialogTable(QTableWidget):
 
@@ -26,17 +28,32 @@ class TransformationDialogTable(QTableWidget):
 
         self.dialogInstance = dialogInstance
 
-        self.colHeaders = ['UUID', 'PTNR', 'ID', 'Quelle X', 'Quelle Y', 'Quelle Z', 'Ziel X', 'Ziel Y', 'Ziel Z', 'Error XY', 'Error Z', 'Punkt verwenden']
+        self.colHeaders = [
+            "UUID",
+            "PTNR",
+            "ID",
+            "Quelle X",
+            "Quelle Y",
+            "Quelle Z",
+            "Ziel X",
+            "Ziel Y",
+            "Ziel Z",
+            "Error XY",
+            "Error Z",
+            "Punkt verwenden",
+        ]
 
         self.setObjectName("gcpTable")
         self.setRowCount(0)
         self.setColumnCount(12)
         self.setHorizontalHeaderLabels(self.colHeaders)
-        self.setStyleSheet("QTableWidget::item { padding: 4px } QTableWidget::item:selected{ background-color: rgba(255, 255, 255, 100%) }")
+        self.setStyleSheet(
+            "QTableWidget::item { padding: 4px } QTableWidget::item:selected{ background-color: rgba(255, 255, 255, 100%) }"
+        )
 
-        #click in Tabellenzelle
+        # click in Tabellenzelle
         self.clicked.connect(self.gcpTableCellClick)
-        #click auf row
+        # click auf row
         self.verticalHeader().sectionClicked.connect(self.gcpTableRowClick)
 
     ## \brief Get data of the GCP-Tabelle
@@ -71,7 +88,6 @@ class TransformationDialogTable(QTableWidget):
     #  \endcode
     #
 
-
     def getGcpTableData(self):
 
         GcpData = []
@@ -86,37 +102,37 @@ class TransformationDialogTable(QTableWidget):
             for j in range(0, columnCount):
 
                 head = self.horizontalHeaderItem(j).text()
-                if head == 'UUID':
-                    pointObj['uuid'] = self.item(i, j).text()
-                if head == 'PTNR':
-                    pointObj['pt_nr'] = self.item(i, j).text()
-                if head == 'ID':
-                    pointObj['fid'] = int(self.item(i, j).text())
-                if head == 'Quelle X':
-                    pointArraySource [0] = float(self.item(i, j).text())
-                if head == 'Quelle Y':
-                    pointArraySource [1] = float(self.item(i, j).text())
-                if head == 'Quelle Z':
-                    pointArraySource [2] = float(self.item(i, j).text())
+                if head == "UUID":
+                    pointObj["uuid"] = self.item(i, j).text()
+                if head == "PTNR":
+                    pointObj["pt_nr"] = self.item(i, j).text()
+                if head == "ID":
+                    pointObj["fid"] = int(self.item(i, j).text())
+                if head == "Quelle X":
+                    pointArraySource[0] = float(self.item(i, j).text())
+                if head == "Quelle Y":
+                    pointArraySource[1] = float(self.item(i, j).text())
+                if head == "Quelle Z":
+                    pointArraySource[2] = float(self.item(i, j).text())
 
-                if head == 'Ziel X':
-                    pointArrayTarget [0] = float(self.cellWidget(i, j).currentText().split(' | ')[1])
-                    pointObj['target_x_ptnr'] = str(self.cellWidget(i, j).currentText().split(' | ')[0])
-                if head == 'Ziel Y':
-                    pointArrayTarget [1] = float(self.cellWidget(i, j).currentText().split(' | ')[1])
-                    pointObj['target_y_ptnr'] = str(self.cellWidget(i, j).currentText().split(' | ')[0])
-                if head == 'Ziel Z':
-                    pointArrayTarget [2] = float(self.cellWidget(i, j).currentText().split(' | ')[1])
-                    pointObj['target_z_ptnr'] = str(self.cellWidget(i, j).currentText().split(' | ')[0])
-                if head == 'Error XY':
-                    pointObj['error_xy'] = float(self.item(i, j).text())
-                if head == 'Error Z':
-                    pointObj['error_z'] = float(self.item(i, j).text())
-                if head == 'Punkt verwenden':
-                    pointObj['usage'] = self.cellWidget(i, j).currentText()
+                if head == "Ziel X":
+                    pointArrayTarget[0] = float(self.cellWidget(i, j).currentText().split(" | ")[1])
+                    pointObj["target_x_ptnr"] = str(self.cellWidget(i, j).currentText().split(" | ")[0])
+                if head == "Ziel Y":
+                    pointArrayTarget[1] = float(self.cellWidget(i, j).currentText().split(" | ")[1])
+                    pointObj["target_y_ptnr"] = str(self.cellWidget(i, j).currentText().split(" | ")[0])
+                if head == "Ziel Z":
+                    pointArrayTarget[2] = float(self.cellWidget(i, j).currentText().split(" | ")[1])
+                    pointObj["target_z_ptnr"] = str(self.cellWidget(i, j).currentText().split(" | ")[0])
+                if head == "Error XY":
+                    pointObj["error_xy"] = float(self.item(i, j).text())
+                if head == "Error Z":
+                    pointObj["error_z"] = float(self.item(i, j).text())
+                if head == "Punkt verwenden":
+                    pointObj["usage"] = self.cellWidget(i, j).currentText()
 
-            pointObj['sourcePoints'] = pointArraySource
-            pointObj['targetPoints'] = pointArrayTarget
+            pointObj["sourcePoints"] = pointArraySource
+            pointObj["targetPoints"] = pointArrayTarget
             GcpData.append(pointObj)
 
         return GcpData
@@ -138,22 +154,21 @@ class TransformationDialogTable(QTableWidget):
             for j in range(0, columnCount):
 
                 head = self.horizontalHeaderItem(j).text()
-                if head == 'UUID':
+                if head == "UUID":
                     tblPointUuid = self.item(i, j).text()
 
-            #in Zelle der Tabelle eintragen
+            # in Zelle der Tabelle eintragen
             for j in range(0, columnCount):
                 head = self.horizontalHeaderItem(j).text()
 
                 for pointObj in GcpDataResiduals:
-                    if pointObj['uuid'] == tblPointUuid:
-                        if head == 'Error XY':
-                            self.item(i, j).setText(str(round(pointObj['errorXY'], 3)))
-                        if head == 'Error Z':
-                            self.item(i, j).setText(str(round(pointObj['errorZ'], 3)))
+                    if pointObj["uuid"] == tblPointUuid:
+                        if head == "Error XY":
+                            self.item(i, j).setText(str(round(pointObj["errorXY"], 3)))
+                        if head == "Error Z":
+                            self.item(i, j).setText(str(round(pointObj["errorZ"], 3)))
                         break
         self.show()
-
 
     ## \brief Update der GCP-Tabelle
     #
@@ -162,64 +177,64 @@ class TransformationDialogTable(QTableWidget):
     # @returns
     def updateGcpTable(self, gcpSource, gcpTarget):
 
-        #colHeaders = ['ID', 'Quelle X', 'Quelle Y', 'Quelle Z', 'Ziel X', 'Ziel Y', 'Ziel Z', 'Error XY', 'Error Z', 'Punkt verwenden']
+        # colHeaders = ['ID', 'Quelle X', 'Quelle Y', 'Quelle Z', 'Ziel X', 'Ziel Y', 'Ziel Z', 'Error XY', 'Error Z', 'Punkt verwenden']
         targetX = []
         targetY = []
         targetZ = []
 
         gcpTableHeader = self.horizontalHeader()
 
-        usage = ['3D', '2D', 'Z', 'nein']
-        for point in gcpTarget['points']:
+        usage = ["3D", "2D", "Z", "nein"]
+        for point in gcpTarget["points"]:
 
-            if len(point['pt_nr']) > 0:
-                targetX.append(point['pt_nr']+' | '+str(round(point['x'], 3)))
-                targetY.append(point['pt_nr']+' | '+str(round(point['y'], 3)))
-                targetZ.append(point['pt_nr']+' | '+str(round(point['z'], 3)))
+            if len(point["pt_nr"]) > 0:
+                targetX.append(point["pt_nr"] + " | " + str(round(point["x"], 3)))
+                targetY.append(point["pt_nr"] + " | " + str(round(point["y"], 3)))
+                targetZ.append(point["pt_nr"] + " | " + str(round(point["z"], 3)))
             else:
-                targetX.append(str(round(point['x'], 3)))
-                targetY.append(str(round(point['y'], 3)))
-                targetZ.append(str(round(point['z'], 3)))
+                targetX.append(str(round(point["x"], 3)))
+                targetY.append(str(round(point["y"], 3)))
+                targetZ.append(str(round(point["z"], 3)))
 
         for pointObj in gcpSource:
 
             rowPosition = self.rowCount()
             self.insertRow(rowPosition)
             # UUID
-            self.setItem(rowPosition, 0, QTableWidgetItem(pointObj['uuid']))
+            self.setItem(rowPosition, 0, QTableWidgetItem(pointObj["uuid"]))
             # PTNR
-            ptnrItem = QTableWidgetItem(str(pointObj['pt_nr']))
+            ptnrItem = QTableWidgetItem(str(pointObj["pt_nr"]))
             ptnrItem.setFlags(Qt.ItemIsEnabled)
             self.setItem(rowPosition, 1, ptnrItem)
             gcpTableHeader.setSectionResizeMode(1, QHeaderView.ResizeToContents)
             # ID
-            idItem = QTableWidgetItem(str(pointObj['fid']))
+            idItem = QTableWidgetItem(str(pointObj["fid"]))
             idItem.setFlags(Qt.ItemIsEnabled)
             self.setItem(rowPosition, 2, idItem)
             gcpTableHeader.setSectionResizeMode(2, QHeaderView.ResizeToContents)
             # Quelle X
-            qxItem = QTableWidgetItem(str(round(pointObj['x'], 3)))
+            qxItem = QTableWidgetItem(str(round(pointObj["x"], 3)))
             qxItem.setFlags(Qt.ItemIsEnabled)
             self.setItem(rowPosition, 3, qxItem)
             gcpTableHeader.setSectionResizeMode(3, QHeaderView.ResizeToContents)
             # Quelle Y
-            qyItem = QTableWidgetItem(str(round(pointObj['y'], 3)))
+            qyItem = QTableWidgetItem(str(round(pointObj["y"], 3)))
             qyItem.setFlags(Qt.ItemIsEnabled)
             self.setItem(rowPosition, 4, qyItem)
             gcpTableHeader.setSectionResizeMode(4, QHeaderView.ResizeToContents)
             # Quelle Z
-            qzItem = QTableWidgetItem(str(round(pointObj['z'], 3)))
+            qzItem = QTableWidgetItem(str(round(pointObj["z"], 3)))
             qzItem.setFlags(Qt.ItemIsEnabled)
             self.setItem(rowPosition, 5, qzItem)
             gcpTableHeader.setSectionResizeMode(5, QHeaderView.ResizeToContents)
 
             # Ziel X
             targetComboX = QComboBox()
-            targetComboX.setObjectName("cb_"+str(pointObj['fid'])+"_x")
+            targetComboX.setObjectName("cb_" + str(pointObj["fid"]) + "_x")
             targetComboX.addItems(targetX)
-            for point in gcpTarget['points']:
-                if pointObj['pt_nr'] == point['pt_nr']:
-                    idx = targetComboX.findText(point['pt_nr']+' | '+str(round(point['x'], 3)))
+            for point in gcpTarget["points"]:
+                if pointObj["pt_nr"] == point["pt_nr"]:
+                    idx = targetComboX.findText(point["pt_nr"] + " | " + str(round(point["x"], 3)))
                     if idx >= 0:
                         targetComboX.setCurrentIndex(idx)
             targetComboX.wheelEvent = lambda event: None
@@ -229,11 +244,11 @@ class TransformationDialogTable(QTableWidget):
 
             # Ziel Y
             targetComboY = QComboBox()
-            targetComboY.setObjectName("cb_"+str(pointObj['fid'])+"_y")
+            targetComboY.setObjectName("cb_" + str(pointObj["fid"]) + "_y")
             targetComboY.addItems(targetY)
-            for point in gcpTarget['points']:
-                if pointObj['pt_nr'] == point['pt_nr']:
-                    idx = targetComboY.findText(point['pt_nr']+' | '+str(round(point['y'], 3)))
+            for point in gcpTarget["points"]:
+                if pointObj["pt_nr"] == point["pt_nr"]:
+                    idx = targetComboY.findText(point["pt_nr"] + " | " + str(round(point["y"], 3)))
                     if idx >= 0:
                         targetComboY.setCurrentIndex(idx)
             targetComboY.wheelEvent = lambda event: None
@@ -243,11 +258,11 @@ class TransformationDialogTable(QTableWidget):
 
             # Ziel Z
             targetComboZ = QComboBox()
-            targetComboZ.setObjectName("cb_"+str(pointObj['fid'])+"_z")
+            targetComboZ.setObjectName("cb_" + str(pointObj["fid"]) + "_z")
             targetComboZ.addItems(targetZ)
-            for point in gcpTarget['points']:
-                if pointObj['pt_nr'] == point['pt_nr']:
-                    idx = targetComboZ.findText(point['pt_nr']+' | '+str(round(point['z'], 3)))
+            for point in gcpTarget["points"]:
+                if pointObj["pt_nr"] == point["pt_nr"]:
+                    idx = targetComboZ.findText(point["pt_nr"] + " | " + str(round(point["z"], 3)))
                     if idx >= 0:
                         targetComboZ.setCurrentIndex(idx)
             targetComboZ.wheelEvent = lambda event: None
@@ -255,12 +270,12 @@ class TransformationDialogTable(QTableWidget):
             self.setCellWidget(rowPosition, 8, targetComboZ)
             gcpTableHeader.setSectionResizeMode(8, QHeaderView.Stretch)
 
-            #Error XY
+            # Error XY
             errorXyItem = QTableWidgetItem(str(-99999))
             errorXyItem.setFlags(Qt.ItemIsEnabled)
             self.setItem(rowPosition, 9, errorXyItem)
             gcpTableHeader.setSectionResizeMode(9, QHeaderView.ResizeToContents)
-            #Error Z
+            # Error Z
             errorZItem = QTableWidgetItem(str(-99999))
             errorZItem.setFlags(Qt.ItemIsEnabled)
             self.setItem(rowPosition, 10, errorZItem)
@@ -268,14 +283,14 @@ class TransformationDialogTable(QTableWidget):
 
             # Punkt verwenden
             usageCombo = QComboBox()
-            usageCombo.setObjectName("cb_"+str(pointObj['fid'])+"_usage")
+            usageCombo.setObjectName("cb_" + str(pointObj["fid"]) + "_usage")
             usageCombo.addItems(usage)
-            idx = usageCombo.findText('nein')
+            idx = usageCombo.findText("nein")
             if idx >= 0:
                 usageCombo.setCurrentIndex(idx)
-            for point in gcpTarget['points']:
-                if pointObj['pt_nr'] == point['pt_nr']:
-                    idx = usageCombo.findText('3D')
+            for point in gcpTarget["points"]:
+                if pointObj["pt_nr"] == point["pt_nr"]:
+                    idx = usageCombo.findText("3D")
                     if idx >= 0:
                         usageCombo.setCurrentIndex(idx)
             usageCombo.wheelEvent = lambda event: None
@@ -283,7 +298,7 @@ class TransformationDialogTable(QTableWidget):
             self.setCellWidget(rowPosition, 11, usageCombo)
             gcpTableHeader.setSectionResizeMode(11, QHeaderView.Stretch)
 
-        #hide column with ugly uuid
+        # hide column with ugly uuid
         self.setColumnHidden(0, True)
 
     ## \brief Table will be updated with respect to the loaded import textfile
@@ -303,51 +318,49 @@ class TransformationDialogTable(QTableWidget):
 
         gcpTableHeader = self.horizontalHeader()
 
-        usage = ['3D', '2D', 'Z', 'nein']
+        usage = ["3D", "2D", "Z", "nein"]
         for point in loadedTargetGcp:
-
-            targetX.append(point['pt_nr']+' | '+str(round(point['x'], 3)))
-            targetY.append(point['pt_nr']+' | '+str(round(point['y'], 3)))
-            targetZ.append(point['pt_nr']+' | '+str(round(point['z'], 3)))
-
+            targetX.append(point["pt_nr"] + " | " + str(round(point["x"], 3)))
+            targetY.append(point["pt_nr"] + " | " + str(round(point["y"], 3)))
+            targetZ.append(point["pt_nr"] + " | " + str(round(point["z"], 3)))
 
         for pointObj in loadedGCPData:
 
             rowPosition = self.rowCount()
             self.insertRow(rowPosition)
-            self.setItem(rowPosition, 0, QTableWidgetItem(pointObj['uuid'])) # uuid
+            self.setItem(rowPosition, 0, QTableWidgetItem(pointObj["uuid"]))  # uuid
 
             # PTNR
-            ptnrItem = QTableWidgetItem(str(pointObj['pt_nr']))
+            ptnrItem = QTableWidgetItem(str(pointObj["pt_nr"]))
             ptnrItem.setFlags(Qt.ItemIsEnabled)
             self.setItem(rowPosition, 1, ptnrItem)
             gcpTableHeader.setSectionResizeMode(1, QHeaderView.ResizeToContents)
             # ID
-            idItem = QTableWidgetItem(str(pointObj['fid']))
+            idItem = QTableWidgetItem(str(pointObj["fid"]))
             idItem.setFlags(Qt.ItemIsEnabled)
             self.setItem(rowPosition, 2, idItem)
             gcpTableHeader.setSectionResizeMode(2, QHeaderView.ResizeToContents)
             # Quelle X
-            qxItem = QTableWidgetItem(str(round(pointObj['sourcePoints'][0], 3)))
+            qxItem = QTableWidgetItem(str(round(pointObj["sourcePoints"][0], 3)))
             qxItem.setFlags(Qt.ItemIsEnabled)
             self.setItem(rowPosition, 3, qxItem)
             gcpTableHeader.setSectionResizeMode(3, QHeaderView.ResizeToContents)
             # Quelle Y
-            qyItem = QTableWidgetItem(str(round(pointObj['sourcePoints'][1], 3)))
+            qyItem = QTableWidgetItem(str(round(pointObj["sourcePoints"][1], 3)))
             qyItem.setFlags(Qt.ItemIsEnabled)
             self.setItem(rowPosition, 4, qyItem)
             gcpTableHeader.setSectionResizeMode(4, QHeaderView.ResizeToContents)
             # Quelle Z
-            qzItem = QTableWidgetItem(str(round(pointObj['sourcePoints'][2], 3)))
+            qzItem = QTableWidgetItem(str(round(pointObj["sourcePoints"][2], 3)))
             qzItem.setFlags(Qt.ItemIsEnabled)
             self.setItem(rowPosition, 5, qzItem)
             gcpTableHeader.setSectionResizeMode(5, QHeaderView.ResizeToContents)
 
             # Ziel X
             targetComboX = QComboBox()
-            targetComboX.setObjectName("cb_"+str(pointObj['fid'])+"_x")
+            targetComboX.setObjectName("cb_" + str(pointObj["fid"]) + "_x")
             targetComboX.addItems(targetX)
-            idx = targetComboX.findText(pointObj['target_x_ptnr']+' | '+str(round(pointObj['targetPoints'][0], 3)))
+            idx = targetComboX.findText(pointObj["target_x_ptnr"] + " | " + str(round(pointObj["targetPoints"][0], 3)))
             if idx >= 0:
                 targetComboX.setCurrentIndex(idx)
 
@@ -358,9 +371,9 @@ class TransformationDialogTable(QTableWidget):
 
             # Ziel Y
             targetComboY = QComboBox()
-            targetComboY.setObjectName("cb_"+str(pointObj['fid'])+"_y")
+            targetComboY.setObjectName("cb_" + str(pointObj["fid"]) + "_y")
             targetComboY.addItems(targetY)
-            idx = targetComboY.findText(pointObj['target_y_ptnr']+' | '+str(round(pointObj['targetPoints'][1], 3)))
+            idx = targetComboY.findText(pointObj["target_y_ptnr"] + " | " + str(round(pointObj["targetPoints"][1], 3)))
             if idx >= 0:
                 targetComboY.setCurrentIndex(idx)
             targetComboY.wheelEvent = lambda event: None
@@ -370,9 +383,9 @@ class TransformationDialogTable(QTableWidget):
 
             # Ziel Z
             targetComboZ = QComboBox()
-            targetComboZ.setObjectName("cb_"+str(pointObj['fid'])+"_z")
+            targetComboZ.setObjectName("cb_" + str(pointObj["fid"]) + "_z")
             targetComboZ.addItems(targetZ)
-            idx = targetComboZ.findText(pointObj['target_z_ptnr']+' | '+str(round(pointObj['targetPoints'][2], 3)))
+            idx = targetComboZ.findText(pointObj["target_z_ptnr"] + " | " + str(round(pointObj["targetPoints"][2], 3)))
             if idx >= 0:
                 targetComboZ.setCurrentIndex(idx)
             targetComboZ.wheelEvent = lambda event: None
@@ -380,22 +393,22 @@ class TransformationDialogTable(QTableWidget):
             self.setCellWidget(rowPosition, 8, targetComboZ)
             gcpTableHeader.setSectionResizeMode(8, QHeaderView.Stretch)
 
-            #Error XY
-            errorXyItem = QTableWidgetItem(str(round(pointObj['error_xy'], 3)))
+            # Error XY
+            errorXyItem = QTableWidgetItem(str(round(pointObj["error_xy"], 3)))
             errorXyItem.setFlags(Qt.ItemIsEnabled)
             self.setItem(rowPosition, 9, errorXyItem)
             gcpTableHeader.setSectionResizeMode(9, QHeaderView.ResizeToContents)
-            #Error Z
-            errorZItem = QTableWidgetItem(str(round(pointObj['error_z'], 3)))
+            # Error Z
+            errorZItem = QTableWidgetItem(str(round(pointObj["error_z"], 3)))
             errorZItem.setFlags(Qt.ItemIsEnabled)
             self.setItem(rowPosition, 10, errorZItem)
             gcpTableHeader.setSectionResizeMode(10, QHeaderView.ResizeToContents)
 
             # Punkt verwenden
             usageCombo = QComboBox()
-            usageCombo.setObjectName("cb_"+str(pointObj['fid'])+"_usage")
+            usageCombo.setObjectName("cb_" + str(pointObj["fid"]) + "_usage")
             usageCombo.addItems(usage)
-            idx = usageCombo.findText(pointObj['usage'])
+            idx = usageCombo.findText(pointObj["usage"])
             if idx >= 0:
                 usageCombo.setCurrentIndex(idx)
             usageCombo.wheelEvent = lambda event: None
@@ -403,12 +416,11 @@ class TransformationDialogTable(QTableWidget):
             self.setCellWidget(rowPosition, 11, usageCombo)
             gcpTableHeader.setSectionResizeMode(11, QHeaderView.Stretch)
 
-        #hide column with ugly uuid
+        # hide column with ugly uuid
         self.setColumnHidden(0, True)
         self.show()
 
         self.dialogInstance.estimateParameters()
-
 
     ## \brief Remove all cells in table
     #
@@ -417,9 +429,9 @@ class TransformationDialogTable(QTableWidget):
 
     def cleanGcpTable(self):
 
-        #gcpTable
+        # gcpTable
         rowTotal = self.rowCount()
-        for row in range(rowTotal,-1, -1):
+        for row in range(rowTotal, -1, -1):
             self.removeRow(row)
 
     ## \brief If a combobox in the table is changed a new calculation of the transformation parameters is executed
@@ -436,8 +448,8 @@ class TransformationDialogTable(QTableWidget):
     #
     def gcpTableCellClick(self):
 
-        index=(self.selectionModel().currentIndex())
-        uuidValue=index.sibling(index.row(),0).data()
+        index = self.selectionModel().currentIndex()
+        uuidValue = index.sibling(index.row(), 0).data()
 
         self.dialogInstance.canvasTransform.highlightSourceLayer(uuidValue)
 
@@ -449,7 +461,7 @@ class TransformationDialogTable(QTableWidget):
     #
     def gcpTableRowClick(self, rowId):
 
-        index=(self.selectionModel().currentIndex())
-        uuidValue=index.sibling(rowId,0).data()
+        index = self.selectionModel().currentIndex()
+        uuidValue = index.sibling(rowId, 0).data()
 
         self.dialogInstance.canvasTransform.highlightSourceLayer(uuidValue)

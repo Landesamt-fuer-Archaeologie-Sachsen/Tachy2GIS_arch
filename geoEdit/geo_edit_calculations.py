@@ -1,22 +1,20 @@
 ## @package QGIS geoEdit extension..
-import shutil
 
-from qgis.core import QgsGeometry, QgsApplication, QgsWkbTypes, QgsMapLayer, QgsFeature, Qgis, QgsMessageLog, QgsPoint
 from processing.gui import AlgorithmExecutor
-from qgis.PyQt.QtWidgets import QMessageBox, QApplication, QPushButton
-from qgis import processing
 from qgis.PyQt.QtGui import QColor
-
+from qgis.PyQt.QtWidgets import QMessageBox, QApplication, QPushButton
+from qgis.core import QgsGeometry, QgsApplication, QgsWkbTypes, QgsMapLayer, QgsFeature, Qgis, QgsMessageLog, QgsPoint
 from qgis.gui import QgsRubberBand
 
 from ..utils.functions import delSelectFeature
 from ..utils.identifygeometry import IdentifyGeometry
 
+
 ## @brief The class is used to implement functionalities for translate geometies within the geoEdit Module
 #
 # @author Mario Uhlig, VisDat geodatentechnologie GmbH, mario.uhlig@visdat.de
 # @date 2021-01-22
-class GeoEditCalculations():
+class GeoEditCalculations:
 
     ## The constructor.
     #  Defines attributes for the GeoEditCalculations
@@ -43,34 +41,32 @@ class GeoEditCalculations():
 
         layerName = sourceLayer.name()
 
-        #Translation forward
-        if tranlationDirection == 'forward':
+        # Translation forward
+        if tranlationDirection == "forward":
             tranlationZValue = translationZ
 
-            print('Translation z - forward and absolute: ', layerName)
+            print("Translation z - forward and absolute: ", layerName)
 
             sourceLayer.startEditing()
-            translateAlg = QgsApplication.processingRegistry().createAlgorithmById('qgis:setzvalue')
-            paramTranslate = {'Z_VALUE' : tranlationZValue, 'INPUT' : sourceLayer}
+            translateAlg = QgsApplication.processingRegistry().createAlgorithmById("qgis:setzvalue")
+            paramTranslate = {"Z_VALUE": tranlationZValue, "INPUT": sourceLayer}
             print(paramTranslate)
             AlgorithmExecutor.execute_in_place(translateAlg, paramTranslate)
 
             sourceLayer.commitChanges()
 
-        #Translation reverse
-        if tranlationDirection == 'reverse':
+        # Translation reverse
+        if tranlationDirection == "reverse":
 
-            print('Translation z - reverse and absolute: ', layerName)
+            print("Translation z - reverse and absolute: ", layerName)
             sourceLayer.startEditing()
 
             for feat in sourceLayer.getFeatures():
                 for selFeat in selectedFeatures:
                     if feat.id() == selFeat.id():
-
-                        sourceLayer.dataProvider().changeGeometryValues({ feat.id() : selFeat.geometry()})
+                        sourceLayer.dataProvider().changeGeometryValues({feat.id(): selFeat.geometry()})
 
             sourceLayer.commitChanges()
-
 
     ## \brief relative translation of sourcelayer in z direction
     #
@@ -82,27 +78,27 @@ class GeoEditCalculations():
     def layerTranslationZ(self, tranlationDirection, sourceLayer, translationZ):
 
         layerName = sourceLayer.name()
-        print('Transformation - Translation Z: ', layerName)
+        print("Transformation - Translation Z: ", layerName)
 
-        #layer.startEditing()
-        sourceLayer.beginEditCommand( 'Beginn edit Translation Z' )
+        # layer.startEditing()
+        sourceLayer.beginEditCommand("Beginn edit Translation Z")
         for zFeat in sourceLayer.selectedFeatures():
 
-            g = zFeat.geometry() #QgsGeometry
+            g = zFeat.geometry()  # QgsGeometry
             geomType = g.type()
 
-            #line - 1, polygon - 2
+            # line - 1, polygon - 2
             if geomType == 1 or geomType == 2:
 
-                mls = g.get() #QgsMultiPolygon
+                mls = g.get()  # QgsMultiPolygon
 
                 adjustGeom = QgsGeometry(mls.createEmptyWithSameType())
                 geomArray = []
                 for v in mls.vertices():
 
-                    if tranlationDirection == 'forward':
+                    if tranlationDirection == "forward":
                         newZVal = v.z() + translationZ
-                    if tranlationDirection == 'reverse':
+                    if tranlationDirection == "reverse":
                         newZVal = v.z() - translationZ
 
                     v.setZ(newZVal)
@@ -113,19 +109,19 @@ class GeoEditCalculations():
                 fid = zFeat.id()
 
                 if provGeom == None:
-                    sourceLayer.dataProvider().changeGeometryValues({ fid : adjustGeom })
+                    sourceLayer.dataProvider().changeGeometryValues({fid: adjustGeom})
                 else:
-                    sourceLayer.dataProvider().changeGeometryValues({ fid : provGeom })
+                    sourceLayer.dataProvider().changeGeometryValues({fid: provGeom})
 
-            #point - 0
+            # point - 0
             if geomType == 0:
-                if tranlationDirection == 'forward':
+                if tranlationDirection == "forward":
                     g.get().setZ(g.get().z() + translationZ)
-                if tranlationDirection == 'reverse':
+                if tranlationDirection == "reverse":
                     g.get().setZ(g.get().z() - translationZ)
 
                 fid = zFeat.id()
-                sourceLayer.dataProvider().changeGeometryValues({ fid : g })
+                sourceLayer.dataProvider().changeGeometryValues({fid: g})
 
         sourceLayer.dataProvider().createSpatialIndex()
         sourceLayer.endEditCommand()
@@ -140,18 +136,18 @@ class GeoEditCalculations():
 
         layerName = sourceLayer.name()
 
-        if tranlationDirection == 'forward':
+        if tranlationDirection == "forward":
             tranlationXValue = translationX
             tranlationYValue = translationY
-        if tranlationDirection == 'reverse':
+        if tranlationDirection == "reverse":
             tranlationXValue = translationX * -1
             tranlationYValue = translationY * -1
 
-        print('Transformation - Translation X and Y: ', layerName)
+        print("Transformation - Translation X and Y: ", layerName)
 
         sourceLayer.startEditing()
-        translateAlg = QgsApplication.processingRegistry().createAlgorithmById('native:translategeometry')
-        paramTranslate = { 'DELTA_Y' : tranlationYValue, 'DELTA_X' : tranlationXValue, 'INPUT' : sourceLayer}
+        translateAlg = QgsApplication.processingRegistry().createAlgorithmById("native:translategeometry")
+        paramTranslate = {"DELTA_Y": tranlationYValue, "DELTA_X": tranlationXValue, "INPUT": sourceLayer}
         print(paramTranslate)
         AlgorithmExecutor.execute_in_place(translateAlg, paramTranslate)
 
@@ -168,35 +164,60 @@ class GeoEditCalculations():
 
         layerName = sourceLayer.name()
 
-        if tranlationDirection == 'forward':
+        if tranlationDirection == "forward":
             tranlationXValue = translationX
             tranlationYValue = translationY
             tranlationZValue = translationZ
-        if tranlationDirection == 'reverse':
+        if tranlationDirection == "reverse":
             tranlationXValue = translationX * -1
             tranlationYValue = translationY * -1
             tranlationZValue = translationZ * -1
 
-        print('Transformation - Translation X, Y and Z: ', layerName)
+        print("Transformation - Translation X, Y and Z: ", layerName)
 
         sourceLayer.startEditing()
-        translateAlg = QgsApplication.processingRegistry().createAlgorithmById('native:translategeometry')
+        translateAlg = QgsApplication.processingRegistry().createAlgorithmById("native:translategeometry")
 
         layerType = sourceLayer.wkbType()
         print("layerType", layerType)
 
-        #Abfrage nach Z und ZM Multi Layertypen
-        if layerType == QgsWkbTypes.PointZ or layerType == QgsWkbTypes.LineStringZ or layerType == QgsWkbTypes.PolygonZ or layerType == QgsWkbTypes.MultiPointZ or layerType == QgsWkbTypes.MultiLineZ or layerType == QgsWkbTypes.MultiPolygonZ:
+        # Abfrage nach Z und ZM Multi Layertypen
+        if (
+            layerType == QgsWkbTypes.PointZ
+            or layerType == QgsWkbTypes.LineStringZ
+            or layerType == QgsWkbTypes.PolygonZ
+            or layerType == QgsWkbTypes.MultiPointZ
+            or layerType == QgsWkbTypes.MultiLineZ
+            or layerType == QgsWkbTypes.MultiPolygonZ
+        ):
 
-            paramTranslate = { 'DELTA_Y' : tranlationYValue, 'DELTA_X' : tranlationXValue, 'DELTA_Z' : tranlationZValue, 'INPUT': sourceLayer}
+            paramTranslate = {
+                "DELTA_Y": tranlationYValue,
+                "DELTA_X": tranlationXValue,
+                "DELTA_Z": tranlationZValue,
+                "INPUT": sourceLayer,
+            }
 
-        elif layerType == QgsWkbTypes.PointZM or layerType == QgsWkbTypes.LineStringZM or layerType == QgsWkbTypes.PolygonZM or layerType == QgsWkbTypes.MultiPointZM or layerType == QgsWkbTypes.MultiLineZM or layerType == QgsWkbTypes.MultiPolygonZM:
+        elif (
+            layerType == QgsWkbTypes.PointZM
+            or layerType == QgsWkbTypes.LineStringZM
+            or layerType == QgsWkbTypes.PolygonZM
+            or layerType == QgsWkbTypes.MultiPointZM
+            or layerType == QgsWkbTypes.MultiLineZM
+            or layerType == QgsWkbTypes.MultiPolygonZM
+        ):
 
-            paramTranslate = { 'DELTA_Y' : tranlationYValue, 'DELTA_X' : tranlationXValue, 'DELTA_Z' : tranlationZValue, 'DELTA_M' : 0, 'INPUT': sourceLayer}
+            paramTranslate = {
+                "DELTA_Y": tranlationYValue,
+                "DELTA_X": tranlationXValue,
+                "DELTA_Z": tranlationZValue,
+                "DELTA_M": 0,
+                "INPUT": sourceLayer,
+            }
 
         else:
             QMessageBox.critical(
-                self.geoEditInstance ,
+                self.geoEditInstance,
                 "Invalider Layer",
                 f"Kann Geometrietyp {layerType} nicht verarbeiten!",
                 QMessageBox.Abort,
@@ -368,7 +389,6 @@ class GeoEditCalculations():
         self.iface.messageBar().clearWidgets()
         # self.selectedFeature == None
         self.mapToolSel.geomIdentified.disconnect()
-
 
     def featureSelect2(self, layer, feature):
         self.selectedLayer = layer

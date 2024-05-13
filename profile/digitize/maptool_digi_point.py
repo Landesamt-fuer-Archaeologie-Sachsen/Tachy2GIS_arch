@@ -1,10 +1,10 @@
 from qgis.PyQt.QtCore import pyqtSignal, pyqtSlot
-from qgis.gui import QgsAttributeDialog, QgsAttributeEditorContext
 from qgis.core import QgsFeature, QgsGeometry, QgsFeatureRequest, QgsPoint
+from qgis.gui import QgsAttributeDialog, QgsAttributeEditorContext
 
 from .map_tools import PointMapTool
-from ..publisher import Publisher
 from .maptool_mixin import MapToolMixin
+from ..publisher import Publisher
 
 
 class MapToolDigiPoint(PointMapTool, MapToolMixin):
@@ -13,7 +13,7 @@ class MapToolDigiPoint(PointMapTool, MapToolMixin):
 
     def __init__(self, canvas, iFace, rotationCoords, dataStoreDigitize):
         self.canvas = canvas
-        self.__iface = iFace
+        self.iface = iFace
         self.rotationCoords = rotationCoords
         self.dataStoreDigitize = dataStoreDigitize
         self.pup = Publisher()
@@ -223,7 +223,7 @@ class MapToolDigiPoint(PointMapTool, MapToolMixin):
         # iterrieren über zu schreibende features
         for feature in features:
 
-            if feature['geo_quelle'] == 'profile_object':
+            if feature["geo_quelle"] == "profile_object":
                 # Zielfeature erzeugen
                 rotFeature = QgsFeature(self.refData["pointLayer"].fields())
 

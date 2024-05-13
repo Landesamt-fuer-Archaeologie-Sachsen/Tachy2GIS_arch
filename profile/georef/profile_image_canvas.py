@@ -17,8 +17,8 @@ from qgis.gui import (
     QgsMapCanvasAnnotationItem,
 )
 
-from ..publisher import Publisher
 from .maptool_move import MapToolMove
+from ..publisher import Publisher
 
 
 ## @brief With the ProfileImageCanvas class a map canvas element is realized. It should be used in the profile dialog

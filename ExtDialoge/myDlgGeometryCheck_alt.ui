@@ -170,7 +170,7 @@
           </property>
           <property name="icon">
            <iconset>
-            <normalon>../../../.designer/backup/Icons/PunktExp.gif</normalon>
+            <normalon>../Icons/PunktExp.gif</normalon>
            </iconset>
           </property>
           <property name="iconSize">
@@ -215,7 +215,7 @@
           </property>
           <property name="icon">
            <iconset>
-            <normalon>../../../.designer/backup/Icons/PunktExp.gif</normalon>
+            <normalon>../Icons/PunktExp.gif</normalon>
            </iconset>
           </property>
           <property name="iconSize">
@@ -260,7 +260,7 @@
           </property>
           <property name="icon">
            <iconset>
-            <normalon>../../../.designer/backup/Icons/PunktExp.gif</normalon>
+            <normalon>../Icons/PunktExp.gif</normalon>
            </iconset>
           </property>
           <property name="iconSize">
