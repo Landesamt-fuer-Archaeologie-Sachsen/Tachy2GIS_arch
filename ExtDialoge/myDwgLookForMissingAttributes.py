@@ -29,6 +29,7 @@ from PyQt5.QtWidgets import QDockWidget, QMessageBox, QTableWidgetItem
 from qgis.PyQt import uic
 from qgis.core import QgsProject, QgsFeatureRequest, QgsExpression, Qgis, QgsMessageLog
 
+from ..Icons import ICON_PATHS
 from ..utils.functions import isNumber, progressBar
 
 FORM_CLASS, _ = uic.loadUiType(os_path.join(os_path.dirname(__file__), "myDwgLookForMissingAttributes.ui"))
@@ -45,7 +46,6 @@ class LookForMissingAttributesDockWidget(QDockWidget, FORM_CLASS):
         # self.<objectname>, and you can use autoconnect slots - see
         # http://qt-project.org/doc/qt-4.8/designer-using-a-ui-file.html
         # #widgets-and-dialogs-with-auto-connect
-        self.iconpfad = os_path.join(os_path.dirname(__file__), "..", "Icons")
         self.setupUi(self)
         self.ui = self
         self.iface = iface
@@ -53,22 +53,22 @@ class LookForMissingAttributesDockWidget(QDockWidget, FORM_CLASS):
         self.txtDelimiter.setText(",")
         self.txtDelimiter.textChanged.connect(self.setDelimiter)
         self.ui.butGo.clicked.connect(self.go)
-        self.ui.butGo.setIcon(QIcon(os_path.join(self.iconpfad, "go-next.jpg")))
+        self.ui.butGo.setIcon(QIcon(ICON_PATHS["go-next"]))
         self.ui.butGo.setToolTip("Fehlende Nummern finden.")
         self.ui.butBefundLabel.clicked.connect(self.findBefLabel)
-        self.ui.butBefundLabel.setIcon(QIcon(os_path.join(self.iconpfad, "Befundnr.gif")))
+        self.ui.butBefundLabel.setIcon(QIcon(ICON_PATHS["Befundnr"]))
         self.ui.butBefundLabel.setToolTip("Fehlende Befundlabel finden.")
         self.ui.butBefundnr.clicked.connect(self.findBefnr)
-        self.ui.butBefundnr.setIcon(QIcon(os_path.join(self.iconpfad, "Befundnr2.gif")))
+        self.ui.butBefundnr.setIcon(QIcon(ICON_PATHS["Befundnr2"]))
         self.ui.butBefundnr.setToolTip("Fehlende Befundnummern finden.")
         self.ui.butProfnr.clicked.connect(self.findProfnr)
-        self.ui.butProfnr.setIcon(QIcon(os_path.join(self.iconpfad, "Profil.gif")))
+        self.ui.butProfnr.setIcon(QIcon(ICON_PATHS["Profil"]))
         self.ui.butProfnr.setToolTip("Fehlende Profilnummern finden.")
         self.ui.butFundnr.clicked.connect(self.findFundnr)
-        self.ui.butFundnr.setIcon(QIcon(os_path.join(self.iconpfad, "Fund.gif")))
+        self.ui.butFundnr.setIcon(QIcon(ICON_PATHS["Fund"]))
         self.ui.butFundnr.setToolTip("Fehlende Fundnummern finden.")
         self.ui.butProbnr.clicked.connect(self.findProbnr)
-        self.ui.butProbnr.setIcon(QIcon(os_path.join(self.iconpfad, "Probe.gif")))
+        self.ui.butProbnr.setIcon(QIcon(ICON_PATHS["Probe"]))
         self.ui.butProbnr.setToolTip("Fehlende Probenummern finden.")
         # self.iface.addDockWidget(Qt.RightDockWidgetArea, self.ui)
         self.delimiter = None

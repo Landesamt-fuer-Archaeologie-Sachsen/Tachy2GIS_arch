@@ -30,6 +30,7 @@ from qgis.PyQt import uic
 from qgis.core import QgsMessageLog, Qgis, QgsWkbTypes, QgsPoint, QgsGeometry
 from qgis.gui import QgsVertexMarker
 
+from ..Icons import ICON_PATHS
 from ..utils.functions import makerAndRubberbands, PrintClickedPoint, isNumber
 
 FORM_CLASS, _ = uic.loadUiType(os_path.join(os_path.dirname(__file__), "myDwgFeatureQuestion.ui"))
@@ -48,7 +49,6 @@ class FeatureQuestionDockWidget(QDockWidget, FORM_CLASS):
         # #widgets-and-dialogs-with-auto-connect
         self.setupUi(self)
 
-        iconpfad = os_path.join(os_path.dirname(__file__), "..", "Icons")
         self.ui = self
         self.iface = iface
         self.canvas = iface.mapCanvas()
@@ -72,15 +72,15 @@ class FeatureQuestionDockWidget(QDockWidget, FORM_CLASS):
         self.ui.butOK.clicked.connect(self.OK)
         self.ui.butAbbruch.clicked.connect(self.Abbruch)
         self.ui.butFeatureMove.clicked.connect(self.featureMove)
-        self.ui.butFeatureMove.setIcon(QIcon(os_path.join(iconpfad, "FeatureMove.gif")))
+        self.ui.butFeatureMove.setIcon(QIcon(ICON_PATHS["FeatureMove"]))
         self.ui.butFeatureMove.setToolTip("Objekt verschieben")
         self.ui.butFeatureVertexMove.clicked.connect(self.featureVertexMove)
-        self.ui.butFeatureVertexMove.setIcon(QIcon(os_path.join(iconpfad, "FeatureVertexMove.gif")))
+        self.ui.butFeatureVertexMove.setIcon(QIcon(ICON_PATHS["FeatureVertexMove"]))
         self.ui.butFeatureVertexMove.setToolTip("Stützpunkte verschieben")
         self.ui.txtPoint.setToolTip("Format:@ x.x , y.y , z.z \n @ relative Koordinaten")  # \n absolute Koordinaten')
         self.ui.txtPoint.textEdited.connect(self.setTempKoord)
         self.ui.butFangPunkt.clicked.connect(self.koordholen)
-        self.ui.butFangPunkt.setIcon(QIcon(os_path.join(iconpfad, "Fang_von Punkt.gif")))
+        self.ui.butFangPunkt.setIcon(QIcon(ICON_PATHS["Fang_von_Punkt"]))
         self.ui.butFangPunkt.setToolTip("Fangen von Punkt")
 
         self.ui.tableWidget.itemChanged.connect(self.vertexEdit)
@@ -177,11 +177,11 @@ class FeatureQuestionDockWidget(QDockWidget, FORM_CLASS):
     def on_customContextMenu(self, pos):
         contextMenu = QMenu()
         clipbordCopy = contextMenu.addAction(
-            QIcon(os_path.join(os_path.dirname(__file__), "..", "Icons", "kopieren.jpg")), "kopieren"
+            QIcon(ICON_PATHS["kopieren"]), "kopieren"
         )
         clipbordCopy.triggered.connect(self.clipboardSetText)
         clipbordInsert = contextMenu.addAction(
-            QIcon(os_path.join(os_path.dirname(__file__), "..", "Icons", "einfügen.gif")), "einfügen"
+            QIcon(ICON_PATHS["einfügen"]), "einfügen"
         )
         clipbordInsert.triggered.connect(self.clipboardText)
         contextMenu.exec_(QCursor.pos())

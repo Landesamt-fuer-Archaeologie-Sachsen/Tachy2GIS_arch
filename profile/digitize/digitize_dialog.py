@@ -14,6 +14,7 @@ from .maptool_digi_point import MapToolDigiPoint
 from .maptool_digi_polygon import MapToolDigiPolygon
 from .maptool_identify import MapToolIdentify
 from .parambar import Parambar
+from ...Icons import ICON_PATHS
 
 
 ## @brief With the GeoreferencingDialog class a dialog window for the georeferencing of profiles is realized
@@ -29,8 +30,6 @@ class DigitizeDialog(QMainWindow):
         super(DigitizeDialog, self).__init__()
 
         self.__iface = iFace
-
-        self.iconpath = os.path.join(os.path.dirname(__file__), "...", "Icons")
 
         self.aar_direction = aar_direction
 
@@ -57,7 +56,7 @@ class DigitizeDialog(QMainWindow):
         self.statusBar().setStyleSheet("background-color: #FFF8DC;")
         self.statusBar().setStyleSheet("QStatusBar::item {border: none;}")
 
-        exitAct = QAction(QIcon(os.path.join(self.iconpath, "Ok_grau.png")), "Exit", self)
+        exitAct = QAction(QIcon(ICON_PATHS["Ok_grau"]), "Exit", self)
 
         exitAct.setShortcut("Ctrl+Q")
         exitAct.setStatusTip("Anwendung schließen")

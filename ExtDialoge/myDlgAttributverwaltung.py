@@ -6,13 +6,13 @@ from PyQt5.QtWidgets import QInputDialog, QLineEdit, QDialog, QMessageBox
 from qgis.PyQt import uic
 from qgis.core import QgsProject
 
+from ..Icons import ICON_PATHS
 from ..utils.functions import csvToList, csvWriter, Listfilter, getListfilterIndex
 
 
 class DlgAttributverwaltung(QDialog):
     def __init__(self, iface, parent=None):
         super(DlgAttributverwaltung, self).__init__(parent)
-        iconpfad = os_path.join(os_path.dirname(__file__), "..", "Icons")
         self.ui = uic.loadUi(os_path.join(os_path.dirname(__file__), "myDlgAttributverwaltung.ui"), self)
         self.iface = iface
         # self.ui.txtLayGemarkung.textChanged.connect(self.stempel)
@@ -22,13 +22,13 @@ class DlgAttributverwaltung(QDialog):
         self.ui.listObjektArt.currentItemChanged.connect(self.item_click_Art)
         self.ui.butaddFilter.clicked.connect(self.addFilter)
         self.ui.butdelFilter.clicked.connect(self.delFilter)
-        self.ui.butaddFilter.setIcon(QIcon(os_path.join(iconpfad, "go-next.jpg")))
+        self.ui.butaddFilter.setIcon(QIcon(ICON_PATHS["go-next"]))
         self.ui.butObjektTypNeu.clicked.connect(self.objektTypNeu)
-        self.ui.butObjektTypNeu.setIcon(QIcon(os_path.join(iconpfad, "NeuDS.jpg")))
+        self.ui.butObjektTypNeu.setIcon(QIcon(ICON_PATHS["NeuDS"]))
         self.ui.butObjektArtNeu.clicked.connect(self.objektArtNeu)
-        self.ui.butObjektArtNeu.setIcon(QIcon(os_path.join(iconpfad, "NeuDS.jpg")))
+        self.ui.butObjektArtNeu.setIcon(QIcon(ICON_PATHS["NeuDS"]))
         self.ui.butObjektTypLayerArtEdit.clicked.connect(self.objektTypLayerArtEdit)
-        self.ui.butObjektTypLayerArtEdit.setIcon(QIcon(os_path.join(iconpfad, "Edit.bmp")))
+        self.ui.butObjektTypLayerArtEdit.setIcon(QIcon(ICON_PATHS["Edit"]))
 
         self.ui.setup()
 

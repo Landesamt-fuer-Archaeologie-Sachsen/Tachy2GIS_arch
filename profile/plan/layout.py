@@ -28,8 +28,6 @@ class Layout:
 
         self.iface = iFace
 
-        self.iconpath = os.path.join(os.path.dirname(__file__), "..", "..", "Icons")
-
         self.projectInstance = QgsProject.instance()
 
         self.imageLayerProfil = ""

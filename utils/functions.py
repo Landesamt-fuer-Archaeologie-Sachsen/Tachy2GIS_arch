@@ -98,7 +98,7 @@ class ProjectSaveFunc:
         try:
             currentDate = time.strftime("%Y.%m.%d")
             currentTime = time.strftime("%H-%M")
-            target = os.path.join(source, r"_Sicherungen_", currentDate + "_" + currentTime)
+            target = os.path.join(source, "_Sicherungen_", currentDate + "_" + currentTime)
 
             fileFunc().directory_copy(os.path.join(source, "GPKG Files"), os.path.join(target, "GPKG Files"))
             fileFunc().directory_copy(os.path.join(source, "Shape"), os.path.join(target, "Shape"))
@@ -115,7 +115,7 @@ class ProjectSaveFunc:
         now = datetime.now()  # current date and time
         currentDate = now.strftime("%Y.%m.%d")
         currentTime = now.strftime("%H-%M")
-        copyTo = os.path.join(copyFrom, r"_Tagesdateien_", currentDate + "_" + currentTime)
+        copyTo = os.path.join(copyFrom, "_Tagesdateien_", currentDate + "_" + currentTime)
 
         try:
             fileFunc().directory_copy(os.path.join(copyFrom, "GPKG Files"), os.path.join(copyTo, "GPKG_Files"))

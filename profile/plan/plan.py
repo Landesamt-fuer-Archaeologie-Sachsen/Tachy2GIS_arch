@@ -37,7 +37,6 @@ class Plan:
     #  @param iFace pointer to the iface class
     def __init__(self, t2gArchInstance, iFace):
         print("init plan")
-        self.__iconpath = os.path.join(os.path.dirname(__file__), "...", "Icons")
         self.__t2gArchInstance = t2gArchInstance
         self.__dockwidget = t2gArchInstance.dockwidget
         self.__iface = iFace

@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import os
 
 from qgis.PyQt.QtCore import Qt, QRect
 from qgis.PyQt.QtGui import QIcon, QPainter, QColor
@@ -7,6 +6,7 @@ from qgis.PyQt.QtWidgets import QWidget, QHBoxLayout, QSizePolicy, QToolBar, QAc
 from qgis.core import QgsApplication
 
 from ..digitize.map_tools import PolygonMapTool
+from ...utils.t2g_arch import ICON_PATHS
 
 
 class ImageParambar(QWidget):
@@ -26,13 +26,11 @@ class ImageParambar(QWidget):
         super().__init__()
         self.canvasImage = canvasImage
 
-        icon_path = os.path.join(os.path.dirname(__file__), "..", "..", "Icons")
-
         self.imageToolbar = QToolBar("Edit", self)
         self.action_group = QActionGroup(self)
 
         # create component move:
-        iconMove = QIcon(os.path.join(icon_path, "mActionAddGCPPoint.png"))
+        iconMove = QIcon(ICON_PATHS["mActionAddGCPPoint"])
         self.actionMove = QAction(iconMove, "Move", self)
         self.actionMove.setCheckable(True)
         self.canvasImage.toolMove.setAction(self.actionMove)

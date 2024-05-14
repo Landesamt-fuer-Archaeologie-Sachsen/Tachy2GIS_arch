@@ -1,5 +1,3 @@
-import os
-
 from PyQt5.QtCore import QCoreApplication
 from PyQt5.QtGui import QPixmap
 from qgis.PyQt.QtGui import QIcon
@@ -12,7 +10,8 @@ from qgis.PyQt.QtWidgets import (
 from qgis.core import QgsProject
 from qgis.gui import QgisInterface
 
-from .t2g_arch import T2gArch
+from .Icons import ICON_PATHS
+from .utils.t2g_arch import T2gArch
 from .utils.toolbar_functions import openProjectFolder, saveProject
 
 
@@ -68,25 +67,6 @@ class PluginInterface:
         QgsProject.instance().cleared.disconnect(self.onProjectClosed)
 
     def setupToolbar(self):
-        iconPaths = {
-            "plugin_icon": "plugin_icon.png",
-            "visible_true": "Sichtbar_an.gif",
-            "visible_false": "Sichtbar_aus.gif",
-            "open_folder": "ordner-open.png",
-            "save_project": "media-floppy.png",
-            "points_import": "PunktImp.gif",
-            "points_export": "PunktExp.gif",
-            "points_export_profile": "ProfPunktExp.gif",
-            "reverse_line": "LineRe.gif",
-            "expand_geometry": "butContactClip.gif",
-            "raster_overview": "Thumbs.gif",
-            "hourglass": "hourglass-svgrepo-com.svg",
-        }
-
-        plugin_dir = os.path.dirname(__file__)
-        for iconDescription, iconPath in iconPaths.items():
-            iconPaths[iconDescription] = os.path.join(plugin_dir, "Icons", iconPath)
-
         self.actions = {}
         self.toolbar = QToolBar(self.iface.mainWindow())
         self.toolbar.setObjectName("T2G_Arch")
@@ -94,8 +74,8 @@ class PluginInterface:
         self.iface.mainWindow().addToolBar(self.toolbar)
 
         icon_start = QIcon()
-        icon_start.addPixmap(QPixmap(iconPaths["plugin_icon"]))
-        icon_start.addPixmap(QPixmap(iconPaths["hourglass"]), QIcon.Disabled)
+        icon_start.addPixmap(QPixmap(ICON_PATHS["plugin_icon"]))
+        icon_start.addPixmap(QPixmap(ICON_PATHS["hourglass"]), QIcon.Disabled)
         actionStartPlugin = QAction(icon_start, "T2G-Archäologie", self.iface.mainWindow())
         self.actions["actionStartPlugin"] = {
             "QAction": actionStartPlugin,
@@ -107,8 +87,8 @@ class PluginInterface:
         self.iface.addPluginToMenu("&T2G Archäologie", actionStartPlugin)
 
         icon_show_hide = QIcon()
-        icon_show_hide.addPixmap(QPixmap(iconPaths["visible_false"]), QIcon.Normal, QIcon.On)
-        icon_show_hide.addPixmap(QPixmap(iconPaths["visible_true"]), QIcon.Normal, QIcon.Off)
+        icon_show_hide.addPixmap(QPixmap(ICON_PATHS["Sichtbar_aus"]), QIcon.Normal, QIcon.On)
+        icon_show_hide.addPixmap(QPixmap(ICON_PATHS["Sichtbar_an"]), QIcon.Normal, QIcon.Off)
         actionShowHideDockwidget = QAction(icon_show_hide, "Plugin Sichtbarkeit", self.iface.mainWindow())
         self.actions["actionShowHideDockwidget"] = {
             "QAction": actionShowHideDockwidget,
@@ -119,7 +99,7 @@ class PluginInterface:
         self.toolbar.addAction(actionShowHideDockwidget)
 
         actionOpenProjectFolder = QAction(
-            QIcon(iconPaths["open_folder"]), "Projektexplorer öffnen", self.iface.mainWindow()
+            QIcon(ICON_PATHS["ordner-open"]), "Projektexplorer öffnen", self.iface.mainWindow()
         )
         self.actions["actionOpenProjectFolder"] = {
             "QAction": actionOpenProjectFolder,
@@ -130,7 +110,7 @@ class PluginInterface:
 
         self.toolbar.addSeparator()
 
-        actionSaveProject = QAction(QIcon(iconPaths["save_project"]), "Tagesprojekt sichern", self.iface.mainWindow())
+        actionSaveProject = QAction(QIcon(ICON_PATHS["media-floppy"]), "Tagesprojekt sichern", self.iface.mainWindow())
         self.actions["actionSaveProject"] = {
             "QAction": actionSaveProject,
             "enabled_per_default": False,
@@ -139,20 +119,20 @@ class PluginInterface:
         self.toolbar.addAction(actionSaveProject)
 
         menuPointsImport = QMenu()
-        actionImportPoints = QAction(QIcon(iconPaths["points_import"]), "Punkt Import", self.iface.mainWindow())
+        actionImportPoints = QAction(QIcon(ICON_PATHS["points_import"]), "Punkt Import", self.iface.mainWindow())
         self.actions["actionImportPoints"] = {
             "QAction": actionImportPoints,
             "enabled_per_default": False,
         }
         actionImportPoints.triggered.connect(self.onActionImportPoints)
-        actionExportPoints = QAction(QIcon(iconPaths["points_export"]), "Punkt Export", self.iface.mainWindow())
+        actionExportPoints = QAction(QIcon(ICON_PATHS["points_export"]), "Punkt Export", self.iface.mainWindow())
         self.actions["actionExportPoints"] = {
             "QAction": actionExportPoints,
             "enabled_per_default": False,
         }
         actionExportPoints.triggered.connect(self.onActionExportPoints)
         actionProfileExportPoints = QAction(
-            QIcon(iconPaths["points_export_profile"]), "Profilentzerrpunkte Export", self.iface.mainWindow()
+            QIcon(ICON_PATHS["points_export_profile"]), "Profilentzerrpunkte Export", self.iface.mainWindow()
         )
         self.actions["actionProfileExportPoints"] = {
             "QAction": actionProfileExportPoints,

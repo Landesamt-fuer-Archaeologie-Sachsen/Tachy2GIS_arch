@@ -20,6 +20,7 @@ from qgis.PyQt.QtWidgets import (
 from qgis.core import QgsApplication
 
 from ..publisher import Publisher
+from ...Icons import ICON_PATHS
 
 
 ## @brief With the TransformationDialogParambar class a bar based on QWidget is realized
@@ -69,7 +70,6 @@ class Parambar(QWidget):
     ):
         super(Parambar, self).__init__()
 
-        self.iconpath = os.path.join(os.path.dirname(__file__), "..", "Icons")
         self.dialogInstance = dialogInstance
 
         self.aar_direction = aar_direction
@@ -166,7 +166,7 @@ class Parambar(QWidget):
 
     def getOriginalObjects(self):
         if self.getObjectsAction.isChecked():
-            iconImport = QIcon(os.path.join(self.iconpath, "Sichtbar_an.gif"))
+            iconImport = QIcon(ICON_PATHS["Sichtbar_an"])
             self.getObjectsAction.setIcon(iconImport)
             bufferGeometry = self.rotationCoords.profileBuffer(self.bufferSpin.value(), self.aar_direction)
 
@@ -174,7 +174,7 @@ class Parambar(QWidget):
             self.toolDigiLine.getFeaturesFromEingabelayer(bufferGeometry, "tachy", self.aar_direction)
             self.toolDigiPolygon.getFeaturesFromEingabelayer(bufferGeometry, "tachy", self.aar_direction)
         else:
-            iconImport = QIcon(os.path.join(self.iconpath, "Sichtbar_aus.gif"))
+            iconImport = QIcon(ICON_PATHS["Sichtbar_aus"])
             self.getObjectsAction.setIcon(iconImport)
 
             self.toolDigiPoint.removeNoneProfileFeatures()
@@ -306,7 +306,7 @@ class Parambar(QWidget):
 
     def createGetObjectsAction(self):
         # Button Objekte aus Layer anzeigen
-        iconImport = QIcon(os.path.join(self.iconpath, "Sichtbar_aus.gif"))
+        iconImport = QIcon(ICON_PATHS["Sichtbar_aus"])
         self.getObjectsAction = QAction(iconImport, "Objekte aus Eingabelayer", self)
         self.getObjectsAction.setCheckable(True)
         self.getObjectsAction.triggered.connect(self.getOriginalObjects)

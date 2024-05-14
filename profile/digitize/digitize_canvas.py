@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import os
 
 import processing
 from qgis.PyQt.QtGui import QFont
@@ -38,8 +37,6 @@ class DigitizeCanvas(QgsMapCanvas):
         super(DigitizeCanvas, self).__init__()
 
         self.pup = Publisher()
-
-        self.iconpath = os.path.join(os.path.dirname(__file__), "...", "Icons")
 
         self.dialogInstance = dialogInstance
 

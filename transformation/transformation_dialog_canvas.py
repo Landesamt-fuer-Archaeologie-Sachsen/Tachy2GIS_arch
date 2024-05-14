@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import os
 
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QIcon, QFont, QColor
@@ -31,8 +30,6 @@ class TransformationDialogCanvas(QgsMapCanvas):
     def __init__(self, dialogInstance):
 
         super(TransformationDialogCanvas, self).__init__()
-
-        self.iconpath = os.path.join(os.path.dirname(__file__), "Icons")
 
         self.dialogInstance = dialogInstance
 

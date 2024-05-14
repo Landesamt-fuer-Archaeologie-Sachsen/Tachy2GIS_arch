@@ -22,6 +22,7 @@ from .transformation_calculations import TransformationCalculations
 from .transformation_dialog_canvas import TransformationDialogCanvas
 from .transformation_dialog_parambar import TransformationDialogParambar
 from .transformation_dialog_table import TransformationDialogTable
+from ..Icons import ICON_PATHS
 
 
 ## @brief With the TransformationDialog class a dialog window for the calculation of transformation parameters is realized
@@ -37,8 +38,6 @@ class TransformationDialog(QMainWindow):
     def __init__(self, t2GArchInstance):
 
         super(TransformationDialog, self).__init__()
-
-        self.iconpath = os.path.join(os.path.dirname(__file__), "Icons")
 
         self.t2GArchInstance = t2GArchInstance
         self.colNameGcpSource = t2GArchInstance.colNameGcpSource
@@ -77,7 +76,7 @@ class TransformationDialog(QMainWindow):
         self.statusBar().setStyleSheet("background-color: #FFF8DC;")
         self.statusBar().setStyleSheet("QStatusBar::item {border: none;}")
 
-        exitAct = QAction(QIcon(os.path.join(self.iconpath, "Ok_grau.png")), "Exit", self)
+        exitAct = QAction(QIcon(ICON_PATHS["Ok_grau"]), "Exit", self)
 
         exitAct.setShortcut("Ctrl+Q")
         exitAct.setStatusTip("Anwendung schließen")

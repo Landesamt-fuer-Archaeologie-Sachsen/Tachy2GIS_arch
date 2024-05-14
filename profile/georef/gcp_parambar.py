@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import os
 
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QIcon
@@ -23,8 +22,6 @@ class GcpParambar(QWidget):
 
     def __init__(self, dialogInstance, canvasGcp, rotationCoords):
         super(GcpParambar, self).__init__()
-
-        self.iconpath = os.path.join(os.path.dirname(__file__), "..", "Icons")
 
         self.dialogInstance = dialogInstance
 

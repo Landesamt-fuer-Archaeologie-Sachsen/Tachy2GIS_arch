@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import os
 
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QIcon, QPalette, QColor
@@ -7,6 +6,7 @@ from qgis.PyQt.QtWidgets import QTableWidget, QTableWidgetItem, QHeaderView, QPu
 from qgis.core import QgsApplication
 
 from ..publisher import Publisher
+from ...Icons import ICON_PATHS
 
 
 ## @brief With the DigitizeTable class a table based on QTableWidget is realized
@@ -20,8 +20,6 @@ class DigitizeTable(QTableWidget):
     def __init__(self, dialogInstance):
 
         super(DigitizeTable, self).__init__()
-
-        self.iconpath = os.path.join(os.path.dirname(__file__), "..", "Icons")
 
         self.pup = Publisher()
 
@@ -186,7 +184,7 @@ class DigitizeTable(QTableWidget):
         tableHeader.setSectionResizeMode(9, QHeaderView.ResizeToContents)
 
         # Löschen
-        iconDel = QIcon(os.path.join(self.iconpath, "trash_icon.png"))
+        iconDel = QIcon(ICON_PATHS["trash_icon"])
 
         deleteBtn = QPushButton()
         deleteBtn.setIcon(iconDel)

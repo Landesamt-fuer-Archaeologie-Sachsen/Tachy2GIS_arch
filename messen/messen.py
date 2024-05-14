@@ -30,12 +30,12 @@ from qgis.core import (
     QgsProject,
     QgsRectangle,
     QgsVectorLayerUtils,
-    QgsWkbTypes,
-    QgsApplication,
+    QgsWkbTypes, QgsApplication,
 )
 from qgis.gui import QgsMapTool, QgsSnapIndicator, QgsRubberBand, QgsVertexMarker
 from qgis.utils import iface, plugins
 
+from ..Icons import ICON_PATHS
 from ..utils.functions import (
     enableAndDisableWidgets,
     getCustomProjectVariable,
@@ -47,28 +47,6 @@ from ..utils.functions import (
     showAndHideWidgets,
 )
 from ..utils.toolbar_functions import saveProject
-
-iconPaths = {
-    "free": "../Icons/Frei.gif",
-    "circle_2_points_radius": "../Icons/Circle2PR",
-    "circle_2_points_diameter": "../Icons/Circle2P",
-    "delete_vertex": "../Icons/delVertex.png",
-    "rectangle": "../Icons/Rectangle.gif",
-    "tachy2gis_visible": "../Icons/Sichtbar_an.gif",
-    "tachy2gis_not_visible": "../Icons/Sichtbar_aus.gif",
-    "add_vertex": "../Icons/addVertex.png",
-}
-
-for iconDescription, iconPath in iconPaths.items():
-    iconPaths[iconDescription] = os.path.join(os.path.dirname(__file__), iconPath)
-
-iconPaths.update(
-    {
-        "polygons": QgsApplication.iconPath("mActionCapturePolygon"),
-        "lines": QgsApplication.iconPath("mActionCaptureLine"),
-        "points": QgsApplication.iconPath("mActionCapturePoint"),
-    }
-)
 
 polygonsLayerName = "E_Polygon"
 linesLayerName = "E_Line"
@@ -245,9 +223,9 @@ class MeasurementTab(BASE, WIDGET):
 
         cmbLayerTypeDict = {
             "no_layer": {"description": "Keine Auswahl", "icon": QIcon()},
-            "polygons": {"description": "Polygone", "icon": QIcon(iconPaths["polygons"])},
-            "lines": {"description": "Linien", "icon": QIcon(iconPaths["lines"])},
-            "points": {"description": "Punkte", "icon": QIcon(iconPaths["points"])},
+            "polygons": {"description": "Polygone", "icon": QIcon(QgsApplication.iconPath("mActionCapturePolygon"))},
+            "lines": {"description": "Linien", "icon": QIcon(QgsApplication.iconPath("mActionCaptureLine"))},
+            "points": {"description": "Punkte", "icon": QIcon(QgsApplication.iconPath("mActionCapturePoint"))},
         }
 
         for editingTypeValue, editingTypeInfo in cmbLayerTypeDict.items():
@@ -318,16 +296,16 @@ class MeasurementTab(BASE, WIDGET):
     def fillCmbPolygonDigitizingMode(self):
 
         cmbPolygonDigitizingMode = {
-            "free": {"description": "Frei", "icon": QIcon(iconPaths["free"])},
+            "free": {"description": "Frei", "icon": QIcon(ICON_PATHS["free"])},
             "circle_2_points_radius": {
                 "description": "Kreis mit 2 Punkten (Radius)",
-                "icon": QIcon(iconPaths["circle_2_points_radius"]),
+                "icon": QIcon(ICON_PATHS["circle_2_points_radius"]),
             },
             "circle_2_points_diameter": {
                 "description": "Kreis mit 2 Punkten (Durchmesser)",
-                "icon": QIcon(iconPaths["circle_2_points_diameter"]),
+                "icon": QIcon(ICON_PATHS["circle_2_points_diameter"]),
             },
-            "rectangle": {"description": "Rechteck", "icon": QIcon(iconPaths["rectangle"])},
+            "rectangle": {"description": "Rechteck", "icon": QIcon(ICON_PATHS["rectangle"])},
         }
 
         for editingTypeValue, editingTypeInfo in cmbPolygonDigitizingMode.items():
@@ -407,13 +385,13 @@ class MeasurementTab(BASE, WIDGET):
                 iface.removeDockWidget(self.tachy2GisPlugin.dlg)
 
             self.tachy2GisVisible = False
-            self.butT2GShow.setIcon(QIcon(iconPaths["tachy2gis_not_visible"]))
+            self.butT2GShow.setIcon(QIcon(ICON_PATHS["Sichtbar_aus"]))
         else:
             if open:
                 if not self.tachy2GisPlugin.dlg.isVisible():
                     iface.addDockWidget(Qt.BottomDockWidgetArea, self.tachy2GisPlugin.dlg)
                 self.tachy2GisVisible = True
-                self.butT2GShow.setIcon(QIcon(iconPaths["tachy2gis_visible"]))
+                self.butT2GShow.setIcon(QIcon(ICON_PATHS["Sichtbar_an"]))
 
     def activateDigitizeTool(self):
         if self.actionDigitize.isChecked():
@@ -491,7 +469,7 @@ class MeasurementTab(BASE, WIDGET):
 
         self.markersAndRubberBand = self.createMarkersAndRubberBand(geometryType)
 
-        self.actionDigitize.setIcon(QIcon(iconPaths[geometryType]))
+        self.actionDigitize.setIcon(QIcon(ICON_PATHS[geometryType]))
         self.digitizeTool = DigitizeTool(geometryType, self)
         self.btnDigitizeTool.setDefaultAction(self.actionDigitize)
 
@@ -702,9 +680,9 @@ class MeasurementTab(BASE, WIDGET):
 
     def openCoordsTableMenu(self, pos):
         coordsTableMenu = QMenu()
-        delVertex = coordsTableMenu.addAction(QIcon(iconPaths["delete_vertex"]), " Vertex löschen")
+        delVertex = coordsTableMenu.addAction(QIcon(ICON_PATHS["delete_vertex"]), " Vertex löschen")
         delVertex.triggered.connect(self.deleteVertexFromCoordsTable)
-        addVertex = coordsTableMenu.addAction(QIcon(iconPaths["add_vertex"]), " Vertex hinzufügen")
+        addVertex = coordsTableMenu.addAction(QIcon(ICON_PATHS["add_vertex"]), " Vertex hinzufügen")
         addVertex.triggered.connect(self.setInsertAtIndex)
         coordsTableMenu.exec_(QCursor.pos())
 

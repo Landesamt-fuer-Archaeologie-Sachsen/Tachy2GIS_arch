@@ -1,5 +1,4 @@
 ## @package QGIS geoEdit extension..
-import os
 
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QMessageBox
@@ -12,6 +11,7 @@ from qgis.core import (
 )
 
 from .geo_edit_calculations import GeoEditCalculations
+from ..Icons import ICON_PATHS
 
 
 ## @brief The class is used to implement functionalities for edit geometies within the dock widget of the Tachy2GIS_arch plugin
@@ -26,8 +26,6 @@ class GeoEdit:
     #  @param dockWidget pointer to the dockwidget
     #  @param iFace pointer to the iface class
     def __init__(self, t2gArchInstance, iFace):
-
-        self.iconpath = os.path.join(os.path.dirname(__file__), "..", "Icons")
         self.t2gArchInstance = t2gArchInstance
         self.dockwidget = t2gArchInstance.dockwidget
         self.iface = iFace
@@ -71,19 +69,19 @@ class GeoEdit:
 
         # Setup "Verschneiden"
         self.dockwidget.butContactClip.setToolTip("Berührend")
-        self.dockwidget.butContactClip.setIcon(QIcon(os.path.join(self.iconpath, "butContactClip.gif")))
+        self.dockwidget.butContactClip.setIcon(QIcon(ICON_PATHS["butContactClip"]))
         self.dockwidget.butContactClip.clicked.connect(self.geoCalc.contactClip)
 
         self.dockwidget.butOutsideClip.setToolTip("Außenliegend")
-        self.dockwidget.butOutsideClip.setIcon(QIcon(os.path.join(self.iconpath, "butOutsideClip.gif")))
+        self.dockwidget.butOutsideClip.setIcon(QIcon(ICON_PATHS["butOutsideClip"]))
         self.dockwidget.butOutsideClip.clicked.connect(self.geoCalc.outsideClip)
 
         self.dockwidget.butInsideClip.setToolTip("Innenliegend")
-        self.dockwidget.butInsideClip.setIcon(QIcon(os.path.join(self.iconpath, "butInsideClip.gif")))
+        self.dockwidget.butInsideClip.setIcon(QIcon(ICON_PATHS["butInsideClip"]))
         self.dockwidget.butInsideClip.clicked.connect(self.geoCalc.insideClip)
 
         # Setup Sonstiges
-        self.dockwidget.butLineRes.setIcon(QIcon(os.path.join(self.iconpath, "LineRe.gif")))
+        self.dockwidget.butLineRes.setIcon(QIcon(ICON_PATHS["LineRe"]))
         self.dockwidget.butLineRes.setToolTip("Linie umdrehen")
         self.dockwidget.butLineRes.clicked.connect(self.t2gArchInstance.reverseLines)
 

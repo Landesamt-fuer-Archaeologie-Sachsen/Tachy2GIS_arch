@@ -51,20 +51,12 @@ from qgis.core import (
     QgsPoint,
     QgsProject,
     QgsVectorLayer,
-    QgsWkbTypes,
+    QgsWkbTypes, QgsApplication,
 )
 from qgis.gui import QgisInterface
 from qgis.utils import plugins, active_plugins
 
-from .ExtDialoge.myDlgGeometryCheck import GeometryCheckDockWidget
-from .ExtDialoge.myDlgRasterLayerView import RasterLayerViewDockWidget
-from .ExtDialoge.myDlgSettings import DlgSettings, Configfile
-from .geoEdit.geo_edit import GeoEdit
-from .messen.messen import MeasurementTab
-from .profile.profile import Profile
-from .t2g_arch_dockwidget import T2GArchDockWidget
-from .transformation.transformation_gui import TransformationGui
-from .utils.functions import (
+from .functions import (
     addPoint3D,
     delLayer,
     delSelectFeature,
@@ -80,7 +72,16 @@ from .utils.functions import (
     ProjectSaveFunc,
     setCustomProjectVariable,
 )
-from .utils.identifygeometry import IdentifyGeometry
+from .identifygeometry import IdentifyGeometry
+from .t2g_arch_dockwidget import T2GArchDockWidget
+from ..ExtDialoge.myDlgGeometryCheck import GeometryCheckDockWidget
+from ..ExtDialoge.myDlgRasterLayerView import RasterLayerViewDockWidget
+from ..ExtDialoge.myDlgSettings import DlgSettings, Configfile
+from ..Icons import ICON_PATHS
+from ..geoEdit.geo_edit import GeoEdit
+from ..messen.messen import MeasurementTab
+from ..profile.profile import Profile
+from ..transformation.transformation_gui import TransformationGui
 
 VERSION = "GDKE, RLP " + "V 1.0.0" + " für Qgis 3.20 -"
 
@@ -89,28 +90,8 @@ FN_PROFILNUMMER = "prof_nr"  # Feldname in der die Profilnummer steht
 FN_DEF_FOTOENTZERRPUNKT = "obj_typ"
 AW_FOTOENTZERRPUNKT = "Fotoentzerrpunkt"  # Entzerrpunkt-definition
 
-plugin_dir = os.path.dirname(__file__)
-
-iconPaths = {
-    "plugin_icon": "plugin_icon.png",
-    "visible_true": "Sichtbar_an.gif",
-    "visible_false": "Sichtbar_aus.gif",
-    "open_folder": "ordner-open.png",
-    "save_project": "media-floppy.png",
-    "points_import": "PunktImp.gif",
-    "points_export": "PunktExp.gif",
-    "points_export_profile": "ProfPunktExp.gif",
-    "reverse_line": "LineRe.gif",
-    "expand_geometry": "butContactClip.gif",
-    "raster_overview": "Thumbs.gif",
-}
-
-for iconDescription, iconPath in iconPaths.items():
-    iconPaths[iconDescription] = os.path.join(plugin_dir, "Icons", iconPath)
-
 
 class T2gArch:
-
     def __init__(self, iface: QgisInterface):
         if Qgis.QGIS_VERSION_INT < 32000:
             box = QMessageBox()
@@ -128,7 +109,7 @@ class T2gArch:
 
         self.mapCanvas = self.iface.mapCanvas()
         # initialize plugin directory
-        self.plugin_dir = os.path.dirname(__file__)
+        self.plugin_dir = os.path.join(os.path.dirname(__file__), "..")
 
         # initialize locale
         locale = QSettings().value("locale/userLocale")[0:2]
@@ -145,8 +126,6 @@ class T2gArch:
 
         self.pluginIsActive = False
         self.dockwidget = None
-
-        self.iconpfad = os.path.join(os.path.join(os.path.dirname(__file__), "Icons"))
 
     def initGui(self):
         self.dockwidget = T2GArchDockWidget()
@@ -171,7 +150,6 @@ class T2gArch:
             # ToDo: refactoring: watch (autosave?) needed?
             # self.watch = QTimer()
 
-            self.QgisDateiPfad = ""
             self.ProjPfad = ""
 
             self.selectedLayer = None
@@ -226,25 +204,25 @@ class T2gArch:
             self.layerPoint.featureAdded.connect(self.eventFeatureAdded)
 
             # ToDo: refactoring - Tab "Tools Allgemein"
-            self.dockwidget.butObjFind.setIcon(QIcon(os.path.join(self.iconpfad, "suchen.gif")))
+            self.dockwidget.butObjFind.setIcon(QIcon(ICON_PATHS["suchen"]))
             self.dockwidget.butObjFind.clicked.connect(self.ozoom_1_ok)
             self.dockwidget.cboSuche.setToolTip("Suchen")
 
             # ToDo: refactoring - Tab: "Tool Raster"
-            self.dockwidget.pushButton_4.setIcon(QIcon(os.path.join(self.iconpfad, "V_Jpg-Tif.gif")))
+            self.dockwidget.pushButton_4.setIcon(QIcon(ICON_PATHS["V_Jpg-Tif"]))
             self.dockwidget.pushButton_4.clicked.connect(self.gtiff2jpg)
-            self.dockwidget.pushButton_5.setIcon(QIcon(os.path.join(self.iconpfad, "cut.gif")))
+            self.dockwidget.pushButton_5.setIcon(QIcon(ICON_PATHS["cut"]))
             self.dockwidget.pushButton_5.clicked.connect(self.rasterCut)
-            self.dockwidget.pushButton_6.setIcon(QIcon(os.path.join(self.iconpfad, "cutmask.gif")))
+            self.dockwidget.pushButton_6.setIcon(QIcon(ICON_PATHS["cutmask"]))
             self.dockwidget.pushButton_6.clicked.connect(self.setCutMask)
-            self.dockwidget.pushButton_7.setIcon(QIcon(os.path.join(self.iconpfad, "cutmaskdel.gif")))
+            self.dockwidget.pushButton_7.setIcon(QIcon(ICON_PATHS["cutmaskdel"]))
             self.dockwidget.pushButton_7.clicked.connect(self.delCutMask)
-            self.dockwidget.pushButton_11.setIcon(QIcon(os.path.join(self.iconpfad, "Thumbs.gif")))
+            self.dockwidget.pushButton_11.setIcon(QIcon(ICON_PATHS["Thumbs"]))
             self.dockwidget.pushButton_11.clicked.connect(self.myDlgRasterLayerShow)
             self.dockwidget.pushButton_11.setToolTip("Übersicht der Rasterlayer")
 
             # ToDo: Refactoring: "Einstellungen"-Button in main gui
-            self.dockwidget.butSet.setIcon(QIcon(os.path.join(self.iconpfad, "Einstellungen.gif")))
+            self.dockwidget.butSet.setIcon(QIcon(ICON_PATHS["Einstellungen"]))
             self.dockwidget.butSet.clicked.connect(self.myDlgSettingsShow)
             self.dockwidget.butSet.setToolTip("Setupdatei bearbeiten")
 
@@ -266,9 +244,6 @@ class T2gArch:
 
     def setup(self):
         self.iface.setActiveLayer(self.layerPoly)
-
-        self.QgisDateiPfad = QgsProject.instance().readPath("./")
-        self.ProjPfad = os.path.abspath(os.path.join(self.QgisDateiPfad, "./.."))
 
         self.dockwidget.label_10.setText(VERSION)
 
@@ -847,13 +822,11 @@ class T2gArch:
 
     def eventReadProject(self):
         """Event Projekt geladen"""
-        # Datei- und Projektpfad in Variable speichern
-        self.QgisDateiPfad = QgsProject.instance().readPath("./")
-        self.ProjPfad = os.path.abspath(os.path.join(self.QgisDateiPfad, "./.."))
+        self.ProjPfad = os.path.abspath(QgsProject.instance().readPath(".."))
 
         # Config-Datei abarbeiten
         QgsMessageLog.logMessage("Projekt Config.ini laden.", self.plugin_name_tag, Qgis.Info)
-        self.config = Configfile(os.path.join(self.ProjPfad, "_System_/config.ini"))
+        self.config = Configfile(os.path.join(self.ProjPfad, "_System_", "config.ini"))
         myDlgSettingsView = DlgSettings(self, self.config)
         myDlgSettingsView.setup()
         # Autosave einstellungen setzen
@@ -1498,7 +1471,7 @@ class T2gArch:
         #                                   level=Qgis.Info)
         #    QgsMessageLog.logMessage("Auto Backup: Erstellt.", 'T2G Archäologie', Qgis.Info)
 
-        ziel = os.path.join(self.ProjPfad, r"_Sicherungen_")
+        ziel = os.path.join(self.ProjPfad, "_Sicherungen_")
 
         # Temporärer Fix - Diskussion wie und ob Sicherung
         if os.path.isdir(ziel):
@@ -1595,20 +1568,20 @@ class T2gArch:
         # contextMenu.setStyleSheet("QMenu { Background-color : rgb(217, 241, 255) ; color : rgb(20, 50, 255)}")
         contextMenu.addAction("Layername: " + str(layer.name()))
         dlgFeatureQuestionTableShow = contextMenu.addAction(
-            QIcon(os.path.join(os.path.dirname(__file__), "Icons", "Liste.bmp")), "Attributtabelle"
+            QIcon(QgsApplication.iconPath("mActionOpenTable")), "Attributtabelle"
         )
         dlgFeatureQuestionTableShow.triggered.connect(self.showAttributeTable)
         dlgFeatureQuestionShow = contextMenu.addAction(
-            QIcon(os.path.join(os.path.dirname(__file__), "Icons", "Formular.jpg")), "Geometriedaten"
+            QIcon(ICON_PATHS["Formular"]), "Geometriedaten"
         )
         dlgFeatureQuestionShow.triggered.connect(self.myDlgFeatureQuestionShow)
         # contextMenu.addSeparator()
         FeatureSelect = contextMenu.addAction(
-            QIcon(os.path.join(os.path.dirname(__file__), "Icons", "FeatureSelect.gif")), "Geometrie auswählen"
+            QIcon(ICON_PATHS["FeatureSelect.gif"]), "Geometrie auswählen"
         )
         FeatureSelect.triggered.connect(self.featureSelect)
         # FeatureSelectExit = contextMenu.addAction(
-        #    QIcon(os.path.join(os.path.dirname(__file__), "Icons", "FeatureSelect.gif")), "Auswahl beenden.")
+        #    QIcon(ICON_PATHS["FeatureSelect.gif"]), "Auswahl beenden.")
         # FeatureSelectExit.triggered.connect(self.featureSelectedExit)
         QgsMessageLog.logMessage(str(feature.id()), self.plugin_name_tag, Qgis.Info)
         contextMenu.addSeparator()

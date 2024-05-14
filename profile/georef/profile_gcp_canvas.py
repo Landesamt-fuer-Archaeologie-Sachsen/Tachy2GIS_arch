@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import os
 
 import processing
 from qgis.PyQt.QtCore import Qt
@@ -34,8 +33,6 @@ class ProfileGcpCanvas(QgsMapCanvas):
         super().__init__()
 
         self.pup = Publisher()
-
-        self.iconpath = os.path.join(os.path.dirname(__file__), "Icons")
 
         self.activePoint = None
 

@@ -40,6 +40,7 @@ from PyQt5.QtWidgets import (
 from qgis.PyQt import uic
 from qgis.core import QgsProject, QgsMapLayer, QgsMessageLog, Qgis
 
+from ..Icons import ICON_PATHS
 from ..utils.functions import progressBar, fileFunc
 
 FORM_CLASS, _ = uic.loadUiType(os_path.join(os_path.dirname(__file__), "myDlgRasterLayerView.ui"))
@@ -58,7 +59,6 @@ class RasterLayerViewDockWidget(QDockWidget, FORM_CLASS):
         # #widgets-and-dialogs-with-auto-connect
         self.setupUi(self)
 
-        self.iconpfad = os_path.join(os_path.dirname(__file__), "..", "Icons")
         self.ui = self
         self.iface = iface
         self.canvas = iface.mapCanvas()
@@ -80,30 +80,30 @@ class RasterLayerViewDockWidget(QDockWidget, FORM_CLASS):
         self.ui.tableWidget.setContextMenuPolicy(Qt.CustomContextMenu)
         self.ui.tableWidget.customContextMenuRequested.connect(self.on_customContextMenu)
         self.ui.butSave.clicked.connect(self.saveBitmap)
-        self.ui.butSave.setIcon(QIcon(os_path.join(self.iconpfad, "media-floppy.png")))
+        self.ui.butSave.setIcon(QIcon(ICON_PATHS["media-floppy"]))
         self.ui.butSave.setToolTip("Ausgewählte Bilder in anderem Order kopieren")
 
         self.ui.butSave_2.clicked.connect(self.savePictureList)
-        self.ui.butSave_2.setIcon(QIcon(os_path.join(self.iconpfad, "floppyList.gif")))
+        self.ui.butSave_2.setIcon(QIcon(ICON_PATHS["floppyList"]))
         self.ui.butSave_2.setToolTip("Ausgewählte Bilder als Liste exportieren")
 
         self.ui.butFilter.clicked.connect(self.setFilter)
-        self.ui.butFilter.setIcon(QIcon(os_path.join(self.iconpfad, "Filter.gif")))
+        self.ui.butFilter.setIcon(QIcon(ICON_PATHS["Filter"]))
         self.ui.butFilter.setToolTip("Auswahl mit Filter")
 
         self.ui.butFilterDel.clicked.connect(self.delFilter)
-        self.ui.butFilterDel.setIcon(QIcon(os_path.join(self.iconpfad, "FilterAllLayerEnt.gif")))
+        self.ui.butFilterDel.setIcon(QIcon(ICON_PATHS["FilterAllLayerEnt"]))
         self.ui.butFilterDel.setToolTip("Filter löschen")
 
         self.ui.butchecked.clicked.connect(self.on_checked)
-        self.ui.butchecked.setIcon(QIcon(os_path.join(self.iconpfad, "checked.gif")))
+        self.ui.butchecked.setIcon(QIcon(ICON_PATHS["checked"]))
         self.ui.butchecked.setToolTip("Alle an")
         self.ui.butunchecked.clicked.connect(self.on_unchecked)
-        self.ui.butunchecked.setIcon(QIcon(os_path.join(self.iconpfad, "unchecked.gif")))
+        self.ui.butunchecked.setIcon(QIcon(ICON_PATHS["unchecked"]))
         self.ui.butunchecked.setToolTip("Alle aus")
 
         self.ui.butsingleView.clicked.connect(self.setSingleView)
-        self.ui.butsingleView.setIcon(QIcon(os_path.join(self.iconpfad, "Ok_grau.png")))
+        self.ui.butsingleView.setIcon(QIcon(ICON_PATHS["Ok_grau"]))
         self.ui.butsingleView.setToolTip("Nur ein Layer sichtbar")
 
         QgsProject.instance().legendLayersAdded.connect(self.setup)
@@ -180,18 +180,18 @@ class RasterLayerViewDockWidget(QDockWidget, FORM_CLASS):
 
     def on_customContextMenu(self, pos):
         contextMenu = QMenu()
-        layOn = contextMenu.addAction(QIcon(os_path.join(self.iconpfad, "Sichtbar_an.gif")), " an")
+        layOn = contextMenu.addAction(QIcon(ICON_PATHS["Sichtbar_an"]), " an")
         layOn.triggered.connect(self.layerVisibilityOn)
-        layOff = contextMenu.addAction(QIcon(os_path.join(self.iconpfad, "Sichtbar_aus.gif")), " aus")
+        layOff = contextMenu.addAction(QIcon(ICON_PATHS["Sichtbar_aus"]), " aus")
         layOff.triggered.connect(self.layerVisibilityOff)
-        trans = contextMenu.addAction(QIcon(os_path.join(self.iconpfad, "transp.png")), " Transparenz")
+        trans = contextMenu.addAction(QIcon(ICON_PATHS["transp"]), " Transparenz")
         trans.triggered.connect(self.setOpacity)
-        expl = contextMenu.addAction(QIcon(os_path.join(self.iconpfad, "ordner-open.png")), " Explorer")
+        expl = contextMenu.addAction(QIcon(ICON_PATHS["ordner-open"]), " Explorer")
         expl.triggered.connect(self.openExplorer)
-        open = contextMenu.addAction(QIcon(os_path.join(self.iconpfad, "Edit.bmp")), " Bearbeiten")
+        open = contextMenu.addAction(QIcon(ICON_PATHS["Edit"]), " Bearbeiten")
         open.triggered.connect(self.openApp)
         # rasterMerge = contextMenu.addAction(
-        #    QtGui.QIcon(os_path.join(self.iconpfad, "Edit.bmp")), " Bearbeiten")
+        #    QtGui.QIcon(ICON_PATHS["Edit"]), " Bearbeiten")
         # rasterMerge.triggered.connect(self.rasterMerge)
         contextMenu.exec_(QCursor.pos())
 
@@ -461,7 +461,7 @@ class RasterLayerViewDockWidget(QDockWidget, FORM_CLASS):
         QgsMessageLog.logMessage("klick", "T2G Archäologie", Qgis.Info)
         try:
             if self.singleView == False:
-                self.ui.butsingleView.setIcon(QIcon(os_path.join(self.iconpfad, "Ok.png")))
+                self.ui.butsingleView.setIcon(QIcon(ICON_PATHS["Ok"]))
                 self.singleView = True
                 # self.checkRowList = []
                 for layer in QgsProject.instance().mapLayers().values():
@@ -472,7 +472,7 @@ class RasterLayerViewDockWidget(QDockWidget, FORM_CLASS):
                 self.on_unchecked()
                 self.status()
             else:
-                self.ui.butsingleView.setIcon(QIcon(os_path.join(self.iconpfad, "Ok_grau.png")))
+                self.ui.butsingleView.setIcon(QIcon(ICON_PATHS["Ok_grau"]))
                 self.singleView = False
                 for i in range(len(self.viewlist)):
                     QgsProject.instance().layerTreeRoot().findLayer(self.viewlist[i]).setItemVisibilityChecked(True)

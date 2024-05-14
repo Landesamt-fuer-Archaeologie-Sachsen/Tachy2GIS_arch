@@ -34,6 +34,7 @@ from .profile_gcp_canvas import ProfileGcpCanvas
 from .profile_georef_table import GeorefTable
 from .profile_image_canvas import ProfileImageCanvas
 from ..profileAAR.profileAAR import ProfileAAR
+from ...Icons import ICON_PATHS
 
 
 ## @brief With the GeoreferencingDialog class a dialog window for the georeferencing of profiles is realized
@@ -48,7 +49,6 @@ class GeoreferencingDialog(QMainWindow):
         super().__init__()
         self.style_button_enabled = "background-color: green; width: 200px"
         self.style_button_disabled = "background-color: lightgrey; width: 200px"
-        self.iconpath = os.path.join(os.path.dirname(__file__), "..", "..", "Icons")
         self.t2GArchInstance = t2GArchInstance
         self.setAttribute(Qt.WA_DeleteOnClose)
         self.refData = None
@@ -121,7 +121,7 @@ class GeoreferencingDialog(QMainWindow):
         self.statusBar().setStyleSheet("background-color: #FFF8DC;")
         self.statusBar().setStyleSheet("QStatusBar::item {border: none;}")
 
-        exitAct = QAction(QIcon(os.path.join(self.iconpath, "Ok_grau.png")), "Exit", self)
+        exitAct = QAction(QIcon(ICON_PATHS["Ok_grau"]), "Exit", self)
 
         exitAct.setShortcut("Ctrl+Q")
         exitAct.setStatusTip("Anwendung schließen")
@@ -197,11 +197,11 @@ class GeoreferencingDialog(QMainWindow):
     #
     def createActions(self):
         # Export
-        iconExport = QIcon(os.path.join(self.iconpath, "mActionSaveGCPpointsAs.png"))
+        iconExport = QIcon(ICON_PATHS["mActionSaveGCPpointsAs"])
         self.actionExport = QAction(iconExport, "Export data", self)
 
         # Import
-        iconImport = QIcon(os.path.join(self.iconpath, "mActionLoadGCPpoints.png"))
+        iconImport = QIcon(ICON_PATHS["mActionLoadGCPpoints"])
         self.actionImport = QAction(iconImport, "Import data", self)
 
     ## \brief create toolbars
