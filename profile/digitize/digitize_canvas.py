@@ -81,7 +81,7 @@ class DigitizeCanvas(QgsMapCanvas):
                 "color": "red",
                 "color_border": "black",
                 "width_border": "1",
-                "size": "1.5",
+                "size": "3.0",
             }
         )
 
@@ -91,7 +91,7 @@ class DigitizeCanvas(QgsMapCanvas):
                 "color": "grey",
                 "color_border": "black",
                 "width_border": "1",
-                "size": "1.5",
+                "size": "3.0",
             }
         )
 
@@ -117,28 +117,28 @@ class DigitizeCanvas(QgsMapCanvas):
         rule_pt = QgsRuleBasedLabeling.Rule(
             self.createLabelSettings(
                 """
-            'Punkt ' + "ptnr"
-        """
+                    'Punkt ' + "ptnr"
+                """
             ).settings()
         )
         rule_pt.settings().isExpression = True
         rule_pt.setFilterExpression(
             """
-            "obj_typ" = 'Fotoentzerrpunkt' OR "obj_typ" = 'Fund' OR "obj_typ" = 'Probe' 
-        """
+                "obj_typ" = 'Fotoentzerrpunkt' OR "obj_typ" = 'Fund' OR "obj_typ" = 'Probe' 
+            """
         )
         rule_bef = QgsRuleBasedLabeling.Rule(
             self.createLabelSettings(
                 """
-            'Befund ' + "bef_nr"
-        """
+                    'Befund ' + "bef_nr"
+                """
             ).settings()
         )
         rule_bef.settings().isExpression = True
         rule_bef.setFilterExpression(
             """
-            "obj_typ" = 'Befund' 
-        """
+                "obj_typ" = 'Befund' 
+            """
         )
         root.appendChild(rule_bef)
         root.appendChild(rule_pt)
@@ -170,7 +170,7 @@ class DigitizeCanvas(QgsMapCanvas):
                 # "color": "red",
                 "color_border": "yellow",
                 "width_border": "1",
-                "size": "1.5",
+                "size": "3.0",
             }
         )
 
@@ -180,7 +180,7 @@ class DigitizeCanvas(QgsMapCanvas):
                 # "color": "grey",
                 "color_border": "yellow",
                 "width_border": "1",
-                "size": "1.5",
+                "size": "3.0",
             }
         )
 
@@ -231,11 +231,11 @@ class DigitizeCanvas(QgsMapCanvas):
                     "color": "red",
                     "color_border": "black",
                     "width_border": "1",
-                    "size": "1.5",
+                    "size": "3.0",
                 }
             )
         )
-        symbol_profile_vertex.setPlacement(Qgis.MarkerLinePlacement.Vertex)
+        symbol_profile_vertex.setPlacements(Qgis.MarkerLinePlacement.Vertex)
 
         symbol_tachy_vertex = QgsMarkerLineSymbolLayer()
         symbol_tachy_vertex.setSubSymbol(
@@ -245,11 +245,11 @@ class DigitizeCanvas(QgsMapCanvas):
                     "color": "grey",
                     "color_border": "black",
                     "width_border": "1",
-                    "size": "1.5",
+                    "size": "3.0",
                 }
             )
         )
-        symbol_tachy_vertex.setPlacement(Qgis.MarkerLinePlacement.Vertex)
+        symbol_tachy_vertex.setPlacements(Qgis.MarkerLinePlacement.Vertex)
 
         symbol_profile.appendSymbolLayer(symbol_profile_vertex)
         symbol_tachy.appendSymbolLayer(symbol_tachy_vertex)
@@ -273,28 +273,28 @@ class DigitizeCanvas(QgsMapCanvas):
         rule_prof = QgsRuleBasedLabeling.Rule(
             self.createLabelSettings(
                 """
-            'Profil ' + "prof_nr"
-        """
+                    'Profil ' + "prof_nr"
+                """
             ).settings()
         )
         rule_prof.settings().isExpression = True
         rule_prof.setFilterExpression(
             """
-            "obj_typ" = 'Profil'
-        """
+                "obj_typ" = 'Profil'
+            """
         )
         rule_bef = QgsRuleBasedLabeling.Rule(
             self.createLabelSettings(
                 """
-            'Befund ' + "bef_nr"
-        """
+                    'Befund ' + "bef_nr"
+                """
             ).settings()
         )
         rule_bef.settings().isExpression = True
         rule_bef.setFilterExpression(
             """
-            "obj_typ" = 'Befund' 
-        """
+                "obj_typ" = 'Befund' 
+            """
         )
         root.appendChild(rule_bef)
         root.appendChild(rule_prof)
@@ -347,11 +347,11 @@ class DigitizeCanvas(QgsMapCanvas):
                     # "color": "red",
                     "color_border": "yellow",
                     "width_border": "1",
-                    "size": "1.5",
+                    "size": "3.0",
                 }
             )
         )
-        symbol_profile_vertex.setPlacement(Qgis.MarkerLinePlacement.Vertex)
+        symbol_profile_vertex.setPlacements(Qgis.MarkerLinePlacement.Vertex)
 
         symbol_tachy_vertex = QgsMarkerLineSymbolLayer()
         symbol_tachy_vertex.setSubSymbol(
@@ -361,11 +361,11 @@ class DigitizeCanvas(QgsMapCanvas):
                     # "color": "grey",
                     "color_border": "yellow",
                     "width_border": "1",
-                    "size": "1.5",
+                    "size": "3.0",
                 }
             )
         )
-        symbol_tachy_vertex.setPlacement(Qgis.MarkerLinePlacement.Vertex)
+        symbol_tachy_vertex.setPlacements(Qgis.MarkerLinePlacement.Vertex)
 
         symbol_profile.appendSymbolLayer(symbol_profile_vertex)
         symbol_tachy.appendSymbolLayer(symbol_tachy_vertex)
@@ -427,11 +427,11 @@ class DigitizeCanvas(QgsMapCanvas):
                     "color": "red",
                     "color_border": "black",
                     "width_border": "1",
-                    "size": "1.5",
+                    "size": "3.0",
                 }
             )
         )
-        symbol_profile_vertex.setPlacement(Qgis.MarkerLinePlacement.Vertex)
+        symbol_profile_vertex.setPlacements(Qgis.MarkerLinePlacement.Vertex)
 
         symbol_tachy_vertex = QgsMarkerLineSymbolLayer()
         symbol_tachy_vertex.setSubSymbol(
@@ -441,11 +441,11 @@ class DigitizeCanvas(QgsMapCanvas):
                     "color": "grey",
                     "color_border": "black",
                     "width_border": "1",
-                    "size": "1.5",
+                    "size": "3.0",
                 }
             )
         )
-        symbol_tachy_vertex.setPlacement(Qgis.MarkerLinePlacement.Vertex)
+        symbol_tachy_vertex.setPlacements(Qgis.MarkerLinePlacement.Vertex)
 
         symbol_profile.appendSymbolLayer(symbol_profile_vertex)
         symbol_tachy.appendSymbolLayer(symbol_tachy_vertex)
@@ -469,15 +469,15 @@ class DigitizeCanvas(QgsMapCanvas):
         rule_bef = QgsRuleBasedLabeling.Rule(
             self.createLabelSettings(
                 """
-            'Befund ' + "bef_nr"
-        """
+                    'Befund ' + "bef_nr"
+                """
             ).settings()
         )
         rule_bef.settings().isExpression = True
         rule_bef.setFilterExpression(
             """
-            "obj_typ" = 'Befund' 
-        """
+                "obj_typ" = 'Befund' 
+            """
         )
         root.appendChild(rule_bef)
 
@@ -534,11 +534,11 @@ class DigitizeCanvas(QgsMapCanvas):
                     # "color": "red",
                     "color_border": "yellow",
                     "width_border": "1",
-                    "size": "1.5",
+                    "size": "3.0",
                 }
             )
         )
-        symbol_profile_vertex.setPlacement(Qgis.MarkerLinePlacement.Vertex)
+        symbol_profile_vertex.setPlacements(Qgis.MarkerLinePlacement.Vertex)
 
         symbol_tachy_vertex = QgsMarkerLineSymbolLayer()
         symbol_tachy_vertex.setSubSymbol(
@@ -548,11 +548,11 @@ class DigitizeCanvas(QgsMapCanvas):
                     # "color": "grey",
                     "color_border": "yellow",
                     "width_border": "1",
-                    "size": "1.5",
+                    "size": "3.0",
                 }
             )
         )
-        symbol_tachy_vertex.setPlacement(Qgis.MarkerLinePlacement.Vertex)
+        symbol_tachy_vertex.setPlacements(Qgis.MarkerLinePlacement.Vertex)
 
         symbol_profile.appendSymbolLayer(symbol_profile_vertex)
         symbol_tachy.appendSymbolLayer(symbol_tachy_vertex)
@@ -631,7 +631,8 @@ class DigitizeCanvas(QgsMapCanvas):
 
     def createLabelSettings(self, label_field):
         textFormat = QgsTextFormat()
-        textFormat.setFont(QFont("Arial", 10))
+        textFormat.setFont(QFont("Arial"))
+        textFormat.setSizeUnit(Qgis.RenderUnit.RenderPixels)
         textFormat.setSize(10)
 
         palSettings = QgsPalLayerSettings()

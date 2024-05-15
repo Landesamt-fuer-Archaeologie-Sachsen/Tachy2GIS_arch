@@ -138,29 +138,31 @@ class ProfileGcpCanvas(QgsMapCanvas):
 
     def styleLayer(self):
         # Label Layer
-        sourcelayerSettings = QgsPalLayerSettings()
+
         textFormat = QgsTextFormat()
+        textFormat.setFont(QFont("Arial"))
+        textFormat.setSizeUnit(Qgis.RenderUnit.RenderPixels)
+        textFormat.setSize(10)
 
-        textFormat.setFont(QFont("Arial", 13))
+        source_layer_settings = QgsPalLayerSettings()
+        source_layer_settings.setFormat(textFormat)
+        source_layer_settings.fieldName = "pt_nr"
+        source_layer_settings.dist = 2
+        source_layer_settings.enabled = True
 
-        bufferSettings = QgsTextBufferSettings()
-        bufferSettings.setEnabled(True)
-        bufferSettings.setSize(0.20)
-        bufferSettings.setColor(QColor("black"))
-
-        textFormat.setBuffer(bufferSettings)
-        sourcelayerSettings.setFormat(textFormat)
-
-        sourcelayerSettings.fieldName = "pt_nr"
-        sourcelayerSettings.placement = Qgis.LabelPlacement.Horizontal
-        sourcelayerSettings.enabled = True
-
-        sourcelayerSettings = QgsVectorLayerSimpleLabeling(sourcelayerSettings)
         self.gcpLayer.setLabelsEnabled(True)
-        self.gcpLayer.setLabeling(sourcelayerSettings)
+        self.gcpLayer.setLabeling(QgsVectorLayerSimpleLabeling(source_layer_settings))
 
         # Styling
-        symbol = QgsMarkerSymbol.createSimple({"name": "circle", "color": "green", "size": "2"})
+        symbol = QgsMarkerSymbol.createSimple(
+            {
+                "name": "circle",
+                "color": "green",
+                "color_border": "lime",
+                "width_border": "1",
+                "size": "3.0",
+            }
+        )
         self.gcpLayer.setRenderer(QgsSingleSymbolRenderer(symbol))
 
         self.gcpLayer.triggerRepaint()

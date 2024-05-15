@@ -71,12 +71,11 @@ class ProfileImageCanvas(QgsMapCanvas):
 
         # Annotation
         txt = QTextDocument()
-        txt.setHtml('<span style="font-family: Arial; font-size: 13px"><b>' + ptnr + "</b></span>")
+        txt.setHtml('<span style="font-family: Arial; font-size: 10px">' + ptnr + "</span>")
         lbl = QgsTextAnnotation(self)
         lbl.setDocument(txt)
         lbl.setMapPosition(pnt)
-        lbl.setFrameSize(QSizeF(txt.size().width(), txt.size().height()))
-        lbl.setFrameOffsetFromReferencePoint(QPointF(2, -20))
+        lbl.setFrameOffsetFromReferencePointMm(QPointF(0, -10))
         sym1 = QgsFillSymbol.createSimple({"color": "0,0,0,0", "outline_color": "0,0,0,0"})
         lbl.setFillSymbol(sym1)
 
@@ -84,11 +83,10 @@ class ProfileImageCanvas(QgsMapCanvas):
 
         # Marker
         mark = QgsVertexMarker(self)
+        mark.setIconType(QgsVertexMarker.IconType.ICON_CIRCLE)
+        mark.setIconSize(7)
+        mark.setFillColor(QColor("green"))
         mark.setCenter(pnt)
-        # mark.setColor(QColor(0, 255, 0))
-        mark.setIconSize(5)
-        mark.setIconType(QgsVertexMarker.ICON_CIRCLE)
-        mark.setPenWidth(3)
 
         return mark, ann
 
