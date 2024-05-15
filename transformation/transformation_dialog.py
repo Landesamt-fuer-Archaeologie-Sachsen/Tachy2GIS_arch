@@ -136,11 +136,11 @@ class TransformationDialog(QMainWindow):
     def createActions(self):
 
         # Export
-        iconExport = QIcon(QgsApplication.iconPath("mActionSaveGCPpointsAs"))
+        iconExport = QIcon(ICON_PATHS["mActionSaveGCPpointsAs"])
         self.actionExport = QAction(iconExport, "Export data", self)
 
         # Import
-        iconImport = QIcon(QgsApplication.iconPath("mActionLoadGCPpoints"))
+        iconImport = QIcon(ICON_PATHS["mActionLoadGCPpoints"])
         self.actionImport = QAction(iconImport, "Import data", self)
 
     ## \brief create toolbars
