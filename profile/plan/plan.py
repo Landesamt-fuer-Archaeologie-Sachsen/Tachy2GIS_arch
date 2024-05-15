@@ -20,7 +20,6 @@ from qgis.core import (
 )
 
 from .data_store_plan import DataStorePlan
-from .layout import Layout
 from ..rotation_coords import RotationCoords
 
 
@@ -56,8 +55,6 @@ class Plan:
 
         # set datatype filter to profileFotosComboGeoref
         self.__dockwidget.profilePlanSelect.setFilter("Images (*.jpg)")
-
-        self.layout = Layout(self.__iface)
 
         self.__dockwidget.startPlanBtn.clicked.connect(self.__startPlanCreation)
 
