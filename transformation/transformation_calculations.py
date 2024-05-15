@@ -332,11 +332,10 @@ class TransformationCalculations:
     def recalculateLayerExtent(self, layer):
 
         targetExtent = QgsRectangle()
-        targetExtent.setMinimal()
+        targetExtent.setNull()
         for feat in layer.getFeatures():
             bbox = feat.geometry().boundingBox()
             targetExtent.combineExtentWith(bbox)
-
         layer.setExtent(targetExtent)
 
     ## \brief This function creates a new spatial index for a layer
