@@ -24,6 +24,7 @@ class Georef:
     #  @param dockWidget pointer to the dockwidget
     #  @param iFace pointer to the iface class
     def __init__(self, t2gArchInstance, iFace, rotationCoords):
+        self.preselectedLineLayer = None
         self.dockwidget = t2gArchInstance.dockwidget
         self.iface = iFace
 
@@ -38,15 +39,15 @@ class Georef:
     #
     def setup(self):
         # Preselection of Inputlayers (only Layer below "Eingabelayer" are available)
-        preselectedLineLayer = self.preselectionProfileLayer()
+        self.preselectedLineLayer = self.preselectionProfileLayer()
         # Tooltip
         self.dockwidget.profileTargetName.setToolTip(
             "Die Ergebnisdateien werden in Unterverzeichnissen vom Profilfoto abgelegt, "
             "die Dateinamen beginnen so wie hier angegeben."
         )
         # Preselection profilenumber
-        if isinstance(preselectedLineLayer, QgsVectorLayer):
-            self.preselectProfileNumbers(preselectedLineLayer)
+        if isinstance(self.preselectedLineLayer, QgsVectorLayer):
+            self.preselectProfileNumbers(self.preselectedLineLayer)
             # Preselection of Inputlayers (only Layer below "Eingabelayer" are available)
             self.preselectionGcpLayer()
             # set datatype filter to profileFotosComboGeoref
@@ -73,6 +74,8 @@ class Georef:
             # self.__showKreuzprofilSelection(False)
 
             self.dockwidget.checkboxKreuzprofil.stateChanged.connect(self.handleKreuzprofil)
+
+            self.preselectedLineLayer.editingStopped.connect(self.onLineLayerEdited)
 
         else:
             print("preselectedLineLayer is kein QgsVectorLayer")
@@ -493,12 +496,12 @@ class Georef:
     def preselectViewDirection(self):
         self.dockwidget.profileViewDirectionComboGeoref.addItems(["Nord", "Ost", "Süd", "West"])
 
-    ## \brief Preselection of preselectProfileNumbers
-    #
-    #  @param lineLayer
-    def preselectProfileNumbers(self, lineLayer):
-        profileList = self.getProfileNumbers(lineLayer)
+    def onLineLayerEdited(self):
+        self.preselectProfileNumbers(self.preselectedLineLayer)
 
+    def preselectProfileNumbers(self, lineLayer):
+        self.dockwidget.profileIdsComboGeoref.clear()
+        profileList = self.getProfileNumbers(lineLayer)
         self.dockwidget.profileIdsComboGeoref.addItems(profileList)
 
     ## \brief Preselection of getProfileNumbers
