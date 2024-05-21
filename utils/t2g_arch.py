@@ -51,7 +51,8 @@ from qgis.core import (
     QgsPoint,
     QgsProject,
     QgsVectorLayer,
-    QgsWkbTypes, QgsApplication,
+    QgsWkbTypes,
+    QgsApplication,
 )
 from qgis.gui import QgisInterface
 from qgis.utils import plugins, active_plugins
@@ -92,6 +93,11 @@ AW_FOTOENTZERRPUNKT = "Fotoentzerrpunkt"  # Entzerrpunkt-definition
 
 
 class T2gArch:
+    def __del__(self):
+        print("'PLUGIN DELETE SUCCESS' deleting T2gArch instance")
+        if self.myDlgFeatureCheck:
+            self.myDlgFeatureCheck.deleteLater()
+
     def __init__(self, iface: QgisInterface):
         if Qgis.QGIS_VERSION_INT < 32000:
             box = QMessageBox()
@@ -99,6 +105,7 @@ class T2gArch:
             box.exec_()
             raise SystemExit
 
+        self.myDlgFeatureCheck = None
         self.iface = iface
         self.plugin_name_tag = "T2G Archäologie"
 
@@ -1428,9 +1435,9 @@ class T2gArch:
 
     # ToDo: refactoring- Tab "Tools Allgemein"
     def myDlgFeatureCheckShow(self):
-        myDlgFeatureCheck = GeometryCheckDockWidget(self.iface, self.iface.mapCanvas())  # mainWindow()
-        myDlgFeatureCheck.setAutoFillBackground(True)
-        myDlgFeatureCheck.show()
+        self.myDlgFeatureCheck = GeometryCheckDockWidget(self.iface, self.iface.mapCanvas())  # mainWindow()
+        self.myDlgFeatureCheck.setAutoFillBackground(True)
+        self.myDlgFeatureCheck.show()
 
     # ToDo: refactoring - Tab: "Tool Raster"
     def myDlgRasterLayerShow(self):
@@ -1571,14 +1578,10 @@ class T2gArch:
             QIcon(QgsApplication.iconPath("mActionOpenTable")), "Attributtabelle"
         )
         dlgFeatureQuestionTableShow.triggered.connect(self.showAttributeTable)
-        dlgFeatureQuestionShow = contextMenu.addAction(
-            QIcon(ICON_PATHS["Formular"]), "Geometriedaten"
-        )
+        dlgFeatureQuestionShow = contextMenu.addAction(QIcon(ICON_PATHS["Formular"]), "Geometriedaten")
         dlgFeatureQuestionShow.triggered.connect(self.myDlgFeatureQuestionShow)
         # contextMenu.addSeparator()
-        FeatureSelect = contextMenu.addAction(
-            QIcon(ICON_PATHS["FeatureSelect.gif"]), "Geometrie auswählen"
-        )
+        FeatureSelect = contextMenu.addAction(QIcon(ICON_PATHS["FeatureSelect.gif"]), "Geometrie auswählen")
         FeatureSelect.triggered.connect(self.featureSelect)
         # FeatureSelectExit = contextMenu.addAction(
         #    QIcon(ICON_PATHS["FeatureSelect.gif"]), "Auswahl beenden.")

@@ -1,5 +1,10 @@
+import gc
+from os import path as os_path
+
+from PyQt5 import sip
 from PyQt5.QtCore import QCoreApplication
 from PyQt5.QtGui import QPixmap
+from PyQt5.QtWidgets import QApplication
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import (
     QAction,
@@ -48,9 +53,14 @@ class PluginInterface:
             mit der Methode register()), Qts connect() [2] und Qts Parent-Referenz aller Qt-Klassen [3].
         Durch Nutzung der Parent-Referenz zerstört Qt alle Kind-Objekte und löst auch alle betroffenen connects auf,
             wenn eine Instanz einer QObject-Klasse zerstört wird.
+        Parent-Referenzen werden zum Beispiel durch Konstruktoren, setLayout(), setCentralWidget(), ... erzeugt und die
+            Verantwortung über die Löschung wird übertragen.
+        Es ist nicht empfohlen, Referenzen auf Kind-Objekte außerhalb der Parents zu halten, da die Kind-Objekte
+            jederzeit gelöscht werden können. [4]
         [1] https://www.riverbankcomputing.com/static/Docs/PyQt5/gotchas.html#garbage-collection
         [2] https://www.riverbankcomputing.com/static/Docs/PyQt5/signals_slots.html
         [3] https://www.riverbankcomputing.com/static/Docs/PyQt5/api/qtcore/qobject.html#description
+        [4] https://doc.qt.io/qt-5/qobject.html#dtor.QObject
         """
         self.onActionStartPlugin(False)
         self.resetToolbar()
@@ -181,11 +191,17 @@ class PluginInterface:
             else:
                 self.onActionStartPlugin(False)
         else:
-            if self.t2g_arch_instance:
+            if not self.t2g_arch_instance:
+                print("PLUGIN DELETE not needed")
+            else:
                 self.t2g_arch_instance.startAndStopPlugin(start=False)
                 self.t2g_arch_instance.unload()
+                print("PLUGIN DELETE attempt ... wait for 'PLUGIN DELETE SUCCESS' message.")
                 self.t2g_arch_instance = None
+                gc.collect()
+            self.check_for_needed_cleanup()
             self.resetToolbar()
+
         self.actions["actionStartPlugin"]["QAction"].setEnabled(True)
 
     def onActionShowHideDockwidget(self, checked):
@@ -209,3 +225,20 @@ class PluginInterface:
     def onActionProfileExportPoints(self, _):
         if self.t2g_arch_instance:
             self.t2g_arch_instance.exportProfilePoints()
+
+    def check_for_needed_cleanup(self):
+        def fullname(obj):
+            class_object = obj.__class__
+            module_object = class_object.__module__
+            if module_object == "builtins":
+                return class_object.__qualname__  # avoid outputs like "builtins.str"
+            return module_object + "." + class_object.__qualname__
+
+        folder_name = os_path.basename(os_path.dirname(os_path.realpath(__file__))) + "."
+        for widget in QApplication.allWidgets():
+            if not fullname(widget).startswith(folder_name):
+                continue
+
+            print("NEEDS CLEANUP", not sip.isdeleted(widget), fullname(widget))
+            if not sip.isdeleted(widget):
+                widget.deleteLater()
