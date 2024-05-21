@@ -352,7 +352,7 @@ class GeoEditCalculations:
                             for i in range(len(geo)):
                                 item = QgsPoint(diff.geometry().vertexAt(i).x(), diff.geometry().vertexAt(i).y())
                                 ptList.append(item)
-                            r = QgsRubberBand(self.iface.mapCanvas(), True)
+                            r = QgsRubberBand(self.iface.mapCanvas())
                             r.setToGeometry(QgsGeometry.fromPolyline(ptList), None)
                             r.setColor(QColor(255, 0, 0))
                             r.setWidth(5)

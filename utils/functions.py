@@ -232,7 +232,7 @@ class makerAndRubberbands:
             ptL.append(item)
         # ersten Punkt als letzten einfügen
         # ptList.append(ptList[0])
-        r = QgsRubberBand(self.canvas, True)
+        r = QgsRubberBand(self.canvas)
         r.setToGeometry(QgsGeometry.fromPolyline(ptL), None)
         r.setColor(self.color)
         # r.fillColor()
