@@ -198,7 +198,8 @@ class PluginInterface:
                 self.t2g_arch_instance.unload()
                 print("PLUGIN DELETE attempt ... wait for 'PLUGIN DELETE SUCCESS' message.")
                 self.t2g_arch_instance = None
-                gc.collect()
+            gc.collect()
+            QApplication.processEvents()
             self.check_for_needed_cleanup()
             self.resetToolbar()
 
