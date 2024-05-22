@@ -1636,11 +1636,6 @@ class T2gArch:
         query = "id = " + str(int(self.selectedFeature.attributes()[0]))
         self.iface.showAttributeTable(self.selectedLayer, query)
 
-    # ToDo: refactoring - befundlabel helper
-    def setAbbruch(self):
-        self.abbruch = True
-        self.iface.messageBar().clearWidgets()
-
     def selectFeatureChanged(self, fselected, fdeselected):
         QgsMessageLog.logMessage("sel" + str(fselected), self.plugin_name_tag, Qgis.Info)
         for value in fselected:

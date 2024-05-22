@@ -21,10 +21,11 @@ class GeoEditCalculations:
     #
     #  @param geoEditInstance pointer to the geoEditInstance
     def __init__(self, geoEditInstance):
+        self.selectedFeature = None
+        self.abbruch = None
         self.geoEditInstance = geoEditInstance
         self.dockwidget = geoEditInstance.dockwidget
         self.iface = geoEditInstance.iface
-        self.t2gArchInstance = geoEditInstance.t2gArchInstance
 
         self.createMaptools()
 
@@ -291,23 +292,23 @@ class GeoEditCalculations:
     def contactClip(self):
         self.iface.mapCanvas().setMapTool(self.mapToolSel)
         self.mapToolSel.geomIdentified.connect(self.featureSelect2)
-        rubberlist = []
-        featurelist = []
-        self.t2gArchInstance.abbruch = False
+        rubber_list = []
+        feature_list = []
+        self.abbruch = False
         self.selectedFeature = None
         layer = self.iface.mapCanvas().currentLayer()
         try:
             if layer.type() == QgsMapLayer.VectorLayer:
                 if layer.geometryType() == QgsWkbTypes.PolygonGeometry:
                     self.createCancellationMessage("Schablone wählen.")
-                    while self.selectedFeature == None:
-                        if self.t2gArchInstance.abbruch == True:
+                    while self.selectedFeature is None:
+                        if self.abbruch:
                             raise NameError
                         QApplication.processEvents()
-                    while len(featurelist) < 1:
+                    while len(feature_list) < 1:
                         # Feature eins
                         while self.selectedFeature is None:
-                            if self.t2gArchInstance.abbruch == True:
+                            if self.abbruch:
                                 raise NameError
                             QApplication.processEvents()
 
@@ -318,27 +319,27 @@ class GeoEditCalculations:
                             r.setColor(QColor(0, 0, 255, 180))
                             r.setWidth(5)
                             r.show()
-                            rubberlist.append(r)
-                            featurelist.append(self.selectedFeature)
+                            rubber_list.append(r)
+                            feature_list.append(self.selectedFeature)
                         layer.removeSelection()
                         self.selectedFeature = None
                         # Feature zwei
                         self.iface.messageBar().popWidget()
                         self.createCancellationMessage("Schnittobjekt wählen.")
                         while self.selectedFeature is None:
-                            if self.t2gArchInstance.abbruch == True:
+                            if self.abbruch:
 
-                                for maker in rubberlist:
+                                for maker in rubber_list:
                                     self.iface.mapCanvas().scene().removeItem(maker)
 
                                 raise NameError
                             QApplication.processEvents()
                         if self.selectedLayer.name() == "E_Polygon":
-                            featurelist.append(self.selectedFeature)
+                            feature_list.append(self.selectedFeature)
                             selection = self.selectedFeature
 
-                for g in featurelist:
-                    if g.id() != featurelist[0].id():
+                for g in feature_list:
+                    if g.id() != feature_list[0].id():
                         if g.geometry().intersects(fsel.geometry()):
                             # clipping non selected intersecting features
                             attributes = g.attributes()
@@ -357,7 +358,7 @@ class GeoEditCalculations:
                             r.setColor(QColor(255, 0, 0))
                             r.setWidth(5)
                             r.show()
-                            rubberlist.append(r)
+                            rubber_list.append(r)
                             delSelectFeature()
 
                             box = QMessageBox()
@@ -379,7 +380,7 @@ class GeoEditCalculations:
                                 # layer.endEditCommand()
         except NameError:
             QgsMessageLog.logMessage("Abbruch", "T2G Archäologie", Qgis.Info)
-        for maker in rubberlist:
+        for maker in rubber_list:
             self.iface.mapCanvas().scene().removeItem(maker)
 
         # layer.commitChanges()
@@ -403,9 +404,17 @@ class GeoEditCalculations:
         widgetMessage = self.iface.messageBar().createMessage(text)
         button = QPushButton(widgetMessage)
         button.setText("Abbruch")
-        button.pressed.connect(self.t2gArchInstance.setAbbruch)
+        # TODO QGIS kann nicht beendet werden / Plugin kann nicht neu geladen werden
+        # wenn button nicht gedrückt wird
+        # wenn message bar mit x geschlossen wird, muss der Task-Manager benutzt werden
+        button.pressed.connect(self.setAbbruch)
         widgetMessage.layout().addWidget(button)
         # button = QPushButton(widgetMessage)
         # button.setText("Weiter")
         # widgetMessage.layout().addWidget(button)
         self.iface.messageBar().pushWidget(widgetMessage, Qgis.Info)
+
+    # ToDo: refactoring - befundlabel helper
+    def setAbbruch(self):
+        self.abbruch = True
+        self.iface.messageBar().clearWidgets()
