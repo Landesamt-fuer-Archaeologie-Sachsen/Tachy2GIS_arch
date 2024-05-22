@@ -1,5 +1,5 @@
 from qgis.PyQt.QtCore import pyqtSignal, pyqtSlot
-from qgis.core import QgsFeature, QgsGeometry, QgsFeatureRequest, QgsMessageLog, Qgis
+from qgis.core import QgsFeature, QgsGeometry, QgsFeatureRequest, QgsMessageLog, Qgis, QgsProject
 from qgis.gui import QgsAttributeDialog, QgsAttributeEditorContext
 
 from .map_tools import MultilineMapTool
@@ -71,6 +71,13 @@ class MapToolDigiLine(MultilineMapTool, MapToolMixin):
 
         self.feat.setFields(self.digiLineLayer.fields())
 
+        proj_layer = QgsProject.instance().mapLayersByName("E_Line")[0]
+        for field in proj_layer.fields():
+            field_name = field.name()
+            field_index = proj_layer.fields().indexFromName(field_name)
+            field_default_value = proj_layer.defaultValue(field_index)
+            self.feat.setAttribute(field_name, field_default_value)
+
         self.digiLineLayer.startEditing()
         self.refData["lineLayer"].startEditing()
 
@@ -79,11 +86,9 @@ class MapToolDigiLine(MultilineMapTool, MapToolMixin):
 
         self.dialogAttributes = QgsAttributeDialog(self.refData["lineLayer"], self.feat, False, None)
         self.dialogAttributes.setMode(QgsAttributeEditorContext.FixAttributeMode)
-        self.dialogAttributes.show()
-
         self.dialogAttributes.rejected.connect(self.closeAttributeDialog)
-
         self.dialogAttributes.accepted.connect(self.acceptedAttributeDialog)
+        self.dialogAttributes.show()
 
     def closeAttributeDialog(self):
         self.clear_map_tool()

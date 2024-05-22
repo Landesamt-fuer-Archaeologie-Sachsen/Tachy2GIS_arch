@@ -1,5 +1,5 @@
 from qgis.PyQt.QtCore import pyqtSignal, pyqtSlot
-from qgis.core import QgsFeature, QgsGeometry, QgsFeatureRequest, QgsPoint
+from qgis.core import QgsFeature, QgsGeometry, QgsFeatureRequest, QgsPoint, QgsProject
 from qgis.gui import QgsAttributeDialog, QgsAttributeEditorContext
 
 from .map_tools import PointMapTool
@@ -70,6 +70,13 @@ class MapToolDigiPoint(PointMapTool, MapToolMixin):
         self.createFeature()
 
         self.feat.setFields(self.digiPointLayer.fields())
+
+        proj_layer = QgsProject.instance().mapLayersByName("E_Point")[0]
+        for field in proj_layer.fields():
+            field_name = field.name()
+            field_index = proj_layer.fields().indexFromName(field_name)
+            field_default_value = proj_layer.defaultValue(field_index)
+            self.feat.setAttribute(field_name, field_default_value)
 
         self.digiPointLayer.startEditing()
         self.refData["pointLayer"].startEditing()
