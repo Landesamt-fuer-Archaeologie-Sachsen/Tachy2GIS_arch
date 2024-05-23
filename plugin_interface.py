@@ -198,8 +198,9 @@ class PluginInterface:
                 self.t2g_arch_instance.unload()
                 print("PLUGIN DELETE attempt ... wait for 'PLUGIN DELETE SUCCESS' message.")
                 self.t2g_arch_instance = None
-            gc.collect()
-            QApplication.processEvents()
+
+            gc.collect()  # make sure instances get deleted -> Qt deletes children and disconnects signals
+            QApplication.processEvents()  # process signals to delete more QObjects
             self.check_for_needed_cleanup()
             self.resetToolbar()
 
@@ -228,6 +229,9 @@ class PluginInterface:
             self.t2g_arch_instance.exportProfilePoints()
 
     def check_for_needed_cleanup(self):
+        """
+        Check for instantiated QWidgets originating from classes in our code.
+        """
         def fullname(obj):
             class_object = obj.__class__
             module_object = class_object.__module__
@@ -241,5 +245,11 @@ class PluginInterface:
                 continue
 
             print("NEEDS CLEANUP", not sip.isdeleted(widget), fullname(widget))
+
+            # detect if C++ object from Qt is already deleted
+            # so only pyqt still holds a reference which will be deleted
             if not sip.isdeleted(widget):
+                # try to solve this needed cleanup
+                # if you see "NEEDS CLEANUP" and 'PLUGIN DELETE SUCCESS' in stdout
+                # then this was successful, and you should add deleteLater() to your normal code
                 widget.deleteLater()

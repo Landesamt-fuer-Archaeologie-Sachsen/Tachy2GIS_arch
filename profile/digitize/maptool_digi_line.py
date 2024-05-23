@@ -71,6 +71,8 @@ class MapToolDigiLine(MultilineMapTool, MapToolMixin):
 
         self.feat.setFields(self.digiLineLayer.fields())
 
+        # use default values from actual project layer
+        # as self.digiLineLayer has no defaultValueDefinitions aka expressions
         proj_layer = QgsProject.instance().mapLayersByName("E_Line")[0]
         for field in proj_layer.fields():
             field_name = field.name()

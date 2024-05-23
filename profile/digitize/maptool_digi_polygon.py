@@ -71,6 +71,8 @@ class MapToolDigiPolygon(PolygonMapTool, MapToolMixin):
 
         self.feat.setFields(self.digiPolygonLayer.fields())
 
+        # use default values from actual project layer
+        # as self.digiLineLayer has no defaultValueDefinitions aka expressions
         proj_layer = QgsProject.instance().mapLayersByName("E_Polygon")[0]
         for field in proj_layer.fields():
             field_name = field.name()

@@ -71,6 +71,8 @@ class MapToolDigiPoint(PointMapTool, MapToolMixin):
 
         self.feat.setFields(self.digiPointLayer.fields())
 
+        # use default values from actual project layer
+        # as self.digiLineLayer has no defaultValueDefinitions aka expressions
         proj_layer = QgsProject.instance().mapLayersByName("E_Point")[0]
         for field in proj_layer.fields():
             field_name = field.name()

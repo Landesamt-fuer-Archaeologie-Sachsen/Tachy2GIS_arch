@@ -94,6 +94,9 @@ AW_FOTOENTZERRPUNKT = "Fotoentzerrpunkt"  # Entzerrpunkt-definition
 
 class T2gArch:
     def __del__(self):
+        """
+        use the following print message as indicator for success deleting T2gArch instance
+        """
         print("'PLUGIN DELETE SUCCESS' deleting T2gArch instance")
         if self.myDlgFeatureCheck:
             self.myDlgFeatureCheck.deleteLater()
