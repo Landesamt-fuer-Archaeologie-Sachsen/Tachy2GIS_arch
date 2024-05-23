@@ -84,8 +84,6 @@ from ..messen.messen import MeasurementTab
 from ..profile.profile import Profile
 from ..transformation.transformation_gui import TransformationGui
 
-VERSION = "GDKE, RLP " + "V 1.0.0" + " für Qgis 3.20 -"
-
 FN_PROFILNUMMER = "prof_nr"  # Feldname in der die Profilnummer steht
 # Feldname in der die Entzerrpunkt-definition steht
 FN_DEF_FOTOENTZERRPUNKT = "obj_typ"
@@ -255,7 +253,11 @@ class T2gArch:
     def setup(self):
         self.iface.setActiveLayer(self.layerPoly)
 
-        self.dockwidget.label_10.setText(VERSION)
+        metadata = self.iface.pluginManagerInterface().pluginMetadata("Tachy2GIS_arch")
+        self.dockwidget.label_10.setText(
+            f"GDKE, RLP V{metadata['version_installed']} für QGIS 3.34"
+        )
+        del metadata
 
         self.currentLayerChanged()
         self.getMaxValues()

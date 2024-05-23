@@ -1,38 +1,71 @@
-# This file contains metadata for your plugin. Since
-# version 2.0 of QGIS this is the proper way to supply
-# information about a plugin. The old method of
-# embedding metadata in __init__.py will
-# is no longer supported since version 2.0.
+; https://docs.qgis.org/3.34/en/docs/pyqgis_developer_cookbook/plugins/plugins.html#metadata-txt
 
-# This file should be included when you package your plugin.# Mandatory items:
+; metadata = iface.pluginManagerInterface().pluginMetadata("Tachy2GIS_arch")
+; print(metadata)
+; look for errors in key 'error': and 'error_details':
+; restart QGIS after modifying this file
+
+
+; ################# the next section is mandatory
 
 [general]
 name=T2G Archäologie
-qgisMinimumVersion=3.34.6
-description=Archäologie-PlugIn für Tachy2Gis
-version=2.0.0
-author=Landesamt für Archäologie Sachsen
+name[de]=T2G Archäologie
+name[en_us]=T2G Archäologie
 email=poststelle@lfa.sachsen.de
-
+author=Landesamt für Archäologie Sachsen
+author_name=Landesamt für Archäologie Sachsen
+description=Archäologie-PlugIn für Tachy2Gis
+description[de]=Archäologie-PlugIn für Tachy2Gis
+description[en_us]=Archäologie-PlugIn für Tachy2Gis
 about=PlugIn zur T2G (Archäologie)
-
+about[de]=PlugIn zur T2G (Archäologie)
+about[en_us]=PlugIn zur T2G (Archäologie)
+qgisMinimumVersion=3.34.6
+version=2.0.0
 tracker=
 repository=
-# End of mandatory metadata
 
-# Recommended items:
+; ################# start of optional metadata
 
-# Uncomment the following line and add your changelog:
-# changelog=
-
-# Tags are comma separated with spaces allowed
-tags=python
-
-homepage=
 category=Plugins
+
+changelog=
+
+; Tags are in comma separated value format, spaces are allowed within the
+; tag name.
+; Tags should be in English language. Please also check for existing tags and
+; synonyms before creating a new one.
+tags=Archäologie
+tags[de]=Archäologie
+tags[en_us]=Archäologie
+
+; ################# these metadata can be empty, they will eventually become mandatory
+
 icon=Icons/plugin_icon.png
-# experimental flag
+
+; if empty, it will be automatically set to major version + .99
+qgisMaximumVersion=3.99
+
+; Since QGIS 3.8, a comma separated list of plugins to be installed
+; (or upgraded) can be specified.
+; The example below will try to install (or upgrade) "MyOtherPlugin" version 1.12
+; and any version of "YetAnotherPlugin".
+; Both "MyOtherPlugin" and "YetAnotherPlugin" names come from their own metadata's
+; name field
+; plugin_dependencies=MyOtherPlugin==1.12,YetAnotherPlugin
+plugin_dependencies=Tachy2GIS-3DViewer==1.2.2
+
+; experimental flag (applies to the single version)
 experimental=True
 
-# deprecated flag (applies to the whole plugin, not just a single version)
+; deprecated flag (applies to the whole plugin and not only to the uploaded version)
 deprecated=False
+
+homepage=
+create_date=
+create_date_stable=
+create_date_experimental=
+update_date=
+update_date_stable=
+update_date_experimental=
