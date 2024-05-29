@@ -1,4 +1,3 @@
-## @package QGIS geoEdit extension..
 import json
 import os
 
@@ -9,15 +8,13 @@ from qgis.core import (
     QgsFeature,
     QgsField,
     QgsVectorFileWriter,
-    QgsCoordinateTransformContext,
     QgsProject,
     QgsVectorLayer,
     QgsLayerTreeGroup,
     QgsLayerTreeLayer,
     QgsPoint,
     QgsGeometry,
-    QgsFeatureRequest,
-)
+    QgsFeatureRequest, )
 
 from .data_store_plan import DataStorePlan
 from ..rotation_coords import RotationCoords
@@ -41,6 +38,7 @@ class Plan:
         self.__iface = iFace
 
         self.aar_direction = None
+        self.prof_nr = None
 
         self.dataStorePlan = DataStorePlan()
         self.rotationCoords = RotationCoords()
@@ -49,7 +47,6 @@ class Plan:
 
     ## @brief Initializes the functionality for profile modul
     #
-
     def setup(self):
         print("Setup plan")
 
@@ -58,16 +55,10 @@ class Plan:
 
         self.__dockwidget.startPlanBtn.clicked.connect(self.__startPlanCreation)
 
-    ## \brief Event connections
-    #
-
     def createConnects(self):
 
         self.dataStorePlan.pup.register("pushTransformationParams", self.rotationCoords.setAarTransformationParams)
 
-    ## \brief Start digitize dialog
-    #
-    #
     def __startPlanCreation(self):
 
         planData = self.__getSelectedValues()
@@ -95,9 +86,6 @@ class Plan:
 
             # self.layout.startLayout(planData)
 
-    ## \brief get selected values
-    #
-    #
     def __getSelectedValues(self):
 
         # Profilbild
@@ -109,9 +97,6 @@ class Plan:
 
         return planData
 
-    ## \brief get meta data to profile
-    #
-    #
     def __importMetaData(self, profilePath):
 
         metaFileName = profilePath[:-3]
@@ -137,6 +122,7 @@ class Plan:
                     self.dataStorePlan.addTransformParams(data["transform_params"])
 
                     self.aar_direction = data["aar_direction"]
+                    self.prof_nr = data["profilnummer"]
 
                 else:
                     raise ValueError("AAR direction muss horizontal, absolute height oder original sein!")
@@ -150,7 +136,6 @@ class Plan:
     #
     # \param isClone - should the return a copy of the layers or just a pointer to the layers
     # @returns Array of inputlayers
-
     def __getInputlayers(self, isClone):
 
         inputLayers = []
@@ -183,10 +168,6 @@ class Plan:
 
         return refData
 
-    ## \brief export layers
-    #
-    #
-
     def __exportPlanLayers(self, refData, baseFilePath):
 
         # Flexible buffersize from gui
@@ -214,10 +195,6 @@ class Plan:
         gcpLayer, selFeatures = self.__getGcpLayer(epsgCode)
         self.__writeLayer(gcpLayer, selFeatures, baseFilePath, "gcp")
 
-        ## \brief get points from eingabelayer
-
-    #
-    #
     def __getPointFeaturesFromEingabelayer(self, pointLayer, bufferGeometry, geoType):
         # aus Eingabelayer holen
 
@@ -247,10 +224,6 @@ class Plan:
 
         return selFeatures
 
-    ## \brief get lines from eingabelayer
-    #
-    #
-
     def __getLineFeaturesFromEingabelayer(self, lineLayer, bufferGeometry, geoType):
 
         bbox = bufferGeometry.boundingBox()
@@ -277,10 +250,6 @@ class Plan:
 
         return selFeatures
 
-    ## \brief get polygons from eingabelayer
-    #
-    #
-
     def __getPolygonFeaturesFromEingabelayer(self, polygonLayer, bufferGeometry, geoType):
 
         bbox = bufferGeometry.boundingBox()
@@ -306,10 +275,6 @@ class Plan:
                         selFeatures.append(rotFeature)
 
         return selFeatures
-
-    ## \brief get gcps
-    #
-    #
 
     def __getGcpLayer(self, epsgCode):
 
@@ -382,10 +347,8 @@ class Plan:
 
         return gcpLayer, features
 
-    ## \brief __writeLayer
-    #
-    #
     def __writeLayer(self, inputLayer, selFeatures, baseFilePath, layerType):
+        layer_name = f"profildata_{inputLayer.name()}"
 
         inputLayer.selectAll()
         outputLayer = processing.run("native:saveselectedfeatures", {"INPUT": inputLayer, "OUTPUT": "memory:"})[
@@ -402,18 +365,66 @@ class Plan:
         # add features
         pr.addFeatures(selFeatures)
 
+        # add field to layer:
+        pr.addAttributes([QgsField('aar_direction', QVariant.String, len=20)])
+        if inputLayer.name() == "gcp_points":
+            pr.addAttributes([QgsField('profil_nr', QVariant.String, len=20)])
+        outputLayer.updateFields()
+
+        # write values for new field in every feature:
+        for f in outputLayer.getFeatures():
+            f['aar_direction'] = self.aar_direction
+            if inputLayer.name() == "gcp_points":
+                f['profil_nr'] = self.prof_nr
+            outputLayer.updateFeature(f)
+
         outputLayer.commitChanges()
 
         outputLayer.updateExtents()
 
         outputLayer.endEditCommand()
 
-        # Save mem layer as a shapefile
-        fileOutPath = f"{baseFilePath}_{layerType}.shp"
+        # get geopackage used in project:
+        data_provider_set = set()
+        for layer in QgsProject.instance().mapLayers(validOnly=True).values():
+            data_provider = layer.dataProvider().dataSourceUri().split("|")[0]
+            if data_provider.lower().endswith(".gpkg"):
+                data_provider_set.add(data_provider)
+        geopackage_path = list(data_provider_set)[0]
 
         options = QgsVectorFileWriter.SaveVectorOptions()
-        options.driverName = "ESRI Shapefile"
+        options.driverName = "GPKG"
+        options.onlySelectedFeatures = False
+        options.onlyAttributes = False
+        options.layerName = layer_name
 
-        QgsVectorFileWriter.writeAsVectorFormatV2(outputLayer, fileOutPath, QgsCoordinateTransformContext(), options)
+        # check if unregistered (in project) layer already exists in gpkg:
+        geopackage_layers = []
+        layer = QgsVectorLayer(geopackage_path, '', 'ogr')
+        if layer.isValid():
+            for subLayerName in layer.dataProvider().subLayers():
+                subLayerName = subLayerName.split('!!::!!')[1]  # Extract layer name
+                geopackage_layers.append(subLayerName)
+        else:
+            print("Failed to open GeoPackage")
+            return
+        if layer_name in geopackage_layers:
+            print(f"layer {layer_name} already exists: AppendToLayerNoNewFields")
+            options.actionOnExistingFile = QgsVectorFileWriter.AppendToLayerNoNewFields
+        else:
+            print(f"create layer {layer_name}: CreateOrOverwriteLayer")
+            options.actionOnExistingFile = QgsVectorFileWriter.CreateOrOverwriteLayer
 
-        print("outputLayer Layer is written to: ", fileOutPath)
+        error = QgsVectorFileWriter.writeAsVectorFormatV3(
+            outputLayer,
+            str(geopackage_path),
+            QgsProject.instance().transformContext(),
+            options
+        )
+
+        print(error, "outputLayer Layer is written to:", geopackage_path)
+        if error[0] == 7:
+            print(
+                "MÖGLICHE LÖSUNG für unique table name nach manuellem Löschen der Tabellen: "
+                "lösche auch Referenzen in gpkg_*-Tabellen!"
+            )
