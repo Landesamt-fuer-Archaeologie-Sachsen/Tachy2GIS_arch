@@ -254,9 +254,10 @@ class T2gArch:
         self.iface.setActiveLayer(self.layerPoly)
 
         metadata = self.iface.pluginManagerInterface().pluginMetadata("Tachy2GIS_arch")
-        self.dockwidget.label_10.setText(
-            f"GDKE, RLP V{metadata['version_installed']} für QGIS 3.34"
-        )
+        if metadata:
+            self.dockwidget.label_10.setText(
+                f"GDKE, RLP V{metadata['version_installed']} für QGIS 3.34"
+            )
         del metadata
 
         self.currentLayerChanged()
