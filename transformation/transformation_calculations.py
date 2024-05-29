@@ -301,7 +301,7 @@ class TransformationCalculations:
             or layerType == QgsWkbTypes.LineStringZ
             or layerType == QgsWkbTypes.PolygonZ
             or layerType == QgsWkbTypes.MultiPointZ
-            or layerType == QgsWkbTypes.MultiLineZ
+            or layerType == QgsWkbTypes.MultiLineStringZ
             or layerType == QgsWkbTypes.MultiPolygonZ
         ):
 
