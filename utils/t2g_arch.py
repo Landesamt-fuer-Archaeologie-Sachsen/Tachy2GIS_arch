@@ -258,6 +258,10 @@ class T2gArch:
             self.dockwidget.label_10.setText(
                 f"GDKE, RLP V{metadata['version_installed']} für QGIS 3.34"
             )
+        else:
+            self.dockwidget.label_10.setText(
+                f"Error: QGIS didn't load plugin metadata!!!"
+            )
         del metadata
 
         self.currentLayerChanged()
