@@ -761,7 +761,7 @@ class DigitizeCanvas(QgsMapCanvas):
             if feature["obj_uuid"] == uuid:
                 self.digiPolygonLayer.startEditing()
                 self.digiPolygonLayer.deleteFeature(feature.id())
-                self.digiPolygonLayer.commitChanges()
+                print("commitChanges", self.digiPolygonLayer.commitChanges())
 
         featuresLine = self.digiLineLayer.getFeatures()
 
@@ -769,7 +769,7 @@ class DigitizeCanvas(QgsMapCanvas):
             if feature["obj_uuid"] == uuid:
                 self.digiLineLayer.startEditing()
                 self.digiLineLayer.deleteFeature(feature.id())
-                self.digiLineLayer.commitChanges()
+                print("commitChanges", self.digiLineLayer.commitChanges())
 
         featuresPoint = self.digiPointLayer.getFeatures()
 
@@ -777,7 +777,7 @@ class DigitizeCanvas(QgsMapCanvas):
             if feature["obj_uuid"] == uuid:
                 self.digiPointLayer.startEditing()
                 self.digiPointLayer.deleteFeature(feature.id())
-                self.digiPointLayer.commitChanges()
+                print("commitChanges", self.digiPointLayer.commitChanges())
 
                 # layer.dataProvider().deleteFeatures([5, 10])
 

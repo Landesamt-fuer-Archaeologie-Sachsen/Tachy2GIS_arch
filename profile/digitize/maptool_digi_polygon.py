@@ -68,16 +68,20 @@ class MapToolDigiPolygon(PolygonMapTool, MapToolMixin):
 
     def showdialog(self):
         self.createFeature()
+        proj_layer = QgsProject.instance().mapLayersByName("E_Polygon")[0]
 
         self.feat.setFields(self.digiPolygonLayer.fields())
 
         # use default values from actual project layer
         # as self.digiLineLayer has no defaultValueDefinitions aka expressions
-        proj_layer = QgsProject.instance().mapLayersByName("E_Polygon")[0]
         for field in proj_layer.fields():
             field_name = field.name()
             field_index = proj_layer.fields().indexFromName(field_name)
-            field_default_value = proj_layer.defaultValue(field_index)
+            if field_name == "fid":
+                field_default_value = "-999"
+            else:
+                # formula for fid: if (count("fid") = 0, 0, maximum("fid") + 1)
+                field_default_value = proj_layer.defaultValue(field_index)
             self.feat.setAttribute(field_name, field_default_value)
 
         self.digiPolygonLayer.startEditing()
@@ -88,11 +92,9 @@ class MapToolDigiPolygon(PolygonMapTool, MapToolMixin):
 
         self.dialogAttributes = QgsAttributeDialog(self.refData["polygonLayer"], self.feat, False, None)
         self.dialogAttributes.setMode(QgsAttributeEditorContext.FixAttributeMode)
-        self.dialogAttributes.show()
-
         self.dialogAttributes.rejected.connect(self.closeAttributeDialog)
-
         self.dialogAttributes.accepted.connect(self.acceptedAttributeDialog)
+        self.dialogAttributes.show()
 
     def closeAttributeDialog(self):
         self.clear_map_tool()
@@ -159,7 +161,7 @@ class MapToolDigiPolygon(PolygonMapTool, MapToolMixin):
         selFeatures = []
         for feature in featsSel:
             if not feature.geometry().within(bufferGeometry):
-                print("No feature within buffer geometry!")
+                print("No Polygonfeatures within buffer geometry!")
                 continue
 
             if geoType == "tachy" and feature["geo_quelle"] != "profile_object":
@@ -209,47 +211,72 @@ class MapToolDigiPolygon(PolygonMapTool, MapToolMixin):
 
     # in den Eingabelayer schreiben
     def reverseRotation2Eingabelayer(self, layer_id, aar_direction):
-        self.refData["polygonLayer"].startEditing()
 
         pr = self.refData["polygonLayer"].dataProvider()
+        proj_layer = QgsProject.instance().mapLayersByName("E_Polygon")[0]
 
-        features = self.digiPolygonLayer.getFeatures()
+        features_to_write = self.digiPolygonLayer.getFeatures()
 
-        # iterrieren über zu schreibende features
-        for feature in features:
+        for feature in features_to_write:
 
-            if feature["geo_quelle"] == "profile_object":
+            if feature["geo_quelle"] != "profile_object":
+                continue
 
-                # Zielgeometrie erzeugen
-                emptyTargetGeometry = QgsGeometry.fromMultiPolygonXY([])
+            self.refData["polygonLayer"].startEditing()
 
-                # Zielfeature erzeugen
-                rotFeature = QgsFeature(self.refData["polygonLayer"].fields())
+            # Zielgeometrie erzeugen
+            emptyTargetGeometry = QgsGeometry.fromMultiPolygonXY([])
 
-                # Geometrie in Kartenebene umrechnen
-                rotateGeom = self.rotationCoords.rotatePolygonFeature(feature, emptyTargetGeometry, aar_direction)
-                rotFeature.setGeometry(rotateGeom)
-                rotFeature.setAttributes(feature.attributes())
+            # Zielfeature erzeugen
+            rotFeature = QgsFeature(self.refData["polygonLayer"].fields())
 
-                checker = True
-                # Features aus Eingabelayer
-                # schauen ob es schon existiert (anhand uuid), wenn ja dann löschen und durch Zielfeature ersetzen
-                sourceLayerFeatures = self.refData["polygonLayer"].getFeatures()
-                for sourceFeature in sourceLayerFeatures:
-                    if feature["obj_uuid"] == sourceFeature["obj_uuid"]:
-                        pr.deleteFeatures([sourceFeature.id()])
-                        pr.addFeatures([rotFeature])
+            # Geometrie in Kartenebene umrechnen
+            rotateGeom = self.rotationCoords.rotatePolygonFeature(feature, emptyTargetGeometry, aar_direction)
+            rotFeature.setGeometry(rotateGeom)
+            rotFeature.setAttributes(feature.attributes())
 
-                        checker = False
+            missing = True
+            # Features aus Eingabelayer
+            # schauen ob es schon existiert (anhand uuid), wenn ja dann löschen und durch Zielfeature ersetzen
+            sourceLayerFeatures = self.refData["polygonLayer"].getFeatures()
+            for sourceFeature in sourceLayerFeatures:
+                if feature["obj_uuid"] == sourceFeature["obj_uuid"]:
+                    pr.deleteFeatures([sourceFeature.id()])
+                    pr.addFeatures([rotFeature])
+                    missing = False
+            if not missing:
+                continue
 
-                # wenn feature nicht vorhanden, neues feature im Layer anlegen
-                if checker == True:
-                    retObj = pr.addFeatures([rotFeature])
+            # wenn feature nicht vorhanden, neues feature im Layer anlegen
 
-        self.refData["polygonLayer"].removeSelection()
-        self.refData["polygonLayer"].commitChanges()
-        self.refData["polygonLayer"].updateExtents()
-        self.refData["polygonLayer"].endEditCommand()
+            # use default values for fid from actual project layer
+            # as self.digiLineLayer has no defaultValueDefinitions aka expressions
+            # formula for fid: if (count("fid") = 0, 0, maximum("fid") + 1)
+            field_default_value = proj_layer.defaultValue(proj_layer.fields().indexFromName("fid"))
+            rotFeature.setAttribute("fid", field_default_value)
+
+            retObj = pr.addFeatures([rotFeature])
+            self.refData["polygonLayer"].removeSelection()
+            self.refData["polygonLayer"].commitChanges()
+            self.refData["polygonLayer"].updateExtents()
+            self.refData["polygonLayer"].endEditCommand()
+
+            # update feature attribute in digiLineLayer
+            self.digiPolygonLayer.startEditing()
+            self.digiPolygonLayer.changeAttributeValue(
+                feature.id(),
+                self.digiPolygonLayer.fields().indexFromName("fid"),
+                field_default_value
+            )
+            print("commitChanges", self.digiPolygonLayer.commitChanges())
+            self.digiPolygonLayer.endEditCommand()
+
+            # update table fid
+            dataObj = {}
+            for item in proj_layer.fields():
+                if item.name() == "obj_uuid" or item.name() == "fid":
+                    dataObj[item.name()] = rotFeature[item.name()]
+            self.pup.publish("updateFeatureAttr", dataObj)
 
     def removeFeatureInEingabelayerByUuid(self, uuid):
         features = self.refData["polygonLayer"].getFeatures()
@@ -259,6 +286,6 @@ class MapToolDigiPolygon(PolygonMapTool, MapToolMixin):
                 if feature["geo_quelle"] == "profile_object":
                     self.refData["polygonLayer"].startEditing()
                     self.refData["polygonLayer"].deleteFeature(feature.id())
-                    self.refData["polygonLayer"].commitChanges()
+                    print("commitChanges", self.refData["polygonLayer"].commitChanges())
 
         self.digi_layer_changed.emit()

@@ -158,7 +158,7 @@ class Parambar(QWidget):
             titleText = "Info"
 
         except Exception as e:
-            infoText = f"Achtung! Die Daten wurden nicht in die Eingabelayer geschrieben. ({e})"
+            infoText = f"Achtung! Die Daten wurden nicht in die Eingabelayer geschrieben. ({type(e)}: {e})"
             titleText = "Fehler"
 
         # Info message

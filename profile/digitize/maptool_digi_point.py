@@ -1,5 +1,5 @@
 from qgis.PyQt.QtCore import pyqtSignal, pyqtSlot
-from qgis.core import QgsFeature, QgsGeometry, QgsFeatureRequest, QgsPoint, QgsProject
+from qgis.core import QgsFeature, QgsGeometry, QgsFeatureRequest, QgsPoint, QgsProject, QgsMessageLog, Qgis
 from qgis.gui import QgsAttributeDialog, QgsAttributeEditorContext
 
 from .map_tools import PointMapTool
@@ -68,16 +68,20 @@ class MapToolDigiPoint(PointMapTool, MapToolMixin):
 
     def showdialog(self):
         self.createFeature()
+        proj_layer = QgsProject.instance().mapLayersByName("E_Point")[0]
 
         self.feat.setFields(self.digiPointLayer.fields())
 
         # use default values from actual project layer
         # as self.digiLineLayer has no defaultValueDefinitions aka expressions
-        proj_layer = QgsProject.instance().mapLayersByName("E_Point")[0]
         for field in proj_layer.fields():
             field_name = field.name()
             field_index = proj_layer.fields().indexFromName(field_name)
-            field_default_value = proj_layer.defaultValue(field_index)
+            if field_name == "fid":
+                field_default_value = "-999"
+            else:
+                # formula for fid: if (count("fid") = 0, 0, maximum("fid") + 1)
+                field_default_value = proj_layer.defaultValue(field_index)
             self.feat.setAttribute(field_name, field_default_value)
 
         self.digiPointLayer.startEditing()
@@ -88,11 +92,9 @@ class MapToolDigiPoint(PointMapTool, MapToolMixin):
 
         self.dialogAttributes = QgsAttributeDialog(self.refData["pointLayer"], self.feat, False, None)
         self.dialogAttributes.setMode(QgsAttributeEditorContext.FixAttributeMode)
-        self.dialogAttributes.show()
-
         self.dialogAttributes.rejected.connect(self.closeAttributeDialog)
-
         self.dialogAttributes.accepted.connect(self.acceptedAttributeDialog)
+        self.dialogAttributes.show()
 
     def closeAttributeDialog(self):
         self.clear_map_tool()
@@ -159,6 +161,7 @@ class MapToolDigiPoint(PointMapTool, MapToolMixin):
         selFeatures = []
         for feature in featsSel:
             if not feature.geometry().within(bufferGeometry):
+                print("No Pointfeatures within buffer geometry!")
                 continue
 
             if geoType == "tachy" and feature["geo_quelle"] != "profile_object":
@@ -196,7 +199,10 @@ class MapToolDigiPoint(PointMapTool, MapToolMixin):
                 # write to table
                 self.writeToTable(feature.fields(), feature)
 
-        pr.addFeatures(selFeatures)
+        try:
+            pr.addFeatures(selFeatures)
+        except Exception as e:
+            QgsMessageLog.logMessage(str(e), "T2G Archäologie", Qgis.Info)
 
         self.digiPointLayer.commitChanges()
         self.digiPointLayer.updateExtents()
@@ -222,49 +228,72 @@ class MapToolDigiPoint(PointMapTool, MapToolMixin):
 
     # in den Eingabelayer schreiben
     def reverseRotation2Eingabelayer(self, layer_id, aar_direction):
-
-        self.refData["pointLayer"].startEditing()
-
         pr = self.refData["pointLayer"].dataProvider()
+        proj_layer = QgsProject.instance().mapLayersByName("E_Point")[0]
 
-        features = self.digiPointLayer.getFeatures()
+        features_to_write = self.digiPointLayer.getFeatures()
 
-        # iterrieren über zu schreibende features
-        for feature in features:
+        for feature in features_to_write:
+            if feature["geo_quelle"] != "profile_object":
+                continue
 
-            if feature["geo_quelle"] == "profile_object":
-                # Zielfeature erzeugen
-                rotFeature = QgsFeature(self.refData["pointLayer"].fields())
+            self.refData["pointLayer"].startEditing()
 
-                # Geometrie in Kartenebene umrechnen
-                rotateGeom = self.rotationCoords.rotatePointFeature(feature, aar_direction)
+            # Zielfeature erzeugen
+            rotFeature = QgsFeature(self.refData["pointLayer"].fields())
 
-                # Zielpunktgeometrie erzeugen und zum Zielfeature hinzufügen
-                zPoint = QgsPoint(rotateGeom["x_trans"], rotateGeom["y_trans"], rotateGeom["z_trans"])
-                gZPoint = QgsGeometry(zPoint)
-                rotFeature.setGeometry(gZPoint)
+            # Geometrie in Kartenebene umrechnen
+            rotateGeom = self.rotationCoords.rotatePointFeature(feature, aar_direction)
 
-                # Attribute setzen
-                rotFeature.setAttributes(feature.attributes())
+            # Zielpunktgeometrie erzeugen und zum Zielfeature hinzufügen
+            zPoint = QgsPoint(rotateGeom["x_trans"], rotateGeom["y_trans"], rotateGeom["z_trans"])
+            gZPoint = QgsGeometry(zPoint)
+            rotFeature.setGeometry(gZPoint)
 
-                sourceLayerFeatures = self.refData["pointLayer"].getFeatures()
+            rotFeature.setAttributes(feature.attributes())
 
-                # Prüfen ob im Ziellayer das Feature bereits vorhanden ist
-                # wenn ja dann löschen und durch Zielfeature ersetzen
-                checker = True
-                for sourceFeature in sourceLayerFeatures:
-                    if feature["obj_uuid"] == sourceFeature["obj_uuid"]:
-                        pr.deleteFeatures([sourceFeature.id()])
-                        pr.addFeatures([rotFeature])
-                        checker = False
-
-                if checker == True:
+            missing = True
+            # Features aus Eingabelayer
+            # schauen ob es schon existiert (anhand obj_uuid), wenn ja dann löschen und durch Zielfeature ersetzen
+            sourceLayerFeatures = self.refData["pointLayer"].getFeatures()
+            for sourceFeature in sourceLayerFeatures:
+                if feature["obj_uuid"] == sourceFeature["obj_uuid"]:
+                    pr.deleteFeatures([sourceFeature.id()])
                     pr.addFeatures([rotFeature])
+                    missing = False
+            if not missing:
+                continue
 
-        self.refData["pointLayer"].removeSelection()
-        self.refData["pointLayer"].commitChanges()
-        self.refData["pointLayer"].updateExtents()
-        self.refData["pointLayer"].endEditCommand()
+            # wenn feature nicht vorhanden, neues feature im Layer anlegen
+
+            # use default values for fid from actual project layer
+            # as self.digiLineLayer has no defaultValueDefinitions aka expressions
+            # formula for fid: if (count("fid") = 0, 0, maximum("fid") + 1)
+            field_default_value = proj_layer.defaultValue(proj_layer.fields().indexFromName("fid"))
+            rotFeature.setAttribute("fid", field_default_value)
+
+            retObj = pr.addFeatures([rotFeature])
+            self.refData["pointLayer"].removeSelection()
+            self.refData["pointLayer"].commitChanges()
+            self.refData["pointLayer"].updateExtents()
+            self.refData["pointLayer"].endEditCommand()
+
+            # update feature attribute in digiLineLayer
+            self.digiPointLayer.startEditing()
+            self.digiPointLayer.changeAttributeValue(
+                feature.id(),
+                self.digiPointLayer.fields().indexFromName("fid"),
+                field_default_value
+            )
+            print("commitChanges", self.digiPointLayer.commitChanges())
+            self.digiPointLayer.endEditCommand()
+
+            # update table fid
+            dataObj = {}
+            for item in proj_layer.fields():
+                if item.name() == "obj_uuid" or item.name() == "fid":
+                    dataObj[item.name()] = rotFeature[item.name()]
+            self.pup.publish("updateFeatureAttr", dataObj)
 
     def removeFeatureInEingabelayerByUuid(self, obj_uuid):
         features = self.refData["pointLayer"].getFeatures()
@@ -274,6 +303,6 @@ class MapToolDigiPoint(PointMapTool, MapToolMixin):
                 if feature["geo_quelle"] == "profile_object":
                     self.refData["pointLayer"].startEditing()
                     self.refData["pointLayer"].deleteFeature(feature.id())
-                    self.refData["pointLayer"].commitChanges()
+                    print("commitChanges", self.refData["pointLayer"].commitChanges())
 
         self.digi_layer_changed.emit()

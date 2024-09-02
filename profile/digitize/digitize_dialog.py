@@ -132,6 +132,10 @@ class DigitizeDialog(QMainWindow):
         self.toolDigiLine.pup.register("lineFeatureAttr", self.tableDigitize.insertFeature)
         self.toolDigiPolygon.pup.register("polygonFeatureAttr", self.tableDigitize.insertFeature)
 
+        self.toolDigiPoint.pup.register("updateFeatureAttr", self.tableDigitize.updateFeature)
+        self.toolDigiLine.pup.register("updateFeatureAttr", self.tableDigitize.updateFeature)
+        self.toolDigiPolygon.pup.register("updateFeatureAttr", self.tableDigitize.updateFeature)
+
         self.tableDigitize.pup.register("removeFeatureByUuid", self.canvasDigitize.removeFeatureByUuid)
         self.tableDigitize.pup.register("editFeatureAttributes", self.canvasDigitize.editFeatureAttributes)
 

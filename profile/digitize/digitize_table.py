@@ -223,6 +223,10 @@ class DigitizeTable(QTableWidget):
 
                 if dataObj["obj_uuid"] == tblUuid:
 
+                    if head == "ID" and "fid" in dataObj:
+                        print(dataObj)
+                        self.item(i, j).setText(str(dataObj["fid"]))
+
                     if head == "Objekttyp" and "obj_typ" in dataObj:
                         self.item(i, j).setText(str(dataObj["obj_typ"]))
 
