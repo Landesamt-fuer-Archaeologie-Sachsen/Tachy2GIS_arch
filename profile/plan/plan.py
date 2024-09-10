@@ -81,7 +81,7 @@ class Plan:
             self.__exportPlanLayers(refData, baseFilePath)
 
             self.__iface.messageBar().pushMessage(
-                "Hinweis", "Die Daten zum Plan wurden unter " + str(baseFilePath) + " abgelegt", level=3, duration=5
+                "Hinweis", "Die Daten zum Plan wurden im Geopackage des Projektes in den (unregistrierten) Tabellen profildata_* abgelegt", level=3, duration=5
             )
 
             # self.layout.startLayout(planData)
@@ -177,17 +177,26 @@ class Plan:
         # epsg from pointLayer - Todo search better solution (from meta file)
         epsgCode = refData["pointLayer"].crs().authid()
 
+        if self.__dockwidget.radioProfilePlanNumber.isChecked():
+            profile_number = self.dataStorePlan.getProfileNumber()
+        else:
+            profile_number = None
+
         # Punktlayer schreiben
-        selFeaturesPoint = self.__getPointFeaturesFromEingabelayer(refData["pointLayer"], bufferGeometry, "profile")
+        selFeaturesPoint = self.__getPointFeaturesFromEingabelayer(
+            refData["pointLayer"], bufferGeometry, "profile", profile_number
+        )
         self.__writeLayer(refData["pointLayer"], selFeaturesPoint, baseFilePath, "point")
 
         # Linelayer schreiben
-        selFeaturesLine = self.__getLineFeaturesFromEingabelayer(refData["lineLayer"], bufferGeometry, "profile")
+        selFeaturesLine = self.__getLineFeaturesFromEingabelayer(
+            refData["lineLayer"], bufferGeometry, "profile", profile_number
+        )
         self.__writeLayer(refData["lineLayer"], selFeaturesLine, baseFilePath, "line")
 
         # Polygonlayer schreiben
         selFeaturesPolygon = self.__getPolygonFeaturesFromEingabelayer(
-            refData["polygonLayer"], bufferGeometry, "profile"
+            refData["polygonLayer"], bufferGeometry, "profile", profile_number
         )
         self.__writeLayer(refData["polygonLayer"], selFeaturesPolygon, baseFilePath, "polygon")
 
@@ -195,84 +204,99 @@ class Plan:
         gcpLayer, selFeatures = self.__getGcpLayer(epsgCode)
         self.__writeLayer(gcpLayer, selFeatures, baseFilePath, "gcp")
 
-    def __getPointFeaturesFromEingabelayer(self, pointLayer, bufferGeometry, geoType):
-        # aus Eingabelayer holen
+    def __getPointFeaturesFromEingabelayer(self, pointLayer, bufferGeometry, geoType, profile_number=None):
+        if geoType != "profile":
+            return []
 
-        bbox = bufferGeometry.boundingBox()
-        req = QgsFeatureRequest()
-        filterRect = req.setFilterRect(bbox)
-        featsSel = pointLayer.getFeatures(filterRect)
+        if profile_number:
+            featsSel = pointLayer.getFeatures()
+        else:
+            bbox = bufferGeometry.boundingBox()
+            req = QgsFeatureRequest()
+            filterRect = req.setFilterRect(bbox)
+            featsSel = pointLayer.getFeatures(filterRect)
 
         selFeatures = []
         for feature in featsSel:
+            if feature["geo_quelle"] != "profile_object":
+                continue
 
-            if feature.geometry().within(bufferGeometry):
+            if (
+                    (profile_number and feature["prof_nr"] == profile_number) or
+                    (not profile_number and feature.geometry().within(bufferGeometry))
+            ):
+                rotFeature = QgsFeature(pointLayer.fields())
 
-                if geoType == "profile":
-                    if feature["geo_quelle"] == "profile_object":
-                        rotFeature = QgsFeature(pointLayer.fields())
+                rotateGeom = self.rotationCoords.rotatePointFeatureFromOrg(feature, self.aar_direction)
+                zPoint = QgsPoint(rotateGeom["x_trans"], rotateGeom["z_trans"], rotateGeom["z_trans"])
+                gZPoint = QgsGeometry(zPoint)
+                rotFeature.setGeometry(gZPoint)
+                rotFeature.setAttributes(feature.attributes())
 
-                        rotateGeom = self.rotationCoords.rotatePointFeatureFromOrg(feature, self.aar_direction)
-
-                        zPoint = QgsPoint(rotateGeom["x_trans"], rotateGeom["z_trans"], rotateGeom["z_trans"])
-
-                        gZPoint = QgsGeometry(zPoint)
-                        rotFeature.setGeometry(gZPoint)
-                        rotFeature.setAttributes(feature.attributes())
-
-                        selFeatures.append(rotFeature)
+                selFeatures.append(rotFeature)
 
         return selFeatures
 
-    def __getLineFeaturesFromEingabelayer(self, lineLayer, bufferGeometry, geoType):
+    def __getLineFeaturesFromEingabelayer(self, lineLayer, bufferGeometry, geoType, profile_number=None):
+        if geoType != "profile":
+            return []
 
-        bbox = bufferGeometry.boundingBox()
-        req = QgsFeatureRequest()
-        filterRect = req.setFilterRect(bbox)
-        featsSel = lineLayer.getFeatures(filterRect)
+        if profile_number:
+            featsSel = lineLayer.getFeatures()
+        else:
+            bbox = bufferGeometry.boundingBox()
+            req = QgsFeatureRequest()
+            filterRect = req.setFilterRect(bbox)
+            featsSel = lineLayer.getFeatures(filterRect)
 
         selFeatures = []
         for feature in featsSel:
+            if feature["geo_quelle"] != "profile_object":
+                continue
 
-            if feature.geometry().within(bufferGeometry):
+            if (
+                    (profile_number and feature["prof_nr"] == profile_number) or
+                    (not profile_number and feature.geometry().within(bufferGeometry))
+            ):
+                rotFeature = QgsFeature(lineLayer.fields())
 
-                if geoType == "profile":
-                    if feature["geo_quelle"] == "profile_object":
-                        rotFeature = QgsFeature(lineLayer.fields())
+                rotateGeom = self.rotationCoords.rotateLineFeatureFromOrg(feature, self.aar_direction)
+                rotFeature.setGeometry(rotateGeom)
+                rotFeature.setAttributes(feature.attributes())
 
-                        rotateGeom = self.rotationCoords.rotateLineFeatureFromOrg(feature, self.aar_direction)
-
-                        rotFeature.setGeometry(rotateGeom)
-
-                        rotFeature.setAttributes(feature.attributes())
-
-                        selFeatures.append(rotFeature)
+                selFeatures.append(rotFeature)
 
         return selFeatures
 
-    def __getPolygonFeaturesFromEingabelayer(self, polygonLayer, bufferGeometry, geoType):
+    def __getPolygonFeaturesFromEingabelayer(self, polygonLayer, bufferGeometry, geoType, profile_number=None):
+        if geoType != "profile":
+            return []
 
-        bbox = bufferGeometry.boundingBox()
-        req = QgsFeatureRequest()
-        filterRect = req.setFilterRect(bbox)
-        featsSel = polygonLayer.getFeatures(filterRect)
+        if profile_number:
+            featsSel = polygonLayer.getFeatures()
+        else:
+            bbox = bufferGeometry.boundingBox()
+            req = QgsFeatureRequest()
+            filterRect = req.setFilterRect(bbox)
+            featsSel = polygonLayer.getFeatures(filterRect)
 
         selFeatures = []
         for feature in featsSel:
+            if feature["geo_quelle"] != "profile_object":
+                continue
 
-            if feature.geometry().within(bufferGeometry):
+            if (
+                    (profile_number and feature["prof_nr"] == profile_number) or
+                    (not profile_number and feature.geometry().within(bufferGeometry))
+            ):
 
-                if geoType == "profile":
-                    if feature["geo_quelle"] == "profile_object":
-                        rotFeature = QgsFeature(polygonLayer.fields())
+                rotFeature = QgsFeature(polygonLayer.fields())
 
-                        rotateGeom = self.rotationCoords.rotatePolygonFeatureFromOrg(feature, self.aar_direction)
+                rotateGeom = self.rotationCoords.rotatePolygonFeatureFromOrg(feature, self.aar_direction)
+                rotFeature.setGeometry(rotateGeom)
+                rotFeature.setAttributes(feature.attributes())
 
-                        rotFeature.setGeometry(rotateGeom)
-
-                        rotFeature.setAttributes(feature.attributes())
-
-                        selFeatures.append(rotFeature)
+                selFeatures.append(rotFeature)
 
         return selFeatures
 
@@ -351,38 +375,35 @@ class Plan:
         layer_name = f"profildata_{inputLayer.name()}"
 
         inputLayer.selectAll()
-        outputLayer = processing.run("native:saveselectedfeatures", {"INPUT": inputLayer, "OUTPUT": "memory:"})[
-            "OUTPUT"
-        ]
-        outputLayer.removeSelection()
+        temporary_layer = processing.run(
+            "native:saveselectedfeatures",
+            {"INPUT": inputLayer, "OUTPUT": "memory:"}
+        )["OUTPUT"]
 
-        outputLayer.startEditing()
+        temporary_layer.removeSelection()
+        temporary_layer.startEditing()
 
         # Layer leeren
-        pr = outputLayer.dataProvider()
+        pr = temporary_layer.dataProvider()
         pr.truncate()
-
-        # add features
         pr.addFeatures(selFeatures)
 
         # add field to layer:
         pr.addAttributes([QgsField('aar_direction', QVariant.String, len=20)])
         if inputLayer.name() == "gcp_points":
             pr.addAttributes([QgsField('profil_nr', QVariant.String, len=20)])
-        outputLayer.updateFields()
+        temporary_layer.updateFields()
 
         # write values for new field in every feature:
-        for f in outputLayer.getFeatures():
+        for f in temporary_layer.getFeatures():
             f['aar_direction'] = self.aar_direction
             if inputLayer.name() == "gcp_points":
                 f['profil_nr'] = self.prof_nr
-            outputLayer.updateFeature(f)
+            temporary_layer.updateFeature(f)
 
-        outputLayer.commitChanges()
-
-        outputLayer.updateExtents()
-
-        outputLayer.endEditCommand()
+        temporary_layer.commitChanges()
+        temporary_layer.updateExtents()
+        temporary_layer.endEditCommand()
 
         # get geopackage used in project:
         data_provider_set = set()
@@ -398,7 +419,7 @@ class Plan:
         options.onlyAttributes = False
         options.layerName = layer_name
 
-        # check if unregistered (in project) layer already exists in gpkg:
+        # check if layer (maybe unregistered in project) already exists in gpkg:
         geopackage_layers = []
         layer = QgsVectorLayer(geopackage_path, '', 'ogr')
         if layer.isValid():
@@ -411,20 +432,46 @@ class Plan:
         if layer_name in geopackage_layers:
             print(f"layer {layer_name} already exists: AppendToLayerNoNewFields")
             options.actionOnExistingFile = QgsVectorFileWriter.AppendToLayerNoNewFields
+            self.__delete_profile_number(str(geopackage_path), layer_name, self.prof_nr)
         else:
             print(f"create layer {layer_name}: CreateOrOverwriteLayer")
             options.actionOnExistingFile = QgsVectorFileWriter.CreateOrOverwriteLayer
 
         error = QgsVectorFileWriter.writeAsVectorFormatV3(
-            outputLayer,
+            temporary_layer,
             str(geopackage_path),
             QgsProject.instance().transformContext(),
             options
         )
 
-        print(error, "outputLayer Layer is written to:", geopackage_path)
+        print(error, "temporary_layer is written to:", geopackage_path)
         if error[0] == 7:
             print(
                 "MÖGLICHE LÖSUNG für unique table name nach manuellem Löschen der Tabellen: "
                 "lösche auch Referenzen in gpkg_*-Tabellen!"
             )
+
+    def __delete_profile_number(self, gpkg_path, layer_name, profile_number):
+        layer = QgsVectorLayer(f"{gpkg_path}|layername={layer_name}", layer_name, "ogr")
+        if not layer.isValid():
+            print(f"__delete_profile_number({gpkg_path}, {layer_name}, {profile_number}) Layer failed to load!")
+            return
+
+        layer.startEditing()
+
+        # gcp table has profil_nr and E_* tables have prof_nr
+        filter_expression = f"profil_nr = '{profile_number}' OR prof_nr = '{profile_number}'"
+        request = QgsFeatureRequest().setFilterExpression(filter_expression)
+        features = layer.getFeatures(request)
+
+        feature_ids = [feature.id() for feature in features]
+        if not feature_ids:
+            print(f"__delete_profile_number({gpkg_path}, {layer_name}, {profile_number}) No features matched the filter.")
+            return
+
+        if layer.deleteFeatures(feature_ids):
+            print(f"__delete_profile_number({gpkg_path}, {layer_name}, {profile_number}) Features deleted successfully.")
+        else:
+            print(f"__delete_profile_number({gpkg_path}, {layer_name}, {profile_number}) Failed to delete features.")
+
+        layer.commitChanges()

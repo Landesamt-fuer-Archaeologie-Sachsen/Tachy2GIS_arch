@@ -681,13 +681,10 @@
                 </property>
                </widget>
               </item>
-              <item row="2" column="1">
-               <widget class="QPushButton" name="startPlanBtn">
-                <property name="styleSheet">
-                 <string notr="true">background-color : green</string>
-                </property>
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_51">
                 <property name="text">
-                 <string>Start</string>
+                 <string>Profilbuffer [m]</string>
                 </property>
                </widget>
               </item>
@@ -704,10 +701,41 @@
                 </property>
                </widget>
               </item>
-              <item row="1" column="0">
-               <widget class="QLabel" name="label_51">
+              <item row="2" column="0">
+               <widget class="QLabel" name="label_4">
                 <property name="text">
-                 <string>Profilbuffer [m]</string>
+                 <string>Selektion nach</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <layout class="QHBoxLayout" name="horizontalLayout_8">
+                <item>
+                 <widget class="QRadioButton" name="radioProfilePlanBuffer">
+                  <property name="text">
+                   <string>Profilbuffer</string>
+                  </property>
+                  <property name="checked">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QRadioButton" name="radioProfilePlanNumber">
+                  <property name="text">
+                   <string>Profilnummer aus .meta</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item row="4" column="1">
+               <widget class="QPushButton" name="startPlanBtn">
+                <property name="styleSheet">
+                 <string notr="true">background-color : green</string>
+                </property>
+                <property name="text">
+                 <string>Start</string>
                 </property>
                </widget>
               </item>
