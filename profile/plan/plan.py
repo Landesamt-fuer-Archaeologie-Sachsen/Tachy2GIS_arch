@@ -2,6 +2,7 @@ import json
 import os
 
 import processing
+from PyQt5.QtCore import Qt
 from qgis.PyQt.QtCore import QVariant
 from qgis.core import (
     QgsPointXY,
@@ -55,9 +56,17 @@ class Plan:
 
         self.__dockwidget.startPlanBtn.clicked.connect(self.__startPlanCreation)
 
+        self.__dockwidget.check_profile_buffer.stateChanged.connect(self.handle_check_profile_buffer)
+        self.handle_check_profile_buffer(Qt.Unchecked)
+
     def createConnects(self):
 
         self.dataStorePlan.pup.register("pushTransformationParams", self.rotationCoords.setAarTransformationParams)
+
+    def handle_check_profile_buffer(self, state):
+        visible_bool = state == Qt.Checked
+        self.__dockwidget.profileBufferSpinBox.setVisible(visible_bool)
+        self.__dockwidget.label_profileBuffer.setVisible(visible_bool)
 
     def __startPlanCreation(self):
 
@@ -177,10 +186,10 @@ class Plan:
         # epsg from pointLayer - Todo search better solution (from meta file)
         epsgCode = refData["pointLayer"].crs().authid()
 
-        if self.__dockwidget.radioProfilePlanNumber.isChecked():
-            profile_number = self.dataStorePlan.getProfileNumber()
-        else:
+        if self.__dockwidget.check_profile_buffer.isChecked():
             profile_number = None
+        else:
+            profile_number = self.dataStorePlan.getProfileNumber()
 
         # Punktlayer schreiben
         selFeaturesPoint = self.__getPointFeaturesFromEingabelayer(
