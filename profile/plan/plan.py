@@ -1,21 +1,26 @@
 import json
 import os
+import tempfile
+from glob import glob
+from shutil import rmtree
 
 import processing
 from PyQt5.QtCore import Qt
-from qgis.PyQt.QtCore import QVariant
+from osgeo import ogr, osr
+from qgis.PyQt.QtCore import QVariant, QMetaType
 from qgis.core import (
     QgsPointXY,
     QgsFeature,
     QgsField,
-    QgsVectorFileWriter,
     QgsProject,
     QgsVectorLayer,
     QgsLayerTreeGroup,
     QgsLayerTreeLayer,
     QgsPoint,
     QgsGeometry,
-    QgsFeatureRequest, )
+    QgsFeatureRequest,
+    QgsVectorFileWriter,
+)
 
 from .data_store_plan import DataStorePlan
 from ..rotation_coords import RotationCoords
@@ -382,6 +387,41 @@ class Plan:
 
     def __writeLayer(self, inputLayer, selFeatures, baseFilePath, layerType):
         layer_name = f"profildata_{inputLayer.name()}"
+        tmp_data_path = "no_tmp_data"
+
+        # get geopackage used in project:
+        data_provider_set = set()
+        for project_layer in QgsProject.instance().mapLayers(validOnly=True).values():
+            data_provider = project_layer.dataProvider().dataSourceUri().split("|")[0]
+            if data_provider.lower().endswith(".gpkg"):
+                data_provider_set.add(data_provider)
+        geopackage_path = list(data_provider_set)[0]
+
+        # get all layers of gpkg:
+        geopackage_layers = []
+        all_project_layer = QgsVectorLayer(geopackage_path, "", "ogr")
+        if not all_project_layer.isValid():
+            print("Failed to open GeoPackage")
+            return
+        for subLayerName in all_project_layer.dataProvider().subLayers():
+            subLayerName = subLayerName.split("!!::!!")[1]  # Extract layer name
+            geopackage_layers.append(subLayerName)
+
+        # check if layer (maybe unregistered in project) already exists in gpkg:
+        if layer_name in geopackage_layers:
+            # save existing data:
+            tmp_data_path = self.layer_from_gpkg_to_gpkg(layer_name, geopackage_path)
+            if not tmp_data_path:
+                print(f"ERROR saving tmp data")
+                return
+
+            # delete layer:
+            ds = ogr.Open(geopackage_path, update=1)
+            if ds is None:
+                print(f"Could not open {geopackage_path}")
+                return
+            ds.DeleteLayer(layer_name)
+            ds = None  # Close the datasource
 
         inputLayer.selectAll()
         temporary_layer = processing.run(
@@ -392,59 +432,57 @@ class Plan:
         temporary_layer.removeSelection()
         temporary_layer.startEditing()
 
-        # Layer leeren
         pr = temporary_layer.dataProvider()
-        pr.truncate()
+        pr.truncate()  # Layer leeren
+
+        # if inputLayer.name() == "gcp_points":
+        #     print("###selFeatures")
+        #     self.print_feature_list(selFeatures)
         pr.addFeatures(selFeatures)
 
-        # add field to layer:
-        pr.addAttributes([QgsField('aar_direction', QVariant.String, len=20)])
         if inputLayer.name() == "gcp_points":
-            pr.addAttributes([QgsField('profil_nr', QVariant.String, len=20)])
+            pr.addAttributes([QgsField("profil_nr", QVariant.String, len=20)])
+        else:
+            pr.addAttributes([QgsField("aar_direction", QVariant.String, len=20)])
+
         temporary_layer.updateFields()
 
         # write values for new field in every feature:
-        for f in temporary_layer.getFeatures():
-            f['aar_direction'] = self.aar_direction
+        for feature in temporary_layer.getFeatures():
+            feature["aar_direction"] = self.aar_direction
             if inputLayer.name() == "gcp_points":
-                f['profil_nr'] = self.prof_nr
-            temporary_layer.updateFeature(f)
+                feature["profil_nr"] = self.prof_nr
+            temporary_layer.updateFeature(feature)
+
+        if tmp_data_path and tmp_data_path != "no_tmp_data":
+            self.__delete_profile_number(str(tmp_data_path), layer_name, self.prof_nr)
+
+            # restoring existing data into temporary_layer:
+            tmp_data_feature_list = self.layer_from_gpkg_to_feature_list(layer_name, tmp_data_path)
+            if not isinstance(tmp_data_feature_list, list):
+                print("ERROR restoring tmp data")
+                return
+            # if inputLayer.name() == "gcp_points":
+            #     print("###tmp_data_feature_list")
+            #     self.print_feature_list(tmp_data_feature_list)
+            pr.addFeatures(tmp_data_feature_list)
+
+        if inputLayer.name() != "gcp_points":
+            features_list = [feature for feature in temporary_layer.getFeatures()]
+            sorted_features = sorted(features_list, key=lambda f: f.attribute(0))
+            pr.truncate()  # Layer leeren
+            pr.addFeatures(sorted_features)
 
         temporary_layer.commitChanges()
         temporary_layer.updateExtents()
         temporary_layer.endEditCommand()
-
-        # get geopackage used in project:
-        data_provider_set = set()
-        for layer in QgsProject.instance().mapLayers(validOnly=True).values():
-            data_provider = layer.dataProvider().dataSourceUri().split("|")[0]
-            if data_provider.lower().endswith(".gpkg"):
-                data_provider_set.add(data_provider)
-        geopackage_path = list(data_provider_set)[0]
 
         options = QgsVectorFileWriter.SaveVectorOptions()
         options.driverName = "GPKG"
         options.onlySelectedFeatures = False
         options.onlyAttributes = False
         options.layerName = layer_name
-
-        # check if layer (maybe unregistered in project) already exists in gpkg:
-        geopackage_layers = []
-        layer = QgsVectorLayer(geopackage_path, '', 'ogr')
-        if layer.isValid():
-            for subLayerName in layer.dataProvider().subLayers():
-                subLayerName = subLayerName.split('!!::!!')[1]  # Extract layer name
-                geopackage_layers.append(subLayerName)
-        else:
-            print("Failed to open GeoPackage")
-            return
-        if layer_name in geopackage_layers:
-            print(f"layer {layer_name} already exists: AppendToLayerNoNewFields")
-            options.actionOnExistingFile = QgsVectorFileWriter.AppendToLayerNoNewFields
-            self.__delete_profile_number(str(geopackage_path), layer_name, self.prof_nr)
-        else:
-            print(f"create layer {layer_name}: CreateOrOverwriteLayer")
-            options.actionOnExistingFile = QgsVectorFileWriter.CreateOrOverwriteLayer
+        options.actionOnExistingFile = QgsVectorFileWriter.CreateOrOverwriteLayer
 
         error = QgsVectorFileWriter.writeAsVectorFormatV3(
             temporary_layer,
@@ -452,13 +490,14 @@ class Plan:
             QgsProject.instance().transformContext(),
             options
         )
-
         print(error, "temporary_layer is written to:", geopackage_path)
         if error[0] == 7:
             print(
                 "MÖGLICHE LÖSUNG für unique table name nach manuellem Löschen der Tabellen: "
                 "lösche auch Referenzen in gpkg_*-Tabellen!"
             )
+
+        QgsProject.instance().removeMapLayer(temporary_layer.id())
 
     def __delete_profile_number(self, gpkg_path, layer_name, profile_number):
         layer = QgsVectorLayer(f"{gpkg_path}|layername={layer_name}", layer_name, "ogr")
@@ -484,3 +523,90 @@ class Plan:
             print(f"__delete_profile_number({gpkg_path}, {layer_name}, {profile_number}) Failed to delete features.")
 
         layer.commitChanges()
+
+    def layer_from_gpkg_to_gpkg(self, layer_name, from_gpkg, to_gpkg=None):
+        tmp_dir_prefix = "plan_data_temp_gpkg_"
+        # cleanup last sessions
+        pattern = os.path.join(tempfile.gettempdir(), f"{tmp_dir_prefix}*")
+        for item in glob(pattern):
+            if os.path.isdir(item):
+                rmtree(item, ignore_errors=True)
+
+        options = QgsVectorFileWriter.SaveVectorOptions()
+        options.driverName = "GPKG"
+        options.onlySelectedFeatures = False
+        options.onlyAttributes = False
+        options.layerName = layer_name
+
+        if to_gpkg:
+            to_gpkg_path = to_gpkg
+            options.actionOnExistingFile = QgsVectorFileWriter.AppendToLayerNoNewFields
+        else:
+            tmp_dir = tempfile.mkdtemp(prefix=tmp_dir_prefix)
+            to_gpkg_path = os.path.join(tmp_dir, "temp_layer.gpkg")
+            # options.actionOnExistingFile = QgsVectorFileWriter.CreateOrOverwriteLayer
+            options.actionOnExistingFile = QgsVectorFileWriter.CreateOrOverwriteFile
+
+        # Load the existing layer
+        uri = f"{from_gpkg}|layername={layer_name}"
+        from_layer = QgsVectorLayer(uri, layer_name, "ogr")
+
+        if not from_layer.isValid():
+            print(f"Layer {layer_name} not loaded.")
+            return None
+
+        error = QgsVectorFileWriter.writeAsVectorFormatV3(
+            from_layer,
+            to_gpkg_path,
+            QgsProject.instance().transformContext(),
+            options
+        )
+
+        if error[0] != QgsVectorFileWriter.NoError:
+            print(f"Error when writing vector layer to {to_gpkg_path}")
+            print(error)
+            return None
+
+        print(f"Layer {layer_name} has been copied to {to_gpkg_path}")
+
+        return to_gpkg_path
+
+    def layer_from_gpkg_to_feature_list(self, layer_name, from_gpkg):
+
+        layer = QgsVectorLayer(f"{from_gpkg}|layername={layer_name}", layer_name, "ogr")
+
+        if not layer.isValid():
+            print("layer_from_gpkg_to_feature_list() Layer failed to load!")
+            return None
+
+        if layer_name.endswith("gcp_points"):
+            layer.startEditing()
+            # Remove the first field
+            layer.deleteAttribute(0)
+            layer.updateFields()
+            layer.commitChanges()
+
+        features_list = []
+        for feature in layer.getFeatures():
+            features_list.append(feature)
+
+        return features_list
+
+    def print_feature_list(self, features_list):
+        # Assuming 'features' is your list of QgsFeature objects
+        for feature in features_list:
+            # Print feature ID
+            print(f"Feature ID: {feature.id()}")
+
+            # Print feature attributes
+            attributes = feature.attributes()
+            print("Attributes:")
+            for i, attr in enumerate(attributes):
+                print(f"  {i}: {attr}")
+
+            # Print feature geometry
+            geom = feature.geometry()
+            print(f"Geometry: {geom.asWkt()}")
+
+            # Print a separator for better readability
+            print("---")
