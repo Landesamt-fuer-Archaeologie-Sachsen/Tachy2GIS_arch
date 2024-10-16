@@ -1,5 +1,6 @@
 from math import pi, cos, sin
 
+import numpy as np
 from qgis.core import QgsGeometry, QgsPoint, QgsMessageLog, Qgis, QgsWkbTypes
 
 
@@ -325,10 +326,9 @@ class RotationCoords:
             for part in mls.vertices():
                 rotateGeom = self.rotationReverse(part.x(), part.y(), True, aar_direction)
                 zPoint = QgsPoint(rotateGeom["x_trans"], rotateGeom["y_trans"], rotateGeom["z_trans"])
-
                 pointList.append(zPoint)
 
-            targetGeometry = QgsGeometry.fromPolyline(pointList)
+            targetGeometry = QgsGeometry.fromPolyline(self.punkte_von_profillinie_abheben(pointList))
 
         else:
             QgsMessageLog.logMessage(
@@ -376,7 +376,7 @@ class RotationCoords:
                 "Achtung, die Geometrie kann nicht verarbeitet werden!", "T2G Archäologie", Qgis.Info
             )
 
-        emptyTargetGeometry.addPoints(pointList)
+        emptyTargetGeometry.addPoints(self.punkte_von_profillinie_abheben(pointList))
 
         retTargetGeometry = self.castMultiGeometry2Single(emptyTargetGeometry)
 
@@ -465,3 +465,114 @@ class RotationCoords:
             ret_geom = geom_total
 
         return ret_geom
+
+    def calculate_normal_vector(self, list_of_qgspoints, gewuenschte_laenge):
+        # Punkte in NumPy-Array umwandeln
+        p1 = np.array([list_of_qgspoints[0].x(), list_of_qgspoints[0].y(), list_of_qgspoints[0].z()])
+        p2 = np.array([list_of_qgspoints[1].x(), list_of_qgspoints[1].y(), list_of_qgspoints[1].z()])
+        p3 = np.array([list_of_qgspoints[2].x(), list_of_qgspoints[2].y(), list_of_qgspoints[2].z()])
+
+        # Vektoren zwischen den Punkten berechnen
+        v1 = p2 - p1
+        v2 = p3 - p1
+
+        # Kreuzprodukt berechnen, um den Normalvektor zu erhalten
+        normal_vector = np.cross(v1, v2)
+
+        betrag = np.linalg.norm(normal_vector)
+
+        # in Klammern kleine Zahl mit kleiner Zahl zuerst verrechnen (numerische Stabilität):
+        return normal_vector * (gewuenschte_laenge / betrag)
+
+    def punkte_von_profillinie_abheben(self, list_of_qgspoints):
+        debugging_print = False
+
+        if len(list_of_qgspoints) <= 2:
+            return list_of_qgspoints
+
+        is_polygon = False
+        if list_of_qgspoints[0] == list_of_qgspoints[-1]:
+            # wenn der erste und letzte Punkt gleich sind, dann ist es vermutlich ein Polygon
+            is_polygon = True
+            if debugging_print:
+                for p in list_of_qgspoints:
+                    print("original:", p.x(), p.y(), p.z())
+
+        if not is_polygon:
+            anzahl_der_abzuhebenden = len(list_of_qgspoints)
+            index_stufen = [(i, i) for i in range(anzahl_der_abzuhebenden)]
+        else:
+
+            i = 0
+            while i < len(list_of_qgspoints) - 1:
+                # wenn Abstand kleiner, dann ist es vermutlich ein vormals eingefügter Punkt:
+                if list_of_qgspoints[i].distance3D(list_of_qgspoints[i + 1]) < 0.000001:
+                    if debugging_print:
+                        print("pop", list_of_qgspoints[i], "distance", list_of_qgspoints[i].distance(list_of_qgspoints[i + 1]))
+                    list_of_qgspoints.pop(i)
+                else:
+                    i += 1
+
+            # da im Polygon der letzte Punkt gleich dem ersten ist, diesen weglassen und später extra hinzufügen:
+            anzahl_der_abzuhebenden = len(list_of_qgspoints) - 1
+
+            # INFO: Folgendes funktioniert nur, wenn die Profilebene nicht zufällig exakt nord-süd ausgerichtet ist.
+            # Finde den Punkt mit dem kleinsten x-Wert:
+            extremum_x_index = min(range(anzahl_der_abzuhebenden), key=lambda i: list_of_qgspoints[i].x())
+            if extremum_x_index == 0:
+                # Wenn der Punkt mit dem kleinsten x-Wert zugleich der Anfang des Polygons ist,
+                # verwende Punkt mit dem größten x-Wert:
+                extremum_x_index = max(range(anzahl_der_abzuhebenden), key=lambda i: list_of_qgspoints[i].x())
+
+            index_stufen = []
+            for i in range(anzahl_der_abzuhebenden):
+                if i == extremum_x_index:
+                    # Zum verschnittfreien Schließen des Polygons in der 2D-Kartenansicht
+                    # zusätzlichen Punkt einfügen:
+                    index_stufen.append((i, anzahl_der_abzuhebenden))
+                # Stufen beginnen beim Extrem-Punkt (extremum_x_index) und enden beim eingefügten Punkt:
+                abhebung_stufe = (i - extremum_x_index) % anzahl_der_abzuhebenden
+                index_stufen.append((i, abhebung_stufe))
+
+        if debugging_print:
+            print("index_stufen", index_stufen)
+
+        abhebung = 0.000001  # 1000stel mm
+        # abhebung = 0.001  # zum Angucken
+        shifted_points = []
+        for index, abhebung_stufe in index_stufen:
+            # Punkte laut Plan (index_stufen) fortlaufend von der Profilwand abheben ...
+
+            vektor_abhebung = self.calculate_normal_vector(list_of_qgspoints, abhebung_stufe * abhebung)
+
+            if debugging_print:
+                print(f"{index:2d} Vektor der Abhebung: {vektor_abhebung}, Betrag {np.linalg.norm(vektor_abhebung)}")
+
+            shifted_points.append(
+                QgsPoint(
+                    list_of_qgspoints[index].x() + vektor_abhebung[0],
+                    list_of_qgspoints[index].y() + vektor_abhebung[1],
+                    list_of_qgspoints[index].z() + vektor_abhebung[2]
+                )
+            )
+
+        if is_polygon:
+            # letzter Punkt wurde oben ausgelassen - muss aber gleich mit dem ersten sein:
+            shifted_points.append(shifted_points[0])
+
+            if debugging_print:
+                for p in shifted_points:
+                    print("shifted:", p.x(), p.y(), p.z())
+
+        fehler = (abhebung * 1000) * max(index_stufen, key=lambda i: i[1])[1]
+        print(
+            f"Abhebung: {abhebung * 1000:.15f}mm\n"
+            f"Fehler insgesamt: {fehler:.15f}mm"
+        )
+        if fehler > 0.5:
+            QgsMessageLog.logMessage(
+                f"Achtung, iterative Abhebung der Punkte von der Profillinie ergibt einen Fehler von "
+                f"zuletzt {fehler:.15f}mm!", "T2G Archäologie", Qgis.Warning
+            )
+
+        return shifted_points
