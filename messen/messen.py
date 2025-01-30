@@ -469,7 +469,7 @@ class MeasurementTab(BASE, WIDGET):
 
         self.markersAndRubberBand = self.createMarkersAndRubberBand(geometryType)
 
-        self.actionDigitize.setIcon(QIcon(ICON_PATHS[geometryType]))
+        self.actionDigitize.setIcon(self.cmbLayerType.itemIcon(self.cmbLayerType.currentIndex()))
         self.digitizeTool = DigitizeTool(geometryType, self)
         self.btnDigitizeTool.setDefaultAction(self.actionDigitize)
 
