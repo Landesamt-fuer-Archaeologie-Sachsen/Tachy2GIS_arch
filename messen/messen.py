@@ -356,7 +356,7 @@ class MeasurementTab(BASE, WIDGET):
 
     def getTachy2GisInstance(self):
         for pluginName, plugin in plugins.items():
-            if pluginName.lower() == "tachy2gis":
+            if pluginName.lower() == "tachy2gis" or pluginName.lower() == "tachy2gis-3d_viewer":
                 return plugin
 
     def startTachy2GisInstance(self):
@@ -997,7 +997,7 @@ class MeasurementTab(BASE, WIDGET):
 
     def beepSound(self):
         if self.cbSound.isChecked():
-            QApplication.beep(self)
+            QApplication.beep()
 
 
 MARKERSIZE = 10
