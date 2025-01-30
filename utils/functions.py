@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import csv
 import ctypes
-import datetime
+from datetime import datetime
 import os
 import os.path
 import re
