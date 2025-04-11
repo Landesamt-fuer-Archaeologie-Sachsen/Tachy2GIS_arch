@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
 import csv
 import ctypes
-from datetime import datetime
 import os
 import os.path
 import re
 import shutil
 import time
 from ctypes import wintypes
+from datetime import datetime
 
+import yaml
 from qgis.PyQt.QtCore import Qt, QUrl, pyqtSignal
 from qgis.PyQt.QtGui import QColor
 from qgis.PyQt.QtWidgets import QDesktopWidget, QGridLayout, QMessageBox, QLabel, QProgressBar, QTextBrowser, QWidget
@@ -800,3 +801,66 @@ class HelpWindow(QWidget):
 
     def setPfad(self, pfad):
         self.pfad = pfad
+
+
+# Define a metaclass SingletonMeta
+class SingletonMeta(type):
+    # Dictionary to store instances of classes
+    _instances = {}
+
+    # Override the __call__ method of the metaclass
+    def __call__(cls, *args, **kwargs):
+        # Check if the class is not already instantiated
+        if cls not in cls._instances:
+            # If not, create a new instance and store it in _instances dictionary
+            cls._instances[cls] = super().__call__(*args, **kwargs)
+        # Return the existing instance if already instantiated
+        return cls._instances[cls]
+
+    def clear(cls):
+        # delete instance of provided class
+        try:
+            del cls._instances[cls]
+        except KeyError:
+            pass
+
+
+class ArchProjectConfig(metaclass=SingletonMeta):
+    def __init__(self):
+        self.config_data = None
+        self.file_path = "ArchProjectConfig.yaml"
+        projectFile = QgsProject.instance().fileName()
+        if projectFile and projectFile != "":
+            project_dir = os.path.dirname(projectFile)
+            self.file_path = os.path.join(project_dir, self.file_path)
+
+    def load_config(self):
+        print(f"Tachy2GIS_arch plugin is loading config file {self.file_path}", flush=True)
+
+        try:
+            with open(self.file_path, "r") as file:
+                self.config_data = yaml.safe_load(file)
+        except FileNotFoundError:
+            raise FileNotFoundError(f"The file {self.file_path} does not exist.")
+        except yaml.YAMLError as e:
+            raise ValueError(f"Error parsing YAML file: {e}")
+
+        print(f"Using following config data: {self.config_data}")
+
+        if not isinstance(self.config_data, dict):
+            raise ValueError("At top level the YAML file has to contain only variables.")
+
+    def check_config(self):
+        if self.config_data is None:
+            self.load_config()
+
+        mandatory_keys = ["ProfileTool_ProfilPP_ObjTyp", "ProfileTool_ProfilPP_ObjArt", "ProfileTool_ProfilPP_ObjSpez"]
+        for key in mandatory_keys:
+            if key not in self.config_data:
+                raise ValueError(f"The key {key} is not present in the configuration file {self.file_path}.")
+
+    def get(self, key, default=None):
+        if self.config_data is None:
+            self.load_config()
+
+        return self.config_data.get(key, default)

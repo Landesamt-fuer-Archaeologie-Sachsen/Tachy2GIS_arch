@@ -58,6 +58,7 @@ from qgis.gui import QgisInterface
 from qgis.utils import plugins, active_plugins
 
 from .functions import (
+    ArchProjectConfig,
     addPoint3D,
     delLayer,
     delSelectFeature,
@@ -402,6 +403,18 @@ class T2gArch:
                 QMessageBox.critical(None, "Critical", "Bitte Tachy-GeoPackage-Projekt laden und erneut versuchen.")
                 return False
 
+            config = ArchProjectConfig()
+            try:
+                config.check_config()
+            except FileNotFoundError as e:
+                QMessageBox.critical(None, "Critical", f"Konfigurationsdatei nicht gefunden. {e}")
+                return False
+            except ValueError as e:
+                QMessageBox.critical(None, "Critical", "Fehler in der Konfigurationsdatei. {e}")
+                return False
+            finally:
+                del config
+
             self.reloadVisdatModules()
             self.furtherSetups()
 
@@ -409,6 +422,7 @@ class T2gArch:
         else:
             self.stopVisdatModules()
             self.closeGui()
+            ArchProjectConfig.clear()
         return True
 
     def openDockWidget(self, set_open):

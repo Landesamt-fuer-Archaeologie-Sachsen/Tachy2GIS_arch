@@ -2,6 +2,8 @@ import uuid
 
 from qgis.core import QgsProject, QgsExpression, QgsExpressionContextUtils, QgsMessageLog, Qgis
 
+from ...utils.functions import ArchProjectConfig
+
 
 class MapToolMixin:
     def getCustomProjectVariable(self, variableName):
@@ -34,7 +36,8 @@ class MapToolMixin:
             )
 
         # obj_type
-        feature["obj_typ"] = "Befund"
+        # feature["obj_typ"] = "Befund"
+        feature["obj_typ"] = ArchProjectConfig().get("Digitize_Befund_ObjTyp")
 
         # prf_nr
         feature["prof_nr"] = prof_nr

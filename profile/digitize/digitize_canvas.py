@@ -19,6 +19,7 @@ from qgis.core import (
 from qgis.gui import QgsMapCanvas, QgsMapToolPan, QgsMapToolZoom, QgsAttributeDialog
 
 from ..publisher import Publisher
+from ...utils.functions import ArchProjectConfig
 
 
 ## @brief With the ProfileImageCanvas class a map canvas element is realized. It should be used in the profile dialog
@@ -122,10 +123,13 @@ class DigitizeCanvas(QgsMapCanvas):
             ).settings()
         )
         rule_pt.settings().isExpression = True
+        # rule_pt.setFilterExpression(
+        #     """
+        #         "obj_typ" = 'Fotoentzerrpunkt' OR "obj_typ" = 'Fund' OR "obj_typ" = 'Probe'
+        #     """
+        # )
         rule_pt.setFilterExpression(
-            """
-                "obj_typ" = 'Fotoentzerrpunkt' OR "obj_typ" = 'Fund' OR "obj_typ" = 'Probe' 
-            """
+            " OR ".join([f'"obj_typ" = \'{value}\'' for value in ArchProjectConfig().get("Digitize_display_points")])
         )
         rule_bef = QgsRuleBasedLabeling.Rule(
             self.createLabelSettings(
@@ -135,11 +139,12 @@ class DigitizeCanvas(QgsMapCanvas):
             ).settings()
         )
         rule_bef.settings().isExpression = True
-        rule_bef.setFilterExpression(
-            """
-                "obj_typ" = 'Befund' 
-            """
-        )
+        # rule_bef.setFilterExpression(
+        #     """
+        #         "obj_typ" = 'Befund'
+        #     """
+        # )
+        rule_bef.setFilterExpression(f'"obj_typ" = \'{ArchProjectConfig().get("Digitize_Befund_ObjTyp")}\'')
         root.appendChild(rule_bef)
         root.appendChild(rule_pt)
 
@@ -278,11 +283,12 @@ class DigitizeCanvas(QgsMapCanvas):
             ).settings()
         )
         rule_prof.settings().isExpression = True
-        rule_prof.setFilterExpression(
-            """
-                "obj_typ" = 'Profil'
-            """
-        )
+        # rule_prof.setFilterExpression(
+        #     """
+        #         "obj_typ" = 'Profil'
+        #     """
+        # )
+        rule_prof.setFilterExpression(f'"obj_typ" = \'{ArchProjectConfig().get("Digitize_Profil_ObjTyp")}\'')
         rule_bef = QgsRuleBasedLabeling.Rule(
             self.createLabelSettings(
                 """
@@ -291,11 +297,12 @@ class DigitizeCanvas(QgsMapCanvas):
             ).settings()
         )
         rule_bef.settings().isExpression = True
-        rule_bef.setFilterExpression(
-            """
-                "obj_typ" = 'Befund' 
-            """
-        )
+        # rule_bef.setFilterExpression(
+        #     """
+        #         "obj_typ" = 'Befund'
+        #     """
+        # )
+        rule_bef.setFilterExpression(f'"obj_typ" = \'{ArchProjectConfig().get("Digitize_Befund_ObjTyp")}\'')
         root.appendChild(rule_bef)
         root.appendChild(rule_prof)
 
@@ -474,11 +481,12 @@ class DigitizeCanvas(QgsMapCanvas):
             ).settings()
         )
         rule_bef.settings().isExpression = True
-        rule_bef.setFilterExpression(
-            """
-                "obj_typ" = 'Befund' 
-            """
-        )
+        # rule_bef.setFilterExpression(
+        #     """
+        #         "obj_typ" = 'Befund'
+        #     """
+        # )
+        rule_bef.setFilterExpression(f'"obj_typ" = \'{ArchProjectConfig().get("Digitize_Befund_ObjTyp")}\'')
         root.appendChild(rule_bef)
 
         # Apply rule-based labeling to the layer

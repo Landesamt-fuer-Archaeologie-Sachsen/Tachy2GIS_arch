@@ -16,6 +16,7 @@ from qgis.core import (
 
 from .transformation_calculations import TransformationCalculations
 from .transformation_dialog import TransformationDialog
+from ..utils.functions import ArchProjectConfig
 
 
 ## @brief The class is used to implement GUI functionalities for transformation within the dock widget of the Tachy2GIS_arch plugin
@@ -37,7 +38,8 @@ class TransformationGui:
 
         self.iface = iFace
         self.dockwidget = dockWidget
-        self.colNameGcpSource = "11"  # enspricht 'Festpunkt'
+        # self.colNameGcpSource = "11"  # entspricht 'Festpunkt'
+        self.colNameGcpSource = ArchProjectConfig().get("Transformation_colNameGcpSource")
         self.transformationDialog = TransformationDialog(self)
         self.paramCalc = TransformationCalculations(self)
         self.transformationParametersDone = False

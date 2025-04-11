@@ -9,7 +9,7 @@ from qgis.core import QgsProject, QgsVectorLayer, QgsLayerTreeGroup, QgsLayerTre
 from qgis.gui import QgsFileWidget
 
 from .georeferencing_dialog import GeoreferencingDialog
-from ...utils.functions import natural_sort_key
+from ...utils.functions import natural_sort_key, ArchProjectConfig
 
 
 ## @brief The class is used to implement functionalities for work with profiles
@@ -306,11 +306,14 @@ class Georef:
 
         pointLayer = self.dockwidget.layerGcpGeoref.currentLayer().clone()
         # obj_typ 12 entspricht Fotoentzerrpunkt
+        obj_typ_value = ArchProjectConfig().get("GeoRef_Fotoentzerrpunkt_ObjTyp")
+        obj_art_value = ArchProjectConfig().get("GeoRef_Fotoentzerrpunkt_ObjArt")
+        prof_nr_value = ArchProjectConfig().get("GeoRef_Profil_ColName")
         pointLayer.setSubsetString(
-            # "obj_typ = '12' and " "prof_nr = '" + profileNumber + "'"
-            "obj_typ = '12' and "
-            "obj_art = 'Profil' and "
-            "prof_nr = '" + profileNumber + "'"
+            # "obj_typ = '12' and "
+            # "obj_art = 'Profil' and "
+            # "prof_nr = '" + profileNumber + "'"
+            f"obj_typ = '{obj_typ_value}' and obj_art = '{obj_art_value}' and prof_nr = '{prof_nr_value}'"
         )
 
         # Zielkoordinaten
@@ -426,7 +429,10 @@ class Georef:
 
         # lineLayer
         lineLayer = self.dockwidget.layerProfileGeoref.currentLayer().clone()
-        lineLayer.setSubsetString("prof_nr = '" + profile_number + "'")
+        # lineLayer.setSubsetString("prof_nr = '" + profile_number + "'")
+        lineLayer.setSubsetString(
+            f'{ArchProjectConfig().get("GeoRef_Profil_ColName")} = \'' + profile_number + '\''
+        )
 
         if lineLayer.geometryType() != QgsWkbTypes.LineGeometry:
             return
@@ -512,7 +518,7 @@ class Georef:
         profileList = []
         for feat in lineLayer.getFeatures():
             # id 2 entspricht "Profil"
-            if feat.attribute("obj_typ") == "2" and feat.attribute("prof_nr"):
+            if feat.attribute("obj_typ") == ArchProjectConfig().get("GeoRef_Profil_ObjTyp") and feat.attribute("prof_nr"):
                 profileList.append(feat.attribute("prof_nr"))
 
         return sorted(profileList, key=natural_sort_key)
