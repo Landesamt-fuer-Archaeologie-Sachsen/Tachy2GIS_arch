@@ -308,12 +308,11 @@ class Georef:
         # obj_typ 12 entspricht Fotoentzerrpunkt
         obj_typ_value = ArchProjectConfig().get("GeoRef_Fotoentzerrpunkt_ObjTyp")
         obj_art_value = ArchProjectConfig().get("GeoRef_Fotoentzerrpunkt_ObjArt")
-        prof_nr_value = ArchProjectConfig().get("GeoRef_Profil_ColName")
         pointLayer.setSubsetString(
             # "obj_typ = '12' and "
             # "obj_art = 'Profil' and "
             # "prof_nr = '" + profileNumber + "'"
-            f"obj_typ = '{obj_typ_value}' and obj_art = '{obj_art_value}' and prof_nr = '{prof_nr_value}'"
+            f"obj_typ = '{obj_typ_value}' and obj_art = '{obj_art_value}' and prof_nr = '{profileNumber}'"
         )
 
         # Zielkoordinaten
