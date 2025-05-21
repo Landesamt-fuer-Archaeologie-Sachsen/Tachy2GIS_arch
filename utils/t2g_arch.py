@@ -287,10 +287,17 @@ class T2gArch:
                 layer.setDefaultValueDefinition(fIndex, QgsDefaultValue("uuid()"))
                 layer.updateFields()
             it = layer.getFeatures(QgsFeatureRequest().setFilterExpression('"uuid" IS NULL'))
-            # QgsMessageLog.logMessage(str(it.count()), 'T2G Archäologie', Qgis.Info)
+            QgsMessageLog.logMessage(
+                f"{sum(1 for _ in it)} features ohne UUID in Layer {layer.name()}; Neugenerierung ...",
+                'T2G Archäologie',
+                Qgis.Info
+            )
             UUid = layer.dataProvider().fieldNameIndex("obj_uuid")
-            for feature in it:
-                layer.changeAttributeValue(feature.id(), UUid, "{" + str(uuid.uuid4()) + "}")
+            attr_map = {
+                feature.id(): {UUid: "{" + str(uuid.uuid4()) + "}"}
+                for feature in it
+            }
+            layer.dataProvider().changeAttributeValues(attr_map)
             layer.commitChanges()
         # <uuid ereugen wenn Feld uuid leer
 
