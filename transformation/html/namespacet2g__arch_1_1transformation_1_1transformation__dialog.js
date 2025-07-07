@@ -1,4 +1,0 @@
-var namespacet2g__arch_1_1transformation_1_1transformation__dialog =
-[
-    [ "TransformationDialog", "classt2g__arch_1_1transformation_1_1transformation__dialog_1_1TransformationDialog.html", "classt2g__arch_1_1transformation_1_1transformation__dialog_1_1TransformationDialog" ]
-];

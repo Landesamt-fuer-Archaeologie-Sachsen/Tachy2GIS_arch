@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
-import os
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QWidget, QHBoxLayout, QLabel, QFrame, QSizePolicy, QToolBar, QAction, QLineEdit
+
+from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtGui import QIcon
+from qgis.PyQt.QtWidgets import QWidget, QHBoxLayout, QFrame, QSizePolicy, QToolBar, QAction, QLineEdit
+from qgis.core import QgsApplication
+
 
 ## @brief With the TransformationDialogParambar class a bar based on QWidget is realized
 #
@@ -11,6 +13,7 @@ from PyQt5.QtWidgets import QWidget, QHBoxLayout, QLabel, QFrame, QSizePolicy, Q
 # @author Mario Uhlig, VisDat geodatentechnologie GmbH, mario.uhlig@visdat.de
 # @date 2020-11-09
 
+
 class GcpParambar(QWidget):
 
     ## The constructor.
@@ -18,10 +21,7 @@ class GcpParambar(QWidget):
     # @param dialogInstance pointer to the dialogInstance
 
     def __init__(self, dialogInstance, canvasGcp, rotationCoords):
-
         super(GcpParambar, self).__init__()
-
-        self.iconpath = os.path.join(os.path.dirname(__file__), '..', 'Icons')
 
         self.dialogInstance = dialogInstance
 
@@ -35,7 +35,6 @@ class GcpParambar(QWidget):
     ## \brief Create components
     #
     def createComponents(self):
-
         self.gcpToolbar = QToolBar("Edit", self)
 
         self.createPanAction()
@@ -50,16 +49,14 @@ class GcpParambar(QWidget):
         self.coordLineEdit.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
         self.coordLineEdit.setReadOnly(True)
         self.coordLineEditFm = self.coordLineEdit.fontMetrics()
-        width_text = self.coordLineEditFm.width('xxxxxx.xxx,xxxxxxx.xxx,xxxx.xxx')
-        self.coordLineEdit.setMinimumWidth(width_text + 20)
+        width_text = self.coordLineEditFm.width("xxxxxx.xxx,xxxxxxx.xxx,xxxx.xxx")
+        self.coordLineEdit.setMinimumWidth(width_text + 30)
 
-        self.toolbarCoord.addWidget(self.coordLineEdit)    
-
+        self.toolbarCoord.addWidget(self.coordLineEdit)
 
     ## \brief Create Layout
     #
     def createLayout(self):
-
         self.paramsBarLayout = QHBoxLayout()
         self.setLayout(self.paramsBarLayout)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
@@ -67,7 +64,7 @@ class GcpParambar(QWidget):
         self.paramsBarLayout.setSpacing(0)
         self.paramsBarLayout.addWidget(self.gcpToolbar)
 
-        spacer = QWidget();
+        spacer = QWidget()
         spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
         self.paramsBarLayout.addWidget(spacer)
 
@@ -91,9 +88,8 @@ class GcpParambar(QWidget):
     ## \brief Create pan action
     #
     def createPanAction(self):
-
-        #Pan
-        iconPan = QIcon(os.path.join(self.iconpath, 'mActionPan.png'))
+        # Pan
+        iconPan = QIcon(QgsApplication.iconPath("mActionPan"))
         self.actionPan = QAction(iconPan, "Pan", self)
         self.actionPan.setCheckable(True)
 
@@ -104,8 +100,7 @@ class GcpParambar(QWidget):
         self.actionPan.triggered.connect(self.activatePan)
 
     def createActionZoomIn(self):
-
-        iconZoomIn = QIcon(os.path.join(self.iconpath, 'mActionZoomIn.png'))
+        iconZoomIn = QIcon(QgsApplication.iconPath("mActionZoomIn"))
         self.actionZoomIn = QAction(iconZoomIn, "Zoom in", self)
         self.actionZoomIn.setCheckable(True)
 
@@ -117,8 +112,7 @@ class GcpParambar(QWidget):
         self.actionZoomIn.triggered.connect(self.activateZoomIn)
 
     def createActionZoomOut(self):
-
-        iconZoomOut = QIcon(os.path.join(self.iconpath, 'mActionZoomOut.png'))
+        iconZoomOut = QIcon(QgsApplication.iconPath("mActionZoomOut"))
         self.actionZoomOut = QAction(iconZoomOut, "Zoom out", self)
         self.actionZoomOut.setCheckable(True)
 
@@ -130,8 +124,7 @@ class GcpParambar(QWidget):
         self.actionZoomOut.triggered.connect(self.activateZoomOut)
 
     def createActionExtent(self):
-
-        iconExtent = QIcon(os.path.join(self.iconpath, 'mActionZoomToLayer.png'))
+        iconExtent = QIcon(QgsApplication.iconPath("mActionZoomToLayer"))
         self.actionExtent = QAction(iconExtent, "Zoom to layer", self)
 
         self.gcpToolbar.addAction(self.actionExtent)
@@ -142,16 +135,21 @@ class GcpParambar(QWidget):
     #
     def createSplitter(self):
         vSplit = QFrame()
-        vSplit.setFrameShape(QFrame.VLine|QFrame.Sunken)
+        vSplit.setFrameShape(QFrame.VLine | QFrame.Sunken)
 
         return vSplit
 
     ## \brief Create a splitter (vertical line to separate labels in the parambar)
     #
     def updateCoordinate(self, coordObj):
-        #self.coordLineEdit.setText(str(round(coordObj['x'], 2))+','+str(round(coordObj['y'], 2)))
+        # self.coordLineEdit.setText(str(round(coordObj['x'], 2))+','+str(round(coordObj['y'], 2)))
 
-        retObj = self.rotationCoords.rotationReverse(coordObj['x'], coordObj['y'], True)
+        retObj = self.rotationCoords.rotationReverse(coordObj["x"], coordObj["y"], True, "horizontal")
 
-        self.coordLineEdit.setText(str(round(retObj['x_trans'], 3))+','+str(round(retObj['y_trans'], 3))+','+str(round(retObj['z_trans'], 3)))
-
+        self.coordLineEdit.setText(
+            str(round(retObj["x_trans"], 3))
+            + ","
+            + str(round(retObj["y_trans"], 3))
+            + ","
+            + str(round(retObj["z_trans"], 3))
+        )

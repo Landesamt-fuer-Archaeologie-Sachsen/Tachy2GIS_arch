@@ -1,22 +1,15 @@
 # -*- coding: utf-8 -*-
 
-## @brief With the TransformationDialogParambar class a bar based on QWidget is realized
-#
-# Inherits from QWidget
-#
 # @author Mario Uhlig, VisDat geodatentechnologie GmbH, mario.uhlig@visdat.de
 # @date 2022-04-12
 
 from ..publisher import Publisher
 
-class DataStorePlan():
 
-    ## The constructor.
-    #
-
+class DataStorePlan:
     def __init__(self):
 
-        print('init_dataStore_plan')
+        print("init_dataStore_plan")
 
         self.pup = Publisher()
 
@@ -26,16 +19,16 @@ class DataStorePlan():
         self.view = None
         self.ebene = None
         self.gcps = None
-        self.aarTransformationParams = None
+        self.aarTransformationParamsHorizontal = None
+        self.aarTransformationParamsAbsolute = None
+        self.aarTransformationParamsOriginal = None
         self.epsg = None
-
 
     def addProfileNumber(self, profilnummer):
         self.profileNumber = profilnummer
 
     def getProfileNumber(self):
         return self.profileNumber
-
 
     def addProfile(self, profil):
         self.profil = profil
@@ -56,15 +49,25 @@ class DataStorePlan():
         self.gcps = gcps
 
     def addTransformParams(self, aarTransformationParams):
-        self.aarTransformationParams = aarTransformationParams
+
+        if aarTransformationParams["aar_direction"] == "horizontal":
+            self.aarTransformationParamsHorizontal = aarTransformationParams
+        if aarTransformationParams["aar_direction"] == "absolute height":
+            self.aarTransformationParamsAbsolute = aarTransformationParams
+        if aarTransformationParams["aar_direction"] == "original":
+            self.aarTransformationParamsOriginal = aarTransformationParams
 
     def getGcps(self):
         return self.gcps
 
-    def getAarTransformationParams(self):
+    def getAarTransformationParams(self, aar_direction):
 
-        return self.aarTransformationParams
+        if aar_direction == "horizontal":
+            return self.aarTransformationParamsHorizontal
+        if aar_direction == "absolute height":
+            return self.aarTransformationParamsAbsolute
+        if aar_direction == "original":
+            return self.aarTransformationParamsOriginal
 
-    def triggerAarTransformationParams(self):
-        print('wurde getriggert',  self.getAarTransformationParams())
-        self.pup.publish('pushTransformationParams', self.getAarTransformationParams())
+    def triggerAarTransformationParams(self, aar_direction):
+        self.pup.publish("pushTransformationParams", self.getAarTransformationParams(aar_direction))

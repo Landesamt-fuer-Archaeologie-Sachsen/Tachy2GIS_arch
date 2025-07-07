@@ -21,25 +21,21 @@
  *                                                                         *
  ***************************************************************************/
 """
+from os import path as os_path
 
-import os
+from PyQt5.QtCore import QCoreApplication, pyqtSignal
+from PyQt5.QtGui import QIcon
+from PyQt5.QtWidgets import QDockWidget, QMessageBox, QTableWidgetItem
+from qgis.PyQt import uic
+from qgis.core import QgsProject, QgsFeatureRequest, QgsExpression, Qgis, QgsMessageLog
 
-from PyQt5.QtCore import Qt
-from PyQt5 import QtWidgets, QtCore, QtGui, uic
-from PyQt5.QtGui import *
-from PyQt5.QtWidgets import *
-from qgis.core import *
-from qgis.gui import *
-from ..functions import *
-from ..t2g_arch_dockwidget import T2G_ArchDockWidget
+from ..Icons import ICON_PATHS
+from ..utils.functions import isNumber, progressBar
 
-
-FORM_CLASS, _ = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), 'myDwgLookForMissingAttributes.ui'))
+FORM_CLASS, _ = uic.loadUiType(os_path.join(os_path.dirname(__file__), "myDwgLookForMissingAttributes.ui"))
 
 
-class LookForMissingAttributesDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
-
+class LookForMissingAttributesDockWidget(QDockWidget, FORM_CLASS):
     closingPlugin = pyqtSignal()
 
     def __init__(self, iface, parent=None):
@@ -50,33 +46,31 @@ class LookForMissingAttributesDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         # self.<objectname>, and you can use autoconnect slots - see
         # http://qt-project.org/doc/qt-4.8/designer-using-a-ui-file.html
         # #widgets-and-dialogs-with-auto-connect
-        pfad = os.path.abspath(os.path.join(os.path.join(os.path.dirname(__file__), "./..")))
-        self.iconpfad = os.path.join(os.path.join(pfad, 'Icons'))
         self.setupUi(self)
         self.ui = self
         self.iface = iface
-        #self.layer = self.iface.mapCanvas().currentLayer()
-        self.txtDelimiter.setText(',')
+        # self.layer = self.iface.mapCanvas().currentLayer()
+        self.txtDelimiter.setText(",")
         self.txtDelimiter.textChanged.connect(self.setDelimiter)
         self.ui.butGo.clicked.connect(self.go)
-        self.ui.butGo.setIcon(QIcon(os.path.join(self.iconpfad, 'go-next.jpg')))
-        self.ui.butGo.setToolTip('Fehlende Nummern finden.')
+        self.ui.butGo.setIcon(QIcon(ICON_PATHS["go-next"]))
+        self.ui.butGo.setToolTip("Fehlende Nummern finden.")
         self.ui.butBefundLabel.clicked.connect(self.findBefLabel)
-        self.ui.butBefundLabel.setIcon(QIcon(os.path.join(self.iconpfad, 'Befundnr.gif')))
-        self.ui.butBefundLabel.setToolTip('Fehlende Befundlabel finden.')
+        self.ui.butBefundLabel.setIcon(QIcon(ICON_PATHS["Befundnr"]))
+        self.ui.butBefundLabel.setToolTip("Fehlende Befundlabel finden.")
         self.ui.butBefundnr.clicked.connect(self.findBefnr)
-        self.ui.butBefundnr.setIcon(QIcon(os.path.join(self.iconpfad, 'Befundnr2.gif')))
-        self.ui.butBefundnr.setToolTip('Fehlende Befundnummern finden.')
+        self.ui.butBefundnr.setIcon(QIcon(ICON_PATHS["Befundnr2"]))
+        self.ui.butBefundnr.setToolTip("Fehlende Befundnummern finden.")
         self.ui.butProfnr.clicked.connect(self.findProfnr)
-        self.ui.butProfnr.setIcon(QIcon(os.path.join(self.iconpfad, 'Profil.gif')))
-        self.ui.butProfnr.setToolTip('Fehlende Profilnummern finden.')
+        self.ui.butProfnr.setIcon(QIcon(ICON_PATHS["Profil"]))
+        self.ui.butProfnr.setToolTip("Fehlende Profilnummern finden.")
         self.ui.butFundnr.clicked.connect(self.findFundnr)
-        self.ui.butFundnr.setIcon(QIcon(os.path.join(self.iconpfad, 'Fund.gif')))
-        self.ui.butFundnr.setToolTip('Fehlende Fundnummern finden.')
+        self.ui.butFundnr.setIcon(QIcon(ICON_PATHS["Fund"]))
+        self.ui.butFundnr.setToolTip("Fehlende Fundnummern finden.")
         self.ui.butProbnr.clicked.connect(self.findProbnr)
-        self.ui.butProbnr.setIcon(QIcon(os.path.join(self.iconpfad, 'Probe.gif')))
-        self.ui.butProbnr.setToolTip('Fehlende Probenummern finden.')
-        #self.iface.addDockWidget(Qt.RightDockWidgetArea, self.ui)
+        self.ui.butProbnr.setIcon(QIcon(ICON_PATHS["Probe"]))
+        self.ui.butProbnr.setToolTip("Fehlende Probenummern finden.")
+        # self.iface.addDockWidget(Qt.RightDockWidgetArea, self.ui)
         self.delimiter = None
         self.befNrCol = []
         self.fundNrCol = []
@@ -87,15 +81,15 @@ class LookForMissingAttributesDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     def setup(self):
         layer = self.iface.mapCanvas().currentLayer()
         self.cboFieldName.addItems(layer.fields().names())
-        self.befNrCol = self.numCol(',', 'bef_nr')
-        self.fundNrCol = self.numCol(',', 'fund_nr')
-        self.profNrCol = self.numCol(',', 'prof_nr')
-        self.probNrCol = self.numCol(',', 'prob_nr')
-        self.ui.txtNextBef.setText(str(self.befNrCol [-1]))
-        self.ui.txtNextFund.setText(str(self.fundNrCol [-1]))
-        self.ui.txtNextProf.setText(str(self.profNrCol [-1]))
-        self.ui.txtNextProb.setText(str(self.probNrCol [-1]))
-        #self.setDelimiter()
+        self.befNrCol = self.numCol(",", "bef_nr")
+        self.fundNrCol = self.numCol(",", "fund_nr")
+        self.profNrCol = self.numCol(",", "prof_nr")
+        self.probNrCol = self.numCol(",", "prob_nr")
+        self.ui.txtNextBef.setText(str(self.befNrCol[-1]))
+        self.ui.txtNextFund.setText(str(self.fundNrCol[-1]))
+        self.ui.txtNextProf.setText(str(self.profNrCol[-1]))
+        self.ui.txtNextProb.setText(str(self.probNrCol[-1]))
+        # self.setDelimiter()
 
     def closeEvent(self, QCloseEvent):
         pass
@@ -103,22 +97,22 @@ class LookForMissingAttributesDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
     def setDelimiter(self):
         self.delimiter = self.txtDelimiter.currentText()
 
-    def go(self,max):
-        layer = iface.activeLayer()
-        if  iface.activeLayer().selectedFeatureCount() == 0:
-            QMessageBox.critical(None, "Meldung", u"Es sind keine Objekte selektiert!", QMessageBox.Abort)
+    def go(self, max):
+        layer = self.iface.activeLayer()
+        if self.iface.activeLayer().selectedFeatureCount() == 0:
+            QMessageBox.critical(None, "Meldung", "Es sind keine Objekte selektiert!", QMessageBox.Abort)
         else:
             self.tableWidget.setRowCount(0)
 
             fieldname = self.cboFieldName.currentText()
-            delimiter = self.delimiter #self.txtDelimiter.text()
-            numFailCol = self.numFail(delimiter, layer, fieldname,max)
+            delimiter = self.delimiter  # self.txtDelimiter.text()
+            numFailCol = self.numFail(delimiter, layer, fieldname, max)
 
             columnCount = 1
             row = 0
             column = 0
             self.tableWidget.setColumnCount(columnCount)
-            self.tableWidget.setHorizontalHeaderItem(0,QTableWidgetItem())
+            self.tableWidget.setHorizontalHeaderItem(0, QTableWidgetItem())
             self.tableWidget.horizontalHeaderItem(0).setText(fieldname)
 
             for val in numFailCol:
@@ -131,43 +125,45 @@ class LookForMissingAttributesDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
             pass
 
     def findBefLabel(self):
-        layer = QgsProject.instance().mapLayersByName('E_Point')[0]
+        layer = QgsProject.instance().mapLayersByName("E_Point")[0]
         self.iface.setActiveLayer(layer)
-        find = '"obj_type"=\'Kartenbeschriftung\''
+        find = "\"obj_typ\"='Kartenbeschriftung'"
 
         it = layer.getFeatures(QgsFeatureRequest(QgsExpression(str(find))))
         ids = [i.id() for i in it]
         layer.selectByIds(ids)
-        self.ui.cboFieldName.setCurrentText('bef_nr')
+        self.ui.cboFieldName.setCurrentText("bef_nr")
         self.go(self.befNrCol[-1])
         pass
 
     def findBefnr(self):
-        #layer.selectAll()
-        #numFailCol = self.numFail(self.delimiter, layer, fieldname)
-        layerLine = QgsProject.instance().mapLayersByName('E_Line')[0]
-        layerPoly = QgsProject.instance().mapLayersByName('E_Polygon')[0]
-        layerPoint = QgsProject.instance().mapLayersByName('E_Point')[0]
+        # layer.selectAll()
+        # numFailCol = self.numFail(self.delimiter, layer, fieldname)
+        layerLine = QgsProject.instance().mapLayersByName("E_Line")[0]
+        layerPoly = QgsProject.instance().mapLayersByName("E_Polygon")[0]
+        layerPoint = QgsProject.instance().mapLayersByName("E_Point")[0]
         layerlist = [layerLine, layerPoly, layerPoint]
         for layer in layerlist:
             pass
 
     def findProfnr(self):
-        layer = QgsProject.instance().mapLayersByName('E_Line')[0]
+        layer = QgsProject.instance().mapLayersByName("E_Line")[0]
         self.iface.setActiveLayer(layer)
-        find = '"obj_type"=\'Profil\''
+        find = "\"obj_typ\"='Profil'"
 
         it = layer.getFeatures(QgsFeatureRequest(QgsExpression(str(find))))
         ids = [i.id() for i in it]
         layer.selectByIds(ids)
-        self.ui.cboFieldName.setCurrentText('prof_nr')
+        self.ui.cboFieldName.setCurrentText("prof_nr")
         self.go(self.befNrCol[-1])
         pass
 
     def findFundnr(self):
+        # TODO document why this method is empty
         pass
 
     def findProbnr(self):
+        # TODO document why this method is empty
         pass
 
     def numFail(self, delimiter, layer, fieldname, max):
@@ -179,7 +175,7 @@ class LookForMissingAttributesDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                 # QgsMessageLog.logMessage('dddd', 'T2G Archäologie', Qgis.Info)
                 attr = str(attrs[idField]).split(delimiter)
                 for item in attr:
-                    item = item.strip(' ')
+                    item = item.strip(" ")
                     if isNumber(item):
                         item = int(item)
                         if item not in numCol:
@@ -188,8 +184,8 @@ class LookForMissingAttributesDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
         numFailCol = []
         count = 1
-        #max = valMax(delimiter, fieldname)
-        QgsMessageLog.logMessage('max ' + str(max), 'T2G Archäologie', Qgis.Info)
+        # max = valMax(delimiter, fieldname)
+        QgsMessageLog.logMessage("max " + str(max), "T2G Archäologie", Qgis.Info)
         try:
             for i in range(numCol[0], max):
                 while numCol[i - 1] > count:
@@ -203,18 +199,18 @@ class LookForMissingAttributesDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
     def numCol(self, delimiter, fieldname):
 
-        layerLine = QgsProject.instance().mapLayersByName('E_Line')[0]
-        layerPoly = QgsProject.instance().mapLayersByName('E_Polygon')[0]
-        layerPoint = QgsProject.instance().mapLayersByName('E_Point')[0]
+        layerLine = QgsProject.instance().mapLayersByName("E_Line")[0]
+        layerPoly = QgsProject.instance().mapLayersByName("E_Polygon")[0]
+        layerPoint = QgsProject.instance().mapLayersByName("E_Point")[0]
         layerlist = [layerLine, layerPoly, layerPoint]
 
         numCol = []
-        progress = progressBar('Fortschritt')
+        progress = progressBar("Fortschritt")
         QCoreApplication.processEvents()
         featuremax = 0
         for layer in layerlist:
             featuremax = featuremax + layer.featureCount()
-        progress.setText(str(featuremax) + ' Geometrien werden analysiert')
+        progress.setText(str(featuremax) + " Geometrien werden analysiert")
         progress.setMaximum(featuremax)
         i = 0
         for layer in layerlist:
@@ -227,7 +223,7 @@ class LookForMissingAttributesDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
                     # QgsMessageLog.logMessage('dddd', 'T2G Archäologie', Qgis.Info)
                     attr = str(attrs[idField]).split(delimiter)
                     for item in attr:
-                        item = item.strip(' ')
+                        item = item.strip(" ")
                         if isNumber(item):
                             item = int(item)
                             if item not in numCol:

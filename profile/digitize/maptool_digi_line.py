@@ -1,215 +1,208 @@
-from PyQt5.QtCore import Qt
-from qgis.gui import QgsMapTool, QgsRubberBand, QgsVertexMarker, QgsAttributeDialog, QgsAttributeEditorContext
-from qgis.core import QgsWkbTypes, QgsFeature, QgsGeometry, QgsFeatureRequest
+from qgis.PyQt.QtCore import pyqtSignal, pyqtSlot
+from qgis.core import QgsFeature, QgsGeometry, QgsFeatureRequest, QgsMessageLog, Qgis, QgsProject
+from qgis.gui import QgsAttributeDialog, QgsAttributeEditorContext
 
-from ..publisher import Publisher
+from .map_tools import MultilineMapTool
 from .maptool_mixin import MapToolMixin
-class MapToolDigiLine(QgsMapTool, MapToolMixin):
-    def __init__(self, canvas, iFace, rotationCoords, dataStoreDigitize):
-        self.__iface = iFace
+from ..publisher import Publisher
 
-        self.pup = Publisher()
+
+class MapToolDigiLine(MultilineMapTool, MapToolMixin):
+    # darf nicht in den Konstruktor:
+    digi_layer_changed = pyqtSignal()
+
+    def __init__(self, canvas, iFace, rotationCoords, dataStoreDigitize):
+        self.canvas = canvas
+        self.iface = iFace
         self.rotationCoords = rotationCoords
         self.dataStoreDigitize = dataStoreDigitize
-        self.canvas = canvas
+        self.pup = Publisher()
         self.digiLineLayer = None
         self.featGeometry = None
         self.feat = None
         self.dialogAttributes = None
-
-        QgsMapTool.__init__(self, self.canvas)
-        self.rubberband = None
-        self.vertexMarker = None
-        self.createRubberband()
-
-        self.point = None
-        self.points = []
         self.refData = None
-        self.snapping = False
+        MultilineMapTool.__init__(self, self.canvas)
+        self.finished_geometry.connect(self.got_geometry)
 
-    def createRubberband(self):
-        self.rubberband = QgsRubberBand(self.canvas, QgsWkbTypes.LineGeometry)
-        self.rubberband.setStrokeColor(Qt.red)
-        self.rubberband.setWidth(3)
-        self.rubberband.show()
+    def setDigiLineLayer(self, digiLineLayer):
+        self.digiLineLayer = digiLineLayer
 
-    def canvasPressEvent(self, event):
+    def update(self, refData):
+        self.refData = refData
 
-        if event.button() == Qt.RightButton:
+    def got_geometry(self, geometry):
+        self.featGeometry = geometry
+        if self.featGeometry.isNull():
+            return
 
-            self.featGeometry = self.rubberband.asGeometry()
-
-            if self.featGeometry:
-                
-                if len(self.points) > 1:
-                    self.showdialog()
-
+        if self.feat and self.feat.hasGeometry():
+            self.feat.setGeometry(self.featGeometry)
+            self.digiLineLayer.startEditing()
+            self.digiLineLayer.addFeature(self.feat)
+            self.digiLineLayer.commitChanges()
+            self.digiLineLayer.endEditCommand()
+            self.clear_map_tool()
         else:
-            print('canvasPressEvent')
-            self.active = True
+            self.showdialog()
 
-            if self.snapping is True:
-                pointXY, position = self.snapToNearestVertex(self.canvas, event.pos())
-                self.point = pointXY
-            else:
-                self.point = self.toMapCoordinates(event.pos())
+        self.digi_layer_changed.emit()
 
-            self.canvas.scene().removeItem(self.vertexMarker)
+    @pyqtSlot(QgsFeature)
+    def set_feature_for_editing(self, feature):
+        self.feat = feature
+        self.set_geometry_for_editing(feature.geometry())
+        self.digiLineLayer.startEditing()
+        self.digiLineLayer.deleteFeature(feature.id())
+        self.digiLineLayer.commitChanges()
+        self.digiLineLayer.endEditCommand()
+        self.canvas.setMapTool(self)
 
-            self.vertexMarker = self.createVertexMarker(self.canvas, self.point, Qt.red, 5, QgsVertexMarker.ICON_BOX, 3)
+    def clear_map_tool(self):
+        self.reset_geometry()
+        self.feat = None
 
-            self.points.append(self.point)
-            self.isEmittingPoint = True
-            self.showLine()
-
-    def showLine(self):
-
-        self.rubberband.setToGeometry(QgsGeometry.fromPolylineXY(self.points), None)
+    def createFeature(self):
+        self.feat = QgsFeature()
+        self.feat.setGeometry(self.featGeometry)
 
     def showdialog(self):
-
         self.createFeature()
+        proj_layer = QgsProject.instance().mapLayersByName("E_Line")[0]
 
         self.feat.setFields(self.digiLineLayer.fields())
 
+        # use default values from actual project layer
+        # as self.digiLineLayer has no defaultValueDefinitions aka expressions
+        for field in proj_layer.fields():
+            field_name = field.name()
+            field_index = proj_layer.fields().indexFromName(field_name)
+            if field_name == "fid":
+                field_default_value = "-999"
+            else:
+                # formula for fid: if (count("fid") = 0, 0, maximum("fid") + 1)
+                field_default_value = proj_layer.defaultValue(field_index)
+            self.feat.setAttribute(field_name, field_default_value)
+
         self.digiLineLayer.startEditing()
-        self.refData['lineLayer'].startEditing()
+        self.refData["lineLayer"].startEditing()
 
         prof_nr = self.dataStoreDigitize.getProfileNumber()
         self.setPlaceholders(self.feat, prof_nr)
 
-        self.dialogAttributes = QgsAttributeDialog(self.refData['lineLayer'], self.feat, False, None)
+        self.dialogAttributes = QgsAttributeDialog(self.refData["lineLayer"], self.feat, False, None)
         self.dialogAttributes.setMode(QgsAttributeEditorContext.FixAttributeMode)
+        self.dialogAttributes.rejected.connect(self.closeAttributeDialog)
+        self.dialogAttributes.accepted.connect(self.acceptedAttributeDialog)
         self.dialogAttributes.show()
 
-        self.dialogAttributes.rejected.connect(self.closeAttributeDialog)
-
-        self.dialogAttributes.accepted.connect(self.acceptedAttributeDialog)
-
     def closeAttributeDialog(self):
-        print('closeAttributeDialog')
-        self.clearRubberband()
-        self.refData['lineLayer'].commitChanges()
-
-    def writeToTable(self, fields, feature):
-
-        dataObj = {}
-
-        for item in fields:
-            if item.name() == 'uuid' or item.name() == 'id' or item.name() == 'obj_type' or item.name() == 'obj_art' or item.name() == 'zeit' or item.name() == 'material' or item.name() == 'bemerkung' or item.name() == 'benerkung' or item.name() == 'bef_nr' or item.name() == 'fund_nr' or item.name() == 'prob_nr':
-
-                #Workaround - In Line Shapedatei hat das Feld "Bemerkung" den Namen benerkung
-                if item.name() == 'benerkung':
-                    dataObj['bemerkung'] = feature[item.name()]
-                else:
-                    dataObj[item.name()] = feature[item.name()]
-
-        dataObj['layer'] = self.refData['lineLayer'].sourceName()
-
-        self.pup.publish('lineFeatureAttr', dataObj)
-
+        self.clear_map_tool()
+        self.refData["lineLayer"].commitChanges()
 
     def acceptedAttributeDialog(self):
-
-        print('acceptedAttributeDialog')
-        self.refData['lineLayer'].commitChanges()
+        self.refData["lineLayer"].commitChanges()
 
         atrObj = self.dialogAttributes.feature().attributes()
         self.feat.setAttributes(atrObj)
 
-        self.feat['geo_quelle'] = 'profile_object'
+        self.feat["geo_quelle"] = "profile_object"
 
         self.addFeature2Layer()
-        self.clearRubberband()
 
         dialogFeature = self.dialogAttributes.feature()
 
-        #write to table
+        # write to table
         self.writeToTable(self.feat.fields(), dialogFeature)
 
         self.digiLineLayer.updateExtents()
         self.canvas.refresh()
 
+        self.clear_map_tool()
+        self.digi_layer_changed.emit()
 
-    def clearRubberband(self):
-        self.rubberband.reset(QgsWkbTypes.LineGeometry)
-        self.points = []
-        self.canvas.scene().removeItem(self.vertexMarker)
+    def writeToTable(self, fields, feature):
+        dataObj = {}
 
-    def createFeature(self):
+        for item in fields:
+            if (
+                item.name() == "obj_uuid"
+                or item.name() == "fid"
+                or item.name() == "obj_typ"
+                or item.name() == "obj_art"
+                or item.name() == "zeit"
+                or item.name() == "material"
+                or item.name() == "bemerkung"
+                or item.name() == "bef_nr"
+                or item.name() == "fund_nr"
+                or item.name() == "probe_nr"
+            ):
+                dataObj[item.name()] = feature[item.name()]
 
-        self.feat = QgsFeature()
-        self.feat.setGeometry(self.featGeometry) #2 correction
+        dataObj["layer"] = self.refData["lineLayer"].sourceName()
+
+        self.pup.publish("lineFeatureAttr", dataObj)
 
     def addFeature2Layer(self):
-
         pr = self.digiLineLayer.dataProvider()
         pr.addFeatures([self.feat])
         self.digiLineLayer.updateExtents()
         self.digiLineLayer.endEditCommand()
 
-    def getFeaturesFromEingabelayer(self, bufferGeometry, geoType):
-
+    def getFeaturesFromEingabelayer(self, bufferGeometry, geoType, aar_direction, no_buffer_profile_nr=None):
         self.digiLineLayer.startEditing()
         pr = self.digiLineLayer.dataProvider()
 
         bbox = bufferGeometry.boundingBox()
         req = QgsFeatureRequest()
         filterRect = req.setFilterRect(bbox)
-        featsSel = self.refData['lineLayer'].getFeatures(filterRect)
+        featsSel = self.refData["lineLayer"].getFeatures(filterRect)
 
         selFeatures = []
         for feature in featsSel:
+            if no_buffer_profile_nr:
+                if feature["prof_nr"] != no_buffer_profile_nr:
+                    continue
+            elif not feature.geometry().within(bufferGeometry):
+                continue
 
-            if feature.geometry().within(bufferGeometry):
+            if geoType == "tachy" and feature["geo_quelle"] != "profile_object":
+                rotFeature = QgsFeature(self.digiLineLayer.fields())
+                rotateGeom = self.rotationCoords.rotateLineFeatureFromOrg(feature, aar_direction)
+                rotFeature.setGeometry(rotateGeom)
+                rotFeature.setAttributes(feature.attributes())
+                selFeatures.append(rotFeature)
 
-                if geoType == 'tachy':
-                    if feature['geo_quelle'] != 'profile_object':
+            elif geoType == "profile" and feature["geo_quelle"] == "profile_object":
+                rotFeature = QgsFeature(self.digiLineLayer.fields())
+                rotateGeom = self.rotationCoords.rotateLineFeatureFromOrg(feature, aar_direction)
+                rotFeature.setGeometry(rotateGeom)
+                rotFeature.setAttributes(feature.attributes())
 
-                        rotFeature = QgsFeature(self.digiLineLayer.fields())
+                selFeatures.append(rotFeature)
 
-                        rotateGeom = self.rotationCoords.rotateLineFeatureFromOrg(feature)
+                # write to table
+                self.writeToTable(feature.fields(), feature)
 
-                        rotFeature.setGeometry(rotateGeom)
-
-                        rotFeature.setAttributes(feature.attributes())
-
-                        selFeatures.append(rotFeature)
-
-                if geoType == 'profile':
-                    if feature['geo_quelle'] == 'profile_object':
-                        print('getFeaturesFromEingabelayer')
-                        rotFeature = QgsFeature(self.digiLineLayer.fields())
-
-                        rotateGeom = self.rotationCoords.rotateLineFeatureFromOrg(feature)
-
-                        rotFeature.setGeometry(rotateGeom)
-
-                        rotFeature.setAttributes(feature.attributes())
-
-                        selFeatures.append(rotFeature)
-
-                        #write to table
-                        self.writeToTable(feature.fields(), feature)
-                        
-
-        pr.addFeatures(selFeatures)
+        try:
+            pr.addFeatures(selFeatures)
+        except Exception as e:
+            QgsMessageLog.logMessage(str(e), "T2G Archäologie", Qgis.Info)
 
         self.digiLineLayer.commitChanges()
         self.digiLineLayer.updateExtents()
         self.digiLineLayer.endEditCommand()
 
-    def removeNoneProfileFeatures(self):
+        self.digi_layer_changed.emit()
 
+    def removeNoneProfileFeatures(self):
         self.digiLineLayer.startEditing()
         pr = self.digiLineLayer.dataProvider()
         features = self.digiLineLayer.getFeatures()
 
         removeFeatures = []
         for feature in features:
-
-            if feature['geo_quelle'] != 'profile_object':
-
+            if feature["geo_quelle"] != "profile_object":
                 removeFeatures.append(feature.id())
 
         pr.deleteFeatures(removeFeatures)
@@ -218,68 +211,82 @@ class MapToolDigiLine(QgsMapTool, MapToolMixin):
         self.digiLineLayer.updateExtents()
         self.digiLineLayer.endEditCommand()
 
-    def reverseRotation2Eingabelayer(self, layer_id):
-        print('reverseRotation', layer_id)
+    # in den Eingabelayer schreiben
+    def reverseRotation2Eingabelayer(self, layer_id, aar_direction):
 
-        self.refData['lineLayer'].startEditing()
+        pr = self.refData["lineLayer"].dataProvider()
+        proj_layer = QgsProject.instance().mapLayersByName("E_Line")[0]
 
-        pr = self.refData['lineLayer'].dataProvider()
+        features_to_write = self.digiLineLayer.getFeatures()
 
-        features = self.digiLineLayer.getFeatures()
+        for feature in features_to_write:
+            if feature["geo_quelle"] != "profile_object":
+                continue
 
-        #iterrieren über zu schreibende features
-        for feature in features:
-            #Zielgeometrie erzeugen
+            self.refData["lineLayer"].startEditing()
 
-            emptyTargetGeometry = self.rubberband.asGeometry()
+            # Zielgeometrie erzeugen
+            emptyTargetGeometry = QgsGeometry.fromPolyline([])
 
-            #Zielfeature erzeugen
-            rotFeature = QgsFeature(self.refData['lineLayer'].fields())
+            # Zielfeature erzeugen
+            rotFeature = QgsFeature(self.refData["lineLayer"].fields())
 
-            #Geometrie in Kartenebene umrechnen
-            rotateGeom = self.rotationCoords.rotateLineFeature(feature, emptyTargetGeometry)
+            # Geometrie in Kartenebene umrechnen
+            rotateGeom = self.rotationCoords.rotateLineFeature(feature, emptyTargetGeometry, aar_direction)
             rotFeature.setGeometry(rotateGeom)
-
             rotFeature.setAttributes(feature.attributes())
 
-            checker = True
-            #Features aus Eingabelayer
-            #schauen ob es schon existiert (anhand uuid), wenn ja dann löschen und durch Zielfeature ersetzen
-            sourceLayerFeatures = self.refData['lineLayer'].getFeatures()
+            missing = True
+            # Features aus Eingabelayer
+            # schauen ob es schon existiert (anhand obj_uuid), wenn ja dann löschen und durch Zielfeature ersetzen
+            sourceLayerFeatures = self.refData["lineLayer"].getFeatures()
             for sourceFeature in sourceLayerFeatures:
-                if feature["uuid"] == sourceFeature["uuid"]:
+                if feature["obj_uuid"] == sourceFeature["obj_uuid"]:
                     pr.deleteFeatures([sourceFeature.id()])
                     pr.addFeatures([rotFeature])
+                    missing = False
+            if not missing:
+                continue
 
-                    checker = False
+            # wenn feature nicht vorhanden, neues feature im Layer anlegen
 
-            #wenn feature nicht vorhanden, neues feature im Layer anlegen
-            if checker == True:
-                retObj = pr.addFeatures([rotFeature])
+            # use default values for fid from actual project layer
+            # as self.digiLineLayer has no defaultValueDefinitions aka expressions
+            # formula for fid: if (count("fid") = 0, 0, maximum("fid") + 1)
+            field_default_value = proj_layer.defaultValue(proj_layer.fields().indexFromName("fid"))
+            rotFeature.setAttribute("fid", field_default_value)
 
-        self.refData['lineLayer'].removeSelection()
-        self.refData['lineLayer'].commitChanges()
-        self.refData['lineLayer'].updateExtents()
-        self.refData['lineLayer'].endEditCommand()
+            retObj = pr.addFeatures([rotFeature])
+            self.refData["lineLayer"].removeSelection()
+            self.refData["lineLayer"].commitChanges()
+            self.refData["lineLayer"].updateExtents()
+            self.refData["lineLayer"].endEditCommand()
 
-    def removeFeatureInEingabelayerByUuid(self, uuid):
-        features = self.refData['lineLayer'].getFeatures()
+            # update feature attribute in digiLineLayer
+            self.digiLineLayer.startEditing()
+            self.digiLineLayer.changeAttributeValue(
+                feature.id(),
+                self.digiLineLayer.fields().indexFromName("fid"),
+                field_default_value
+            )
+            print("commitChanges", self.digiLineLayer.commitChanges())
+            self.digiLineLayer.endEditCommand()
+
+            # update table fid
+            dataObj = {}
+            for item in proj_layer.fields():
+                if item.name() == "obj_uuid" or item.name() == "fid":
+                    dataObj[item.name()] = rotFeature[item.name()]
+            self.pup.publish("updateFeatureAttr", dataObj)
+
+    def removeFeatureInEingabelayerByUuid(self, obj_uuid):
+        features = self.refData["lineLayer"].getFeatures()
 
         for feature in features:
-            if feature['uuid'] == uuid:
-                if feature['geo_quelle'] == 'profile_object':
-                    self.refData['lineLayer'].startEditing()
-                    self.refData['lineLayer'].deleteFeature(feature.id())
-                    self.refData['lineLayer'].commitChanges()
+            if feature["obj_uuid"] == obj_uuid:
+                if feature["geo_quelle"] == "profile_object":
+                    self.refData["lineLayer"].startEditing()
+                    self.refData["lineLayer"].deleteFeature(feature.id())
+                    print("commitChanges", self.refData["lineLayer"].commitChanges())
 
-    def setDigiLineLayer(self, digiLineLayer):
-        self.digiLineLayer = digiLineLayer
-
-    def update(self, refData):
-        self.refData = refData
-
-    def setSnapping(self, enableSnapping):
-        if enableSnapping is True:
-            self.snapping = True
-        else:
-            self.snapping = False
+        self.digi_layer_changed.emit()
