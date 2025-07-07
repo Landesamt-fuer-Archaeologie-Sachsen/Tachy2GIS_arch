@@ -1,24 +1,13 @@
 # -*- coding: utf-8 -*-
+import os
 
-from qgis.PyQt.QtCore import Qt, QSizeF, QPointF
-from qgis.PyQt.QtGui import QColor, QTextDocument
-from qgis.core import (
-    QgsRasterLayer,
-    QgsFillSymbol,
-    QgsPointXY,
-    QgsTextAnnotation,
-)
-from qgis.gui import (
-    QgsMapCanvas,
-    QgsMapToolPan,
-    QgsMapToolZoom,
-    QgsVertexMarker,
-    QgsMapCanvasAnnotationItem,
-)
+from PyQt5.QtCore import Qt, QSizeF, QPointF
+from PyQt5.QtGui import QColor, QTextDocument
+from qgis.core import QgsRasterLayer, QgsFillSymbol, QgsMarkerSymbol, QgsPointXY, QgsMarkerSymbol, QgsAnnotationPointTextItem, QgsTextAnnotation
+from qgis.gui import QgsMapCanvas, QgsMapToolPan, QgsMapToolZoom, QgsVertexMarker, QgsMapCanvasAnnotationItem
 
-from .maptool_move import MapToolMove
 from ..publisher import Publisher
-
+from .maptool_move import MapToolMove
 
 ## @brief With the ProfileImageCanvas class a map canvas element is realized. It should be used in the profile dialog
 #
@@ -27,15 +16,18 @@ from ..publisher import Publisher
 # @author Mario Uhlig, VisDat geodatentechnologie GmbH, mario.uhlig@visdat.de
 # @date 2021-05-26
 
-
 class ProfileImageCanvas(QgsMapCanvas):
+
     ## The constructor.
     # @param dialogInstance pointer to the dialogInstance
 
     def __init__(self, dialogInstance):
-        super().__init__()
+        print('init ProfileImageCanvas')
+        super(ProfileImageCanvas, self).__init__()
 
         self.pup = Publisher()
+
+        self.iconpath = os.path.join(os.path.dirname(__file__), 'Icons')
 
         self.dialogInstance = dialogInstance
 
@@ -53,95 +45,101 @@ class ProfileImageCanvas(QgsMapCanvas):
         self.createMapToolZoomIn()
         self.createMapToolZoomOut()
         self.createMapToolMoveMarker()
+
         self.createConnects()
 
-    def __delete_marker(self, obj_uuid):
+
+    def __delete_marker(self, uuid):
+
         for mark in self.markerPoints:
-            if obj_uuid == mark["obj_uuid"]:
+            if uuid == mark["uuid"]:
                 self.scene().removeItem(mark["marker"])
                 self.scene().removeItem(mark["annotation"])
         self.refresh()
 
     def __createMarker(self, pointData):
-        pnt = QgsPointXY(pointData[0], pointData[1])
 
-        ptnr = ""
-        if len(self.activePoint["ptnr"]) > 0 and self.activePoint["ptnr"] != "NULL":
-            ptnr = str(self.activePoint["ptnr"])
+            pnt = QgsPointXY(pointData[0], pointData[1])
 
-        # Annotation
-        txt = QTextDocument()
-        txt.setHtml('<span style="font-family: Arial; font-size: 10px">' + ptnr + "</span>")
-        lbl = QgsTextAnnotation(self)
-        lbl.setDocument(txt)
-        lbl.setMapPosition(pnt)
-        lbl.setFrameOffsetFromReferencePointMm(QPointF(0, -10))
-        sym1 = QgsFillSymbol.createSimple({"color": "0,0,0,0", "outline_color": "0,0,0,0"})
-        lbl.setFillSymbol(sym1)
+            ptnr = ''
+            if len(self.activePoint['ptnr']) > 0 and self.activePoint['ptnr'] != 'NULL':
+                ptnr = str(self.activePoint['ptnr'])
 
-        ann = QgsMapCanvasAnnotationItem(lbl, self)
+            #Annotation
+            txt = QTextDocument()
+            txt.setHtml('<span style="font-family: Arial; font-size: 13px"><b>'+ptnr+'</b></span>')
+            lbl = QgsTextAnnotation(self)
+            lbl.setDocument(txt)
+            lbl.setMapPosition(pnt)
+            lbl.setFrameSize(QSizeF(txt.size().width(),txt.size().height()))
+            lbl.setFrameOffsetFromReferencePoint(QPointF(2, -20))
+            sym1 = QgsFillSymbol.createSimple({'color': '0,0,0,0', 'outline_color': '0,0,0,0'})
+            lbl.setFillSymbol(sym1)
 
-        # Marker
-        mark = QgsVertexMarker(self)
-        mark.setIconType(QgsVertexMarker.IconType.ICON_CIRCLE)
-        mark.setIconSize(7)
-        mark.setFillColor(QColor("green"))
-        mark.setCenter(pnt)
+            ann = QgsMapCanvasAnnotationItem(lbl, self)
 
-        return mark, ann
+            #Marker 
+            mark = QgsVertexMarker(self)
+            mark.setCenter(pnt)
+            #mark.setColor(QColor(0, 255, 0))
+            mark.setIconSize(5)
+            mark.setIconType(QgsVertexMarker.ICON_CIRCLE)
+            mark.setPenWidth(3)
+
+            return mark, ann
 
     def updateAarPoints(self, aarPoints):
+
         self.aarPoints = aarPoints
 
         self.updateMarkerPoints()
 
+
     def updateMarkerPoints(self):
+
         for point in self.aarPoints:
             for mark in self.markerPoints:
-                if point["obj_uuid"] == mark["obj_uuid"]:
-                    if point["usage"] == 1:
-                        mark["marker"].setColor(QColor(0, 255, 0))
-                    if point["usage"] == 0:
-                        mark["marker"].setColor(QColor(100, 100, 100))
+                if point['uuid'] == mark["uuid"]:
+                    if point['usage'] == 1:
+                        mark['marker'].setColor(QColor(0, 255, 0))
+                    if point['usage'] == 0:
+                        mark['marker'].setColor(QColor(100, 100, 100))
 
             self.refresh()
 
-    def press_point(self, pointData):
+
+    def press_point(self, pointData ):
+
         if self.activePoint:
-            self.__delete_marker(self.activePoint["obj_uuid"])
+            self.__delete_marker(self.activePoint['uuid'])
 
             mark, ann = self.__createMarker(pointData)
 
-            self.markerPoints.append({"obj_uuid": self.activePoint["obj_uuid"], "marker": mark, "annotation": ann})
+            self.markerPoints.append({"uuid": self.activePoint['uuid'], "marker": mark, "annotation": ann})
 
             self.updateMarkerPoints()
 
-    def release_point(self, pointData):
+    def release_point(self, pointData ):
+
         if self.activePoint:
-            self.__delete_marker(self.activePoint["obj_uuid"])
+            self.__delete_marker(self.activePoint['uuid'])
 
             mark, ann = self.__createMarker(pointData)
 
-            self.markerPoints.append({"obj_uuid": self.activePoint["obj_uuid"], "marker": mark, "annotation": ann})
+            self.markerPoints.append({"uuid": self.activePoint['uuid'], "marker": mark, "annotation": ann})
 
             self.updateMarkerPoints()
 
-            self.pup.publish(
-                "imagePointCoordinates",
-                {
-                    "obj_uuid": self.activePoint["obj_uuid"],
-                    "x": pointData[0],
-                    "z": abs(pointData[1]),
-                },
-            )
+            self.pup.publish('imagePointCoordinates', {'uuid': self.activePoint['uuid'], 'x': pointData[0], 'z': abs(pointData[1])})
 
-    def move_point(self, pointData):
+    def move_point(self, pointData ):
+
         if self.activePoint:
-            self.__delete_marker(self.activePoint["obj_uuid"])
+            self.__delete_marker(self.activePoint['uuid'])
 
             mark, ann = self.__createMarker(pointData)
 
-            self.markerPoints.append({"obj_uuid": self.activePoint["obj_uuid"], "marker": mark, "annotation": ann})
+            self.markerPoints.append({"uuid": self.activePoint['uuid'], "marker": mark, "annotation": ann})
 
             self.updateMarkerPoints()
 
@@ -151,25 +149,26 @@ class ProfileImageCanvas(QgsMapCanvas):
     ## \brief Event connections
     #
     def createConnects(self):
-        # Koordinatenanzeige
+
+        #Koordinatenanzeige
         self.xyCoordinates.connect(self.canvasMoveEvent)
 
-    """
+    '''
     ## \brief Create action to click on the map
     #
     def createMapToolClick(self):
         self.toolClick = QgsMapToolEmitPoint(self)
 
-        self.click()"""
+        self.click()'''
 
     ## \brief Create action to drag a marker on the map
     #
     def createMapToolMoveMarker(self):
-        # self.toolMove = QgsMapToolEmitPoint(self)
+        #self.toolMove = QgsMapToolEmitPoint(self)
 
         self.toolMove = MapToolMove(self)
 
-        self.set_map_tool_move_vertex()
+        self.move()
 
     ## \brief Create action to pan on the map
     #
@@ -184,34 +183,34 @@ class ProfileImageCanvas(QgsMapCanvas):
     ## \brief Create action to zoom out on the map
     #
     def createMapToolZoomOut(self):
-        self.toolZoomOut = QgsMapToolZoom(self, True)  # true = out
+        self.toolZoomOut = QgsMapToolZoom(self, True) # true = out
 
-    """
+    '''
     ## \brief Set map tool click
     #
     def click(self):
         self.setMapTool(self.toolClick)
-        self.toolClick.canvasClicked.connect( self.display_point )"""
+        self.toolClick.canvasClicked.connect( self.display_point )'''
 
     ## \brief Set map tool move Vertex
     #
-    def set_map_tool_move_vertex(self):
+    def move(self):
         self.setMapTool(self.toolMove)
-        self.toolMove.pressSignal.connect(self.press_point)
-        self.toolMove.releaseSignal.connect(self.release_point)
-        self.toolMove.moveSignal.connect(self.move_point)
+        self.toolMove.pressSignal.connect( self.press_point )
+        self.toolMove.releaseSignal.connect( self.release_point )
+        self.toolMove.moveSignal.connect( self.move_point )
 
-    ## \brief Set coordinates on the statusbar in dialog instance TransformationDialog.setCoordinatesOnStatusBar() .
-    # Depends on mouse move on the map element
+    ## \brief Set coordinates on the statusbar in dialog instance TransformationDialog.setCoordinatesOnStatusBar() . Depends on mouse move on the map element
     #
     def canvasMoveEvent(self, event):
         x = event.x()
         y = event.y()
-        self.pup.publish("moveCoordinate", {"x": x, "y": y})
+        self.pup.publish('moveCoordinate', {'x': x, 'y': y})
 
     ## \brief Set extent of the map by extent of the source layer
     #
     def setExtentByImageLayer(self):
+
         self.setExtent(self.imageLayer.extent())
         self.refresh()
 
@@ -227,7 +226,8 @@ class ProfileImageCanvas(QgsMapCanvas):
     # \param imageLayerPath
 
     def updateCanvas(self, imageLayerPath):
-        # canvas leeren
+
+        #canvas leeren
 
         self.clearCache()
         self.refresh()
@@ -243,13 +243,14 @@ class ProfileImageCanvas(QgsMapCanvas):
 
             sourceCrs = self.imageLayer.crs()
 
-            # Sets canvas CRS
-            # my_crs = QgsCoordinateReferenceSystem(31469, QgsCoordinateReferenceSystem.EpsgCrsId)
+            #Sets canvas CRS
+            #my_crs = QgsCoordinateReferenceSystem(31469, QgsCoordinateReferenceSystem.EpsgCrsId)
             self.setDestinationCrs(sourceCrs)
 
             # set extent to the extent of Layer E_Point
             self.setExtentByImageLayer()
-            listLayers = [self.imageLayer]
+            listLayers = []
+            listLayers.append(self.imageLayer)
 
             self.setLayers(listLayers)
 

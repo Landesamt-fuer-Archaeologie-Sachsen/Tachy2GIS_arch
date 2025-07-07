@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-from qgis.PyQt.QtWidgets import QWidget, QHBoxLayout, QLabel, QFrame, QSizePolicy
-
+from PyQt5.QtWidgets import QWidget, QHBoxLayout, QLabel, QFrame, QSizePolicy
 
 ## @brief With the TransformationDialogParambar class a bar based on QWidget is realized
 #
@@ -9,7 +8,6 @@ from qgis.PyQt.QtWidgets import QWidget, QHBoxLayout, QLabel, QFrame, QSizePolic
 # @author Mario Uhlig, VisDat geodatentechnologie GmbH, mario.uhlig@visdat.de
 # @date 2020-11-09
 
-
 class TransformationDialogParambar(QWidget):
 
     ## The constructor.
@@ -17,6 +15,7 @@ class TransformationDialogParambar(QWidget):
     # @param dialogInstance pointer to the dialogInstance
 
     def __init__(self, dialogInstance):
+
         super(TransformationDialogParambar, self).__init__()
 
         self.dialogInstance = dialogInstance
@@ -26,17 +25,17 @@ class TransformationDialogParambar(QWidget):
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
 
         self.paramLabel1 = QLabel()
-        self.paramLabel1.setStyleSheet("color:  blue;")
+        self.paramLabel1.setStyleSheet('color:  blue;')
         self.paramLabel2 = QLabel()
-        self.paramLabel2.setStyleSheet("color:  blue;")
+        self.paramLabel2.setStyleSheet('color:  blue;')
         self.paramLabel3 = QLabel()
-        self.paramLabel3.setStyleSheet("color:  blue;")
+        self.paramLabel3.setStyleSheet('color:  blue;')
         self.paramLabel4 = QLabel()
-        self.paramLabel4.setStyleSheet("color:  blue;")
+        self.paramLabel4.setStyleSheet('color:  blue;')
         self.paramLabel5 = QLabel()
-        self.paramLabel5.setStyleSheet("color:  green;")
+        self.paramLabel5.setStyleSheet('color:  green;')
         self.paramLabel6 = QLabel()
-        self.paramLabel6.setStyleSheet("color:  green;")
+        self.paramLabel6.setStyleSheet('color:  green;')
 
         self.setEmptyTransformationParamsBar()
 
@@ -55,6 +54,7 @@ class TransformationDialogParambar(QWidget):
     ## \brief Set text of the labels to none
     #
     def setEmptyTransformationParamsBar(self):
+
         self.paramLabel1.setText("Transl. X: none")
         self.paramLabel2.setText("Transl. Y: none")
         self.paramLabel3.setText("Rot.: none")
@@ -71,20 +71,19 @@ class TransformationDialogParambar(QWidget):
     # \param translationZ
     # \param globalErrorZ
 
-    def showTransformationParamsMessage(
-        self, zAngle, translationX, translationY, globalError2D, translationZ, globalErrorZ
-    ):
-        self.paramLabel1.setText("Transl. X: " + str(round(translationX, 2)))
-        self.paramLabel2.setText("Transl. Y: " + str(round(translationY, 2)))
-        self.paramLabel3.setText("Rot.: " + str(round(zAngle, 2)))
-        self.paramLabel4.setText("SEM 2D: " + str(round(globalError2D, 2)))
-        self.paramLabel5.setText("Transl. Z: " + str(round(translationZ, 2)))
-        self.paramLabel6.setText("SEM Z: " + str(round(globalErrorZ, 2)))
+    def showTransformationParamsMessage(self, zAngle, translationX, translationY, globalError2D, translationZ, globalErrorZ):
+
+        self.paramLabel1.setText("Transl. X: "+str(round(translationX, 2)))
+        self.paramLabel2.setText("Transl. Y: "+str(round(translationY, 2)))
+        self.paramLabel3.setText("Rot.: "+str(round(zAngle, 2)))
+        self.paramLabel4.setText("SEM 2D: "+str(round(globalError2D, 2)))
+        self.paramLabel5.setText("Transl. Z: "+str(round(translationZ, 2)))
+        self.paramLabel6.setText("SEM Z: "+str(round(globalErrorZ, 2)))
 
     ## \brief Create a splitter (vertical line to separate labels in the parambar)
     #
     def createSplitter(self):
         vSplit = QFrame()
-        vSplit.setFrameShape(QFrame.VLine | QFrame.Sunken)
+        vSplit.setFrameShape(QFrame.VLine|QFrame.Sunken)
 
         return vSplit
