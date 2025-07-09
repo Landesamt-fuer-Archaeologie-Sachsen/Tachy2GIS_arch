@@ -16,7 +16,7 @@ from qgis.core import (
 
 from .transformation_calculations import TransformationCalculations
 from .transformation_dialog import TransformationDialog
-from ..utils.functions import ArchProjectConfig
+from ..utils.functions import ArchProjectConfig, project_backup
 
 
 ## @brief The class is used to implement GUI functionalities for transformation within the dock widget of the Tachy2GIS_arch plugin
@@ -622,23 +622,8 @@ class TransformationGui:
 
             return False, targetGCP
 
-    ## \brief Backup of the folders Shape and Projekt to the folder Backup Transformation
-    #
-    # Just before the transformation takes place, the data is backuped
-
     def backupBeforeTransformation(self):
-
-        # Backuppfad finden und gfl. erzeugen
-        projectPath = QgsProject.instance().readPath("../")
-        sourceProjectPath = projectPath + "/Projekt/"
-        sourceShapePath = projectPath + "/Shape/"
-        folderName = str(time.strftime("%Y-%m-%d_%H-%M-%S"))
-        backupPath = projectPath + "/Backup Transformation/backup_" + folderName + "/"
-        targetShapePath = backupPath + "Shape/"
-        targetProjectPath = backupPath + "Projekt/"
-
-        shutil.copytree(sourceShapePath, targetShapePath)
-        shutil.copytree(sourceProjectPath, targetProjectPath)
+        project_backup(self.iface, "vor_Transformation")
 
     ## \brief Get all inputlayers from the folder "Eingabelayer" of the layertree
     #
@@ -670,7 +655,7 @@ class TransformationGui:
     #
     # - check if transformation paramters are available
     # - check validity of the inputlayers checkInputlayersValidity()
-    # - Backup of the folders Shape and Projekt to the folder Backup Transformation backupBeforeTransformation()
+    # - backupBeforeTransformation()
     # - set target CRS to the layer
     # - create spatial index for the layer TransformationCalculations.createLayerSpatialIndex()
     # - do the rotation of the layer TransformationCalculations.layerRotation()

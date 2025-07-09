@@ -1,28 +1,21 @@
 import os
 import subprocess
+import sys
 
-from qgis.core import Qgis, QgsMessageLog, QgsProject
-from qgis.utils import iface
+from qgis.core import QgsProject
 
-from .functions import ProjectSaveFunc
-
-projectPath = QgsProject.instance().readPath("../")  # location of prj files (qgz files)
-projectFolderPath = os.path.abspath(os.path.join(projectPath, "./.."))  # location of folder contains all data
+from .functions import project_backup
 
 
 def openProjectFolder():
-    subprocess.call(r'explorer "' + projectFolderPath + '"')
-
-
-def saveProject():
-    ProjectSaveFunc().shapesSave()
-
-    # save the project qgz (e.g. leer.qgz)
-    QgsProject.instance().write()
-
-    if not ProjectSaveFunc().dayprojectSave(projectFolderPath):
-        iface.messageBar().pushMessage("T2G Archäologie: ", "Speicherung Tagesdatei: Fehler!", level=Qgis.Critical)
-        QgsMessageLog.logMessage("Speicherung Tagesdatei: Fehler!", "T2G Archäologie", Qgis.Critical)
+    # from "Projekt" folder go one up
+    projectPath = QgsProject.instance().readPath("..")
+    if sys.platform == "win32":
+        os.startfile(projectPath.replace('/', '\\'))
     else:
-        iface.messageBar().pushMessage("T2G Archäologie: ", "Speicherung Tagesdatei: Erfolgreich.", level=Qgis.Info)
-        QgsMessageLog.logMessage("Speicherung Tagesdatei: Erfolgreich.", "T2G Archäologie", Qgis.Info)
+        opener = "open" if sys.platform == "darwin" else "xdg-open"
+        subprocess.call([opener, projectPath])
+
+
+def saveProject(iface):
+    project_backup(iface, "manuell")

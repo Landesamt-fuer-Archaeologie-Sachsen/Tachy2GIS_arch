@@ -40,6 +40,7 @@ class PluginInterface:
         self.setupToolbar()
         QgsProject.instance().readProject.connect(self.onNewProjectLoaded)
         QgsProject.instance().cleared.connect(self.onProjectClosed)
+        QgsProject.instance().projectSaved.connect(self.onProjectSaved)
 
     def unload(self):
         """
@@ -76,6 +77,7 @@ class PluginInterface:
 
         QgsProject.instance().readProject.disconnect(self.onNewProjectLoaded)
         QgsProject.instance().cleared.disconnect(self.onProjectClosed)
+        QgsProject.instance().projectSaved.disconnect(self.onProjectSaved)
 
     def setupToolbar(self):
         self.actions = {}
@@ -121,7 +123,7 @@ class PluginInterface:
 
         self.toolbar.addSeparator()
 
-        actionSaveProject = QAction(QIcon(ICON_PATHS["media-floppy"]), "Tagesprojekt sichern", self.iface.mainWindow())
+        actionSaveProject = QAction(QIcon(ICON_PATHS["media-floppy"]), "Backup erstellen", self.iface.mainWindow())
         self.actions["actionSaveProject"] = {
             "QAction": actionSaveProject,
             "enabled_per_default": False,
@@ -180,6 +182,14 @@ class PluginInterface:
         print("Projekt wurde geschlossen!")
         self.onActionStartPlugin(False)
 
+    def onProjectSaved(self):
+        print("Das Projekt wurde gespeichert!")
+        project = QgsProject.instance()
+        for layer in project.mapLayers().values():
+            if layer.type() == layer.VectorLayer and layer.isEditable():
+                layer.updateExtents()
+                layer.commitChanges()
+
     def onActionStartPlugin(self, checked):
         self.actions["actionStartPlugin"]["QAction"].setEnabled(False)
         QCoreApplication.processEvents()  # give Qt the chance to process signals and display other icon
@@ -218,7 +228,7 @@ class PluginInterface:
         openProjectFolder()
 
     def onActionSaveProject(self, _):
-        saveProject()
+        saveProject(self.iface)
 
     def onActionImportPoints(self, _):
         if self.t2g_arch_instance:

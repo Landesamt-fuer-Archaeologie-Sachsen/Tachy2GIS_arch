@@ -97,7 +97,7 @@
     </rect>
    </property>
    <property name="currentIndex">
-    <number>5</number>
+    <number>0</number>
    </property>
    <widget class="QWidget" name="tab_1">
     <property name="enabled">
@@ -106,48 +106,6 @@
     <attribute name="title">
      <string>Allgemein</string>
     </attribute>
-    <widget class="QCheckBox" name="chbautoSave">
-     <property name="geometry">
-      <rect>
-       <x>15</x>
-       <y>34</y>
-       <width>58</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>An</string>
-     </property>
-     <property name="checked">
-      <bool>true</bool>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_9">
-     <property name="geometry">
-      <rect>
-       <x>125</x>
-       <y>36</y>
-       <width>34</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>min</string>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="txtautoSaveTime">
-     <property name="geometry">
-      <rect>
-       <x>71</x>
-       <y>33</y>
-       <width>46</width>
-       <height>22</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string/>
-     </property>
-    </widget>
     <widget class="QLabel" name="label">
      <property name="geometry">
       <rect>
@@ -215,6 +173,66 @@
      <property name="text">
       <string>Textgröße bei anderer Bildauflösung</string>
      </property>
+    </widget>
+    <widget class="QWidget" name="horizontalLayoutWidget">
+     <property name="geometry">
+      <rect>
+       <x>19</x>
+       <y>30</y>
+       <width>391</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout_2">
+      <item>
+       <widget class="QCheckBox" name="chbautoSave">
+        <property name="text">
+         <string>An</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_24">
+        <property name="text">
+         <string>alle</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QSpinBox" name="spb_autoSaveTime">
+        <property name="text" stdset="0">
+         <string>0</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_9">
+        <property name="text">
+         <string>min</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_25">
+        <property name="text">
+         <string>behalte die letzten</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QSpinBox" name="spb_keep_last_n_backups">
+        <property name="text" stdset="0">
+         <string>0</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </widget>
    </widget>
    <widget class="QWidget" name="tab_5">

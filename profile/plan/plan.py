@@ -55,8 +55,6 @@ class Plan:
     ## @brief Initializes the functionality for profile modul
     #
     def setup(self):
-        print("Setup plan")
-
         # set datatype filter to profileFotosComboGeoref
         self.__dockwidget.profilePlanSelect.setFilter("Images (*.jpg)")
 

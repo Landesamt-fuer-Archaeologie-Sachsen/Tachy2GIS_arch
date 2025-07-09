@@ -26,6 +26,7 @@ import operator
 import os
 import uuid
 
+from PyQt5.QtCore import QTimer
 from qgis.PyQt.QtCore import QCoreApplication, QSettings, Qt, QTranslator, qVersion, QVariant
 from qgis.PyQt.QtGui import QIcon, QCursor
 from qgis.PyQt.QtWidgets import (
@@ -62,7 +63,7 @@ from .functions import (
     addPoint3D,
     delLayer,
     delSelectFeature,
-    fileFunc,
+    FileFunctions,
     findLayerInProject,
     fileLineCount,
     getCustomProjectVariable,
@@ -71,8 +72,9 @@ from .functions import (
     makerAndRubberbands,
     maxValue,
     progressBar,
-    ProjectSaveFunc,
     setCustomProjectVariable,
+    project_backup,
+    str2bool,
 )
 from .identifygeometry import IdentifyGeometry
 from .t2g_arch_dockwidget import T2GArchDockWidget
@@ -135,6 +137,7 @@ class T2gArch:
 
         self.pluginIsActive = False
         self.dockwidget = None
+        self.number_of_unsuccessful_auto_backups = 0
 
     def initGui(self):
         self.dockwidget = T2GArchDockWidget()
@@ -156,8 +159,7 @@ class T2gArch:
         if not self.pluginIsActive:
             self.pluginIsActive = True
 
-            # ToDo: refactoring: watch (autosave?) needed?
-            # self.watch = QTimer()
+            self.watch = QTimer()
 
             self.ProjPfad = ""
 
@@ -245,9 +247,7 @@ class T2gArch:
 
             self.dockwidget.btnBefundLabel.clicked.connect(self.setBefundLabel_n)
 
-            # ToDo: Refactoring - watch (autosave?) needed?
-            # self.watch.timeout.connect(self.watchEvent)
-            self.iface.projectRead.connect(self.eventReadProject)
+            self.watch.timeout.connect(self.watchEvent)
             self.__lastMaxNumber = []
             self.setup()
 
@@ -268,15 +268,11 @@ class T2gArch:
         self.currentLayerChanged()
         self.getMaxValues()
 
-        self.iface.messageBar().pushMessage(
-            self.plugin_name_tag, "Aufsatz Archäologie für T2G ist einsatzbereit.", level=Qgis.Info
-        )
         QgsMessageLog.logMessage("Aufsatz Archäologie für T2G ist einsatzbereit.", self.plugin_name_tag, Qgis.Info)
 
         delSelectFeature()
         self.selectFeatures = []
         QgsMessageLog.logMessage("Überprüfe UUID", self.plugin_name_tag, Qgis.Info)
-        self.iface.messageBar().pushMessage(self.plugin_name_tag, "Überprüfe UUID.", level=Qgis.Info)
         # >uuid ereugen wenn Feld uuid leer
         layer_list = [self.layerPoly, self.layerLine, self.layerPoint, self.layerMesspoint]
         for layer in layer_list:
@@ -308,8 +304,6 @@ class T2gArch:
         self.filterGesetzt()
 
         self.eventReadProject()
-        # ToDo: refactoring - watch (autosave?) needed?
-        self.watchEvent()
 
     def setupConnections(self):
         self.dockwidget.butHilfe.setToolTip("Benutzerhandbuch")
@@ -867,25 +861,21 @@ class T2gArch:
         self.config = Configfile(os.path.join(self.ProjPfad, "_System_", "config.ini"))
         myDlgSettingsView = DlgSettings(self, self.config)
         myDlgSettingsView.setup()
-        # Autosave einstellungen setzen
-        autoSaveTime = self.config.getValue("AutoSave", "time", "10")
-        autoSaveEnable = self.config.getValue("AutoSave", "enabled", "True")
 
-        # ToDo: refactoring: watch (autosave?) needed?
-        """
-        if autoSaveEnable == 'True':
+        # Autosave einstellungen setzen
+        autoSaveTime = self.config.getValue("AutoSave", "interval_in_min")
+        autoSaveEnable = self.config.getValue("AutoSave", "enabled")
+        if str2bool(autoSaveEnable):
+            # trigger event now for first backup
+            self.watch.timeout.emit()
+            # and then periodically
             self.watch.start(int(autoSaveTime) * 60000)
             QgsMessageLog.logMessage(
                 "Auto Backup: An, " + "Takt " + autoSaveTime + " min", 'T2G Archäologie', Qgis.Info)
-            self.iface.messageBar().pushMessage(uself.plugin_name_tag, u"Auto Backup: An, " + "Takt " + autoSaveTime + " min",
-                                           level=Qgis.Info)
         else:
             self.watch.stop()
             QgsMessageLog.logMessage(
                 "Auto Backup: Aus", 'T2G Archäologie', Qgis.Info)
-            self.iface.messageBar().pushMessage(uself.plugin_name_tag, u"Auto Backup: Aus.",
-                                           level=Qgis.Info)
-        """
 
     def eventFeatureAdded(self, fid):
         # Wird nirgends mehr verwendet # Sonst Fehler beim Digitalisieren
@@ -1124,7 +1114,7 @@ class T2gArch:
             if output_file[1] == "GeoTif (*.tif)":
                 s = os.path.splitext(output_file[0])[0]
                 # temp. geschnittenes Bild unter neuen Namen speichern
-                fileFunc().file_copy(temp_output_raster, s + ".tif")
+                FileFunctions().file_copy(temp_output_raster, s + ".tif")
                 # Bild als neuen Layer einfügen
                 self.iface.addRasterLayer(s + ".tif", os.path.basename(output_file[0])[:-4])
 
@@ -1149,11 +1139,11 @@ class T2gArch:
         except Exception as e:
             QgsMessageLog.logMessage(str(e), self.plugin_name_tag, Qgis.Info)
             # temp. geschnittenes Bild löschen
-            fileFunc().file_del(temp_output_raster)
+            FileFunctions().file_del(temp_output_raster)
         finally:
             QgsMessageLog.logMessage("datei löschen", self.plugin_name_tag, Qgis.Info)
             # temp. geschnittenes Bild löschen
-            fileFunc().file_del(temp_output_raster)
+            FileFunctions().file_del(temp_output_raster)
 
         box = QMessageBox()
         box.setIcon(QMessageBox.Question)
@@ -1180,7 +1170,7 @@ class T2gArch:
                 if input_path in layer.source():
                     a = a + 1
             if a == 0:
-                fileFunc().file_del(input_path)
+                FileFunctions().file_del(input_path)
             else:
                 self.iface.messageBar().pushMessage(
                     self.plugin_name_tag,
@@ -1219,8 +1209,8 @@ class T2gArch:
                     None, "Speicherpfad", os.path.splitext(input_path)[0], "Jpeg mit World (*.jpg);;Alle (*.*)"
                 )
                 if output_file[0] != "":
-                    fileFunc().file_copy(outputtemp, output_file[0][:-4] + ".jpg")
-                    fileFunc().file_copy(outputtemp[:-4] + ".wld", output_file[0][:-4] + ".wld")
+                    FileFunctions().file_copy(outputtemp, output_file[0][:-4] + ".jpg")
+                    FileFunctions().file_copy(outputtemp[:-4] + ".wld", output_file[0][:-4] + ".wld")
 
                     rasterlayer = self.iface.addRasterLayer(
                         output_file[0][:-4] + ".jpg", os.path.basename(output_file[0])[:-4]
@@ -1252,8 +1242,8 @@ class T2gArch:
                             if input_path in layer.source():
                                 a = a + 1
                         if a == 0:
-                            fileFunc().file_del(input_path)
-                            fileFunc().file_del(input_path[:-4] + ".wld")
+                            FileFunctions().file_del(input_path)
+                            FileFunctions().file_del(input_path[:-4] + ".wld")
                         else:
                             self.iface.messageBar().pushMessage(
                                 self.plugin_name_tag,
@@ -1269,9 +1259,9 @@ class T2gArch:
             except Exception as e:
                 QgsMessageLog.logMessage(str(e), self.plugin_name_tag, Qgis.Info)
             finally:
-                fileFunc().file_del(outputtemp)
-                fileFunc().file_del(outputtemp[:-4] + ".wld")
-                fileFunc().file_del(outputtemp[:-4] + ".tif.aux.xml")
+                FileFunctions().file_del(outputtemp)
+                FileFunctions().file_del(outputtemp[:-4] + ".wld")
+                FileFunctions().file_del(outputtemp[:-4] + ".tif.aux.xml")
         else:
             self.iface.messageBar().pushMessage(
                 self.plugin_name_tag, "Layer ist kein Rasterlayer oder eine GeoTif!", level=Qgis.Critical
@@ -1326,9 +1316,6 @@ class T2gArch:
                 setCustomProjectVariable("nextFundNr", str(FundNrMax + 1))
                 setCustomProjectVariable("nextProbNr", str(ProbNrMax + 1))
 
-            self.iface.messageBar().pushMessage(
-                self.plugin_name_tag, "Nächste zu vergebende Nummern wurden aktuallisiert.", level=Qgis.Info
-            )
             setCustomProjectVariable("maxWerteAktualisieren", False)
             # self.autoNummer()
 
@@ -1489,37 +1476,33 @@ class T2gArch:
         # myDlgSettingsView.setAutoFillBackground(True)
         myDlgSettingsView.show()
 
-    # ToDo: refactoring - watch (autosave?) needed?
     def watchEvent(self):
-        ProjectSaveFunc().shapesSave()
-        origFileName = QgsProject.instance().fileName()
-        if origFileName != "":  # and QgsProject.instance().isDirty()
-            bakFileName = origFileName + ".bak"
-            fileFunc().file_del(bakFileName)
-            QgsProject.instance().write()
-            QgsProject.instance().write(bakFileName)
-            QgsProject.instance().setFileName(origFileName)
+        keep_last_n_backups = self.config.getValue("AutoSave", "keep_last_n_backups", 10)
+        success = project_backup(self.iface, "automatisch", int(keep_last_n_backups))
+        if success:
+            self.number_of_unsuccessful_auto_backups = 0
+            return
 
-        # if projectSaveFunc().project_save(unicode(self.ProjPfad)) == 'False':
-        #    self.iface.messageBar().pushMessage(uself.plugin_name_tag, u"Auto Backup: Fehler!",
-        #                                   level=Qgis.Critical)
-        #    QgsMessageLog.logMessage("Auto Backup: Fehler!", 'T2G Archäologie', Qgis.Critical)
-        # else:
-        #    self.iface.messageBar().pushMessage(uself.plugin_name_tag, u"Auto Backup: Erstellt!",
-        #                                   level=Qgis.Info)
-        #    QgsMessageLog.logMessage("Auto Backup: Erstellt.", 'T2G Archäologie', Qgis.Info)
+        self.number_of_unsuccessful_auto_backups += 1
 
-        ziel = os.path.join(self.ProjPfad, "_Sicherungen_")
+        if self.number_of_unsuccessful_auto_backups > 1:
 
-        # Temporärer Fix - Diskussion wie und ob Sicherung
-        if os.path.isdir(ziel):
-            ordner = []
-
-            for folder in next(os.walk(ziel))[1]:
-                ordner.append((str(folder)))
-
-            for i in range(0, len(ordner) - 5):
-                fileFunc().directory_del(os.path.join(ziel, ordner[i]))
+            zeit = self.number_of_unsuccessful_auto_backups * int(
+                self.config.getValue("AutoSave", "interval_in_min")
+            )
+            result = QMessageBox.question(
+                None,
+                "Jetzt speichern und Backup erstellen?",
+                f"Das letzte Backup ist schon {zeit} Minuten her.\nJetzt speichern und Backup erstellen?",
+                QMessageBox.Yes | QMessageBox.No,
+                QMessageBox.No,
+            )
+            if result == QMessageBox.Yes:
+                # should trigger also layer commit in plugin_interface.PluginInterface.onProjectSaved()
+                QgsProject.instance().write()
+                QApplication.processEvents()
+                # trigger event now for next try
+                self.watch.timeout.emit()
 
     # ToDo: refactoring - Map Tools
     def editFeature(self, layer, feature):

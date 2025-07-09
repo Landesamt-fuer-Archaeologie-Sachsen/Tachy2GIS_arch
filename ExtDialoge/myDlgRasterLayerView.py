@@ -41,7 +41,7 @@ from qgis.PyQt import uic
 from qgis.core import QgsProject, QgsMapLayer, QgsMessageLog, Qgis
 
 from ..Icons import ICON_PATHS
-from ..utils.functions import progressBar, fileFunc
+from ..utils.functions import progressBar, FileFunctions
 
 FORM_CLASS, _ = uic.loadUiType(os_path.join(os_path.dirname(__file__), "myDlgRasterLayerView.ui"))
 
@@ -370,12 +370,12 @@ class RasterLayerViewDockWidget(QDockWidget, FORM_CLASS):
                 )
                 src_dir = picturelist[i]
                 head, tail = os_path.split(src_dir)
-                fileFunc().file_copy(src_dir, os_path.join(dst_root, tail))
+                FileFunctions().file_copy(src_dir, os_path.join(dst_root, tail))
                 # wld Datei kopieren
                 tailsplit = tail.split(".")
 
-                fileFunc().file_copy(src_dir, os_path.join(dst_root, tailsplit[0] + ".wld"))
-                fileFunc().file_copy(src_dir, os_path.join(dst_root, tail + ".aux.xml"))
+                FileFunctions().file_copy(src_dir, os_path.join(dst_root, tailsplit[0] + ".wld"))
+                FileFunctions().file_copy(src_dir, os_path.join(dst_root, tail + ".aux.xml"))
                 count = count + 1
                 QCoreApplication.processEvents()
                 QgsMessageLog.logMessage(str(os_path.join(dst_root, tail)), "T2G Archäologie", Qgis.Info)

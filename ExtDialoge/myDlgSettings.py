@@ -2,6 +2,7 @@
 import os.path
 from configparser import ConfigParser
 
+from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QDialog
 from qgis.PyQt import uic
 from qgis.core import QgsMessageLog, Qgis
@@ -25,10 +26,12 @@ class DlgSettings(QDialog):
         # Alle Tabs Sichtbarkeit aus
         for index in range(self.ui.tabWidget.count()):
             self.ui.tabWidget.setTabVisible(index, False)
-        QgsMessageLog.logMessage("setup", "T2G Archäologie", Qgis.Info)
+        # QgsMessageLog.logMessage("setup", "T2G Archäologie", Qgis.Info)
         # Config lesen
-        val = self.__config.getValue("AutoSave", "time", "10")
-        self.ui.txtautoSaveTime.setText(val)
+        val = self.__config.getValue("AutoSave", "interval_in_min", "15")
+        self.ui.spb_autoSaveTime.setValue(int(val))
+        val = self.__config.getValue("AutoSave", "keep_last_n_backups", "10")
+        self.ui.spb_keep_last_n_backups.setValue(int(val))
         val = self.__config.getValue("AutoSave", "enabled", "True")
         self.ui.chbautoSave.setChecked(str2bool(val))
         val = self.__config.getValue("Textgröße", "value", "0.70")
@@ -80,8 +83,9 @@ class DlgSettings(QDialog):
 
     def ok(self):
         """Werte in Configparser eintragen"""
-        self.__config.updateValue("AutoSave", "time", self.ui.txtautoSaveTime.text())
-        self.__config.updateValue("AutoSave", "enabled", str(self.ui.chbautoSave.checkState()))
+        self.__config.updateValue("AutoSave", "enabled", "True" if self.ui.chbautoSave.checkState() == Qt.Checked else "False")
+        self.__config.updateValue("AutoSave", "interval_in_min", str(self.ui.spb_autoSaveTime.value()))
+        self.__config.updateValue("AutoSave", "keep_last_n_backups", str(self.ui.spb_keep_last_n_backups.value()))
         self.__config.updateValue("Textgröße", "value", str(self.ui.spbTextGr.value()))
         self.__config.updateValue("Punkte Export", "pfad Exportordner", self.ui.txtPointPfadExp.text())
         self.__config.updateValue("Punkte Import", "Pfad Importordner", self.ui.txtPointPfadImp.text())
@@ -105,10 +109,9 @@ class DlgSettings(QDialog):
         self.__config.updateValue("MouseInfo", "punktNr", str(self.ui.chbMInfo_13.checkState()))
         self.__config.updateValue("MouseInfo", "koordinaten", str(self.ui.chbMInfo_14.checkState()))
 
+        self.ui.close()
         self.__config.saveFile()
         self.__t2gArchInstance.eventReadProject()
-
-        self.ui.close()
 
     def abbruch(self):
         self.ui.close()
@@ -152,8 +155,9 @@ class Configfile:
     def setStandartValues(self):
         # Configparser mit Standartdaten füllen
         self.__config_object["AutoSave"] = {
-            "time": "5",
             "enabled": "off",
+            "interval_in_min": "15",
+            "keep_last_n_backups": "10",
         }
 
         self.__config_object["Punkte Import"] = {"pfad Importordner": "./../Jobs"}

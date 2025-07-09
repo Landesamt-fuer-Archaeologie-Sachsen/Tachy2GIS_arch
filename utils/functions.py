@@ -5,14 +5,16 @@ import os
 import os.path
 import re
 import shutil
-import time
+import sqlite3
 from ctypes import wintypes
 from datetime import datetime
+from pathlib import Path
 
 import yaml
 from qgis.PyQt.QtCore import Qt, QUrl, pyqtSignal
 from qgis.PyQt.QtGui import QColor
 from qgis.PyQt.QtWidgets import QDesktopWidget, QGridLayout, QMessageBox, QLabel, QProgressBar, QTextBrowser, QWidget
+from qgis._core import Qgis, QgsMessageLog
 from qgis.core import (
     QgsExpressionContextUtils,
     QgsFeature,
@@ -105,6 +107,39 @@ def layers_not_in_edit_mode(list_of_layer_names: list[str]):
     return True
 
 
+def commit_changes_in_layers(list_of_layer_names: list[str] = None):
+    project = QgsProject.instance()
+
+    for layer_name in list_of_layer_names:
+        layers = project.mapLayersByName(layer_name)
+        if not layers:
+            print(f"Layer '{layer_name}' not found in the project.")
+            return False
+
+        for layer in layers:
+            if layer.isEditable() and layer.isModified():
+                layer.commitChanges()
+                layer.startEditing()
+
+    return True
+
+
+def get_source_file_paths_of_layers(list_of_layer_names: list[str]):
+    project = QgsProject.instance()
+
+    paths_set = set()
+    for layer_name in list_of_layer_names:
+        layers = project.mapLayersByName(layer_name)
+        if not layers:
+            print(f"Layer '{layer_name}' not found in the project.")
+            return []
+
+        for layer in layers:
+            paths_set.add(str(layer.source()).split("|")[0])
+
+    return list(paths_set)
+
+
 def natural_sort_key(s, _nsre=re.compile("([0-9]+)")):
     return [int(text) if text.isdigit() else text.lower() for text in _nsre.split(s)]
 
@@ -168,48 +203,114 @@ def findLayerInProject(name):
             return lyr
 
 
-class ProjectSaveFunc:
-    # ToDo: Currently without use
-    def projectSave(self, source):
-        try:
-            currentDate = time.strftime("%Y.%m.%d")
-            currentTime = time.strftime("%H-%M")
-            target = os.path.join(source, "_Sicherungen_", currentDate + "_" + currentTime)
+def project_backup(iface, subfolder: str, keep_only_last_n_backups: int = None):
+    """
+    Creates a backup of a QGIS project and associated GeoPackage layers to a specified subfolder.
+    This function ensures that the layers are not in edit mode, copies the project file and GeoPackage
+    files to a timestamped backup folder, and optionally deletes the oldest backup folders.
 
-            fileFunc().directory_copy(os.path.join(source, "GPKG Files"), os.path.join(target, "GPKG Files"))
-            fileFunc().directory_copy(os.path.join(source, "Shape"), os.path.join(target, "Shape"))
-            fileFunc().directory_copy(os.path.join(source, "Projekt"), os.path.join(target, "Projekt"))
+    Parameters:
+    - iface: An interface object used to interact with the QGIS application, including showing messages.
+    - subfolder (str): The name of the subfolder within "_Sicherungen_" where backups will be stored.
+    - keep_only_last_n_backups optional(int): The maximum number of backups to keep.
 
-            os.remove(os.path.join(target, "Projekt", "intro.py"))
-            fileFunc().directory_del(os.path.join(target, "Projekt", "__pycache__"))
-            return True
-        except:
-            fileFunc().directory_del(target)
-            return False
+    Returns:
+    - bool: True if the backup process was successful, False otherwise.
+    """
 
-    def dayprojectSave(self, copyFrom):
-        now = datetime.now()  # current date and time
-        currentDate = now.strftime("%Y.%m.%d")
-        currentTime = now.strftime("%H-%M")
-        copyTo = os.path.join(copyFrom, "_Tagesdateien_", currentDate + "_" + currentTime)
+    strftime_format_string = "%Y-%m-%d_%H_%M_%S"
+    regex_pattern_for_format_string = r'\d{4}-\d{2}-\d{2}_\d{2}_\d{2}_\d{2}'
+    sensible_layers = ["E_Point", "E_Line", "E_Polygon", "Messpunkte"]
 
-        try:
-            fileFunc().directory_copy(os.path.join(copyFrom, "GPKG Files"), os.path.join(copyTo, "GPKG_Files"))
-            fileFunc().directory_copy(os.path.join(copyFrom, "Shape"), os.path.join(copyTo, "Shape"))
-            fileFunc().directory_copy(os.path.join(copyFrom, "Projekt"), os.path.join(copyTo, "Projekt"))
+    def delete_oldest_folders(directory, keep_num):
+        pattern = re.compile(regex_pattern_for_format_string)
 
-            os.remove(os.path.join(copyTo, "Projekt", "intro.py"))
-            fileFunc().directory_del(os.path.join(copyTo, "Projekt", "__pycache__"))
-            return True
-        except:
-            fileFunc().directory_del(copyTo)
-            return False
+        folders = [
+            os.path.join(directory, entry)
+            for entry in os.listdir(directory)
+            if os.path.isdir(os.path.join(directory, entry)) and pattern.fullmatch(entry)
+        ]
+        folders.sort()
+        num_to_delete = max(len(folders) - keep_num, 0)
+        for folder in folders[:num_to_delete]:
+            try:
+                shutil.rmtree(folder)
+                print(f"BACKUP: Deleted folder: {folder}")
+            except Exception as e:
+                print(f"BACKUP: ERROR deleting folder {folder}: {e}")
 
-    def shapesSave(self):
-        for layer in iface.mapCanvas().layers():
-            if layer.isEditable() and layer.isModified():
-                layer.commitChanges()
-                layer.startEditing()
+    def show_message(text, critical=False):
+        iface.messageBar().pushMessage(
+            title="T2G Archäologie Backup: ",
+            text=text,
+            level=(Qgis.MessageLevel.Warning if critical else Qgis.MessageLevel.Info),
+            # duration=(0 if critical else -1)
+            duration=10
+        )
+        QgsMessageLog.logMessage(
+            tag="T2G Archäologie",
+            message="Backup: " + text,
+            level=(Qgis.MessageLevel.Warning if critical else Qgis.MessageLevel.Info)
+        )
+
+    project = QgsProject.instance()
+
+    if not layers_not_in_edit_mode(sensible_layers) or project.isDirty():
+        show_message(
+            "Nicht möglich. Bitte den Editiermodus der Eingabelayer beenden und die Projektdatei speichern.",
+            True
+        )
+        return False
+
+    gpkg_paths = get_source_file_paths_of_layers(sensible_layers)
+    if not gpkg_paths:
+        show_message("Keine Quelle für Eingabelayer gefunden.", True)
+        return False
+
+    try:
+        backup_folder_name = f"_Sicherungen_/{subfolder}"
+        projectPath = project.readPath("..")  # from "Projekt" folder go one up
+        target_folder = os.path.join(projectPath, backup_folder_name, datetime.now().strftime(strftime_format_string))
+        print("BACKUP: creating target folder: " + target_folder)
+        os.makedirs(target_folder)
+    except Exception as e:
+        show_message(f"Failed to create backup folder: {e}", True)
+        return False
+
+    try:
+        projectFileName = project.fileName()
+        newFileName = os.path.join(target_folder, Path(projectFileName).name)
+        tmpFileName = str(projectFileName) + "_tmp.qgz"  # same folder or relative paths to layers will be wrong
+        print("BACKUP: copying project file to: " + newFileName)
+        # project.write()
+        project.write(tmpFileName)
+        project.write(projectFileName)
+        shutil.move(tmpFileName, newFileName)
+    except Exception as e:
+        show_message(f"Failed to backup project file: {e}", True)
+        return False
+
+    try:
+        for gpkg_path in gpkg_paths:
+            if gpkg_path.endswith(".gpkg"):
+                conn = sqlite3.connect(gpkg_path)
+                cursor = conn.cursor()
+                cursor.execute("VACUUM;")
+                conn.commit()
+                conn.close()
+
+            print(f"BACKUP: copying GeoPackage {gpkg_path}")
+            shutil.copy2(gpkg_path, target_folder)
+
+    except Exception as e:
+        show_message(f"Failed to backup GeoPackage: {e}", True)
+        return False
+
+    if keep_only_last_n_backups:
+        delete_oldest_folders(os.path.join(projectPath, backup_folder_name), keep_num=keep_only_last_n_backups)
+
+    show_message("successful")
+    return True
 
 
 def addPoint3D(layer, point, attListe):
@@ -242,38 +343,54 @@ def addPoint3D(layer, point, attListe):
 # -------------------- Refactoring ----------------------------
 
 
-class fileFunc:
-    def directory_del(self, path):
+class FileFunctions:
+    @staticmethod
+    def directory_del(path):
         # check if folder exists
         if os.path.exists(path):
             # remove if exists
             shutil.rmtree(path)
 
-    def file_copy(self, quelle, ziel):
-        # check if folder exists
+    @staticmethod
+    def file_copy(quelle, ziel):
         if os.path.exists(quelle):
-            # remove if exists
             shutil.copy(quelle, ziel)
 
-    def file_del(self, path):
+    @staticmethod
+    def file_del(path):
         if os.path.exists(path):
             os.remove(path)
 
-    def makedirs(self, path):
-        if os.path.exists(path):
-            os.makedirs(path)
+    @staticmethod
+    def directory_copy(source, destination, exclude_dirs_on_top_level=None):
+        if exclude_dirs_on_top_level is None:
+            exclude_dirs_on_top_level = []
 
-    def directory_copy(self, quelle, ziel):
-        for src_dir, dirs, files in os.walk(quelle):
-            dst_dir = src_dir.replace(quelle, ziel, 1)
-            if not os.path.exists(dst_dir):
-                os.makedirs(dst_dir.replace("\\", "/", 1))
-            for file_ in files:
-                src_file = os.path.join(src_dir, file_)
-                dst_file = os.path.join(dst_dir, file_)
-                if os.path.exists(dst_file):
-                    os.remove(dst_file)
-                shutil.copy(src_file, dst_dir)
+        if os.path.exists(destination):
+            print(f"directory_copy() directory '{destination}' exists already.")
+            return False
+
+        try:
+            os.makedirs(destination)
+
+            for item in os.listdir(source):
+                source_path = os.path.join(source, item)
+                destination_path = os.path.join(destination, item)
+
+                if os.path.isdir(source_path) and item in exclude_dirs_on_top_level:
+                    # print(f"Skipping excluded directory: {item}")
+                    continue
+
+                if os.path.isdir(source_path):
+                    shutil.copytree(source_path, destination_path)
+                else:
+                    shutil.copy2(source_path, destination_path)
+            return True
+
+        except Exception as e:
+            print(e)
+            FileFunctions().directory_del(destination)
+            return False
 
 
 class makerAndRubberbands:
