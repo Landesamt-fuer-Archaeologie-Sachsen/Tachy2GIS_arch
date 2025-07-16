@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import QDialog
 from qgis.PyQt import uic
 from qgis.core import QgsMessageLog, Qgis
 
-from ..utils.functions import str2bool
+from ..utils.functions import any2bool
 
 
 class DlgSettings(QDialog):
@@ -33,7 +33,7 @@ class DlgSettings(QDialog):
         val = self.__config.getValue("AutoSave", "keep_last_n_backups", "10")
         self.ui.spb_keep_last_n_backups.setValue(int(val))
         val = self.__config.getValue("AutoSave", "enabled", "True")
-        self.ui.chbautoSave.setChecked(str2bool(val))
+        self.ui.chbautoSave.setChecked(any2bool(val))
         val = self.__config.getValue("Textgröße", "value", "0.70")
         self.ui.spbTextGr.setValue(float(val))
         # Punktexportpfad
@@ -53,33 +53,33 @@ class DlgSettings(QDialog):
         self.ui.txtAttFEP.setText(val)
         # MouseInfo
         val = self.__config.getValue("MouseInfo", "anzeigen", "True")
-        self.ui.chbMInfo_1.setChecked(str2bool(val))
+        self.ui.chbMInfo_1.setChecked(any2bool(val))
         val = self.__config.getValue("MouseInfo", "beiBeginn", "True")
-        self.ui.chbMInfo_2.setChecked(str2bool(val))
+        self.ui.chbMInfo_2.setChecked(any2bool(val))
         val = self.__config.getValue("MouseInfo", "immer", "True")
-        self.ui.chbMInfo_3.setChecked(str2bool(val))
+        self.ui.chbMInfo_3.setChecked(any2bool(val))
         val = self.__config.getValue("MouseInfo", "geometrieart", "True")
-        self.ui.chbMInfo_4.setChecked(str2bool(val))
+        self.ui.chbMInfo_4.setChecked(any2bool(val))
         val = self.__config.getValue("MouseInfo", "objekttyp", "True")
-        self.ui.chbMInfo_5.setChecked(str2bool(val))
+        self.ui.chbMInfo_5.setChecked(any2bool(val))
         val = self.__config.getValue("MouseInfo", "objektart", "True")
-        self.ui.chbMInfo_6.setChecked(str2bool(val))
+        self.ui.chbMInfo_6.setChecked(any2bool(val))
         val = self.__config.getValue("MouseInfo", "schnitt", "True")
-        self.ui.chbMInfo_7.setChecked(str2bool(val))
+        self.ui.chbMInfo_7.setChecked(any2bool(val))
         val = self.__config.getValue("MouseInfo", "planum", "True")
-        self.ui.chbMInfo_8.setChecked(str2bool(val))
+        self.ui.chbMInfo_8.setChecked(any2bool(val))
         val = self.__config.getValue("MouseInfo", "befund", "True")
-        self.ui.chbMInfo_9.setChecked(str2bool(val))
+        self.ui.chbMInfo_9.setChecked(any2bool(val))
         val = self.__config.getValue("MouseInfo", "fund", "True")
-        self.ui.chbMInfo_10.setChecked(str2bool(val))
+        self.ui.chbMInfo_10.setChecked(any2bool(val))
         val = self.__config.getValue("MouseInfo", "profil", "True")
-        self.ui.chbMInfo_11.setChecked(str2bool(val))
+        self.ui.chbMInfo_11.setChecked(any2bool(val))
         val = self.__config.getValue("MouseInfo", "probe", "True")
-        self.ui.chbMInfo_12.setChecked(str2bool(val))
+        self.ui.chbMInfo_12.setChecked(any2bool(val))
         val = self.__config.getValue("MouseInfo", "punktNr", "True")
-        self.ui.chbMInfo_13.setChecked(str2bool(val))
+        self.ui.chbMInfo_13.setChecked(any2bool(val))
         val = self.__config.getValue("MouseInfo", "koordinaten", "True")
-        self.ui.chbMInfo_14.setChecked(str2bool(val))
+        self.ui.chbMInfo_14.setChecked(any2bool(val))
 
     def ok(self):
         """Werte in Configparser eintragen"""

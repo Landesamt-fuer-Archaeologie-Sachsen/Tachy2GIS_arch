@@ -464,9 +464,19 @@ def isNumber(str):
     return correct
 
 
-def str2bool(v):
-    if v is not None:
-        return v.lower() in ("yes", "true", "on", "t", "1", "2")
+def any2bool(v):
+    if v is None:
+        pass
+    elif isinstance(v, bool):
+        return v
+    elif isNumber(v):
+        return bool(v)
+    elif isinstance(v, str):
+        if v.lower() in ("yes", "y", "ja", "j", "true", "t", "wahr", "on", "an", "1", "2"):
+            return True
+        elif v.lower() in ("no", "n", "nein", "false", "f", "falsch", "off", "aus", "0"):
+            return False
+    raise ValueError(f"invalid truth value: {v} (type {type(v)})")
 
 
 def maxValue(layer, fieldname):

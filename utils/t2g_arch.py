@@ -74,7 +74,7 @@ from .functions import (
     progressBar,
     setCustomProjectVariable,
     project_backup,
-    str2bool,
+    any2bool,
 )
 from .identifygeometry import IdentifyGeometry
 from .t2g_arch_dockwidget import T2GArchDockWidget
@@ -414,7 +414,7 @@ class T2gArch:
                 QMessageBox.critical(None, "Critical", "Fehler in der Konfigurationsdatei. {e}")
                 return False
             finally:
-                del config
+                del config  # just wanted to know if it is readable
 
             self.reloadVisdatModules()
             self.furtherSetups()
@@ -436,7 +436,7 @@ class T2gArch:
             self.dock_widget_was_set_open = False
 
     def importPoints(self):
-        importPath = self.config.getValue("Punkte Import", "pfad Importordner", "./../Jobs")
+        importPath = ArchProjectConfig().get("default_importordner", "./../Jobs")
         pointsLayer = findLayerInProject("E_Point")
         if not pointsLayer:
             return
@@ -557,7 +557,7 @@ class T2gArch:
                     )
 
     def exportPoints(self):
-        exportPath = self.config.getValue("Punkte Export", "pfad Exportordner", "./../Jobs")
+        exportPath = ArchProjectConfig().get("default_exportordner", "./../Jobs")
         # Should be: layer "Messpunkte" or layer 'E_Point'
         layer = self.iface.activeLayer()
 
@@ -863,15 +863,15 @@ class T2gArch:
         myDlgSettingsView.setup()
 
         # Autosave einstellungen setzen
-        autoSaveTime = self.config.getValue("AutoSave", "interval_in_min")
-        autoSaveEnable = self.config.getValue("AutoSave", "enabled")
-        if str2bool(autoSaveEnable):
+        autoSaveTime = ArchProjectConfig().get("AutoSave_interval_in_min")
+        autoSaveEnable = ArchProjectConfig().get("AutoSave_enabled")
+        if any2bool(autoSaveEnable):
             # trigger event now for first backup
             self.watch.timeout.emit()
             # and then periodically
             self.watch.start(int(autoSaveTime) * 60000)
             QgsMessageLog.logMessage(
-                "Auto Backup: An, " + "Takt " + autoSaveTime + " min", 'T2G Archäologie', Qgis.Info)
+                f"Auto Backup: An, Takt {autoSaveTime} min", 'T2G Archäologie', Qgis.Info)
         else:
             self.watch.stop()
             QgsMessageLog.logMessage(
@@ -1477,7 +1477,7 @@ class T2gArch:
         myDlgSettingsView.show()
 
     def watchEvent(self):
-        keep_last_n_backups = self.config.getValue("AutoSave", "keep_last_n_backups", 10)
+        keep_last_n_backups = ArchProjectConfig().get("AutoSave_keep_last_n_backups", 10)
         success = project_backup(self.iface, "automatisch", int(keep_last_n_backups))
         if success:
             self.number_of_unsuccessful_auto_backups = 0
@@ -1488,7 +1488,7 @@ class T2gArch:
         if self.number_of_unsuccessful_auto_backups > 1:
 
             zeit = self.number_of_unsuccessful_auto_backups * int(
-                self.config.getValue("AutoSave", "interval_in_min")
+                ArchProjectConfig().get("AutoSave_interval_in_min")
             )
             result = QMessageBox.question(
                 None,
