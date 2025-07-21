@@ -1634,6 +1634,16 @@
        </widget>
       </item>
       <item>
+       <widget class="QPushButton" name="pushButton_about">
+        <property name="toolTip">
+         <string>Fenster mit Informationen über dieses Plugin anzeigen</string>
+        </property>
+        <property name="text">
+         <string>über dieses Plugin</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <spacer name="horizontalSpacer_5">
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
@@ -1647,19 +1657,6 @@
        </spacer>
       </item>
      </layout>
-    </item>
-    <item>
-     <widget class="QLabel" name="label_10">
-      <property name="font">
-       <font>
-        <family>Arial</family>
-        <pointsize>7</pointsize>
-       </font>
-      </property>
-      <property name="text">
-       <string>GDKE, RLP    V 0.3.2</string>
-      </property>
-     </widget>
     </item>
    </layout>
   </widget>

@@ -27,6 +27,8 @@ import os
 import uuid
 
 from PyQt5.QtCore import QTimer
+from PyQt5.QtWidgets import QDialog
+from PyQt5.uic import loadUi
 from qgis.PyQt.QtCore import QCoreApplication, QSettings, Qt, QTranslator, qVersion, QVariant
 from qgis.PyQt.QtGui import QIcon, QCursor
 from qgis.PyQt.QtWidgets import (
@@ -237,6 +239,8 @@ class T2gArch:
             self.dockwidget.butSet.clicked.connect(self.myDlgSettingsShow)
             self.dockwidget.butSet.setToolTip("Setupdatei bearbeiten")
 
+            self.dockwidget.pushButton_about.clicked.connect(self.show_window_about)
+
             # ToDo: refactoring: consistency with auto attributes in Tab "Vermessung", other project variables needed?
             # self.iface.layerTreeView().currentLayerChanged.connect(self.currentLayerChanged)
 
@@ -253,17 +257,6 @@ class T2gArch:
 
     def setup(self):
         self.iface.setActiveLayer(self.layerPoly)
-
-        metadata = self.iface.pluginManagerInterface().pluginMetadata("Tachy2GIS_arch")
-        if metadata:
-            self.dockwidget.label_10.setText(
-                f"GDKE, RLP V{metadata['version_installed']} für QGIS 3.34"
-            )
-        else:
-            self.dockwidget.label_10.setText(
-                f"Error: QGIS didn't load plugin metadata!!!"
-            )
-        del metadata
 
         self.currentLayerChanged()
         self.getMaxValues()
@@ -1469,6 +1462,23 @@ class T2gArch:
         # subprocess.Popen([os.path.join(self.ProjPfad,
         #                              'Hinweise.pdf')],
         #                              shell=True)
+
+    def show_window_about(self):
+        dialog = QDialog()
+        dialog_ui = loadUi(os.path.join(os.path.dirname(__file__), "../ExtDialoge/about.ui"), dialog)
+
+        metadata = self.iface.pluginManagerInterface().pluginMetadata("Tachy2GIS_arch")
+        if metadata:
+            dialog_ui.label_version.setText(
+                f"{metadata['description']}\n{metadata['name']} V{metadata['version_installed']} für QGIS 3.40\n{metadata['author_email']}"
+            )
+        else:
+            dialog_ui.label_version.setText(
+                f"Error: QGIS didn't load plugin metadata!!!"
+            )
+        del metadata
+
+        dialog.exec()
 
     def myDlgSettingsShow(self):
         myDlgSettingsView = DlgSettings(self, self.config)  # mainWindow()
