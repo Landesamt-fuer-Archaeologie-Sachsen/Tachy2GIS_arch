@@ -981,7 +981,24 @@ class ArchProjectConfig(metaclass=SingletonMeta):
         if self.config_data is None:
             self.load_config()
 
-        mandatory_keys = ["ProfileTool_ProfilPP_ObjTyp", "ProfileTool_ProfilPP_ObjArt", "ProfileTool_ProfilPP_ObjSpez"]
+        mandatory_keys = [
+            "AutoSave_enabled",
+            "AutoSave_interval_in_min",
+            "AutoSave_keep_last_n_backups",
+            "default_exportordner",
+            "default_importordner",
+            "Digitize_Befund_ObjTyp",
+            "Digitize_display_points",
+            "Digitize_Profil_ObjTyp",
+            "GeoRef_Fotoentzerrpunkt_ObjArt",
+            "GeoRef_Fotoentzerrpunkt_ObjTyp",
+            "GeoRef_Profil_ColName",
+            "GeoRef_Profil_ObjTyp",
+            "ProfileTool_ProfilPP_ObjArt",
+            "ProfileTool_ProfilPP_ObjSpez",
+            "ProfileTool_ProfilPP_ObjTyp",
+            "Transformation_colNameGcpSource",
+        ]
         for key in mandatory_keys:
             if key not in self.config_data:
                 raise ValueError(f"The key {key} is not present in the configuration file {self.file_path}.")

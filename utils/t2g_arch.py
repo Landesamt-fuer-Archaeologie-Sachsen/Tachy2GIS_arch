@@ -404,7 +404,7 @@ class T2gArch:
                 QMessageBox.critical(None, "Critical", f"Konfigurationsdatei nicht gefunden. {e}")
                 return False
             except ValueError as e:
-                QMessageBox.critical(None, "Critical", "Fehler in der Konfigurationsdatei. {e}")
+                QMessageBox.critical(None, "Critical", f"Fehler in der Konfigurationsdatei. {e}")
                 return False
             finally:
                 del config  # just wanted to know if it is readable
@@ -1700,10 +1700,23 @@ class T2gArch:
         layers_check_gpkg_source = ["E_Line", "E_Point", "E_Polygon"]
         for layer in QgsProject.instance().mapLayers().values():
             # print(f"{layer.name()} {layer.dataProvider().dataSourceUri()}")
-            if layer.name() in layers_check_gpkg_source and not layer.dataProvider().dataSourceUri().split("|")[
-                0
-            ].lower().endswith(".gpkg"):
+            if layer.name() not in layers_check_gpkg_source:
+                continue
+
+            if not layer.dataProvider().dataSourceUri().split("|")[0].lower().endswith(".gpkg"):
                 print(f"data source is no gpkg: {layer.name()} {layer.dataProvider().dataSourceUri()}")
                 return False
+
+            for field in layer.fields():
+                if field.name() == "fid":
+                    formula = field.defaultValueDefinition().expression()
+                    if formula != 'if (count("fid") = 0, 0, maximum("fid") + 1)':
+                        print(
+                            f'in layer {layer.name()} fid default value definition is not '
+                            f'if (count("fid") = 0, 0, maximum("fid") + 1) '
+                            f'actual value: {formula}'
+                        )
+                        return False
+                    break
 
         return True
