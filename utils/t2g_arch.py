@@ -305,6 +305,7 @@ class T2gArch:
         QgsProject.instance().layerRemoved.connect(self.checkForGdkeLayers)
 
     def disconnectSignals(self):
+        self.watch.timeout.disconnect(self.watchEvent)
         QgsProject.instance().layerRemoved.disconnect(self.checkForGdkeLayers)
         if self.pluginIsActive:
             if self.layerPoint:
