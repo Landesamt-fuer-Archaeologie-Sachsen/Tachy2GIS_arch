@@ -305,7 +305,6 @@ class T2gArch:
         QgsProject.instance().layerRemoved.connect(self.checkForGdkeLayers)
 
     def disconnectSignals(self):
-        self.watch.timeout.disconnect(self.watchEvent)
         QgsProject.instance().layerRemoved.disconnect(self.checkForGdkeLayers)
         if self.pluginIsActive:
             if self.layerPoint:
@@ -328,6 +327,7 @@ class T2gArch:
                 self.layerPoly.featureAdded.disconnect(self.eventFeatureAdded)
             if self.geoEdit:
                 self.geoEdit.disconnectSignals()
+            self.watch.timeout.disconnect(self.watchEvent)
 
     def setupModules(self):
         # Messen
