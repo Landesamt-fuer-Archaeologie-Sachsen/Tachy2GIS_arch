@@ -394,8 +394,17 @@ class T2gArch:
     # ------------ Toolbar ----------------
     def startAndStopPlugin(self, start: bool):
         if start:
-            if not self._is_project_from_tachy_geopackage():
-                QMessageBox.critical(None, "Critical", "Bitte Tachy-GeoPackage-Projekt laden und erneut versuchen.")
+            answer = self._is_project_type_of_t2g_arch()
+            if answer != "yes":
+                QMessageBox.critical(
+                    None,
+                    "Bitte Projekt vom Typ t2g_arch mit Geopackage laden und erneut versuchen.",
+                    (
+                        "Das geladene QGIS-Projekt entspricht nicht der vorgegebenen Projektstruktur.\n"
+                        "Es können Fehler oder ein Datenverlust auftreten!\n\n"
+                        f"Fehler:\n{answer}"
+                    )
+                )
                 return False
 
             config = ArchProjectConfig()
@@ -1681,43 +1690,59 @@ class T2gArch:
                 self.selectFeatures.remove(value)
         QgsMessageLog.logMessage("liste" + str(self.selectFeatures), self.plugin_name_tag, Qgis.Info)
 
-    def _is_project_from_tachy_geopackage(self):
-        if not QgsProject.instance().fileName():
-            # kein Projekt geladen
-            print("no project loaded")
-            return False
+    def _is_project_type_of_t2g_arch(self):
 
-        file_extension = QgsProject.instance().fileName().split(".")[-1].lower()
+        geometry_types_per_layer = {
+            "E_Point": [Qgis.GeometryType.Point, Qgis.WkbType.PointZ],
+            "E_Line": [Qgis.GeometryType.Line, Qgis.WkbType.LineStringZ],
+            "E_Polygon": [Qgis.GeometryType.Polygon, Qgis.WkbType.PolygonZ],
+        }
+
+        project_instance = QgsProject.instance()
+        if not project_instance or not project_instance.fileName():
+            return "no project loaded"
+
+        file_extension = project_instance.fileName().split(".")[-1].lower()
         if file_extension != "qgz":
-            print("file extension is not qgz")
-            return False
+            return "file extension is not qgz"
 
-        layers_check_for_existence = ["E_Line", "E_Point", "E_Polygon"]
-        for layer in layers_check_for_existence:
-            if not QgsProject.instance().mapLayersByName(layer):
-                print(f"layer {layer} not found")
-                return False
+        layers_to_check = geometry_types_per_layer.keys()
+        for layer_name in layers_to_check:
+            list_of_layers = project_instance.mapLayersByName(layer_name)
 
-        layers_check_gpkg_source = ["E_Line", "E_Point", "E_Polygon"]
-        for layer in QgsProject.instance().mapLayers().values():
-            # print(f"{layer.name()} {layer.dataProvider().dataSourceUri()}")
-            if layer.name() not in layers_check_gpkg_source:
-                continue
+            if not list_of_layers:
+                return f"layer {layer_name} not found"
+
+            if len(list_of_layers) > 1:
+                return f"layer {layer_name} is ambiguous"
+
+            layer = list_of_layers[0]
 
             if not layer.dataProvider().dataSourceUri().split("|")[0].lower().endswith(".gpkg"):
-                print(f"data source is no gpkg: {layer.name()} {layer.dataProvider().dataSourceUri()}")
-                return False
+                return f"data source is no gpkg: {layer.name()} {layer.dataProvider().dataSourceUri()}"
 
-            for field in layer.fields():
-                if field.name() == "fid":
-                    formula = field.defaultValueDefinition().expression()
-                    if formula != 'if (count("fid") = 0, 0, maximum("fid") + 1)':
-                        print(
-                            f'in layer {layer.name()} fid default value definition is not '
-                            f'if (count("fid") = 0, 0, maximum("fid") + 1) '
-                            f'actual value: {formula}'
-                        )
-                        return False
-                    break
+            field_index = layer.fields().indexFromName("fid")
+            if field_index == -1:
+                return f"the field 'fid' was not found in the layer {layer.name()}"
 
-        return True
+            field = layer.fields().at(field_index)
+            formula = field.defaultValueDefinition().expression()
+            if formula != 'if (count("fid") = 0, 0, maximum("fid") + 1)':
+                return (
+                    f'in layer {layer.name()} fid default value definition is not '
+                    f'if (count("fid") = 0, 0, maximum("fid") + 1) '
+                    f'actual value: {formula}'
+                )
+
+            general_geom = geometry_types_per_layer[layer_name][0]
+            specific_geom = geometry_types_per_layer[layer_name][1]
+            if layer.geometryType() != general_geom or layer.wkbType() != specific_geom:
+                return (
+                    f"the geometry type of layer {layer.name()}\n"
+                    f"has to be: {QgsWkbTypes.geometryDisplayString(general_geom)} "
+                    f"({QgsWkbTypes.displayString(specific_geom)})\n"
+                    f"actual value: {QgsWkbTypes.geometryDisplayString(layer.geometryType())} "
+                    f"({QgsWkbTypes.displayString(layer.wkbType())})"
+                )
+
+        return "yes"
