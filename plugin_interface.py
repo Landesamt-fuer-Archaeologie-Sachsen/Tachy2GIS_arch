@@ -2,8 +2,8 @@ import gc
 from os import path as os_path
 
 from PyQt5 import sip
-from PyQt5.QtCore import QCoreApplication
-from PyQt5.QtGui import QPixmap
+from PyQt5.QtCore import QCoreApplication, QSize
+from PyQt5.QtGui import QPixmap, QColor
 from PyQt5.QtWidgets import QApplication
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import (
@@ -12,11 +12,12 @@ from qgis.PyQt.QtWidgets import (
     QToolBar,
     QToolButton,
 )
+from qgis._core import QgsApplication
 from qgis.core import QgsProject
 from qgis.gui import QgisInterface
 
 from .Icons import ICON_PATHS
-from .utils.functions import set_vsi_cached, is_network_path
+from .utils.functions import set_vsi_cached, is_network_path, merge_icons, color_shift_icon, ArchProjectConfig, any2bool
 from .utils.t2g_arch import T2gArch
 from .utils.toolbar_functions import openProjectFolder, saveProject
 
@@ -123,13 +124,30 @@ class PluginInterface:
 
         self.toolbar.addSeparator()
 
-        actionSaveProject = QAction(QIcon(ICON_PATHS["media-floppy"]), "Backup erstellen", self.iface.mainWindow())
+        actionSaveProject = QAction(QIcon(QgsApplication.iconPath("mActionFileSave.svg")), "Backup erstellen", self.iface.mainWindow())
         self.actions["actionSaveProject"] = {
             "QAction": actionSaveProject,
             "enabled_per_default": False,
         }
         actionSaveProject.triggered.connect(self.onActionSaveProject)
         self.toolbar.addAction(actionSaveProject)
+
+        icon_save_on = merge_icons(
+            QIcon(QgsApplication.iconPath("mActionFileSave.svg")),
+            QIcon(QgsApplication.iconPath("mIconHistory.svg")),
+        )
+        icon_save_off = color_shift_icon(icon_save_on, QColor(128, 128, 128, 170))
+        icon_auto_backup = QIcon()
+        icon_auto_backup.addPixmap(icon_save_on.pixmap(64, 64), QIcon.Normal, QIcon.On)
+        icon_auto_backup.addPixmap(icon_save_off.pixmap(64, 64), QIcon.Normal, QIcon.Off)
+        actionToggleAutoBackup = QAction(icon_auto_backup, "Auto-Backup", self.iface.mainWindow())
+        self.actions["actionToggleAutoBackup"] = {
+            "QAction": actionToggleAutoBackup,
+            "enabled_per_default": False,
+        }
+        actionToggleAutoBackup.triggered.connect(self.onToggleAutobackup)
+        actionToggleAutoBackup.setCheckable(True)
+        self.toolbar.addAction(actionToggleAutoBackup)
 
         menuPointsImport = QMenu()
         actionImportPoints = QAction(QIcon(ICON_PATHS["points_import"]), "Punkt Import", self.iface.mainWindow())
@@ -174,6 +192,9 @@ class PluginInterface:
         for action in [e["QAction"] for e in self.actions.values() if not e["enabled_per_default"]]:
             action.setEnabled(True)
             self.iface.addPluginToMenu("&T2G Archäologie", action)
+
+        if any2bool(ArchProjectConfig().get("AutoSave_enabled", False)):
+            self.actions["actionToggleAutoBackup"]["QAction"].setChecked(True)
 
     def onNewProjectLoaded(self):
         print("Ein neues Projekt wurde geladen!")
@@ -229,6 +250,10 @@ class PluginInterface:
 
     def onActionSaveProject(self, _):
         saveProject(self.iface)
+
+    def onToggleAutobackup(self, checked):
+        if self.t2g_arch_instance:
+            self.t2g_arch_instance.setup_autosave(optional_user_override_set_enabled=checked)
 
     def onActionImportPoints(self, _):
         if self.t2g_arch_instance:

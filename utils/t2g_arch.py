@@ -865,13 +865,19 @@ class T2gArch:
         myDlgSettingsView = DlgSettings(self, self.config)
         myDlgSettingsView.setup()
 
-        # Autosave einstellungen setzen
-        autoSaveTime = ArchProjectConfig().get("AutoSave_interval_in_min")
-        autoSaveEnable = ArchProjectConfig().get("AutoSave_enabled")
+        self.setup_autosave()
+
+    def setup_autosave(self, optional_user_override_set_enabled=None):
+        if optional_user_override_set_enabled is None:
+            autoSaveEnable = ArchProjectConfig().get("AutoSave_enabled")
+        else:
+            autoSaveEnable = optional_user_override_set_enabled
+
         if any2bool(autoSaveEnable):
             # trigger event now for first backup
             self.watch.timeout.emit()
             # and then periodically
+            autoSaveTime = ArchProjectConfig().get("AutoSave_interval_in_min")
             self.watch.start(int(autoSaveTime) * 60000)
             QgsMessageLog.logMessage(
                 f"Auto Backup: An, Takt {autoSaveTime} min", 'T2G Archäologie', Qgis.Info)

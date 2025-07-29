@@ -11,6 +11,9 @@ from datetime import datetime
 from pathlib import Path
 
 import yaml
+from PyQt5.QtCore import QRect, QCoreApplication
+from PyQt5.QtGui import QPainter, QIcon, QImage, QPixmap
+from PyQt5.QtSvg import QSvgRenderer
 from qgis.PyQt.QtCore import Qt, QUrl, pyqtSignal
 from qgis.PyQt.QtGui import QColor
 from qgis.PyQt.QtWidgets import QDesktopWidget, QGridLayout, QMessageBox, QLabel, QProgressBar, QTextBrowser, QWidget
@@ -245,13 +248,16 @@ def project_backup(iface, subfolder: str, keep_only_last_n_backups: int = None):
             text=text,
             level=(Qgis.MessageLevel.Warning if critical else Qgis.MessageLevel.Info),
             # duration=(0 if critical else -1)
-            duration=10
+            duration=(10 if critical else -1)
         )
         QgsMessageLog.logMessage(
             tag="T2G Archäologie",
             message="Backup: " + text,
             level=(Qgis.MessageLevel.Warning if critical else Qgis.MessageLevel.Info)
         )
+
+    show_message("starting ... please wait")
+    QCoreApplication.processEvents()  # give Qt the chance to process signals and show message
 
     project = QgsProject.instance()
 
@@ -309,6 +315,7 @@ def project_backup(iface, subfolder: str, keep_only_last_n_backups: int = None):
     if keep_only_last_n_backups:
         delete_oldest_folders(os.path.join(projectPath, backup_folder_name), keep_num=keep_only_last_n_backups)
 
+    iface.messageBar().popWidget()  # remove please wait message
     show_message("successful")
     return True
 
@@ -1008,3 +1015,25 @@ class ArchProjectConfig(metaclass=SingletonMeta):
             self.load_config()
 
         return self.config_data.get(key, default)
+
+
+def color_shift_icon(source_icon, color):
+    pixmap = source_icon.pixmap(64, 64)
+    painter = QPainter(pixmap)
+    painter.setCompositionMode(QPainter.CompositionMode_SourceAtop)
+    painter.fillRect(pixmap.rect(), color)
+    painter.end()
+    return QIcon(pixmap)
+
+
+def merge_icons(source_icon, small_icon):
+    big = 64
+    small = 32
+    pixmap = source_icon.pixmap(big, big)
+    small_pixmap = small_icon.pixmap(small, small)
+
+    painter = QPainter(pixmap)
+    painter.setCompositionMode(QPainter.CompositionMode_SourceOver)
+    painter.drawPixmap(QRect(big - small, big - small, small, small), small_pixmap, small_pixmap.rect())
+    painter.end()
+    return QIcon(pixmap)
