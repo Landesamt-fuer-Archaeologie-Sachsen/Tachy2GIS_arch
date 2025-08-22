@@ -3,30 +3,30 @@ import re
 from qgis.core import QgsFeatureRequest, QgsVectorLayer, QgsProject
 
 
-def getComboboxModelFromLayerConfig(layer: QgsVectorLayer, field_name: str, current_values: dict = None) -> dict:
-    if not current_values:
-        current_values = {}
-    field_idx = layer.fields().indexFromName(field_name)
-    if field_idx == -1:
-        print(f"Field '{field_name}' not found in layer '{layer.name()}'.")
+def getComboboxModelFromLayerConfig(layer: QgsVectorLayer, fieldName: str, currentValues: dict = None) -> dict:
+    if not currentValues:
+        currentValues = {}
+    fieldIdx = layer.fields().indexFromName(fieldName)
+    if fieldIdx == -1:
+        print(f"Field '{fieldName}' not found in layer '{layer.name()}'.")
         return {}
-    editor_config = layer.fields().field(field_idx).editorWidgetSetup().config()
-    if not editor_config:
-        print(f"No editor config found for field '{field_name}' in layer '{layer.name()}'.")
+    editorConfig = layer.fields().field(fieldIdx).editorWidgetSetup().config()
+    if not editorConfig:
+        print(f"No editor config found for field '{fieldName}' in layer '{layer.name()}'.")
         return {}
-    layer_id = editor_config["Layer"]
-    key_field = editor_config["Key"]
-    value_field = editor_config["Value"]
-    layer_filter_expression = editor_config.get("FilterExpression", "")
-    filter_expression = replace_current_values(layer_filter_expression, current_values)
-    rel_layer = QgsProject.instance().mapLayer(layer_id)
-    if not rel_layer:
-        print(f"Related layer with ID '{layer_id}' not found in the project.")
+    layerId = editorConfig["Layer"]
+    keyField = editorConfig["Key"]
+    valueField = editorConfig["Value"]
+    layerFilterExpression = editorConfig.get("FilterExpression", "")
+    filterExpression = replaceCurrentValues(layerFilterExpression, currentValues)
+    relLayer = QgsProject.instance().mapLayer(layerId)
+    if not relLayer:
+        print(f"Related layer with ID '{layerId}' not found in the project.")
         return {}
-    return getLookupDict(rel_layer, key_field, value_field, filter_expression)
+    return getLookupDict(relLayer, keyField, valueField, filterExpression)
 
 
-def replace_current_values(expr: str, values: dict) -> str:
+def replaceCurrentValues(expr: str, values: dict) -> str:
     """Replaces occurrences of current_value('field_name') in the expression with the corresponding value from the
     values dictionary {'field_name': value}. Values can be None, int, float, or str.
     Introduced to handle expressions that include current_value() and deal with the optional whitespace.
