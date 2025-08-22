@@ -39,13 +39,13 @@ from ..Icons import ICON_PATHS
 from ..utils.functions import (
     enableAndDisableWidgets,
     getCustomProjectVariable,
-    getLookupDict,
     HelpWindow,
     findLayerInProject,
     layerHasPendingChanges,
     setCustomProjectVariable,
     showAndHideWidgets,
 )
+from .autoattributes import getComboboxModelFromLayerConfig
 from ..utils.toolbar_functions import saveProject
 
 polygonsLayerName = "E_Polygon"
@@ -561,9 +561,7 @@ class MeasurementTab(BASE, WIDGET):
         self.cmbObjectType_1.clear()
         self.cmbObjectType_2.clear()
         self.cmbObjectType_3.clear()
-        geom_typ = int(self.layerToEdit.geometryType())
-        s1_layer = QgsProject.instance().mapLayersByName("obj_type_s1")[0]
-        obj_types = getLookupDict(s1_layer, "class_id", "s1", f"geom_typ = {geom_typ}")
+        obj_types = getComboboxModelFromLayerConfig(self.layerToEdit, "obj_typ")
         self.cmbObjectType_1.addItem("", None)
         for fid, description in obj_types.items():
             self.cmbObjectType_1.addItem(description, fid)
@@ -573,9 +571,9 @@ class MeasurementTab(BASE, WIDGET):
         self.cmbObjectType_2.blockSignals(True)
         self.cmbObjectType_2.clear()
         self.cmbObjectType_3.clear()
-        s1_fid = self.cmbObjectType_1.currentData()
-        s2_layer = QgsProject.instance().mapLayersByName("obj_type_s2")[0]
-        obj_types = getLookupDict(s2_layer, "fid", "s2", f"obj_type_relation_s1_s2_s1_class_id = {s1_fid}")
+        obj_types = getComboboxModelFromLayerConfig(
+            self.layerToEdit, "obj_art", {"obj_typ": self.cmbObjectType_1.currentData()}
+        )
         self.cmbObjectType_2.addItem("", None)
         for fid, description in obj_types.items():
             self.cmbObjectType_2.addItem(description, fid)
@@ -584,9 +582,12 @@ class MeasurementTab(BASE, WIDGET):
     def fillComboObjectSpez(self):
         self.cmbObjectType_3.blockSignals(True)
         self.cmbObjectType_3.clear()
-        s2_fid = self.cmbObjectType_2.currentData()
-        s3_layer = QgsProject.instance().mapLayersByName("obj_type_s3")[0]
-        obj_types = getLookupDict(s3_layer, "fid", "s3", f"obj_type_relation_s2_s3_fid_s2 = {s2_fid}")
+
+        obj_types = getComboboxModelFromLayerConfig(
+            self.layerToEdit,
+            "obj_spez",
+            {"obj_typ": self.cmbObjectType_1.currentData(), "obj_art": self.cmbObjectType_2.currentData()},
+        )
         self.cmbObjectType_3.addItem("", None)
         for fid, description in obj_types.items():
             self.cmbObjectType_3.addItem(description, fid)
