@@ -21,7 +21,6 @@ from qgis._core import Qgis, QgsMessageLog
 from qgis.core import (
     QgsExpressionContextUtils,
     QgsFeature,
-    QgsFeatureRequest,
     QgsField,
     QgsGeometry,
     QgsLayerTreeGroup,
@@ -145,18 +144,6 @@ def get_source_file_paths_of_layers(list_of_layer_names: list[str]):
 
 def natural_sort_key(s, _nsre=re.compile("([0-9]+)")):
     return [int(text) if text.isdigit() else text.lower() for text in _nsre.split(s)]
-
-
-def getLookupDict(layer, keyColumn, valueColumn, filterExpression=""):
-    lookupDict = {}
-    if layer.fields().indexOf(keyColumn) == -1 or layer.fields().indexOf(valueColumn) == -1:
-        return lookupDict
-    request = QgsFeatureRequest()
-    if filterExpression:
-        request.setFilterExpression(filterExpression)
-    for feature in layer.getFeatures(request):
-        lookupDict[feature.attribute(keyColumn)] = feature.attribute(valueColumn)
-    return lookupDict
 
 
 def setCustomProjectVariable(variableName, variableWert):

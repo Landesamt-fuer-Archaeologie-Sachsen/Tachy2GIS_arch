@@ -1,8 +1,6 @@
 import re
 
-from qgis.core import QgsVectorLayer, QgsProject
-
-from ..utils.functions import getLookupDict
+from qgis.core import QgsFeatureRequest, QgsVectorLayer, QgsProject
 
 
 def getComboboxModelFromLayerConfig(layer: QgsVectorLayer, field_name: str, current_values: dict = None) -> dict:
@@ -46,3 +44,15 @@ def replace_current_values(expr: str, values: dict) -> str:
         return "'" + str(v).replace("'", "''") + "'"
 
     return _PATTERN.sub(lambda m: quote(values.get(m.group("field_name"))), expr or "")
+
+
+def getLookupDict(layer, keyColumn, valueColumn, filterExpression=""):
+    lookupDict = {}
+    if layer.fields().indexOf(keyColumn) == -1 or layer.fields().indexOf(valueColumn) == -1:
+        return lookupDict
+    request = QgsFeatureRequest()
+    if filterExpression:
+        request.setFilterExpression(filterExpression)
+    for feature in layer.getFeatures(request):
+        lookupDict[feature.attribute(keyColumn)] = feature.attribute(valueColumn)
+    return lookupDict
