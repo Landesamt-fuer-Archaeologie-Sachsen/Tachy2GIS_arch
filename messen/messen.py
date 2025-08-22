@@ -934,7 +934,7 @@ class MeasurementTab(BASE, WIDGET):
                     tag="T2G Archäologie",
                     level=Qgis.MessageLevel.Warning,
                 )
-        if self.fund_nr.txtFundNr.text() != "":
+        if self.fund_nr.text() != "":
             try:
                 if int(self.fund_nr.text()) >= int(self.txtNextFund.text() and not "_" in self.fund_nr.text()):
                     self.txtNextFund.setText(str(int(self.fund_nr.text()) + 1))
