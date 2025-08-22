@@ -11,21 +11,20 @@ from datetime import datetime
 from pathlib import Path
 
 import yaml
-from PyQt5.QtCore import QRect, QCoreApplication
-from PyQt5.QtGui import QPainter, QIcon, QImage, QPixmap
-from PyQt5.QtSvg import QSvgRenderer
-from qgis.PyQt.QtCore import Qt, QUrl, pyqtSignal
-from qgis.PyQt.QtGui import QColor
+from qgis.PyQt.QtCore import pyqtSignal, QCoreApplication, QRect, Qt, QUrl
+from qgis.PyQt.QtGui import QColor, QPainter, QIcon, QImage, QPixmap
 from qgis.PyQt.QtWidgets import QDesktopWidget, QGridLayout, QMessageBox, QLabel, QProgressBar, QTextBrowser, QWidget
-from qgis._core import Qgis, QgsMessageLog
+from qgis.PyQt.QtSvg import QSvgRenderer
 from qgis.core import (
     QgsExpressionContextUtils,
     QgsFeature,
     QgsField,
     QgsGeometry,
+    Qgis,
     QgsLayerTreeGroup,
     QgsLayerTreeLayer,
     QgsMapLayer,
+    QgsMessageLog,
     QgsPoint,
     QgsPointXY,
     QgsProject,

@@ -4,12 +4,12 @@ import uuid
 from datetime import date, datetime
 from functools import partial
 
-from PyQt5.QtWidgets import QApplication
 from qgis.PyQt import uic
 from qgis.PyQt.QtCore import Qt, QTimer, QVariant
 from qgis.PyQt.QtGui import QColor, QCursor, QIcon, QKeySequence
 from qgis.PyQt.QtWidgets import (
     QAction,
+    QApplication,
     QComboBox,
     QLineEdit,
     QMenu,
@@ -30,7 +30,8 @@ from qgis.core import (
     QgsProject,
     QgsRectangle,
     QgsVectorLayerUtils,
-    QgsWkbTypes, QgsApplication,
+    QgsWkbTypes,
+    QgsApplication,
 )
 from qgis.gui import QgsMapTool, QgsSnapIndicator, QgsRubberBand, QgsVertexMarker
 from qgis.utils import iface, plugins
