@@ -474,11 +474,8 @@ class MeasurementTab(BASE, WIDGET):
         self.setAttributes()
         self.startTachyWatch()
 
-    def setAutoAttributeMode(self):
-        if self.cbActivateAutoAttributes.isChecked():
-            setCustomProjectVariable("autoAttribute", True)
-        else:
-            setCustomProjectVariable("autoAttribute", False)
+    def setAutoAttributeMode(self, state: int):
+        setCustomProjectVariable("autoAttribute", bool(state))
 
     def clearObjectCombos(self):
         self.cmbObjectType_1.blockSignals(True)
