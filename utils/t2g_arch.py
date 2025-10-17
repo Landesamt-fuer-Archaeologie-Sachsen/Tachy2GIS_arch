@@ -86,6 +86,7 @@ from ..ExtDialoge.myDlgSettings import DlgSettings, Configfile
 from ..Icons import ICON_PATHS
 from ..geoEdit.geo_edit import GeoEdit
 from ..messen.messen import MeasurementTab
+from ..messen.autoattributes import clearAutoAttributeProjectVariables
 from ..profile.profile import Profile
 from ..transformation.transformation_gui import TransformationGui
 
@@ -258,7 +259,7 @@ class T2gArch:
     def setup(self):
         self.iface.setActiveLayer(self.layerPoly)
 
-        self.currentLayerChanged()
+        self.initProjectVariables()
         self.getMaxValues()
 
         QgsMessageLog.logMessage("Aufsatz Archäologie für T2G ist einsatzbereit.", self.plugin_name_tag, Qgis.Info)
@@ -950,22 +951,10 @@ class T2gArch:
                 self.measurementTab.txtNextProb.setText("xxxxx")
                 # QgsMessageLog.logMessage('Filter gesetzt', 'T2G Archäologie', Qgis.Info)
 
-    # ToDo: refactoring - consistent with auto attributes in Tab "Vermessung"?
-    def currentLayerChanged(self):
-        setCustomProjectVariable("obj_typ", "")
-        setCustomProjectVariable("obj_art", "")
-        setCustomProjectVariable("schnitt_nr", "")
-        setCustomProjectVariable("bef_nr", "")
-        setCustomProjectVariable("planum_nr", "")
-        setCustomProjectVariable("fund_nr", "")
-        setCustomProjectVariable("prob_nr", "")
-        setCustomProjectVariable("prof_nr", "")
-        setCustomProjectVariable("material", "")
-        setCustomProjectVariable("pt_nr", "")
-        setCustomProjectVariable("autoAttribute", "False")
-        setCustomProjectVariable("autoZahl", "False")
+    def initProjectVariables(self):
+        clearAutoAttributeProjectVariables()
+        setCustomProjectVariable("autoAttribute", False)
         setCustomProjectVariable("maxWerteAktualisieren", True)
-        setCustomProjectVariable("SignalGeometrieNeu", "False")
 
     # ToDo: refactoring - tab: "Tools Raster"
     def setCutMask(self):
