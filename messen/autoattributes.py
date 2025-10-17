@@ -1,6 +1,36 @@
 import re
 
-from qgis.core import QgsFeatureRequest, QgsVectorLayer, QgsProject
+from qgis.core import QgsFeatureRequest, QgsVectorLayer
+from qgis.PyQt.QtCore import QVariant
+
+from ..utils.functions import findLayerInProject, setCustomProjectVariable
+
+
+autoAttributeProjectVariables = [
+    "obj_typ_polygons",
+    "obj_art_polygons",
+    "obj_spez_polygons",
+    "obj_typ_lines",
+    "obj_art_lines",
+    "obj_typ_points",
+    "obj_art_points",
+    "schnitt_nr",
+    "planum_nr",
+    "bef_nr",
+    "prof_nr",
+    "pt_nr",
+    "fund_nr",
+    "probe_nr",
+    "material",
+    "material_zwei",
+    "zeit",
+    "zeit_zwei",
+]
+
+
+def clearAutoAttributeProjectVariables():
+    for autoAttributeName in autoAttributeProjectVariables:
+        setCustomProjectVariable(autoAttributeName, None)
 
 
 def getComboboxModelFromLayerConfig(layer: QgsVectorLayer, fieldName: str, currentValues: dict = None) -> dict:

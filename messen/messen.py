@@ -46,8 +46,8 @@ from ..utils.functions import (
     setCustomProjectVariable,
     showAndHideWidgets,
 )
-from .autoattributes import getComboboxModelFromLayerConfig
 from ..utils.toolbar_functions import saveProject
+from .autoattributes import getComboboxModelFromLayerConfig, clearAutoAttributeProjectVariables
 
 polygonsLayerName = "E_Polygon"
 linesLayerName = "E_Line"
@@ -59,29 +59,12 @@ connectedSignalsDict = {}
 
 WIDGET, BASE = uic.loadUiType(os.path.join(os.path.dirname(__file__), "messen.ui"))
 
-projectVariables = [
-    "obj_typ_polygons",
-    "obj_art_polygons",
-    "obj_spez_polygons",
-    "obj_typ_lines",
-    "obj_art_lines",
-    "obj_typ_points",
-    "obj_art_points",
-    "schnitt_nr",
-    "planum_nr",
-    "zbs",
-    "prof_nr",
-    "pt_nr",
-    "fund_nr",
-    "probe_nr",
-]
-
 
 class MeasurementTab(BASE, WIDGET):
     cmbLayerType: QComboBox
     schnitt_nr: QLineEdit
     planum_nr: QLineEdit
-    zbs: QLineEdit
+    bef_nr: QLineEdit
     prof_nr: QLineEdit
     pt_nr: QLineEdit
     fund_nr: QLineEdit
@@ -192,7 +175,7 @@ class MeasurementTab(BASE, WIDGET):
         self.cbActivateAutoAttributes.stateChanged.connect(self.setAutoAttributeMode)
         self.schnitt_nr.editingFinished.connect(partial(self.onLineEditingFinished, self.schnitt_nr))
         self.planum_nr.editingFinished.connect(partial(self.onLineEditingFinished, self.planum_nr))
-        self.zbs.editingFinished.connect(partial(self.onLineEditingFinished, self.zbs))
+        self.bef_nr.editingFinished.connect(partial(self.onLineEditingFinished, self.bef_nr))
         self.prof_nr.editingFinished.connect(partial(self.onLineEditingFinished, self.prof_nr))
         self.pt_nr.editingFinished.connect(partial(self.onLineEditingFinished, self.pt_nr))
         self.fund_nr.editingFinished.connect(partial(self.onLineEditingFinished, self.fund_nr))
@@ -551,7 +534,7 @@ class MeasurementTab(BASE, WIDGET):
         self.cmbObjectType_3.setCurrentIndex(0)
         self.schnitt_nr.clear()
         self.planum_nr.clear()
-        self.zbs.clear()
+        self.bef_nr.clear()
         self.prof_nr.clear()
         self.pt_nr.clear()
         self.fund_nr.clear()
@@ -924,10 +907,10 @@ class MeasurementTab(BASE, WIDGET):
 
     # ToDo: refactoring
     def nextValues(self):
-        if self.zbs.text() != "":
+        if self.bef_nr.text() != "":
             try:
-                if int(self.zbs.text()) >= int(self.txtNextBef.text()) and not "_" in self.zbs.text():
-                    self.txtNextBef.setText(str(int(self.zbs.text()) + 1))
+                if int(self.bef_nr.text()) >= int(self.txtNextBef.text()) and not "_" in self.bef_nr.text():
+                    self.txtNextBef.setText(str(int(self.bef_nr.text()) + 1))
             except Exception as e:
                 QgsMessageLog.logMessage(
                     message="MeasurementTab->nextValues: no setText: " + str(e),
