@@ -14,14 +14,14 @@ def getComboboxModelFromLayerConfig(layer: QgsVectorLayer, fieldName: str, curre
     if not editorConfig:
         print(f"No editor config found for field '{fieldName}' in layer '{layer.name()}'.")
         return {}
-    layerId = editorConfig["Layer"]
+    layerName = editorConfig["LayerName"]
     keyField = editorConfig["Key"]
     valueField = editorConfig["Value"]
     layerFilterExpression = editorConfig.get("FilterExpression", "")
     filterExpression = replaceCurrentValues(layerFilterExpression, currentValues)
-    relLayer = QgsProject.instance().mapLayer(layerId)
+    relLayer = findLayerInProject(layerName)
     if not relLayer:
-        print(f"Related layer with ID '{layerId}' not found in the project.")
+        print(f"Related layer '{layerName}' not found in the project.")
         return {}
     return getLookupDict(relLayer, keyField, valueField, filterExpression)
 
@@ -54,5 +54,6 @@ def getLookupDict(layer, keyColumn, valueColumn, filterExpression=""):
     if filterExpression:
         request.setFilterExpression(filterExpression)
     for feature in layer.getFeatures(request):
-        lookupDict[feature.attribute(keyColumn)] = feature.attribute(valueColumn)
+        if feature.attribute(valueColumn) != QVariant():
+            lookupDict[feature.attribute(keyColumn)] = feature.attribute(valueColumn)
     return lookupDict
