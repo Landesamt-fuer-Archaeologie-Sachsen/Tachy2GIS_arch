@@ -279,14 +279,11 @@ class T2gArch:
             it = layer.getFeatures(QgsFeatureRequest().setFilterExpression('"uuid" IS NULL'))
             QgsMessageLog.logMessage(
                 f"{sum(1 for _ in it)} features ohne UUID in Layer {layer.name()}; Neugenerierung ...",
-                'T2G Archäologie',
-                Qgis.Info
+                "T2G Archäologie",
+                Qgis.Info,
             )
             UUid = layer.dataProvider().fieldNameIndex("obj_uuid")
-            attr_map = {
-                feature.id(): {UUid: "{" + str(uuid.uuid4()) + "}"}
-                for feature in it
-            }
+            attr_map = {feature.id(): {UUid: "{" + str(uuid.uuid4()) + "}"} for feature in it}
             layer.dataProvider().changeAttributeValues(attr_map)
             layer.commitChanges()
         # <uuid ereugen wenn Feld uuid leer
@@ -404,7 +401,7 @@ class T2gArch:
                         "Das geladene QGIS-Projekt entspricht nicht der vorgegebenen Projektstruktur.\n"
                         "Es können Fehler oder ein Datenverlust auftreten!\n\n"
                         f"Fehler:\n{answer}"
-                    )
+                    ),
                 )
                 return False
 
@@ -880,12 +877,10 @@ class T2gArch:
             # and then periodically
             autoSaveTime = ArchProjectConfig().get("AutoSave_interval_in_min")
             self.watch.start(int(autoSaveTime) * 60000)
-            QgsMessageLog.logMessage(
-                f"Auto Backup: An, Takt {autoSaveTime} min", 'T2G Archäologie', Qgis.Info)
+            QgsMessageLog.logMessage(f"Auto Backup: An, Takt {autoSaveTime} min", "T2G Archäologie", Qgis.Info)
         else:
             self.watch.stop()
-            QgsMessageLog.logMessage(
-                "Auto Backup: Aus", 'T2G Archäologie', Qgis.Info)
+            QgsMessageLog.logMessage("Auto Backup: Aus", "T2G Archäologie", Qgis.Info)
 
     def eventFeatureAdded(self, fid):
         # Wird nirgends mehr verwendet # Sonst Fehler beim Digitalisieren
@@ -1478,9 +1473,7 @@ class T2gArch:
                 f"{metadata['description']}\n{metadata['name']} V{metadata['version_installed']} für QGIS 3.40\n{metadata['author_email']}"
             )
         else:
-            dialog_ui.label_version.setText(
-                f"Error: QGIS didn't load plugin metadata!!!"
-            )
+            dialog_ui.label_version.setText(f"Error: QGIS didn't load plugin metadata!!!")
         del metadata
 
         dialog.exec()
@@ -1502,9 +1495,7 @@ class T2gArch:
 
         if self.number_of_unsuccessful_auto_backups > 1:
 
-            zeit = self.number_of_unsuccessful_auto_backups * int(
-                ArchProjectConfig().get("AutoSave_interval_in_min")
-            )
+            zeit = self.number_of_unsuccessful_auto_backups * int(ArchProjectConfig().get("AutoSave_interval_in_min"))
             result = QMessageBox.question(
                 None,
                 "Jetzt speichern und Backup erstellen?",
@@ -1724,9 +1715,9 @@ class T2gArch:
             formula = field.defaultValueDefinition().expression()
             if formula != 'if (count("fid") = 0, 0, maximum("fid") + 1)':
                 return (
-                    f'in layer {layer.name()} fid default value definition is not '
+                    f"in layer {layer.name()} fid default value definition is not "
                     f'if (count("fid") = 0, 0, maximum("fid") + 1) '
-                    f'actual value: {formula}'
+                    f"actual value: {formula}"
                 )
 
             general_geom = geometry_types_per_layer[layer_name][0]
