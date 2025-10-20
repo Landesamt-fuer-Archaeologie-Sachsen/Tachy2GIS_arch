@@ -11,22 +11,20 @@ from datetime import datetime
 from pathlib import Path
 
 import yaml
-from PyQt5.QtCore import QRect, QCoreApplication
-from PyQt5.QtGui import QPainter, QIcon, QImage, QPixmap
-from PyQt5.QtSvg import QSvgRenderer
-from qgis.PyQt.QtCore import Qt, QUrl, pyqtSignal
-from qgis.PyQt.QtGui import QColor
+from qgis.PyQt.QtCore import pyqtSignal, QCoreApplication, QRect, Qt, QUrl
+from qgis.PyQt.QtGui import QColor, QPainter, QIcon, QImage, QPixmap
 from qgis.PyQt.QtWidgets import QDesktopWidget, QGridLayout, QMessageBox, QLabel, QProgressBar, QTextBrowser, QWidget
-from qgis._core import Qgis, QgsMessageLog
+from qgis.PyQt.QtSvg import QSvgRenderer
 from qgis.core import (
     QgsExpressionContextUtils,
     QgsFeature,
-    QgsFeatureRequest,
     QgsField,
     QgsGeometry,
+    Qgis,
     QgsLayerTreeGroup,
     QgsLayerTreeLayer,
     QgsMapLayer,
+    QgsMessageLog,
     QgsPoint,
     QgsPointXY,
     QgsProject,
@@ -45,12 +43,12 @@ def is_network_path(path):
     # Convert to absolute path
     full_path = os.path.abspath(path)
     # For UNC paths, use the server/share root
-    if full_path.startswith('\\\\'):
+    if full_path.startswith("\\\\"):
         # UNC root would look like \\server\share
         # Typically extracting the first two path components after '\\'
-        parts = full_path.strip('\\').split('\\')
+        parts = full_path.strip("\\").split("\\")
         if len(parts) >= 2:
-            unc_root = '\\\\' + parts[0] + '\\' + parts[1]
+            unc_root = "\\\\" + parts[0] + "\\" + parts[1]
             drive_type = GetDriveTypeW(unc_root)
         else:
             # If we can't properly parse a UNC root, treat it carefully:
@@ -63,7 +61,7 @@ def is_network_path(path):
             # No drive means it's relative or otherwise ambiguous
             return False
         # Ensure drive ends with a backslash
-        drive_root = drive + '\\'
+        drive_root = drive + "\\"
         drive_type = GetDriveTypeW(drive_root)
 
     return drive_type == 4  # DRIVE_REMOTE
@@ -147,18 +145,6 @@ def natural_sort_key(s, _nsre=re.compile("([0-9]+)")):
     return [int(text) if text.isdigit() else text.lower() for text in _nsre.split(s)]
 
 
-def getLookupDict(layer, keyColumn, valueColumn, filterExpression=""):
-    lookupDict = {}
-    if layer.fields().indexOf(keyColumn) == -1 or layer.fields().indexOf(valueColumn) == -1:
-        return lookupDict
-    request = QgsFeatureRequest()
-    if filterExpression:
-        request.setFilterExpression(filterExpression)
-    for feature in layer.getFeatures(request):
-        lookupDict[feature.attribute(keyColumn)] = feature.attribute(valueColumn)
-    return lookupDict
-
-
 def setCustomProjectVariable(variableName, variableWert):
     project = QgsProject.instance()
     QgsExpressionContextUtils.setProjectVariable(project, variableName, variableWert)
@@ -222,7 +208,7 @@ def project_backup(iface, subfolder: str, keep_only_last_n_backups: int = None):
     """
 
     strftime_format_string = "%Y-%m-%d_%H_%M_%S"
-    regex_pattern_for_format_string = r'\d{4}-\d{2}-\d{2}_\d{2}_\d{2}_\d{2}'
+    regex_pattern_for_format_string = r"\d{4}-\d{2}-\d{2}_\d{2}_\d{2}_\d{2}"
     sensible_layers = ["E_Point", "E_Line", "E_Polygon", "Messpunkte"]
 
     def delete_oldest_folders(directory, keep_num):
@@ -248,12 +234,12 @@ def project_backup(iface, subfolder: str, keep_only_last_n_backups: int = None):
             text=text,
             level=(Qgis.MessageLevel.Warning if critical else Qgis.MessageLevel.Info),
             # duration=(0 if critical else -1)
-            duration=(10 if critical else -1)
+            duration=(10 if critical else -1),
         )
         QgsMessageLog.logMessage(
             tag="T2G Archäologie",
             message="Backup: " + text,
-            level=(Qgis.MessageLevel.Warning if critical else Qgis.MessageLevel.Info)
+            level=(Qgis.MessageLevel.Warning if critical else Qgis.MessageLevel.Info),
         )
 
     show_message("starting ... please wait")
@@ -263,8 +249,7 @@ def project_backup(iface, subfolder: str, keep_only_last_n_backups: int = None):
 
     if not layers_not_in_edit_mode(sensible_layers) or project.isDirty():
         show_message(
-            "Nicht möglich. Bitte den Editiermodus der Eingabelayer beenden und die Projektdatei speichern.",
-            True
+            "Nicht möglich. Bitte den Editiermodus der Eingabelayer beenden und die Projektdatei speichern.", True
         )
         return False
 

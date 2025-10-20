@@ -169,9 +169,9 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>0</y>
-        <width>399</width>
-        <height>785</height>
+        <y>-442</y>
+        <width>378</width>
+        <height>1227</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -706,7 +706,7 @@
             <property name="maximumSize">
              <size>
               <width>16777215</width>
-              <height>22</height>
+              <height>16777215</height>
              </size>
             </property>
             <property name="title">
@@ -719,7 +719,7 @@
              <bool>false</bool>
             </property>
             <property name="collapsed">
-             <bool>true</bool>
+             <bool>false</bool>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_5">
              <property name="leftMargin">
@@ -749,32 +749,6 @@
               </widget>
              </item>
              <item>
-              <widget class="QWidget" name="widget_9" native="true">
-               <layout class="QVBoxLayout" name="verticalLayout_6">
-                <item>
-                 <widget class="QComboBox" name="cmbObjectType_1">
-                  <property name="sizeAdjustPolicy">
-                   <enum>QComboBox::AdjustToMinimumContentsLength</enum>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QComboBox" name="cmbObjectType_2"/>
-                </item>
-                <item>
-                 <widget class="QComboBox" name="cmbObjectType_3"/>
-                </item>
-               </layout>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLabel" name="label_5">
-               <property name="text">
-                <string>Objekttyp</string>
-               </property>
-              </widget>
-             </item>
-             <item>
               <widget class="QWidget" name="widget_7" native="true">
                <layout class="QGridLayout" name="gridLayout_4">
                 <property name="leftMargin">
@@ -789,16 +763,76 @@
                 <property name="bottomMargin">
                  <number>0</number>
                 </property>
-                <item row="2" column="2">
-                 <widget class="QLineEdit" name="zbs"/>
-                </item>
-                <item row="3" column="2">
-                 <widget class="QLineEdit" name="prof_nr"/>
-                </item>
-                <item row="6" column="2">
+                <item row="9" column="2">
                  <widget class="QLineEdit" name="probe_nr"/>
                 </item>
+                <item row="0" column="2">
+                 <widget class="QComboBox" name="cmbObjectType_1">
+                  <property name="sizeAdjustPolicy">
+                   <enum>QComboBox::AdjustToMinimumContentsLength</enum>
+                  </property>
+                 </widget>
+                </item>
+                <item row="10" column="0">
+                 <widget class="QLabel" name="label_19">
+                  <property name="text">
+                   <string>Material</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="7" column="2">
+                 <widget class="QLineEdit" name="pt_nr"/>
+                </item>
+                <item row="11" column="2">
+                 <widget class="QComboBox" name="cmbMaterial2"/>
+                </item>
+                <item row="6" column="2">
+                 <widget class="QLineEdit" name="prof_nr"/>
+                </item>
+                <item row="3" column="2">
+                 <widget class="QLineEdit" name="schnitt_nr"/>
+                </item>
                 <item row="3" column="0">
+                 <widget class="QLabel" name="label_12">
+                  <property name="text">
+                   <string>Schnitt</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="8" column="2">
+                 <widget class="QLineEdit" name="fund_nr"/>
+                </item>
+                <item row="1" column="0">
+                 <widget class="QLabel" name="label_22">
+                  <property name="text">
+                   <string>Objektart</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="5" column="2">
+                 <widget class="QLineEdit" name="bef_nr"/>
+                </item>
+                <item row="4" column="2">
+                 <widget class="QLineEdit" name="planum_nr"/>
+                </item>
+                <item row="12" column="0">
+                 <widget class="QLabel" name="label_20">
+                  <property name="text">
+                   <string>Epoche</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="2" column="2">
+                 <widget class="QComboBox" name="cmbObjectType_3"/>
+                </item>
+                <item row="11" column="0">
+                 <widget class="QLabel" name="label_21">
+                  <property name="text">
+                   <string>Material (2)</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="6" column="0">
                  <widget class="QLabel" name="label_15">
                   <property name="text">
                    <string>Profil</string>
@@ -806,78 +840,72 @@
                  </widget>
                 </item>
                 <item row="1" column="2">
-                 <widget class="QLineEdit" name="planum_nr"/>
+                 <widget class="QComboBox" name="cmbObjectType_2"/>
                 </item>
-                <item row="4" column="2">
-                 <widget class="QLineEdit" name="pt_nr"/>
-                </item>
-                <item row="4" column="0">
-                 <widget class="QLabel" name="label_16">
-                  <property name="text">
-                   <string>Punkt</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="2" column="0">
-                 <widget class="QLabel" name="label_14">
-                  <property name="text">
-                   <string>ZBS</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="5" column="0">
+                <item row="8" column="0">
                  <widget class="QLabel" name="label_17">
                   <property name="text">
                    <string>Fund</string>
                   </property>
                  </widget>
                 </item>
-                <item row="7" column="0">
-                 <widget class="QLabel" name="label_19">
+                <item row="2" column="0">
+                 <widget class="QLabel" name="label_23">
                   <property name="text">
-                   <string>Material</string>
+                   <string>Objektspez.</string>
                   </property>
                  </widget>
                 </item>
-                <item row="1" column="0">
-                 <widget class="QLabel" name="label_13">
-                  <property name="text">
-                   <string>Planum</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="2">
-                 <widget class="QLineEdit" name="schnitt_nr"/>
-                </item>
-                <item row="5" column="2">
-                 <widget class="QLineEdit" name="fund_nr"/>
-                </item>
-                <item row="7" column="2">
+                <item row="10" column="2">
                  <widget class="QComboBox" name="cmbMaterial"/>
                 </item>
-                <item row="6" column="0">
+                <item row="7" column="0">
+                 <widget class="QLabel" name="label_16">
+                  <property name="text">
+                   <string>Punkt</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="9" column="0">
                  <widget class="QLabel" name="label_18">
                   <property name="text">
                    <string>Probe</string>
                   </property>
                  </widget>
                 </item>
-                <item row="8" column="2">
-                 <widget class="QComboBox" name="cmbEpoche"/>
+                <item row="12" column="2">
+                 <widget class="QComboBox" name="cmbZeit"/>
+                </item>
+                <item row="4" column="0">
+                 <widget class="QLabel" name="label_13">
+                  <property name="text">
+                   <string>Planum</string>
+                  </property>
+                 </widget>
                 </item>
                 <item row="0" column="0">
-                 <widget class="QLabel" name="label_12">
+                 <widget class="QLabel" name="label_5">
                   <property name="text">
-                   <string>Schnitt</string>
+                   <string>Objekttyp</string>
                   </property>
                  </widget>
                 </item>
-                <item row="8" column="0">
-                 <widget class="QLabel" name="label_20">
+                <item row="5" column="0">
+                 <widget class="QLabel" name="label_14">
                   <property name="text">
-                   <string>Epoche</string>
+                   <string>ZBS</string>
                   </property>
                  </widget>
+                </item>
+                <item row="13" column="0">
+                 <widget class="QLabel" name="label_24">
+                  <property name="text">
+                   <string>Epoche (2)</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="13" column="2">
+                 <widget class="QComboBox" name="cmbZeit2"/>
                 </item>
                </layout>
               </widget>
@@ -1052,13 +1080,13 @@
   <tabstop>cbActivateAutoAttributes</tabstop>
   <tabstop>schnitt_nr</tabstop>
   <tabstop>planum_nr</tabstop>
-  <tabstop>zbs</tabstop>
+  <tabstop>bef_nr</tabstop>
   <tabstop>prof_nr</tabstop>
   <tabstop>pt_nr</tabstop>
   <tabstop>fund_nr</tabstop>
   <tabstop>probe_nr</tabstop>
   <tabstop>cmbMaterial</tabstop>
-  <tabstop>cmbEpoche</tabstop>
+  <tabstop>cmbZeit</tabstop>
   <tabstop>btnResetAutoAttributes</tabstop>
   <tabstop>cbSound</tabstop>
   <tabstop>btnHelp</tabstop>

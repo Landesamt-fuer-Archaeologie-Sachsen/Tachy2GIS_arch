@@ -1,15 +1,16 @@
 import math
 import os
 import uuid
+from contextlib import contextmanager
 from datetime import date, datetime
 from functools import partial
 
-from PyQt5.QtWidgets import QApplication
 from qgis.PyQt import uic
 from qgis.PyQt.QtCore import Qt, QTimer, QVariant
 from qgis.PyQt.QtGui import QColor, QCursor, QIcon, QKeySequence
 from qgis.PyQt.QtWidgets import (
     QAction,
+    QApplication,
     QComboBox,
     QLineEdit,
     QMenu,
@@ -30,7 +31,8 @@ from qgis.core import (
     QgsProject,
     QgsRectangle,
     QgsVectorLayerUtils,
-    QgsWkbTypes, QgsApplication,
+    QgsWkbTypes,
+    QgsApplication,
 )
 from qgis.gui import QgsMapTool, QgsSnapIndicator, QgsRubberBand, QgsVertexMarker
 from qgis.utils import iface, plugins
@@ -39,7 +41,6 @@ from ..Icons import ICON_PATHS
 from ..utils.functions import (
     enableAndDisableWidgets,
     getCustomProjectVariable,
-    getLookupDict,
     HelpWindow,
     findLayerInProject,
     layerHasPendingChanges,
@@ -47,6 +48,7 @@ from ..utils.functions import (
     showAndHideWidgets,
 )
 from ..utils.toolbar_functions import saveProject
+from .autoattributes import getComboboxModelFromLayerConfig, clearAutoAttributeProjectVariables
 
 polygonsLayerName = "E_Polygon"
 linesLayerName = "E_Line"
@@ -58,29 +60,12 @@ connectedSignalsDict = {}
 
 WIDGET, BASE = uic.loadUiType(os.path.join(os.path.dirname(__file__), "messen.ui"))
 
-projectVariables = [
-    "obj_typ_polygons",
-    "obj_art_polygons",
-    "obj_spez_polygons",
-    "obj_typ_lines",
-    "obj_art_lines",
-    "obj_typ_points",
-    "obj_art_points",
-    "schnitt_nr",
-    "planum_nr",
-    "zbs",
-    "prof_nr",
-    "pt_nr",
-    "fund_nr",
-    "probe_nr",
-]
-
 
 class MeasurementTab(BASE, WIDGET):
     cmbLayerType: QComboBox
     schnitt_nr: QLineEdit
     planum_nr: QLineEdit
-    zbs: QLineEdit
+    bef_nr: QLineEdit
     prof_nr: QLineEdit
     pt_nr: QLineEdit
     fund_nr: QLineEdit
@@ -187,11 +172,15 @@ class MeasurementTab(BASE, WIDGET):
         self.cmbObjectType_1.currentIndexChanged.connect(self.comboObjectTypeChanged)
         self.cmbObjectType_2.currentIndexChanged.connect(self.comboObjectArtChanged)
         self.cmbObjectType_3.currentIndexChanged.connect(self.comboObjectSpezChanged)
+        self.cmbMaterial.currentIndexChanged.connect(self.comboMaterialChanged)
+        self.cmbMaterial2.currentIndexChanged.connect(self.comboMaterial2Changed)
+        self.cmbZeit.currentIndexChanged.connect(self.comboZeitChanged)
+        self.cmbZeit2.currentIndexChanged.connect(self.comboZeit2Changed)
         self.btnResetAutoAttributes.clicked.connect(self.resetAutoAttributeValues)
         self.cbActivateAutoAttributes.stateChanged.connect(self.setAutoAttributeMode)
         self.schnitt_nr.editingFinished.connect(partial(self.onLineEditingFinished, self.schnitt_nr))
         self.planum_nr.editingFinished.connect(partial(self.onLineEditingFinished, self.planum_nr))
-        self.zbs.editingFinished.connect(partial(self.onLineEditingFinished, self.zbs))
+        self.bef_nr.editingFinished.connect(partial(self.onLineEditingFinished, self.bef_nr))
         self.prof_nr.editingFinished.connect(partial(self.onLineEditingFinished, self.prof_nr))
         self.pt_nr.editingFinished.connect(partial(self.onLineEditingFinished, self.pt_nr))
         self.fund_nr.editingFinished.connect(partial(self.onLineEditingFinished, self.fund_nr))
@@ -487,34 +476,20 @@ class MeasurementTab(BASE, WIDGET):
             self.actionDigitize.setText("Punkte zeichnen")
             showAndHideWidgets([self.qgsGroupBoxAttributes], [self.widgetCmbPolygonDigitizingMode])
         self.geometryType = geometryType
-        self.setAttributes()
+        self.adjustAutoAttributes()
         self.startTachyWatch()
 
-    def setAutoAttributeMode(self):
-        if self.cbActivateAutoAttributes.isChecked():
-            setCustomProjectVariable("autoAttribute", True)
-        else:
-            setCustomProjectVariable("autoAttribute", False)
+    def setAutoAttributeMode(self, state: int):
+        setCustomProjectVariable("autoAttribute", bool(state))
 
-    def clearObjectCombos(self):
-        self.cmbObjectType_1.blockSignals(True)
-        self.cmbObjectType_2.blockSignals(True)
-        self.cmbObjectType_3.blockSignals(True)
-        self.cmbObjectType_1.clear()
-        self.cmbObjectType_2.clear()
-        self.cmbObjectType_3.clear()
-        self.cmbObjectType_1.blockSignals(False)
-        self.cmbObjectType_2.blockSignals(False)
-        self.cmbObjectType_3.blockSignals(False)
-
-    def setAttributes(self):
-        self.clearObjectCombos()
+    def adjustAutoAttributes(self):
         self.fillComboObjectType()
+        if not self.cmbMaterial.count():
+            self.fillComboMaterial()
+        if not self.cmbZeit.count():
+            self.fillComboZeit()
 
-        if self.geometryType != "polygons":
-            self.cmbObjectType_3.hide()
-        else:
-            self.cmbObjectType_3.show()
+        self.cmbObjectType_3.setEnabled(self.geometryType == "polygons")
 
         objTypeGeometry = getCustomProjectVariable(f"obj_typ_{self.geometryType}")
         if objTypeGeometry:
@@ -542,55 +517,141 @@ class MeasurementTab(BASE, WIDGET):
     def comboObjectSpezChanged(self):
         setCustomProjectVariable(f"obj_spez_{self.geometryType}", self.cmbObjectType_3.currentData())
 
+    def comboMaterialChanged(self):
+        setCustomProjectVariable("material", self.cmbMaterial.currentData())
+        self.fillComboMaterial2()
+
+        material2 = getCustomProjectVariable("material_zwei")
+        if material2:
+            self.cmbMaterial2.setCurrentIndex(self.cmbMaterial2.findData(material2))
+
+    def comboMaterial2Changed(self):
+        setCustomProjectVariable("material_zwei", self.cmbMaterial2.currentData())
+
+    def comboZeitChanged(self):
+        setCustomProjectVariable("zeit", self.cmbZeit.currentData())
+        self.fillComboZeit2()
+
+        zeit2 = getCustomProjectVariable("zeit_zwei")
+        if zeit2:
+            self.cmbZeit2.setCurrentIndex(self.cmbZeit2.findData(zeit2))
+
+    def comboZeit2Changed(self):
+        setCustomProjectVariable("zeit_zwei", self.cmbZeit2.currentData())
+
     def resetAutoAttributeValues(self):
-        for variable in projectVariables:
-            setCustomProjectVariable(variable, "")
         self.cmbObjectType_1.setCurrentIndex(0)
         self.cmbObjectType_2.setCurrentIndex(0)
         self.cmbObjectType_3.setCurrentIndex(0)
         self.schnitt_nr.clear()
         self.planum_nr.clear()
-        self.zbs.clear()
+        self.bef_nr.clear()
         self.prof_nr.clear()
         self.pt_nr.clear()
         self.fund_nr.clear()
         self.probe_nr.clear()
+        self.cmbMaterial.setCurrentIndex(0)
+        self.cmbMaterial2.setCurrentIndex(0)
+        self.cmbZeit.setCurrentIndex(0)
+        self.cmbZeit2.setCurrentIndex(0)
+
+        clearAutoAttributeProjectVariables()
+
+    @contextmanager
+    def blockSignalsObjTypes(self):
+        self.cmbObjectType_1.blockSignals(True)
+        self.cmbObjectType_2.blockSignals(True)
+        self.cmbObjectType_3.blockSignals(True)
+        try:
+            yield
+        finally:
+            self.cmbObjectType_1.blockSignals(False)
+            self.cmbObjectType_2.blockSignals(False)
+            self.cmbObjectType_3.blockSignals(False)
 
     def fillComboObjectType(self):
-        self.cmbObjectType_1.blockSignals(True)
-        self.cmbObjectType_1.clear()
-        self.cmbObjectType_2.clear()
-        self.cmbObjectType_3.clear()
-        geom_typ = int(self.layerToEdit.geometryType())
-        s1_layer = QgsProject.instance().mapLayersByName("obj_type_s1")[0]
-        obj_types = getLookupDict(s1_layer, "class_id", "s1", f"geom_typ = {geom_typ}")
-        self.cmbObjectType_1.addItem("", None)
-        for fid, description in obj_types.items():
-            self.cmbObjectType_1.addItem(description, fid)
-        self.cmbObjectType_1.blockSignals(False)
+        with self.blockSignalsObjTypes():
+            self.cmbObjectType_1.clear()
+            self.cmbObjectType_2.clear()
+            self.cmbObjectType_3.clear()
+            obj_types = getComboboxModelFromLayerConfig(self.layerToEdit, "obj_typ")
+            self.cmbObjectType_1.addItem("", None)
+            for fid, description in obj_types.items():
+                self.cmbObjectType_1.addItem(description, fid)
 
     def fillComboObjectArt(self):
-        self.cmbObjectType_2.blockSignals(True)
-        self.cmbObjectType_2.clear()
-        self.cmbObjectType_3.clear()
-        s1_fid = self.cmbObjectType_1.currentData()
-        s2_layer = QgsProject.instance().mapLayersByName("obj_type_s2")[0]
-        obj_types = getLookupDict(s2_layer, "fid", "s2", f"obj_type_relation_s1_s2_s1_class_id = {s1_fid}")
-        self.cmbObjectType_2.addItem("", None)
-        for fid, description in obj_types.items():
-            self.cmbObjectType_2.addItem(description, fid)
-        self.cmbObjectType_2.blockSignals(False)
+        with self.blockSignalsObjTypes():
+            self.cmbObjectType_2.clear()
+            self.cmbObjectType_3.clear()
+            obj_types = getComboboxModelFromLayerConfig(
+                self.layerToEdit, "obj_art", {"obj_typ": self.cmbObjectType_1.currentData()}
+            )
+            self.cmbObjectType_2.addItem("", None)
+            for fid, description in obj_types.items():
+                self.cmbObjectType_2.addItem(description, fid)
 
     def fillComboObjectSpez(self):
-        self.cmbObjectType_3.blockSignals(True)
-        self.cmbObjectType_3.clear()
-        s2_fid = self.cmbObjectType_2.currentData()
-        s3_layer = QgsProject.instance().mapLayersByName("obj_type_s3")[0]
-        obj_types = getLookupDict(s3_layer, "fid", "s3", f"obj_type_relation_s2_s3_fid_s2 = {s2_fid}")
-        self.cmbObjectType_3.addItem("", None)
-        for fid, description in obj_types.items():
-            self.cmbObjectType_3.addItem(description, fid)
-        self.cmbObjectType_3.blockSignals(False)
+        with self.blockSignalsObjTypes():
+            self.cmbObjectType_3.clear()
+
+            obj_types = getComboboxModelFromLayerConfig(
+                self.layerToEdit,
+                "obj_spez",
+                {"obj_typ": self.cmbObjectType_1.currentData(), "obj_art": self.cmbObjectType_2.currentData()},
+            )
+            self.cmbObjectType_3.addItem("", None)
+            for fid, description in obj_types.items():
+                self.cmbObjectType_3.addItem(description, fid)
+
+    def fillComboMaterial(self):
+        self.cmbMaterial.blockSignals(True)
+        self.cmbMaterial2.clear()
+        self.cmbMaterial.clear()
+        materials = getComboboxModelFromLayerConfig(self.layerToEdit, "material")
+        self.cmbMaterial.addItem("", None)
+        for fid, description in materials.items():
+            if all((fid, description)):
+                self.cmbMaterial.addItem(description, fid)
+        self.cmbMaterial.blockSignals(False)
+
+    def fillComboMaterial2(self):
+        self.cmbMaterial2.blockSignals(True)
+        self.cmbMaterial2.clear()
+        materials = getComboboxModelFromLayerConfig(
+            self.layerToEdit,
+            "material_zwei",
+            {"material": self.cmbMaterial.currentData()},
+        )
+        self.cmbMaterial2.addItem("", None)
+        for fid, description in materials.items():
+            if all((fid, description)):
+                self.cmbMaterial2.addItem(description, fid)
+        self.cmbMaterial2.blockSignals(False)
+
+    def fillComboZeit(self):
+        self.cmbZeit.blockSignals(True)
+        self.cmbZeit2.clear()
+        self.cmbZeit.clear()
+        epochen = getComboboxModelFromLayerConfig(self.layerToEdit, "zeit")
+        self.cmbZeit.addItem("", None)
+        for fid, description in epochen.items():
+            if all((fid, description)):
+                self.cmbZeit.addItem(description, fid)
+        self.cmbZeit.blockSignals(False)
+
+    def fillComboZeit2(self):
+        self.cmbZeit2.blockSignals(True)
+        self.cmbZeit2.clear()
+        epochen = getComboboxModelFromLayerConfig(
+            self.layerToEdit,
+            "zeit_zwei",
+            {"zeit": self.cmbZeit.currentData()},
+        )
+        self.cmbZeit2.addItem("", None)
+        for fid, description in epochen.items():
+            if all((fid, description)):
+                self.cmbZeit2.addItem(description, fid)
+        self.cmbZeit2.blockSignals(False)
 
     def createMarkersAndRubberBand(self, geometryType):
         if geometryType == "polygons":
@@ -922,17 +983,17 @@ class MeasurementTab(BASE, WIDGET):
 
     # ToDo: refactoring
     def nextValues(self):
-        if self.zbs.text() != "":
+        if self.bef_nr.text() != "":
             try:
-                if int(self.zbs.text()) >= int(self.txtNextBef.text()) and not "_" in self.zbs.text():
-                    self.txtNextBef.setText(str(int(self.zbs.text()) + 1))
+                if int(self.bef_nr.text()) >= int(self.txtNextBef.text()) and not "_" in self.bef_nr.text():
+                    self.txtNextBef.setText(str(int(self.bef_nr.text()) + 1))
             except Exception as e:
                 QgsMessageLog.logMessage(
                     message="MeasurementTab->nextValues: no setText: " + str(e),
                     tag="T2G Archäologie",
                     level=Qgis.MessageLevel.Warning,
                 )
-        if self.fund_nr.txtFundNr.text() != "":
+        if self.fund_nr.text() != "":
             try:
                 if int(self.fund_nr.text()) >= int(self.txtNextFund.text() and not "_" in self.fund_nr.text()):
                     self.txtNextFund.setText(str(int(self.fund_nr.text()) + 1))
