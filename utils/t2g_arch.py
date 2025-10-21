@@ -70,7 +70,7 @@ from .functions import (
     getCustomProjectVariable,
     getlayerSelectedFeatures,
     isNumber,
-    makerAndRubberbands,
+    MarkersAndRubberbands,
     maxValue,
     progressBar,
     setCustomProjectVariable,
@@ -176,8 +176,8 @@ class T2gArch:
             self.mapTool.geomIdentified.connect(self.editFeature)
 
             self.valueTemp1 = None
-            self.rubberBand = makerAndRubberbands()
-            self.pointMaker = makerAndRubberbands()
+            self.rubberBand = MarkersAndRubberbands()
+            self.pointMaker = MarkersAndRubberbands()
 
             self.layerLine = QgsProject.instance().mapLayersByName(T2GArchDockWidget.eLayerListe()[0])[0]
             self.layerLineId = self.layerLine.id()

@@ -31,7 +31,7 @@ from qgis.core import QgsMessageLog, Qgis, QgsWkbTypes, QgsPoint, QgsGeometry
 from qgis.gui import QgsVertexMarker
 
 from ..Icons import ICON_PATHS
-from ..utils.functions import makerAndRubberbands, PrintClickedPoint, isNumber
+from ..utils.functions import MarkersAndRubberbands, PrintClickedPoint, isNumber
 
 FORM_CLASS, _ = uic.loadUiType(os_path.join(os_path.dirname(__file__), "myDwgFeatureQuestion.ui"))
 
@@ -55,14 +55,14 @@ class FeatureQuestionDockWidget(QDockWidget, FORM_CLASS):
         self.layer = layer
         self.feature = feature
         self.koordList = []
-        self.maker = makerAndRubberbands()
+        self.maker = MarkersAndRubberbands()
         self.maker.setColor(QColor(0, 255, 0))
-        self.makerTemp = makerAndRubberbands()
+        self.makerTemp = MarkersAndRubberbands()
         self.makerTemp.setColor(QColor(0, 0, 255))
-        self.makerTemp.setMakerType(QgsVertexMarker.ICON_X)
-        self.vertexMaker = makerAndRubberbands()
-        self.vertexMaker.setMakerType(QgsVertexMarker.ICON_X)
-        self.rubberBand = makerAndRubberbands()
+        self.makerTemp.setMarkerType(QgsVertexMarker.ICON_X)
+        self.vertexMaker = MarkersAndRubberbands()
+        self.vertexMaker.setMarkerType(QgsVertexMarker.ICON_X)
+        self.rubberBand = MarkersAndRubberbands()
 
         self.cb = QApplication.clipboard()
         self.i = ""

@@ -385,52 +385,46 @@ class FileFunctions:
             return False
 
 
-class makerAndRubberbands:
+class MarkersAndRubberbands:
     def __init__(self):
         self.iface = iface
         self.canvas = iface.mapCanvas()
-        self.lMakers = []
-        self.lRabberbands = []
-        self.makerTyp = QgsVertexMarker.ICON_BOX
+        self.lMarkers = []
+        self.lRubberbands = []
+        self.markerType = QgsVertexMarker.ICON_BOX
         self.color = QColor(255, 0, 0)
 
-    def setMakerType(self, vertexMaker):
-        self.makerTyp = vertexMaker
+    def setMarkerType(self, vertexMaker):
+        self.markerType = vertexMaker
 
-    def setColor(self, QColor):
-        self.color = QColor
+    def setColor(self, color):
+        self.color = color
 
     def setMarker(self, x, y, size, penwidth):
         m = QgsVertexMarker(self.canvas)
         m.setCenter(QgsPointXY(float(x), float(y)))
         m.setColor(self.color)
         m.setIconSize(size)
-        m.setIconType(self.makerTyp)
+        m.setIconType(self.markerType)
         m.setPenWidth(penwidth)
         m.show()
-        self.lMakers.append(m)
+        self.lMarkers.append(m)
 
     def setRubberBandPoly(self, ptList, penwidth):
-        ptL = []
-        for a in ptList:
-            item = QgsPoint(float(a[0]), float(a[1]), float(a[2]))
-            ptL.append(item)
-        # ersten Punkt als letzten einfügen
-        # ptList.append(ptList[0])
+        pointList = [QgsPoint(float(a[0]), float(a[1]), float(a[2])) for a in ptList]
         r = QgsRubberBand(self.canvas)
-        r.setToGeometry(QgsGeometry.fromPolyline(ptL), None)
+        r.setToGeometry(QgsGeometry.fromPolyline(pointList), None)
         r.setColor(self.color)
-        # r.fillColor()
         r.setWidth(penwidth)
         r.show()
-        self.lRabberbands.append(r)
+        self.lRubberbands.append(r)
 
     def makerClean(self):
-        for maker in self.lMakers:
+        for maker in self.lMarkers:
             self.canvas.scene().removeItem(maker)
 
     def rubberBandClean(self):
-        for maker in self.lRabberbands:
+        for maker in self.lRubberbands:
             self.canvas.scene().removeItem(maker)
 
 
