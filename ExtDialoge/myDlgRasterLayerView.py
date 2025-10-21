@@ -41,7 +41,7 @@ from qgis.PyQt import uic
 from qgis.core import QgsProject, QgsMapLayer, QgsMessageLog, Qgis
 
 from ..Icons import ICON_PATHS
-from ..utils.functions import progressBar, FileFunctions
+from ..utils.functions import ProgressBar, FileFunctions
 
 FORM_CLASS, _ = uic.loadUiType(os_path.join(os_path.dirname(__file__), "myDlgRasterLayerView.ui"))
 
@@ -341,7 +341,7 @@ class RasterLayerViewDockWidget(QDockWidget, FORM_CLASS):
             )
         if dst_root == "":
             return
-        progress = progressBar("Fortschritt")
+        progress = ProgressBar("Fortschritt")
         QCoreApplication.processEvents()
 
         progress.setMaximum(selectCount)

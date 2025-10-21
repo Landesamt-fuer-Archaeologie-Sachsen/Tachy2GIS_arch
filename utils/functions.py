@@ -771,7 +771,7 @@ def setAliasName():
     # <Alias Namen erzeugen
 
 
-class progressBar(QWidget):
+class ProgressBar(QWidget):
     def __init__(self, titel):
         super().__init__()
         self.setWindowTitle(titel)
@@ -782,9 +782,9 @@ class progressBar(QWidget):
         self.progress.setMaximum(100)
         self.value = 0
         self.close = False
-        self.lab = QLabel(self)
-        self.lab.setGeometry(0, 25, 300, 25)
-        self.lab.setAlignment(Qt.AlignCenter)
+        self.label = QLabel(self)
+        self.label.setGeometry(0, 25, 300, 25)
+        self.label.setAlignment(Qt.AlignCenter)
         self.show()
 
     def setValue(self, value):
@@ -794,11 +794,9 @@ class progressBar(QWidget):
         self.progress.setMaximum(value)
 
     def setText(self, value):
-        # self.lab.styleSheet("{Background-color : rgb(240, 240, 240) ; font: 75 7pt ;}")
-        self.lab.setText(value)
+        self.label.setText(value)
 
     def closeEvent(self, event):
-        # self.opacity = self.ui.mOpacityWidget.opacity
         self.close = True
         event.accept()
 

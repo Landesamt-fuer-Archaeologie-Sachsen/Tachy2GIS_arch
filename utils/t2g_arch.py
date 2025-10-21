@@ -72,7 +72,7 @@ from .functions import (
     isNumber,
     MarkersAndRubberbands,
     maxValue,
-    progressBar,
+    ProgressBar,
     setCustomProjectVariable,
     project_backup,
     any2bool,
@@ -456,7 +456,7 @@ class T2gArch:
 
             dateiFormat = os.path.splitext(inputFile[0])[-1].lower()
             if inputFile[0] != "":
-                progress = progressBar("Fortschritt")
+                progress = ProgressBar("Fortschritt")
                 QCoreApplication.processEvents()
                 setCustomProjectVariable("maxWerteAktualisieren", False)
 
