@@ -89,11 +89,6 @@ from ..messen.autoattributes import clearAutoAttributeProjectVariables
 from ..profile.profile import Profile
 from ..transformation.transformation_gui import TransformationGui
 
-FN_PROFILNUMMER = "prof_nr"  # Feldname in der die Profilnummer steht
-# Feldname in der die Entzerrpunkt-definition steht
-FN_DEF_FOTOENTZERRPUNKT = "obj_typ"
-AW_FOTOENTZERRPUNKT = "Fotoentzerrpunkt"  # Entzerrpunkt-definition
-
 
 class T2gArch:
     def __del__(self):
