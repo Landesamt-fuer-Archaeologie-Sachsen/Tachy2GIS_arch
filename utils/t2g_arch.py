@@ -158,102 +158,104 @@ class T2gArch:
         self.dockwidget.deleteLater()
 
     def furtherSetups(self):
-        if not self.pluginIsActive:
-            self.pluginIsActive = True
+        if self.pluginIsActive:
+            return
 
-            self.watch = QTimer()
+        self.pluginIsActive = True
 
-            self.ProjPfad = ""
+        self.watch = QTimer()
 
-            self.selectedLayer = None
-            self.selectedFeature = None
+        self.ProjPfad = ""
 
-            self.dwFeatureQuestion = None
-            self.dwAllLayerQuestion = None
+        self.selectedLayer = None
+        self.selectedFeature = None
 
-            self.selectFeatures = []
-            self.selFeatureTemp = None
-            self.mapTool.geomIdentified.connect(self.editFeature)
+        self.dwFeatureQuestion = None
+        self.dwAllLayerQuestion = None
 
-            self.valueTemp1 = None
-            self.rubberBand = MarkersAndRubberbands()
-            self.pointMaker = MarkersAndRubberbands()
+        self.selectFeatures = []
+        self.selFeatureTemp = None
+        self.mapTool.geomIdentified.connect(self.editFeature)
 
-            self.layerLine = QgsProject.instance().mapLayersByName(T2GArchDockWidget.eLayerListe()[0])[0]
-            self.layerLineId = self.layerLine.id()
-            self.layerPoly = QgsProject.instance().mapLayersByName(T2GArchDockWidget.eLayerListe()[1])[0]
-            self.layerPolyId = self.layerPoly.id()
-            self.layerPoint = QgsProject.instance().mapLayersByName(T2GArchDockWidget.eLayerListe()[2])[0]
-            self.layerPointId = self.layerPoint.id()
-            self.layerMesspoint = QgsProject.instance().mapLayersByName("Messpunkte")[0]
+        self.valueTemp1 = None
+        self.rubberBand = MarkersAndRubberbands()
+        self.pointMaker = MarkersAndRubberbands()
 
-            self.layerLine.featuresDeleted.connect(self.__eventFeaturesDeleted)
-            self.layerPoly.featuresDeleted.connect(self.__eventFeaturesDeleted)
-            self.layerPoint.featuresDeleted.connect(self.__eventFeaturesDeleted)
+        self.layerLine = QgsProject.instance().mapLayersByName(T2GArchDockWidget.eLayerListe()[0])[0]
+        self.layerLineId = self.layerLine.id()
+        self.layerPoly = QgsProject.instance().mapLayersByName(T2GArchDockWidget.eLayerListe()[1])[0]
+        self.layerPolyId = self.layerPoly.id()
+        self.layerPoint = QgsProject.instance().mapLayersByName(T2GArchDockWidget.eLayerListe()[2])[0]
+        self.layerPointId = self.layerPoint.id()
+        self.layerMesspoint = QgsProject.instance().mapLayersByName("Messpunkte")[0]
 
-            self.layerLine.editingStarted.connect(self.eventEditingStarted)
-            self.layerPoly.editingStarted.connect(self.eventEditingStarted)
-            self.layerPoint.editingStarted.connect(self.eventEditingStarted)
+        self.layerLine.featuresDeleted.connect(self.__eventFeaturesDeleted)
+        self.layerPoly.featuresDeleted.connect(self.__eventFeaturesDeleted)
+        self.layerPoint.featuresDeleted.connect(self.__eventFeaturesDeleted)
 
-            self.layerLine.subsetStringChanged.connect(self.filterGesetzt)
-            self.layerPoly.subsetStringChanged.connect(self.filterGesetzt)
-            self.layerPoint.subsetStringChanged.connect(self.filterGesetzt)
+        self.layerLine.editingStarted.connect(self.eventEditingStarted)
+        self.layerPoly.editingStarted.connect(self.eventEditingStarted)
+        self.layerPoint.editingStarted.connect(self.eventEditingStarted)
 
-            self.lineLayerEdited = lambda fid, idx, value, lyr=self.layerPoly: self.eventAttributeValueChanged(
-                fid, idx, value, lyr
-            )
-            self.pointLayerEdited = lambda fid, idx, value, lyr=self.layerPoint: self.eventAttributeValueChanged(
-                fid, idx, value, lyr
-            )
-            self.polygonLayerEdited = lambda fid, idx, value, lyr=self.layerPoly: self.eventAttributeValueChanged(
-                fid, idx, value, lyr
-            )
-            self.layerLine.attributeValueChanged.connect(self.lineLayerEdited)
-            self.layerPoly.attributeValueChanged.connect(self.polygonLayerEdited)
-            self.layerPoint.attributeValueChanged.connect(self.pointLayerEdited)
+        self.layerLine.subsetStringChanged.connect(self.filterGesetzt)
+        self.layerPoly.subsetStringChanged.connect(self.filterGesetzt)
+        self.layerPoint.subsetStringChanged.connect(self.filterGesetzt)
 
-            self.layerLine.featureAdded.connect(self.eventFeatureAdded)
-            self.layerPoly.featureAdded.connect(self.eventFeatureAdded)
-            self.layerPoint.featureAdded.connect(self.eventFeatureAdded)
+        self.lineLayerEdited = lambda fid, idx, value, lyr=self.layerPoly: self.eventAttributeValueChanged(
+            fid, idx, value, lyr
+        )
+        self.pointLayerEdited = lambda fid, idx, value, lyr=self.layerPoint: self.eventAttributeValueChanged(
+            fid, idx, value, lyr
+        )
+        self.polygonLayerEdited = lambda fid, idx, value, lyr=self.layerPoly: self.eventAttributeValueChanged(
+            fid, idx, value, lyr
+        )
+        self.layerLine.attributeValueChanged.connect(self.lineLayerEdited)
+        self.layerPoly.attributeValueChanged.connect(self.polygonLayerEdited)
+        self.layerPoint.attributeValueChanged.connect(self.pointLayerEdited)
 
-            # ToDo: refactoring - Tab "Tools Allgemein"
-            self.dockwidget.butObjFind.setIcon(QIcon(ICON_PATHS["suchen"]))
-            self.dockwidget.butObjFind.clicked.connect(self.ozoom_1_ok)
-            self.dockwidget.cboSuche.setToolTip("Suchen")
+        self.layerLine.featureAdded.connect(self.eventFeatureAdded)
+        self.layerPoly.featureAdded.connect(self.eventFeatureAdded)
+        self.layerPoint.featureAdded.connect(self.eventFeatureAdded)
 
-            # ToDo: refactoring - Tab: "Tool Raster"
-            self.dockwidget.pushButton_4.setIcon(QIcon(ICON_PATHS["V_Jpg-Tif"]))
-            self.dockwidget.pushButton_4.clicked.connect(self.gtiff2jpg)
-            self.dockwidget.pushButton_5.setIcon(QIcon(ICON_PATHS["cut"]))
-            self.dockwidget.pushButton_5.clicked.connect(self.rasterCut)
-            self.dockwidget.pushButton_6.setIcon(QIcon(ICON_PATHS["cutmask"]))
-            self.dockwidget.pushButton_6.clicked.connect(self.setCutMask)
-            self.dockwidget.pushButton_7.setIcon(QIcon(ICON_PATHS["cutmaskdel"]))
-            self.dockwidget.pushButton_7.clicked.connect(self.delCutMask)
-            self.dockwidget.pushButton_11.setIcon(QIcon(ICON_PATHS["Thumbs"]))
-            self.dockwidget.pushButton_11.clicked.connect(self.myDlgRasterLayerShow)
-            self.dockwidget.pushButton_11.setToolTip("Übersicht der Rasterlayer")
+        # ToDo: refactoring - Tab "Tools Allgemein"
+        self.dockwidget.butObjFind.setIcon(QIcon(ICON_PATHS["suchen"]))
+        self.dockwidget.butObjFind.clicked.connect(self.ozoom_1_ok)
+        self.dockwidget.cboSuche.setToolTip("Suchen")
 
-            # ToDo: Refactoring: "Einstellungen"-Button in main gui
-            self.dockwidget.butSet.setIcon(QIcon(ICON_PATHS["Einstellungen"]))
-            self.dockwidget.butSet.clicked.connect(self.myDlgSettingsShow)
-            self.dockwidget.butSet.setToolTip("Setupdatei bearbeiten")
+        # ToDo: refactoring - Tab: "Tool Raster"
+        self.dockwidget.pushButton_4.setIcon(QIcon(ICON_PATHS["V_Jpg-Tif"]))
+        self.dockwidget.pushButton_4.clicked.connect(self.gtiff2jpg)
+        self.dockwidget.pushButton_5.setIcon(QIcon(ICON_PATHS["cut"]))
+        self.dockwidget.pushButton_5.clicked.connect(self.rasterCut)
+        self.dockwidget.pushButton_6.setIcon(QIcon(ICON_PATHS["cutmask"]))
+        self.dockwidget.pushButton_6.clicked.connect(self.setCutMask)
+        self.dockwidget.pushButton_7.setIcon(QIcon(ICON_PATHS["cutmaskdel"]))
+        self.dockwidget.pushButton_7.clicked.connect(self.delCutMask)
+        self.dockwidget.pushButton_11.setIcon(QIcon(ICON_PATHS["Thumbs"]))
+        self.dockwidget.pushButton_11.clicked.connect(self.myDlgRasterLayerShow)
+        self.dockwidget.pushButton_11.setToolTip("Übersicht der Rasterlayer")
 
-            self.dockwidget.pushButton_about.clicked.connect(self.show_window_about)
+        # ToDo: Refactoring: "Einstellungen"-Button in main gui
+        self.dockwidget.butSet.setIcon(QIcon(ICON_PATHS["Einstellungen"]))
+        self.dockwidget.butSet.clicked.connect(self.myDlgSettingsShow)
+        self.dockwidget.butSet.setToolTip("Setupdatei bearbeiten")
 
-            # ToDo: refactoring: consistency with auto attributes in Tab "Vermessung", other project variables needed?
-            # self.iface.layerTreeView().currentLayerChanged.connect(self.currentLayerChanged)
+        self.dockwidget.pushButton_about.clicked.connect(self.show_window_about)
 
-            self.layerPoly.selectionChanged.connect(self.selectFeatureChanged)
+        # ToDo: refactoring: consistency with auto attributes in Tab "Vermessung", other project variables needed?
+        # self.iface.layerTreeView().currentLayerChanged.connect(self.currentLayerChanged)
 
-            # ToDo: refactoring- Tab "Tools Allgemein"
-            self.dockwidget.btnCheckHeights.clicked.connect(self.myDlgFeatureCheckShow)
+        self.layerPoly.selectionChanged.connect(self.selectFeatureChanged)
 
-            self.dockwidget.btnBefundLabel.clicked.connect(self.setBefundLabel_n)
+        # ToDo: refactoring- Tab "Tools Allgemein"
+        self.dockwidget.btnCheckHeights.clicked.connect(self.myDlgFeatureCheckShow)
 
-            self.watch.timeout.connect(self.watchEvent)
-            self.__lastMaxNumber = []
-            self.setup()
+        self.dockwidget.btnBefundLabel.clicked.connect(self.setBefundLabel_n)
+
+        self.watch.timeout.connect(self.watchEvent)
+        self.__lastMaxNumber = []
+        self.setup()
 
     def setup(self):
         self.iface.setActiveLayer(self.layerPoly)
