@@ -160,7 +160,7 @@ class T2gArch:
 
         self.watch = QTimer()
 
-        self.ProjPfad = ""
+        self.projPfad = ""
 
         self.selectedLayer = None
         self.selectedFeature = None
@@ -851,11 +851,11 @@ class T2gArch:
 
     def eventReadProject(self):
         """Event Projekt geladen"""
-        self.ProjPfad = os.path.abspath(QgsProject.instance().readPath(".."))
+        self.projPfad = os.path.abspath(QgsProject.instance().readPath(".."))
 
         # Config-Datei abarbeiten
         QgsMessageLog.logMessage("Projekt Config.ini laden.", self.plugin_name_tag, Qgis.Info)
-        self.config = Configfile(os.path.join(self.ProjPfad, "_System_", "config.ini"))
+        self.config = Configfile(os.path.join(self.projPfad, "_System_", "config.ini"))
         myDlgSettingsView = DlgSettings(self, self.config)
         myDlgSettingsView.setup()
 
@@ -1454,7 +1454,7 @@ class T2gArch:
 
     # ToDo: open pdf
     def help(self):
-        QMessageBox.information(None, "Hilfe", os.path.join(self.ProjPfad, "Hinweise.pdf"), QMessageBox.Cancel)
+        QMessageBox.information(None, "Hilfe", os.path.join(self.projPfad, "Hinweise.pdf"), QMessageBox.Cancel)
         # subprocess.Popen([os.path.join(self.ProjPfad,
         #                              'Hinweise.pdf')],
         #                              shell=True)
