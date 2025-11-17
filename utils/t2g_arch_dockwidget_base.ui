@@ -1421,123 +1421,96 @@
          <attribute name="title">
           <string>Tools Raster</string>
          </attribute>
-         <widget class="QPushButton" name="pushButton_11">
-          <property name="geometry">
-           <rect>
-            <x>8</x>
-            <y>156</y>
-            <width>187</width>
-            <height>28</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>  Rasterlayer Übersicht</string>
-          </property>
-          <property name="icon">
-           <iconset>
-            <normaloff>../Icons/Thumbs.gif</normaloff>../Icons/Thumbs.gif</iconset>
-          </property>
-         </widget>
-         <widget class="QPushButton" name="pushButton_5">
-          <property name="geometry">
-           <rect>
-            <x>8</x>
-            <y>36</y>
-            <width>187</width>
-            <height>28</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>  Bild beschneiden</string>
-          </property>
-          <property name="icon">
-           <iconset>
-            <normaloff>../Icons/cut.gif</normaloff>../Icons/cut.gif</iconset>
-          </property>
-         </widget>
-         <widget class="QPushButton" name="pushButton_7">
-          <property name="geometry">
-           <rect>
-            <x>8</x>
-            <y>111</y>
-            <width>187</width>
-            <height>28</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>  Masken löschen</string>
-          </property>
-          <property name="icon">
-           <iconset>
-            <normaloff>../Icons/cutmaskdel.gif</normaloff>../Icons/cutmaskdel.gif</iconset>
-          </property>
-         </widget>
-         <widget class="QPushButton" name="pushButton_4">
-          <property name="geometry">
-           <rect>
-            <x>8</x>
-            <y>6</y>
-            <width>187</width>
-            <height>28</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string> GeoTiff zu JPG</string>
-          </property>
-          <property name="icon">
-           <iconset>
-            <normaloff>../Icons/V_Jpg-Tif.gif</normaloff>../Icons/V_Jpg-Tif.gif</iconset>
-          </property>
-          <property name="iconSize">
-           <size>
-            <width>60</width>
-            <height>24</height>
-           </size>
-          </property>
-         </widget>
-         <widget class="QPushButton" name="pushButton_6">
-          <property name="geometry">
-           <rect>
-            <x>8</x>
-            <y>81</y>
-            <width>187</width>
-            <height>28</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>  Maske festlegen</string>
-          </property>
-          <property name="icon">
-           <iconset>
-            <normaloff>../Icons/cutmask.gif</normaloff>../Icons/cutmask.gif</iconset>
-          </property>
-         </widget>
-         <widget class="Line" name="line_2">
-          <property name="geometry">
-           <rect>
-            <x>7</x>
-            <y>64</y>
-            <width>187</width>
-            <height>16</height>
-           </rect>
-          </property>
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-         </widget>
-         <widget class="Line" name="line_3">
-          <property name="geometry">
-           <rect>
-            <x>8</x>
-            <y>140</y>
-            <width>187</width>
-            <height>16</height>
-           </rect>
-          </property>
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-         </widget>
+         <layout class="QVBoxLayout" name="verticalLayout_8">
+          <item>
+           <widget class="QPushButton" name="pushButton_4">
+            <property name="text">
+             <string> GeoTiff zu JPG</string>
+            </property>
+            <property name="icon">
+             <iconset>
+              <normaloff>../Icons/V_Jpg-Tif.gif</normaloff>../Icons/V_Jpg-Tif.gif</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>60</width>
+              <height>24</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButton_5">
+            <property name="text">
+             <string>  Bild beschneiden</string>
+            </property>
+            <property name="icon">
+             <iconset>
+              <normaloff>../Icons/cut.gif</normaloff>../Icons/cut.gif</iconset>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="Line" name="line_2">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButton_6">
+            <property name="text">
+             <string>  Maske festlegen</string>
+            </property>
+            <property name="icon">
+             <iconset>
+              <normaloff>../Icons/cutmask.gif</normaloff>../Icons/cutmask.gif</iconset>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButton_7">
+            <property name="text">
+             <string>  Masken löschen</string>
+            </property>
+            <property name="icon">
+             <iconset>
+              <normaloff>../Icons/cutmaskdel.gif</normaloff>../Icons/cutmaskdel.gif</iconset>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="Line" name="line_3">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButton_11">
+            <property name="text">
+             <string>  Rasterlayer Übersicht</string>
+            </property>
+            <property name="icon">
+             <iconset>
+              <normaloff>../Icons/Thumbs.gif</normaloff>../Icons/Thumbs.gif</iconset>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="verticalSpacer_3">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>473</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
         </widget>
        </widget>
       </item>
