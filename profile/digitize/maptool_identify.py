@@ -1,4 +1,4 @@
-from PyQt5.QtCore import Qt, QPoint, pyqtSlot, pyqtSignal, QCoreApplication, QEvent, QObject
+from qgis.PyQt.QtCore import Qt, QPoint, pyqtSlot, pyqtSignal, QCoreApplication, QEvent, QObject
 from qgis.core import QgsPointXY, QgsGeometry, QgsFeature
 from qgis.gui import QgsAttributeDialog, QgsAttributeEditorContext, QgsMapTool
 

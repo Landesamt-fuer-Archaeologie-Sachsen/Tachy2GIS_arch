@@ -5,9 +5,8 @@ from glob import glob
 from shutil import rmtree
 
 import processing
-from PyQt5.QtCore import Qt
+from qgis.PyQt.QtCore import QVariant, Qt
 from osgeo import ogr
-from qgis.PyQt.QtCore import QVariant
 from qgis.core import (
     QgsPointXY,
     QgsFeature,
@@ -102,7 +101,8 @@ class Plan:
             self.__iface.messageBar().pushMessage(
                 "Hinweis",
                 "Die Daten zum Plan wurden im Geopackage des Projektes in den (unregistrierten) Tabellen profildata_* abgelegt",
-                level=3, duration=5
+                level=3,
+                duration=5,
             )
 
             # self.layout.startLayout(planData)
@@ -129,9 +129,9 @@ class Plan:
                 data = json.load(json_file)
 
                 if (
-                        data["aar_direction"] == "horizontal"
-                        or data["aar_direction"] == "absolute height"
-                        or data["aar_direction"] == "original"
+                    data["aar_direction"] == "horizontal"
+                    or data["aar_direction"] == "absolute height"
+                    or data["aar_direction"] == "original"
                 ):
 
                     self.dataStorePlan.addProfileNumber(data["profilnummer"])
@@ -242,9 +242,8 @@ class Plan:
             if feature["geo_quelle"] != "profile_object":
                 continue
 
-            if (
-                    (profile_number and feature["prof_nr"] == profile_number) or
-                    (not profile_number and feature.geometry().within(bufferGeometry))
+            if (profile_number and feature["prof_nr"] == profile_number) or (
+                not profile_number and feature.geometry().within(bufferGeometry)
             ):
                 rotFeature = QgsFeature(pointLayer.fields())
 
@@ -275,9 +274,8 @@ class Plan:
             if feature["geo_quelle"] != "profile_object":
                 continue
 
-            if (
-                    (profile_number and feature["prof_nr"] == profile_number) or
-                    (not profile_number and feature.geometry().within(bufferGeometry))
+            if (profile_number and feature["prof_nr"] == profile_number) or (
+                not profile_number and feature.geometry().within(bufferGeometry)
             ):
                 rotFeature = QgsFeature(lineLayer.fields())
 
@@ -306,9 +304,8 @@ class Plan:
             if feature["geo_quelle"] != "profile_object":
                 continue
 
-            if (
-                    (profile_number and feature["prof_nr"] == profile_number) or
-                    (not profile_number and feature.geometry().within(bufferGeometry))
+            if (profile_number and feature["prof_nr"] == profile_number) or (
+                not profile_number and feature.geometry().within(bufferGeometry)
             ):
                 rotFeature = QgsFeature(polygonLayer.fields())
 
@@ -336,7 +333,15 @@ class Plan:
 
         # needs to be this order for plan export
         spalten_reihenfolge = [
-            "obj_uuid", "ptnr", "input_x", "input_z", "aar_x", "aar_z", "aar_z_org", "aar_distance", "aar_direction"
+            "obj_uuid",
+            "ptnr",
+            "input_x",
+            "input_z",
+            "aar_x",
+            "aar_z",
+            "aar_z_org",
+            "aar_distance",
+            "aar_direction",
         ]
         for key in spalten_reihenfolge:
             value = gcpObj[0][key]
@@ -430,10 +435,9 @@ class Plan:
             ds = None  # Close the datasource
 
         inputLayer.selectAll()
-        temporary_layer = processing.run(
-            "native:saveselectedfeatures",
-            {"INPUT": inputLayer, "OUTPUT": "memory:"}
-        )["OUTPUT"]
+        temporary_layer = processing.run("native:saveselectedfeatures", {"INPUT": inputLayer, "OUTPUT": "memory:"})[
+            "OUTPUT"
+        ]
 
         temporary_layer.removeSelection()
         temporary_layer.startEditing()
@@ -493,10 +497,7 @@ class Plan:
         options.actionOnExistingFile = QgsVectorFileWriter.CreateOrOverwriteLayer
 
         error = QgsVectorFileWriter.writeAsVectorFormatV3(
-            temporary_layer,
-            str(geopackage_path),
-            QgsProject.instance().transformContext(),
-            options
+            temporary_layer, str(geopackage_path), QgsProject.instance().transformContext(), options
         )
         print(error, "temporary_layer is written to:", geopackage_path)
         if error[0] == 7:
@@ -528,11 +529,15 @@ class Plan:
 
         feature_ids = [feature.id() for feature in features]
         if not feature_ids:
-            print(f"__delete_profile_number({gpkg_path}, {layer_name}, {profile_number}) No features matched the filter.")
+            print(
+                f"__delete_profile_number({gpkg_path}, {layer_name}, {profile_number}) No features matched the filter."
+            )
             return
 
         if layer.deleteFeatures(feature_ids):
-            print(f"__delete_profile_number({gpkg_path}, {layer_name}, {profile_number}) Features deleted successfully.")
+            print(
+                f"__delete_profile_number({gpkg_path}, {layer_name}, {profile_number}) Features deleted successfully."
+            )
         else:
             print(f"__delete_profile_number({gpkg_path}, {layer_name}, {profile_number}) Failed to delete features.")
 
@@ -571,10 +576,7 @@ class Plan:
             return None
 
         error = QgsVectorFileWriter.writeAsVectorFormatV3(
-            from_layer,
-            to_gpkg_path,
-            QgsProject.instance().transformContext(),
-            options
+            from_layer, to_gpkg_path, QgsProject.instance().transformContext(), options
         )
 
         if error[0] != QgsVectorFileWriter.NoError:
@@ -591,7 +593,9 @@ class Plan:
         layer = QgsVectorLayer(f"{from_gpkg}|layername={layer_name}", layer_name, "ogr")
 
         if not layer.isValid():
-            print(f"layer_from_gpkg_to_feature_list() Layer failed to load! Fehlerdetails: {layer.dataProvider().lastError()}")
+            print(
+                f"layer_from_gpkg_to_feature_list() Layer failed to load! Fehlerdetails: {layer.dataProvider().lastError()}"
+            )
             return None
 
         if layer_name.endswith("gcp_points"):

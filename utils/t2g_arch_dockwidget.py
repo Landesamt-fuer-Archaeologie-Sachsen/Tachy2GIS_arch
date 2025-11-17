@@ -23,7 +23,7 @@
 """
 from os import path as os_path
 
-from PyQt5.QtWidgets import QDockWidget
+from qgis.PyQt.QtWidgets import QDockWidget
 from qgis.PyQt import uic
 from qgis.PyQt.QtCore import pyqtSignal
 

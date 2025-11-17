@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from PyQt5.QtCore import pyqtSlot
+from qgis.PyQt.QtCore import pyqtSlot
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QWidget, QMainWindow, QAction, QVBoxLayout
 from qgis.core import QgsPointXY

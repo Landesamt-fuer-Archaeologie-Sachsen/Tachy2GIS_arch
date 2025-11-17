@@ -23,9 +23,9 @@
 """
 from os import path as os_path
 
-from PyQt5.QtCore import pyqtSignal, Qt
-from PyQt5.QtGui import QColor, QIcon, QCursor
-from PyQt5.QtWidgets import QDockWidget, QApplication, QMenu, QTableWidgetItem, QMessageBox
+from qgis.PyQt.QtCore import pyqtSignal, Qt
+from qgis.PyQt.QtGui import QColor, QIcon, QCursor
+from qgis.PyQt.QtWidgets import QDockWidget, QApplication, QMenu, QTableWidgetItem, QMessageBox
 from qgis.PyQt import uic
 from qgis.core import QgsMessageLog, Qgis, QgsWkbTypes, QgsPoint, QgsGeometry
 from qgis.gui import QgsVertexMarker
@@ -176,13 +176,9 @@ class FeatureQuestionDockWidget(QDockWidget, FORM_CLASS):
 
     def on_customContextMenu(self, pos):
         contextMenu = QMenu()
-        clipbordCopy = contextMenu.addAction(
-            QIcon(ICON_PATHS["kopieren"]), "kopieren"
-        )
+        clipbordCopy = contextMenu.addAction(QIcon(ICON_PATHS["kopieren"]), "kopieren")
         clipbordCopy.triggered.connect(self.clipboardSetText)
-        clipbordInsert = contextMenu.addAction(
-            QIcon(ICON_PATHS["einfügen"]), "einfügen"
-        )
+        clipbordInsert = contextMenu.addAction(QIcon(ICON_PATHS["einfügen"]), "einfügen")
         clipbordInsert.triggered.connect(self.clipboardText)
         contextMenu.exec_(QCursor.pos())
 

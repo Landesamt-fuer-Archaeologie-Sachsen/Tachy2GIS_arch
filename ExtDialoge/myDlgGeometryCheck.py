@@ -23,11 +23,10 @@
 """
 from os import path as os_path
 
-from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtGui import QColor
-from PyQt5.QtWidgets import QDockWidget, QTableWidgetItem
+from qgis.PyQt.QtCore import pyqtSignal, QVariant
+from qgis.PyQt.QtGui import QColor
+from qgis.PyQt.QtWidgets import QDockWidget, QTableWidgetItem
 from qgis.PyQt import uic
-from qgis.PyQt.QtCore import QVariant
 from qgis.core import (
     QgsProject,
     QgsVectorLayer,

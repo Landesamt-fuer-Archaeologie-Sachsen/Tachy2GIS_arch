@@ -6,15 +6,15 @@ import os.path
 import re
 import shutil
 import sqlite3
+import yaml
 from ctypes import wintypes
 from datetime import datetime
 from pathlib import Path
 
-import yaml
 from qgis.PyQt.QtCore import pyqtSignal, QCoreApplication, QRect, Qt, QUrl
 from qgis.PyQt.QtGui import QColor, QPainter, QIcon, QImage, QPixmap
-from qgis.PyQt.QtWidgets import QDesktopWidget, QGridLayout, QMessageBox, QLabel, QProgressBar, QTextBrowser, QWidget
 from qgis.PyQt.QtSvg import QSvgRenderer
+from qgis.PyQt.QtWidgets import QDesktopWidget, QGridLayout, QMessageBox, QLabel, QProgressBar, QTextBrowser, QWidget
 from qgis.core import (
     QgsExpressionContextUtils,
     QgsFeature,

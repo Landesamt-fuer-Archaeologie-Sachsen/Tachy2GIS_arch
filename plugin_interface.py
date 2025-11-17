@@ -1,19 +1,17 @@
 import gc
 from os import path as os_path
 
-from PyQt5 import sip
-from PyQt5.QtCore import QCoreApplication, QSize
-from PyQt5.QtGui import QPixmap, QColor
-from PyQt5.QtWidgets import QApplication
-from qgis.PyQt.QtGui import QIcon
+from qgis.PyQt import sip
+from qgis.PyQt.QtCore import QCoreApplication, QSize
+from qgis.PyQt.QtGui import QIcon, QPixmap, QColor
 from qgis.PyQt.QtWidgets import (
     QAction,
+    QApplication,
     QMenu,
     QToolBar,
     QToolButton,
 )
-from qgis._core import QgsApplication
-from qgis.core import QgsProject
+from qgis.core import QgsApplication, QgsProject
 from qgis.gui import QgisInterface
 
 from .Icons import ICON_PATHS
@@ -124,7 +122,9 @@ class PluginInterface:
 
         self.toolbar.addSeparator()
 
-        actionSaveProject = QAction(QIcon(QgsApplication.iconPath("mActionFileSave.svg")), "Backup erstellen", self.iface.mainWindow())
+        actionSaveProject = QAction(
+            QIcon(QgsApplication.iconPath("mActionFileSave.svg")), "Backup erstellen", self.iface.mainWindow()
+        )
         self.actions["actionSaveProject"] = {
             "QAction": actionSaveProject,
             "enabled_per_default": False,
@@ -271,6 +271,7 @@ class PluginInterface:
         """
         Check for instantiated QWidgets originating from classes in our code.
         """
+
         def fullname(obj):
             class_object = obj.__class__
             module_object = class_object.__module__

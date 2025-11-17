@@ -24,9 +24,9 @@
 import subprocess
 from os import path as os_path, stat as os_stat, startfile, system
 
-from PyQt5.QtCore import pyqtSignal, Qt, QCoreApplication
-from PyQt5.QtGui import QIcon, QCursor
-from PyQt5.QtWidgets import (
+from qgis.PyQt.QtCore import pyqtSignal, Qt, QCoreApplication
+from qgis.PyQt.QtGui import QIcon, QCursor
+from qgis.PyQt.QtWidgets import (
     QDockWidget,
     QHeaderView,
     QTableWidgetItem,

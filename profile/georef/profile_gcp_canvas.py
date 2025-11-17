@@ -12,7 +12,6 @@ from qgis.core import (
     QgsSingleSymbolRenderer,
     QgsPalLayerSettings,
     QgsTextFormat,
-    QgsTextBufferSettings,
     QgsVectorLayerSimpleLabeling,
 )
 from qgis.gui import QgsMapCanvas, QgsMapToolPan, QgsMapToolZoom
