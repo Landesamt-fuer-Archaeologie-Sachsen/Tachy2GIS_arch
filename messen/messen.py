@@ -703,7 +703,7 @@ class MeasurementTab(BASE, WIDGET):
             self.verticesCount += 1
             x, y, z = self.vertices[-1][0], self.vertices[-1][1], self.vertices[-1][2]
             self.addRowToTable(x, y, z)
-            self.markersAndRubberBand.updateVertex(x, y, z)
+            self.markersAndRubberBand.updateVertex(x, y)
             self.beepSound()
 
     def addRowToTable(self, x, y, z):
