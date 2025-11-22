@@ -6,7 +6,7 @@ from datetime import date, datetime
 from functools import partial
 
 from qgis.PyQt import uic
-from qgis.PyQt.QtCore import Qt, QTimer, QVariant
+from qgis.PyQt.QtCore import Qt, QTimer, QVariant, QEvent
 from qgis.PyQt.QtGui import QColor, QCursor, QIcon, QKeySequence
 from qgis.PyQt.QtWidgets import (
     QAction,
@@ -103,11 +103,8 @@ class MeasurementTab(BASE, WIDGET):
 
     def setupUi(self, dialog):
         super().setupUi(dialog)
-
-        def ignoreWheelEvent(event):
-            event.ignore()
-
-        self.cmbLayerType.wheelEvent = ignoreWheelEvent
+        for cmb in self.findChildren(QComboBox):
+            cmb.installEventFilter(self)
 
     def createKeys(self):
 
@@ -1059,6 +1056,12 @@ class MeasurementTab(BASE, WIDGET):
     def beepSound(self):
         if self.cbSound.isChecked():
             QApplication.beep()
+
+    def eventFilter(self, obj, event) -> bool:
+        if isinstance(obj, QComboBox) and event.type() == QEvent.Wheel:
+            event.ignore()
+            return True
+        return False
 
 
 MARKERSIZE = 10
