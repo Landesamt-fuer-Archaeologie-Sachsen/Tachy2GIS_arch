@@ -42,29 +42,23 @@ from qgis.core import (
     QgsExpression,
     QgsFeatureRequest,
 )
+from qgis.utils import iface
 
 from ..utils.functions import delLayer, tableWidgetRemoveRows, isNumber
 
-FORM_CLASS, _ = uic.loadUiType(os_path.join(os_path.dirname(__file__), "myDlgGeometryCheck.ui"))
+FORM_CLASS, _ = uic.loadUiType(os_path.join(os_path.dirname(__file__), "geometry_check_dockwidget.ui"))
 
 
 class GeometryCheckDockWidget(QDockWidget, FORM_CLASS):
     closingPlugin = pyqtSignal()
 
-    def __init__(self, iface, parent=None):
+    def __init__(self, parent=None):
         """Constructor."""
         super(GeometryCheckDockWidget, self).__init__(parent)
-        # Set up the user interface from Designer.
-        # After setupUI you can access any designer object by doing
-        # self.<objectname>, and you can use autoconnect slots - see
-        # http://qt-project.org/doc/qt-4.8/designer-using-a-ui-file.html
-        # #widgets-and-dialogs-with-auto-connect
         self.setupUi(self)
 
         self.ui = self
 
-        self.iface = iface
-        self.canvas = iface.mapCanvas()
         self.layer = None
         self.templayer = None
         self.koordList = []
@@ -112,7 +106,7 @@ class GeometryCheckDockWidget(QDockWidget, FORM_CLASS):
         sym = QgsMarkerSymbol.createSimple({"name": "circle", "color": "red", "size": "3", "outline_width": "1"})
         self.templayer.renderer().setSymbol(sym)
         self.templayer.triggerRepaint()
-        self.iface.layerTreeView().refreshLayerSymbology(self.templayer.id())
+        iface.layerTreeView().refreshLayerSymbology(self.templayer.id())
         sel = []
         self.koordList = []
         tableWidgetRemoveRows(self.tableWidget)
@@ -213,17 +207,8 @@ class GeometryCheckDockWidget(QDockWidget, FORM_CLASS):
         ids = [i.id() for i in it]
         self.templayer.selectByIds(ids)
         if self.templayer.selectedFeatureCount() > 0:
-            self.iface.mapCanvas().zoomToSelected(self.templayer)
-            self.iface.mapCanvas().zoomByFactor(5)
-        """
-        canvas = iface.mapCanvas()
-        scale=50
-        rect = QgsRectangle(float(x)-scale,float(y)-scale,float(x)+scale,float(y)+scale)
-        QgsMessageLog.logMessage(str(rect), 'T2G Archäologie', Qgis.Info)
-        canvas.setExtent(rect)
-        canvas.refresh()
-        """
-        pass
+            iface.mapCanvas().zoomToSelected(self.templayer)
+            iface.mapCanvas().zoomByFactor(5)
 
     def closeEvent(self, event):
         self.dwgClose()
@@ -232,4 +217,4 @@ class GeometryCheckDockWidget(QDockWidget, FORM_CLASS):
     def dwgClose(self):
         self.closingPlugin.emit()
         delLayer("Geometrie z-Koord Check")
-        self.iface.mapCanvas().refreshAllLayers()
+        iface.mapCanvas().refreshAllLayers()

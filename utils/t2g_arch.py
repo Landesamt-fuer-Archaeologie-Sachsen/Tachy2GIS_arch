@@ -79,13 +79,13 @@ from .functions import (
 from .identifygeometry import IdentifyGeometry
 from .t2g_arch_dockwidget import T2GArchDockWidget
 from .layers import T2gLayers, findLayerInProject
-from ..ExtDialoge.myDlgGeometryCheck import GeometryCheckDockWidget
 from ..ExtDialoge.myDlgRasterLayerView import RasterLayerViewDockWidget
 from ..ExtDialoge.myDlgSettings import DlgSettings, Configfile
 from ..Icons import ICON_PATHS
 from ..geoEdit.geo_edit import GeoEdit
 from ..messen.messen import MeasurementTab
 from ..messen.autoattributes import clearAutoAttributeProjectVariables
+from ..tools_allgemein.widgets import ToolsAllgemeinTab
 from ..profile.profile import Profile
 from ..transformation.transformation_gui import TransformationGui
 
@@ -213,11 +213,6 @@ class T2gArch:
         self.layerPoly.featureAdded.connect(self.eventFeatureAdded)
         self.layerPoint.featureAdded.connect(self.eventFeatureAdded)
 
-        # ToDo: refactoring - Tab "Tools Allgemein"
-        self.dockwidget.butObjFind.setIcon(QIcon(ICON_PATHS["suchen"]))
-        self.dockwidget.butObjFind.clicked.connect(self.ozoom_1_ok)
-        self.dockwidget.cboSuche.setToolTip("Suchen")
-
         # ToDo: refactoring - Tab: "Tool Raster"
         self.dockwidget.pushButton_4.setIcon(QIcon(ICON_PATHS["V_Jpg-Tif"]))
         self.dockwidget.pushButton_4.clicked.connect(self.gtiff2jpg)
@@ -242,11 +237,6 @@ class T2gArch:
         # self.iface.layerTreeView().currentLayerChanged.connect(self.currentLayerChanged)
 
         self.layerPoly.selectionChanged.connect(self.selectFeatureChanged)
-
-        # ToDo: refactoring- Tab "Tools Allgemein"
-        self.dockwidget.btnCheckHeights.clicked.connect(self.myDlgFeatureCheckShow)
-
-        self.dockwidget.btnBefundLabel.clicked.connect(self.setBefundLabel_n)
 
         self.watch.timeout.connect(self.watchEvent)
         self.__lastMaxNumber = []
@@ -327,6 +317,10 @@ class T2gArch:
         # Messen
         self.measurementTab = MeasurementTab()
         self.dockwidget.tab_measurement.layout().addWidget(self.measurementTab)
+
+        # Tools Allgemein
+        self.toolsAllgemeinTab = ToolsAllgemeinTab(self.dockwidget)
+        self.dockwidget.tab_tools_allgemein.layout().addWidget(self.toolsAllgemeinTab)
 
     def stopVisdatModules(self):
         if self.geoEdit:
@@ -1307,144 +1301,6 @@ class T2gArch:
 
             setCustomProjectVariable("maxWerteAktualisieren", False)
             # self.autoNummer()
-
-    # ToDo: Refactoring, "Befundnummer setzen" in "Tools Allgemein"
-    def setBefundLabel_n(self):
-        pass
-        """
-        self.__abbruch = False
-        self.iface.messageBar().clearWidgets()
-        widgetMessage = self.iface.messageBar().createMessage('Befundlabel setzen abrechen.')
-        button = QPushButton(widgetMessage)
-        button.setText("Abbruch")
-        button.pressed.connect(self.__setAbbruch)
-        widgetMessage.layout().addWidget(button)
-        self.iface.messageBar().pushWidget(widgetMessage, Qgis.Info)
-
-        self.__delAutoAttribut()
-        self.__koordtableClear()
-        self.__dockwidget.chbAutoAtt.setChecked(True)
-        self.__dockwidget.chbAttributtable.setChecked(False)
-        self.__dockwidget.chbbefZ.setChecked(False)
-        self.__dockwidget.cboobjTyp.setCurrentText('Kartenbeschriftung')
-        self.__dockwidget.cboobjArt.setCurrentText('Befund')
-        self.__dockwidget.txtBefNr.setText('')
-        #return
-        var = 0
-        while self.__abbruch == False:
-            if not self.__dockwidget.chbbefZ.isChecked():
-                while self.__verticesCount == 0:
-                    QApplication.processEvents()
-                    pass
-                if self.__abbruch == True:
-                    break
-                self.__watchEvent()
-                befnr, ok = QInputDialog().getText(None, '', 'Befund Nr. eingeben')
-                if ok:
-                    self.__dockwidget.txtBefNr.setText(befnr)
-                    self.__geometryIdentify()
-                    if not self.__dockwidget.chbbefZ.isChecked() and var == 0:
-                        box = QMessageBox()
-                        box.setIcon(QMessageBox.Question)
-                        box.setText('Soll die Befundnummer hochgezählt werden?')
-                        box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-                        buttonY = box.button(QMessageBox.Yes)
-                        buttonY.setText('Ja')
-                        buttonN = box.button(QMessageBox.No)
-                        buttonN.setText('Nein')
-                        box.exec_()
-                        var = 1
-                        if box.clickedButton() == buttonY:
-                            self.__dockwidget.chbbefZ.setChecked(True)
-                            self.__dockwidget.txtBefNr.setText(str(int(befnr)+1))
-                else:
-                    self.__abbruch = True
-                    self.iface.messageBar().popWidget()
-            QApplication.processEvents()
-        self.__dockwidget.butBefundLabel.setStyleSheet("")
-        """
-
-    # ToDo: refactoring - tab "Tools Allgemein"
-    def ozoom_1_ok(self):
-        # layer = QgsProject.instance().mapLayer(self.dockwidget.cbo_ozoom_1.currentLayer().id())
-        layer = self.iface.activeLayer()
-        layerLine = QgsProject.instance().mapLayersByName("E_Line")[0]
-        layerPoly = QgsProject.instance().mapLayersByName("E_Polygon")[0]
-        layerPoint = QgsProject.instance().mapLayersByName("E_Point")[0]
-        layerlist = [layerLine, layerPoly, layerPoint]
-        labellist = [self.dockwidget.labE_Line, self.dockwidget.labE_Poly, self.dockwidget.labE_Poi]
-        layer.removeSelection()
-        suchstr, ok = QInputDialog.getText(None, "Suchen", "Nummer eingeben")
-        if ok:
-            if self.dockwidget.cboSuche.currentText() == "Befund":
-                fieldName = "bef_nr"
-            if self.dockwidget.cboSuche.currentText() == "Fund":
-                fieldName = "fund_nr"
-            if self.dockwidget.cboSuche.currentText() == "Profil":
-                fieldName = "prof_nr"
-            if self.dockwidget.cboSuche.currentText() == "Probe":
-                fieldName = "prob_nr"
-            if suchstr[0] == "":
-                return
-            if isNumber(suchstr[0]):
-                suchstr = fieldName + "=" + suchstr
-            else:
-                suchstr = fieldName + "=" + "'" + suchstr + "'"
-        else:
-            return
-        expr = QgsExpression(suchstr)  # QgsExpression("befNr='120'")
-        a = 0
-        meldung = True
-        for layer in layerlist:
-            a = a + 1
-            QgsMessageLog.logMessage(str(suchstr), self.plugin_name_tag, Qgis.Info)
-            it = layer.getFeatures(QgsFeatureRequest(expr))
-            ids = [i.id() for i in it]
-            layer.selectByIds(ids)
-            # self.dockwidget.lab_oselc_1.setText (str(layer.selectedFeatureCount()))
-
-            if layer.selectedFeatureCount() > 0:
-                self.iface.mapCanvas().zoomToSelected(layer)
-                if not layer.geometryType() == QgsWkbTypes.PointGeometry:
-                    self.iface.mapCanvas().zoomByFactor(5)
-                self.iface.mapCanvas().refresh()
-                labellist[a - 1].setText(str(layer.selectedFeatureCount()))
-                meldung = False
-            else:
-                labellist[a - 1].setText(str(layer.selectedFeatureCount()))
-                if meldung != False:
-                    meldung = True
-        if meldung == True:
-            QMessageBox.warning(None, "Meldung", "Keine Objekte gefunden!")
-
-    # ToDo: refactoring - tab "Tools Allgemein"
-    def delAllFeature(self):
-        result = QMessageBox.warning(
-            None,
-            "Achtung",
-            "Wollen Sie wirklich alle Objekte\n auf den Eingabelayern löschen?",
-            QMessageBox.Ok,
-            QMessageBox.Abort,
-        )
-        if result == QMessageBox.Ok:
-            layer_list = [self.layerPoly, self.layerLine, self.layerPoint, self.layerMesspoint]
-            for layer in layer_list:
-                # layer =  QgsProject.instance().mapLayersByName(layername)[0]
-                layer.startEditing()
-                QgsMessageLog.logMessage(
-                    "Alle Objekte auf Layer " + layer.name() + " gelöscht.", self.plugin_name_tag, Qgis.Info
-                )
-                listOfIds = [feat.id() for feat in layer.getFeatures()]
-                layer.deleteFeatures(listOfIds)
-                layer.commitChanges()
-        else:
-            QgsMessageLog.logMessage("Abbruch", self.plugin_name_tag, Qgis.Info)
-
-    # ToDo: refactoring- Tab "Tools Allgemein"
-    def myDlgFeatureCheckShow(self):
-        self.myDlgFeatureCheck = GeometryCheckDockWidget(self.iface, self.iface.mapCanvas())  # mainWindow()
-        self.myDlgFeatureCheck.setAutoFillBackground(True)
-        self.myDlgFeatureCheck.show()
 
     # ToDo: refactoring - Tab: "Tool Raster"
     def myDlgRasterLayerShow(self):
