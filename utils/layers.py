@@ -9,6 +9,22 @@ class T2gLayers(Enum):
     Polygon = "E_Polygon"
     Messpunkte = "Messpunkte"
 
+    @staticmethod
+    def getPointLayer():
+        return findLayerInProject(T2gLayers.Point.value)
+
+    @staticmethod
+    def getLineLayer():
+        return findLayerInProject(T2gLayers.Line.value)
+
+    @staticmethod
+    def getPolygonLayer():
+        return findLayerInProject(T2gLayers.Polygon.value)
+
+    @staticmethod
+    def getMesspunkteLayer():
+        return findLayerInProject(T2gLayers.Messpunkte.value)
+
 
 def findLayerInProject(name):
     mapLayers = QgsProject.instance().mapLayers()
