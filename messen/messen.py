@@ -42,19 +42,15 @@ from ..utils.functions import (
     enableAndDisableWidgets,
     getCustomProjectVariable,
     HelpWindow,
-    findLayerInProject,
-    layerHasPendingChanges,
     setCustomProjectVariable,
     showAndHideWidgets,
 )
+from ..utils.layers import T2gLayers, findLayerInProject, layerHasPendingChanges
 from ..utils.toolbar_functions import saveProject
 from .autoattributes import getComboboxModelFromLayerConfig, clearAutoAttributeProjectVariables
 
-polygonsLayerName = "E_Polygon"
-linesLayerName = "E_Line"
-pointsLayerName = "E_Point"
 
-layers = {"polygons": polygonsLayerName, "lines": linesLayerName, "points": pointsLayerName}
+layers = {"polygons": T2gLayers.Polygon.value, "lines": T2gLayers.Line.value, "points": T2gLayers.Point.value}
 
 connectedSignalsDict = {}
 
@@ -254,6 +250,7 @@ class MeasurementTab(BASE, WIDGET):
                     if lyr.name() == layerName:
                         iface.setActiveLayer(lyr)
                         return lyr
+        return None
 
     def adjustElementsAtStart(self):
         self.cbFixTxtReference.setCheckState(0)
@@ -347,6 +344,7 @@ class MeasurementTab(BASE, WIDGET):
         for pluginName, plugin in plugins.items():
             if pluginName.lower() == "tachy2gis" or pluginName.lower() == "tachy2gis-3d_viewer":
                 return plugin
+        return None
 
     def startTachy2GisInstance(self):
         if self.firstTachyStart:

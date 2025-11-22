@@ -46,11 +46,3 @@ class T2GArchDockWidget(QDockWidget, FORM_CLASS):
     def closeEvent(self, event):
         self.closingPlugin.emit()
         event.accept()
-
-    @staticmethod
-    def eLayerListe():
-        return ["E_Line", "E_Polygon", "E_Point"]
-
-    @staticmethod
-    def eFeldListe():
-        return ["Objekttyp", "Objektart", "Schnitt Nr", "Planum", "Material", "Befund Nr", "Fund Nr"]

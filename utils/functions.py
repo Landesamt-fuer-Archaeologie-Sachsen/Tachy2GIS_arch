@@ -28,7 +28,6 @@ from qgis.core import (
     QgsPoint,
     QgsPointXY,
     QgsProject,
-    QgsVectorLayer,
     QgsWkbTypes,
 )
 from qgis.gui import QgsMapToolEmitPoint, QgsRubberBand, QgsVertexMarker
@@ -176,20 +175,6 @@ def enableAndDisableWidgets(enableWidgets, disableWidgets):
         wg.setEnabled(True)
     for wg in disableWidgets:
         wg.setEnabled(False)
-
-
-def layerHasPendingChanges(layer: QgsVectorLayer):
-    buffer = layer.editBuffer()
-    if not buffer:
-        return False
-    return bool(len(buffer.changedGeometries()) + len(buffer.changedAttributeValues()))
-
-
-def findLayerInProject(name):
-    mapLayers = QgsProject.instance().mapLayers()
-    for lyr in mapLayers.values():
-        if lyr.name() == name:
-            return lyr
 
 
 def project_backup(iface, subfolder: str, keep_only_last_n_backups: int = None):

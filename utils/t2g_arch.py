@@ -65,7 +65,6 @@ from .functions import (
     delLayer,
     delSelectFeature,
     FileFunctions,
-    findLayerInProject,
     fileLineCount,
     getCustomProjectVariable,
     getlayerSelectedFeatures,
@@ -79,6 +78,7 @@ from .functions import (
 )
 from .identifygeometry import IdentifyGeometry
 from .t2g_arch_dockwidget import T2GArchDockWidget
+from .layers import T2gLayers, findLayerInProject
 from ..ExtDialoge.myDlgGeometryCheck import GeometryCheckDockWidget
 from ..ExtDialoge.myDlgRasterLayerView import RasterLayerViewDockWidget
 from ..ExtDialoge.myDlgSettings import DlgSettings, Configfile
@@ -176,13 +176,13 @@ class T2gArch:
         self.rubberBand = MarkersAndRubberbands()
         self.pointMaker = MarkersAndRubberbands()
 
-        self.layerLine = QgsProject.instance().mapLayersByName(T2GArchDockWidget.eLayerListe()[0])[0]
+        self.layerLine = QgsProject.instance().mapLayersByName(T2gLayers.Line.value)[0]
         self.layerLineId = self.layerLine.id()
-        self.layerPoly = QgsProject.instance().mapLayersByName(T2GArchDockWidget.eLayerListe()[1])[0]
+        self.layerPoly = QgsProject.instance().mapLayersByName(T2gLayers.Polygon.value)[0]
         self.layerPolyId = self.layerPoly.id()
-        self.layerPoint = QgsProject.instance().mapLayersByName(T2GArchDockWidget.eLayerListe()[2])[0]
+        self.layerPoint = QgsProject.instance().mapLayersByName(T2gLayers.Point.value)[0]
         self.layerPointId = self.layerPoint.id()
-        self.layerMesspoint = QgsProject.instance().mapLayersByName("Messpunkte")[0]
+        self.layerMesspoint = QgsProject.instance().mapLayersByName(T2gLayers.Messpunkte.value)[0]
 
         self.layerLine.featuresDeleted.connect(self.__eventFeaturesDeleted)
         self.layerPoly.featuresDeleted.connect(self.__eventFeaturesDeleted)
