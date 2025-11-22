@@ -39,17 +39,19 @@ from qgis.core import (
     QgsFeature,
     QgsPoint,
     QgsGeometry,
-    QgsExpression,
-    QgsFeatureRequest,
 )
 from qgis.utils import iface
 
+from ..utils.layers import T2gLayers
 from ..utils.functions import delLayer, tableWidgetRemoveRows, isNumber
+
 
 FORM_CLASS, _ = uic.loadUiType(os_path.join(os_path.dirname(__file__), "geometry_check_dockwidget.ui"))
 
 
 class GeometryCheckDockWidget(QDockWidget, FORM_CLASS):
+    tempLayerName = "Geometrie z-Koord Check"
+
     closingPlugin = pyqtSignal()
 
     def __init__(self, parent=None):
@@ -57,56 +59,55 @@ class GeometryCheckDockWidget(QDockWidget, FORM_CLASS):
         super(GeometryCheckDockWidget, self).__init__(parent)
         self.setupUi(self)
 
-        self.ui = self
-
         self.layer = None
         self.templayer = None
         self.koordList = []
 
-        self.ui.butOK.clicked.connect(self.OK)
-        self.ui.butAbbruch.clicked.connect(self.Abbruch)
-        self.ui.tableWidget.itemChanged.connect(self.vertexEdit)
-        self.ui.tableWidget.cellClicked.connect(self.on_cellClicked)
-        self.ui.cboLayerName.currentIndexChanged.connect(self.setCheckLayer)
+        self.butOK.clicked.connect(self.ok)
+        self.butAbbruch.clicked.connect(self.abbruch)
+        self.tableWidget.itemChanged.connect(self.vertexEdit)
+        self.tableWidget.cellClicked.connect(self.on_cellClicked)
+        self.cboLayerName.currentIndexChanged.connect(self.setCheckLayer)
 
         self.setup()
 
     def setCheckLayer(self):
-        self.layer = QgsProject.instance().mapLayersByName(self.ui.cboLayerName.currentText())[0]
-        self.Check()
+        self.layer = QgsProject.instance().mapLayersByName(self.cboLayerName.currentText())[0]
+        self.refresh()
 
     def setup(self):
-        layer_list = ["E_Polygon", "E_Line", "E_Point"]
-        self.ui.cboLayerName.addItems(layer_list)
-        # self.setCheckLayer()
+        layer_list = [T2gLayers.Polygon.value, T2gLayers.Line.value, T2gLayers.Point.value]
+        self.cboLayerName.addItems(layer_list)
 
-    def OK(self):
-        self.ui.close()
+    def ok(self):
+        self.close()
 
-    def Abbruch(self):
-        self.ui.close()
+    def abbruch(self):
+        self.close()
 
-    def Check(self):
-        delLayer("Geometrie z-Koord Check")
-        self.templayer = QgsVectorLayer("Point", "Geometrie z-Koord Check", "memory")
-        self.templayer.setCrs(self.layer.crs())
+    def addNewTempLayer(self, crs):
+        templayer = QgsVectorLayer("Point", self.tempLayerName, "memory")
+        templayer.setCrs(crs)
 
-        pr = self.templayer.dataProvider()
-        pr.addAttributes([QgsField("id", QVariant.Int, "integer")])
-        self.templayer.updateFields()
+        templayer.dataProvider().addAttributes([QgsField("id", QVariant.Int, "integer")])
+        templayer.updateFields()
 
-        QgsProject.instance().addMapLayer(self.templayer, False)
+        QgsProject.instance().addMapLayer(templayer, False)
         root = QgsProject.instance().layerTreeRoot()
         g = root.findGroup("Vermessung")
-        g.insertChildNode(0, QgsLayerTreeLayer(self.templayer))
+        g.insertChildNode(0, QgsLayerTreeLayer(templayer))
 
-        symbol = self.templayer.renderer().symbol()
+        symbol = templayer.renderer().symbol()
         symbol.setColor(QColor.fromRgb(0, 225, 0))
-        # symbol.setWidth(0.75)
         sym = QgsMarkerSymbol.createSimple({"name": "circle", "color": "red", "size": "3", "outline_width": "1"})
-        self.templayer.renderer().setSymbol(sym)
-        self.templayer.triggerRepaint()
-        iface.layerTreeView().refreshLayerSymbology(self.templayer.id())
+        templayer.renderer().setSymbol(sym)
+        templayer.triggerRepaint()
+        iface.layerTreeView().refreshLayerSymbology(templayer.id())
+        return templayer
+
+    def refresh(self):
+        delLayer(self.tempLayerName)
+        self.templayer = self.addNewTempLayer(self.layer.crs())
         sel = []
         self.koordList = []
         tableWidgetRemoveRows(self.tableWidget)
@@ -166,7 +167,6 @@ class GeometryCheckDockWidget(QDockWidget, FORM_CLASS):
                         # continue
 
         # self.layer.selectByIds(sel)
-        # tableWidgetRemoveRows(self.tableWidget)
         for i in range(len(self.koordList)):
             self.tableWidget.insertRow(i)
             self.tableWidget.setItem(i, 0, QTableWidgetItem(str(self.koordList[i]["x"])))
@@ -180,12 +180,11 @@ class GeometryCheckDockWidget(QDockWidget, FORM_CLASS):
             self.templayer.dataProvider().addFeatures([feature])
 
         self.tableWidget.setSortingEnabled(True)
-        self.ui.labvertexcount.setText(str(len(self.koordList)) + " Punkte")
+        self.labvertexcount.setText(str(len(self.koordList)) + " Punkte")
         self.templayer.updateExtents()
         self.templayer.commitChanges()
 
     def vertexEdit(self, item):
-        # self.ui.lineEdit.setText(str(item.row()))
         # self.layer.changeGeometry(self.feature.id(), newgeom)
         # QgsMessageLog.logMessage(str(item.text()), 'T2G Archäologie', Qgis.Info)
         if isNumber(item.text()):
@@ -197,16 +196,9 @@ class GeometryCheckDockWidget(QDockWidget, FORM_CLASS):
                 self.koordList[item.row()]["z"] = item.text()
 
     def on_cellClicked(self, row, column):
-        x = self.ui.tableWidget.item(row, 0).text()
-        y = self.ui.tableWidget.item(row, 1).text()
-        id = self.ui.tableWidget.item(row, 3).text()
-
-        expr = QgsExpression("id=" + "'" + id + "'")
-        # QgsMessageLog.logMessage(str(suchstr), 'T2G Archäologie', Qgis.Info)
-        it = self.templayer.getFeatures(QgsFeatureRequest(expr))
-        ids = [i.id() for i in it]
-        self.templayer.selectByIds(ids)
-        if self.templayer.selectedFeatureCount() > 0:
+        id = self.tableWidget.item(row, 3).text()
+        self.templayer.selectByExpression(f"id={id}")
+        if self.templayer.selectedFeatureCount():
             iface.mapCanvas().zoomToSelected(self.templayer)
             iface.mapCanvas().zoomByFactor(5)
 
@@ -216,5 +208,5 @@ class GeometryCheckDockWidget(QDockWidget, FORM_CLASS):
 
     def dwgClose(self):
         self.closingPlugin.emit()
-        delLayer("Geometrie z-Koord Check")
+        delLayer(self.tempLayerName)
         iface.mapCanvas().refreshAllLayers()
