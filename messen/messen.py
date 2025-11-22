@@ -262,11 +262,11 @@ class MeasurementTab(BASE, WIDGET):
         widgetsToShow = []
 
         widgetsToHide = [
-            self.widgetDigitizingTools,
+            self.btnDigitizeTool,
             self.qgsGroupBoxAttributes,
             self.qgsGroupBoxSettings,
             self.qgsGroupBoxCoordinates,
-            self.widgetCmbPolygonDigitizingMode,
+            self.cmbPolygonDigitizingMode,
             self.widgetDigitizingButtons,
             self.qgsGroupBoxNextValues,
             self.qgsGroupBoxMeasurementPoints,
@@ -409,9 +409,9 @@ class MeasurementTab(BASE, WIDGET):
             showAndHideWidgets(
                 [],
                 [
-                    self.widgetDigitizingTools,
+                    self.btnDigitizeTool,
                     self.qgsGroupBoxAttributes,
-                    self.widgetCmbPolygonDigitizingMode,
+                    self.cmbPolygonDigitizingMode,
                     self.qgsGroupBoxSettings,
                     self.widgetDigitizingButtons,
                     self.qgsGroupBoxNextValues,
@@ -444,7 +444,7 @@ class MeasurementTab(BASE, WIDGET):
 
         showAndHideWidgets(
             [
-                self.widgetDigitizingTools,
+                self.btnDigitizeTool,
                 self.qgsGroupBoxSettings,
                 self.qgsGroupBoxCoordinates,
                 self.qgsGroupBoxNextValues,
@@ -464,15 +464,15 @@ class MeasurementTab(BASE, WIDGET):
 
         if geometryType == "polygons":
             self.actionDigitize.setText("Polygone zeichnen")
-            showAndHideWidgets([self.qgsGroupBoxAttributes, self.widgetCmbPolygonDigitizingMode], [])
+            showAndHideWidgets([self.qgsGroupBoxAttributes, self.cmbPolygonDigitizingMode], [])
 
         elif geometryType == "lines":
             self.actionDigitize.setText("Linien zeichnen")
-            showAndHideWidgets([self.qgsGroupBoxAttributes], [self.widgetCmbPolygonDigitizingMode])
+            showAndHideWidgets([self.qgsGroupBoxAttributes], [self.cmbPolygonDigitizingMode])
 
         elif geometryType == "points":
             self.actionDigitize.setText("Punkte zeichnen")
-            showAndHideWidgets([self.qgsGroupBoxAttributes], [self.widgetCmbPolygonDigitizingMode])
+            showAndHideWidgets([self.qgsGroupBoxAttributes], [self.cmbPolygonDigitizingMode])
         self.geometryType = geometryType
         self.adjustAutoAttributes()
         self.startTachyWatch()
