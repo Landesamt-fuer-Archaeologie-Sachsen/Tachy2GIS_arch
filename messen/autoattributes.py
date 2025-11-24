@@ -3,8 +3,8 @@ import re
 from qgis.core import QgsFeatureRequest, QgsVectorLayer
 from qgis.PyQt.QtCore import QVariant
 
-from ..utils.functions import findLayerInProject, setCustomProjectVariable
-
+from ..utils.functions import setCustomProjectVariable
+from ..utils.layers import findLayerInProject
 
 autoAttributeProjectVariables = [
     "obj_typ_polygons",

@@ -6,15 +6,15 @@ import os.path
 import re
 import shutil
 import sqlite3
+import yaml
 from ctypes import wintypes
 from datetime import datetime
 from pathlib import Path
 
-import yaml
 from qgis.PyQt.QtCore import pyqtSignal, QCoreApplication, QRect, Qt, QUrl
 from qgis.PyQt.QtGui import QColor, QPainter, QIcon, QImage, QPixmap
-from qgis.PyQt.QtWidgets import QDesktopWidget, QGridLayout, QMessageBox, QLabel, QProgressBar, QTextBrowser, QWidget
 from qgis.PyQt.QtSvg import QSvgRenderer
+from qgis.PyQt.QtWidgets import QDesktopWidget, QGridLayout, QMessageBox, QLabel, QProgressBar, QTextBrowser, QWidget
 from qgis.core import (
     QgsExpressionContextUtils,
     QgsFeature,
@@ -28,7 +28,6 @@ from qgis.core import (
     QgsPoint,
     QgsPointXY,
     QgsProject,
-    QgsVectorLayer,
     QgsWkbTypes,
 )
 from qgis.gui import QgsMapToolEmitPoint, QgsRubberBand, QgsVertexMarker
@@ -176,20 +175,6 @@ def enableAndDisableWidgets(enableWidgets, disableWidgets):
         wg.setEnabled(True)
     for wg in disableWidgets:
         wg.setEnabled(False)
-
-
-def layerHasPendingChanges(layer: QgsVectorLayer):
-    buffer = layer.editBuffer()
-    if not buffer:
-        return False
-    return bool(len(buffer.changedGeometries()) + len(buffer.changedAttributeValues()))
-
-
-def findLayerInProject(name):
-    mapLayers = QgsProject.instance().mapLayers()
-    for lyr in mapLayers.values():
-        if lyr.name() == name:
-            return lyr
 
 
 def project_backup(iface, subfolder: str, keep_only_last_n_backups: int = None):
@@ -385,52 +370,46 @@ class FileFunctions:
             return False
 
 
-class makerAndRubberbands:
+class MarkersAndRubberbands:
     def __init__(self):
         self.iface = iface
         self.canvas = iface.mapCanvas()
-        self.lMakers = []
-        self.lRabberbands = []
-        self.makerTyp = QgsVertexMarker.ICON_BOX
+        self.lMarkers = []
+        self.lRubberbands = []
+        self.markerType = QgsVertexMarker.ICON_BOX
         self.color = QColor(255, 0, 0)
 
-    def setMakerType(self, vertexMaker):
-        self.makerTyp = vertexMaker
+    def setMarkerType(self, vertexMaker):
+        self.markerType = vertexMaker
 
-    def setColor(self, QColor):
-        self.color = QColor
+    def setColor(self, color):
+        self.color = color
 
     def setMarker(self, x, y, size, penwidth):
         m = QgsVertexMarker(self.canvas)
         m.setCenter(QgsPointXY(float(x), float(y)))
         m.setColor(self.color)
         m.setIconSize(size)
-        m.setIconType(self.makerTyp)
+        m.setIconType(self.markerType)
         m.setPenWidth(penwidth)
         m.show()
-        self.lMakers.append(m)
+        self.lMarkers.append(m)
 
     def setRubberBandPoly(self, ptList, penwidth):
-        ptL = []
-        for a in ptList:
-            item = QgsPoint(float(a[0]), float(a[1]), float(a[2]))
-            ptL.append(item)
-        # ersten Punkt als letzten einfügen
-        # ptList.append(ptList[0])
+        pointList = [QgsPoint(float(a[0]), float(a[1]), float(a[2])) for a in ptList]
         r = QgsRubberBand(self.canvas)
-        r.setToGeometry(QgsGeometry.fromPolyline(ptL), None)
+        r.setToGeometry(QgsGeometry.fromPolyline(pointList), None)
         r.setColor(self.color)
-        # r.fillColor()
         r.setWidth(penwidth)
         r.show()
-        self.lRabberbands.append(r)
+        self.lRubberbands.append(r)
 
     def makerClean(self):
-        for maker in self.lMakers:
+        for maker in self.lMarkers:
             self.canvas.scene().removeItem(maker)
 
     def rubberBandClean(self):
-        for maker in self.lRabberbands:
+        for maker in self.lRubberbands:
             self.canvas.scene().removeItem(maker)
 
 
@@ -777,7 +756,7 @@ def setAliasName():
     # <Alias Namen erzeugen
 
 
-class progressBar(QWidget):
+class ProgressBar(QWidget):
     def __init__(self, titel):
         super().__init__()
         self.setWindowTitle(titel)
@@ -788,9 +767,9 @@ class progressBar(QWidget):
         self.progress.setMaximum(100)
         self.value = 0
         self.close = False
-        self.lab = QLabel(self)
-        self.lab.setGeometry(0, 25, 300, 25)
-        self.lab.setAlignment(Qt.AlignCenter)
+        self.label = QLabel(self)
+        self.label.setGeometry(0, 25, 300, 25)
+        self.label.setAlignment(Qt.AlignCenter)
         self.show()
 
     def setValue(self, value):
@@ -800,11 +779,9 @@ class progressBar(QWidget):
         self.progress.setMaximum(value)
 
     def setText(self, value):
-        # self.lab.styleSheet("{Background-color : rgb(240, 240, 240) ; font: 75 7pt ;}")
-        self.lab.setText(value)
+        self.label.setText(value)
 
     def closeEvent(self, event):
-        # self.opacity = self.ui.mOpacityWidget.opacity
         self.close = True
         event.accept()
 

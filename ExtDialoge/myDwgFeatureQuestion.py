@@ -23,15 +23,15 @@
 """
 from os import path as os_path
 
-from PyQt5.QtCore import pyqtSignal, Qt
-from PyQt5.QtGui import QColor, QIcon, QCursor
-from PyQt5.QtWidgets import QDockWidget, QApplication, QMenu, QTableWidgetItem, QMessageBox
+from qgis.PyQt.QtCore import pyqtSignal, Qt
+from qgis.PyQt.QtGui import QColor, QIcon, QCursor
+from qgis.PyQt.QtWidgets import QDockWidget, QApplication, QMenu, QTableWidgetItem, QMessageBox
 from qgis.PyQt import uic
 from qgis.core import QgsMessageLog, Qgis, QgsWkbTypes, QgsPoint, QgsGeometry
 from qgis.gui import QgsVertexMarker
 
 from ..Icons import ICON_PATHS
-from ..utils.functions import makerAndRubberbands, PrintClickedPoint, isNumber
+from ..utils.functions import MarkersAndRubberbands, PrintClickedPoint, isNumber
 
 FORM_CLASS, _ = uic.loadUiType(os_path.join(os_path.dirname(__file__), "myDwgFeatureQuestion.ui"))
 
@@ -55,14 +55,14 @@ class FeatureQuestionDockWidget(QDockWidget, FORM_CLASS):
         self.layer = layer
         self.feature = feature
         self.koordList = []
-        self.maker = makerAndRubberbands()
+        self.maker = MarkersAndRubberbands()
         self.maker.setColor(QColor(0, 255, 0))
-        self.makerTemp = makerAndRubberbands()
+        self.makerTemp = MarkersAndRubberbands()
         self.makerTemp.setColor(QColor(0, 0, 255))
-        self.makerTemp.setMakerType(QgsVertexMarker.ICON_X)
-        self.vertexMaker = makerAndRubberbands()
-        self.vertexMaker.setMakerType(QgsVertexMarker.ICON_X)
-        self.rubberBand = makerAndRubberbands()
+        self.makerTemp.setMarkerType(QgsVertexMarker.ICON_X)
+        self.vertexMaker = MarkersAndRubberbands()
+        self.vertexMaker.setMarkerType(QgsVertexMarker.ICON_X)
+        self.rubberBand = MarkersAndRubberbands()
 
         self.cb = QApplication.clipboard()
         self.i = ""
@@ -176,13 +176,9 @@ class FeatureQuestionDockWidget(QDockWidget, FORM_CLASS):
 
     def on_customContextMenu(self, pos):
         contextMenu = QMenu()
-        clipbordCopy = contextMenu.addAction(
-            QIcon(ICON_PATHS["kopieren"]), "kopieren"
-        )
+        clipbordCopy = contextMenu.addAction(QIcon(ICON_PATHS["kopieren"]), "kopieren")
         clipbordCopy.triggered.connect(self.clipboardSetText)
-        clipbordInsert = contextMenu.addAction(
-            QIcon(ICON_PATHS["einfügen"]), "einfügen"
-        )
+        clipbordInsert = contextMenu.addAction(QIcon(ICON_PATHS["einfügen"]), "einfügen")
         clipbordInsert.triggered.connect(self.clipboardText)
         contextMenu.exec_(QCursor.pos())
 

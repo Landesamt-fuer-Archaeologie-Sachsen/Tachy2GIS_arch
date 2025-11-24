@@ -1,8 +1,6 @@
 ## @package QGIS transformation extension..
 import csv
 import os
-import shutil
-import time
 
 from qgis.PyQt.QtWidgets import QMessageBox
 from qgis.core import (

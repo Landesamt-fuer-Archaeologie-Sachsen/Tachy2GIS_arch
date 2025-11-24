@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 from os import path as os_path
 
-from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QInputDialog, QLineEdit, QDialog, QMessageBox
+from qgis.PyQt.QtGui import QIcon
+from qgis.PyQt.QtWidgets import QInputDialog, QLineEdit, QDialog, QMessageBox
 from qgis.PyQt import uic
 from qgis.core import QgsProject
 

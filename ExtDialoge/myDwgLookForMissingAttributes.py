@@ -23,14 +23,14 @@
 """
 from os import path as os_path
 
-from PyQt5.QtCore import QCoreApplication, pyqtSignal
-from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QDockWidget, QMessageBox, QTableWidgetItem
+from qgis.PyQt.QtCore import QCoreApplication, pyqtSignal
+from qgis.PyQt.QtGui import QIcon
+from qgis.PyQt.QtWidgets import QDockWidget, QMessageBox, QTableWidgetItem
 from qgis.PyQt import uic
 from qgis.core import QgsProject, QgsFeatureRequest, QgsExpression, Qgis, QgsMessageLog
 
 from ..Icons import ICON_PATHS
-from ..utils.functions import isNumber, progressBar
+from ..utils.functions import isNumber, ProgressBar
 
 FORM_CLASS, _ = uic.loadUiType(os_path.join(os_path.dirname(__file__), "myDwgLookForMissingAttributes.ui"))
 
@@ -205,7 +205,7 @@ class LookForMissingAttributesDockWidget(QDockWidget, FORM_CLASS):
         layerlist = [layerLine, layerPoly, layerPoint]
 
         numCol = []
-        progress = progressBar("Fortschritt")
+        progress = ProgressBar("Fortschritt")
         QCoreApplication.processEvents()
         featuremax = 0
         for layer in layerlist:

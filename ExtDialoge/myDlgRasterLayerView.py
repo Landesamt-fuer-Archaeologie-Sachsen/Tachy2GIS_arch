@@ -24,9 +24,9 @@
 import subprocess
 from os import path as os_path, stat as os_stat, startfile, system
 
-from PyQt5.QtCore import pyqtSignal, Qt, QCoreApplication
-from PyQt5.QtGui import QIcon, QCursor
-from PyQt5.QtWidgets import (
+from qgis.PyQt.QtCore import pyqtSignal, Qt, QCoreApplication
+from qgis.PyQt.QtGui import QIcon, QCursor
+from qgis.PyQt.QtWidgets import (
     QDockWidget,
     QHeaderView,
     QTableWidgetItem,
@@ -41,7 +41,7 @@ from qgis.PyQt import uic
 from qgis.core import QgsProject, QgsMapLayer, QgsMessageLog, Qgis
 
 from ..Icons import ICON_PATHS
-from ..utils.functions import progressBar, FileFunctions
+from ..utils.functions import ProgressBar, FileFunctions
 
 FORM_CLASS, _ = uic.loadUiType(os_path.join(os_path.dirname(__file__), "myDlgRasterLayerView.ui"))
 
@@ -341,7 +341,7 @@ class RasterLayerViewDockWidget(QDockWidget, FORM_CLASS):
             )
         if dst_root == "":
             return
-        progress = progressBar("Fortschritt")
+        progress = ProgressBar("Fortschritt")
         QCoreApplication.processEvents()
 
         progress.setMaximum(selectCount)
@@ -356,69 +356,59 @@ class RasterLayerViewDockWidget(QDockWidget, FORM_CLASS):
         picturelist = sorted(set(picturelist), key=picturelist.index)
         count = 1
 
-        for i in range(len(picturelist)):
-            if progress.close == False:
-                progress.setValue(count)
-                progress.setText(
-                    str(count)
-                    + " von "
-                    + str(len(picturelist))
-                    + " Bilder kopiert"
-                    + " ("
-                    + str(round(dateiGroesse, 2))
-                    + " MB)"
-                )
-                src_dir = picturelist[i]
-                head, tail = os_path.split(src_dir)
-                FileFunctions().file_copy(src_dir, os_path.join(dst_root, tail))
-                # wld Datei kopieren
-                tailsplit = tail.split(".")
-
-                FileFunctions().file_copy(src_dir, os_path.join(dst_root, tailsplit[0] + ".wld"))
-                FileFunctions().file_copy(src_dir, os_path.join(dst_root, tail + ".aux.xml"))
-                count = count + 1
-                QCoreApplication.processEvents()
-                QgsMessageLog.logMessage(str(os_path.join(dst_root, tail)), "T2G Archäologie", Qgis.Info)
-            else:
+        for src_dir in picturelist:
+            if progress.close:
                 break
-        pass
+            progress.setValue(count)
+            progress.setText(f"{count} von {len(picturelist)} Bilder kopiert ({round(dateiGroesse, 2)} MB)")
+
+            head, tail = os_path.split(src_dir)
+            FileFunctions().file_copy(src_dir, os_path.join(dst_root, tail))
+            # wld Datei kopieren
+            tailsplit = tail.split(".")
+
+            FileFunctions().file_copy(src_dir, os_path.join(dst_root, tailsplit[0] + ".wld"))
+            FileFunctions().file_copy(src_dir, os_path.join(dst_root, tail + ".aux.xml"))
+            count = count + 1
+            QCoreApplication.processEvents()
+            QgsMessageLog.logMessage(str(os_path.join(dst_root, tail)), "T2G Archäologie", Qgis.Info)
 
     def savePictureList(self):
         selectCount = len(self.tableWidget.selectedIndexes())
         if selectCount == 0:
             QMessageBox.information(None, "Meldung", "Keine Einträge ausgewählt!")
             return
-        else:
-            output_file = QFileDialog.getSaveFileName(
-                None,
-                "Speicherpfad",
-                QgsProject.instance().readPath("./../Jobs"),
-                "Excel (*.csv);;Text mit Tab (*.txt);;Alle Dateien (*.*)",
-            )
-            if output_file[0] != "":
-                erw = str(output_file[1])
-                output_file = open(output_file[0], "w")
-                output_file.write("Layername\tTyp\tPfad\tGröße\n")
-                for item in self.tableWidget.selectedIndexes():
-                    name = self.tableWidget.item(item.row(), 0).text()
-                    typ = self.tableWidget.item(item.row(), 1).text()
-                    pfad = self.tableWidget.item(item.row(), 2).text()
-                    groesse = self.tableWidget.item(item.row(), 3).text()
-                    if erw == "Excel (*.csv)":
-                        line = "%s, %s, %s, %s\n" % (
-                            '"' + name + '"',
-                            '"' + typ + '"',
-                            '"' + pfad + '"',
-                            '"' + groesse + '"',
-                        )
-                        line = line.replace(" ", "")
-                    elif erw == "Text mit Tab (*.txt)":
-                        line = "%s, %s, %s, %s\n" % (name + "\t", typ + "\t", pfad + "\t", groesse)
-                        line = line.replace("\t,", "\t")
-                    QgsMessageLog.logMessage(str(line), "T2G Archäologie", Qgis.Info)
 
-                    output_file.write(str(line))
-                output_file.close()
+        output_file = QFileDialog.getSaveFileName(
+            None,
+            "Speicherpfad",
+            QgsProject.instance().readPath("./../Jobs"),
+            "Excel (*.csv);;Text mit Tab (*.txt);;Alle Dateien (*.*)",
+        )
+        if output_file[0] != "":
+            erw = str(output_file[1])
+            output_file = open(output_file[0], "w")
+            output_file.write("Layername\tTyp\tPfad\tGröße\n")
+            for item in self.tableWidget.selectedIndexes():
+                name = self.tableWidget.item(item.row(), 0).text()
+                typ = self.tableWidget.item(item.row(), 1).text()
+                pfad = self.tableWidget.item(item.row(), 2).text()
+                groesse = self.tableWidget.item(item.row(), 3).text()
+                if erw == "Excel (*.csv)":
+                    line = "%s, %s, %s, %s\n" % (
+                        '"' + name + '"',
+                        '"' + typ + '"',
+                        '"' + pfad + '"',
+                        '"' + groesse + '"',
+                    )
+                    line = line.replace(" ", "")
+                elif erw == "Text mit Tab (*.txt)":
+                    line = "%s, %s, %s, %s\n" % (name + "\t", typ + "\t", pfad + "\t", groesse)
+                    line = line.replace("\t,", "\t")
+                QgsMessageLog.logMessage(str(line), "T2G Archäologie", Qgis.Info)
+
+                output_file.write(str(line))
+            output_file.close()
 
     def setFilter(self):
         find = False
@@ -458,12 +448,10 @@ class RasterLayerViewDockWidget(QDockWidget, FORM_CLASS):
         self.status()
 
     def setSingleView(self):
-        QgsMessageLog.logMessage("klick", "T2G Archäologie", Qgis.Info)
         try:
             if self.singleView == False:
                 self.ui.butsingleView.setIcon(QIcon(ICON_PATHS["Ok"]))
                 self.singleView = True
-                # self.checkRowList = []
                 for layer in QgsProject.instance().mapLayers().values():
                     if layer.type() == QgsMapLayer.RasterLayer:
                         if QgsProject.instance().layerTreeRoot().findLayer(layer.id()).itemVisibilityChecked():
@@ -485,15 +473,6 @@ class RasterLayerViewDockWidget(QDockWidget, FORM_CLASS):
 
         except Exception as e:
             QgsMessageLog.logMessage(str(e), "T2G Archäologie", Qgis.Info)
-
-    def OK(self):
-        self.ui.close()
-
-    def Abbruch(self):
-        self.ui.close()
-
-    def closeEvent(self, event):
-        event.accept()
 
 
 FORM_CLASS, _ = uic.loadUiType(os_path.join(os_path.dirname(__file__), "opacity.ui"))

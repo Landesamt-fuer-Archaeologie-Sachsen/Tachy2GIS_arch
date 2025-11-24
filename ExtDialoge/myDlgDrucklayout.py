@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from os import path as os_path
 
-from PyQt5.QtWidgets import QDialog
+from qgis.PyQt.QtWidgets import QDialog
 from qgis.PyQt import uic
 
 from ..utils.functions import setCustomProjectVariable, getCustomProjectVariable
