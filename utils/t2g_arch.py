@@ -243,7 +243,7 @@ class T2gArch:
         self.iface.setActiveLayer(self.layerPoly)
 
         self.initProjectVariables()
-        self.getMaxValues()
+        self.measurementTab.getMaxValues()
 
         QgsMessageLog.logMessage("Aufsatz Archäologie für T2G ist einsatzbereit.", self.plugin_name_tag, Qgis.Info)
 
@@ -887,7 +887,7 @@ class T2gArch:
 
     def __eventFeaturesDeleted(self, fid):
         setCustomProjectVariable("maxWerteAktualisieren", True)
-        self.getMaxValues()
+        self.measurementTab.getMaxValues()
         setCustomProjectVariable("maxWerteAktualisieren", False)
         self.iface.mapCanvas().refreshAllLayers()
 
@@ -1247,57 +1247,6 @@ class T2gArch:
             self.iface.messageBar().pushMessage(
                 self.plugin_name_tag, "Layer ist kein Rasterlayer oder eine GeoTif!", level=Qgis.Critical
             )
-
-    # ToDo: refactoring - increments values in measurement tab
-    def getMaxValues(self):
-        if getCustomProjectVariable("maxWerteAktualisieren") == True:
-            layerLine = QgsProject.instance().mapLayersByName("E_Line")[0]
-            layerPoly = QgsProject.instance().mapLayersByName("E_Polygon")[0]
-            layerPoint = QgsProject.instance().mapLayersByName("E_Point")[0]
-            layerlist = [layerLine, layerPoly, layerPoint]
-
-            BefNrMax = 0
-            FundNrMax = 0
-            ProfNrMax = 0
-            ProbNrMax = 0
-
-            for layer in layerlist:
-                if len([feat["bef_nr"] for feat in layer.getFeatures()]) > 0:
-                    max1 = maxValue(layer, "bef_nr")
-                    # QgsMessageLog.logMessage(str(max1), 'T2G Archäologie', Qgis.Info)
-                    if BefNrMax < max1:
-                        BefNrMax = max1
-                if len([feat["fund_nr"] for feat in layer.getFeatures()]) > 0:
-                    max2 = maxValue(layer, "fund_nr")
-                    if FundNrMax < max2:
-                        FundNrMax = max2
-                try:
-                    if len([feat["probe_nr"] for feat in layer.getFeatures()]) > 0:
-                        max3 = maxValue(layer, "probe_nr")
-                        if ProbNrMax < max3:
-                            ProbNrMax = max3
-                except Exception as e:
-                    QgsMessageLog.logMessage(str(e), self.plugin_name_tag, Qgis.Info)
-
-                try:
-                    if len([feat["prof_nr"] for feat in layer.getFeatures()]) > 0:
-                        max4 = maxValue(layer, "prof_nr")
-                        if ProfNrMax < max4:
-                            ProfNrMax = max4
-                except Exception as e:
-                    QgsMessageLog.logMessage(str(e), self.plugin_name_tag, Qgis.Info)
-
-                self.measurementTab.txtNextBef.setText(str(BefNrMax + 1))
-                self.measurementTab.txtNextFund.setText(str(FundNrMax + 1))
-                self.measurementTab.txtNextProf.setText(str(ProfNrMax + 1))
-                self.measurementTab.txtNextProb.setText(str(ProbNrMax + 1))
-
-                setCustomProjectVariable("nextBefNr", str(BefNrMax + 1))
-                setCustomProjectVariable("nextProfNr", str(ProfNrMax + 1))
-                setCustomProjectVariable("nextFundNr", str(FundNrMax + 1))
-                setCustomProjectVariable("nextProbNr", str(ProbNrMax + 1))
-
-            setCustomProjectVariable("maxWerteAktualisieren", False)
 
     # ToDo: refactoring - Tab: "Tool Raster"
     def myDlgRasterLayerShow(self):
