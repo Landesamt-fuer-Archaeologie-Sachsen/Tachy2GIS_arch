@@ -233,9 +233,6 @@ class T2gArch:
 
         self.dockwidget.pushButton_about.clicked.connect(self.show_window_about)
 
-        # ToDo: refactoring: consistency with auto attributes in Tab "Vermessung", other project variables needed?
-        # self.iface.layerTreeView().currentLayerChanged.connect(self.currentLayerChanged)
-
         self.layerPoly.selectionChanged.connect(self.selectFeatureChanged)
 
         self.watch.timeout.connect(self.watchEvent)
@@ -1301,7 +1298,6 @@ class T2gArch:
                 setCustomProjectVariable("nextProbNr", str(ProbNrMax + 1))
 
             setCustomProjectVariable("maxWerteAktualisieren", False)
-            # self.autoNummer()
 
     # ToDo: refactoring - Tab: "Tool Raster"
     def myDlgRasterLayerShow(self):
