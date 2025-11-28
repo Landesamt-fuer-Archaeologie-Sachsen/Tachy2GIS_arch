@@ -990,7 +990,7 @@ class MeasurementTab(BASE, WIDGET):
                 )
         if self.fund_nr.text() != "":
             try:
-                if int(self.fund_nr.text()) >= int(self.txtNextFund.text() and not "_" in self.fund_nr.text()):
+                if int(self.fund_nr.text()) >= int(self.txtNextFund.text()) and not "_" in self.fund_nr.text():
                     self.txtNextFund.setText(str(int(self.fund_nr.text()) + 1))
             except Exception as e:
                 QgsMessageLog.logMessage(
@@ -1000,7 +1000,7 @@ class MeasurementTab(BASE, WIDGET):
                 )
         if self.prof_nr.text() != "":
             try:
-                if int(self.prof_nr.text()) >= int(self.txtNextProf.text() and not "_" in self.prof_nr.text()):
+                if int(self.prof_nr.text()) >= int(self.txtNextProf.text()) and not "_" in self.prof_nr.text():
                     self.txtNextProf.setText(str(int(self.prof_nr.text()) + 1))
             except Exception as e:
                 QgsMessageLog.logMessage(
@@ -1010,7 +1010,7 @@ class MeasurementTab(BASE, WIDGET):
                 )
         if self.probe_nr.text() != "":
             try:
-                if int(self.probe_nr.text()) >= int(self.txtNextProb.text() and not "_" in self.probe_nr.text()):
+                if int(self.probe_nr.text()) >= int(self.txtNextProb.text()) and not "_" in self.probe_nr.text():
                     self.txtNextProb.setText(str(int(self.probe_nr.text()) + 1))
             except Exception as e:
                 QgsMessageLog.logMessage(
