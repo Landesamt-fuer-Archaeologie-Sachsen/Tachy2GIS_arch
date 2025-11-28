@@ -286,10 +286,10 @@ class T2gArch:
         self.dockwidget.butHilfe.setToolTip("Benutzerhandbuch")
         self.dockwidget.butHilfe.clicked.connect(self.help)
 
-        QgsProject.instance().layerRemoved.connect(self.checkForGdkeLayers)
+        QgsProject.instance().layerRemoved.connect(self.checkForPluginLayers)
 
     def disconnectSignals(self):
-        QgsProject.instance().layerRemoved.disconnect(self.checkForGdkeLayers)
+        QgsProject.instance().layerRemoved.disconnect(self.checkForPluginLayers)
         if self.pluginIsActive:
             if self.layerPoint:
                 self.layerPoint.featuresDeleted.disconnect(self.__eventFeaturesDeleted)
@@ -352,7 +352,7 @@ class T2gArch:
         self.profile = Profile(self, self.iface)
         self.profile.setup()
 
-    def checkForGdkeLayers(self, e):
+    def checkForPluginLayers(self, e):
         if self.pluginIsActive:
             if e == self.layerPointId:
                 self.layerPoint = None
