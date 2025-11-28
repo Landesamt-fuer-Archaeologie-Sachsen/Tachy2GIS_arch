@@ -939,6 +939,7 @@ class T2gArch:
     def initProjectVariables(self):
         clearAutoAttributeProjectVariables()
         setCustomProjectVariable("autoAttribute", False)
+        setCustomProjectVariable("autoZahl", False)
         setCustomProjectVariable("maxWerteAktualisieren", True)
 
     # ToDo: refactoring - tab: "Tools Raster"
