@@ -51,7 +51,7 @@ class ToolsAllgemeinTab(BASE, WIDGET):
         if self.cboSuche.currentText() == "Profil":
             fieldName = "prof_nr"
         if self.cboSuche.currentText() == "Probe":
-            fieldName = "prob_nr"
+            fieldName = "probe_nr"
         if isNumber(suchstr[0]):
             suchstr = fieldName + "=" + suchstr
         else:

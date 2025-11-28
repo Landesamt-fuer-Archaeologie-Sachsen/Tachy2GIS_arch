@@ -918,7 +918,7 @@ class T2gArch:
                     self.measurementTab.txtNextProf.setText(str(int(value) + 1))
                 else:
                     self.measurementTab.txtNextProf.setText(str(self.__lastMaxNumber[2]))
-            elif field.name() == "prob_nr":
+            elif field.name() == "probe_nr":
                 if int(value) >= int(self.__lastMaxNumber[3]):
                     self.measurementTab.txtNextProb.setText(str(int(value) + 1))
                 else:
@@ -1274,8 +1274,8 @@ class T2gArch:
                     if FundNrMax < max2:
                         FundNrMax = max2
                 try:
-                    if len([feat["prob_nr"] for feat in layer.getFeatures()]) > 0:
-                        max3 = maxValue(layer, "prob_nr")
+                    if len([feat["probe_nr"] for feat in layer.getFeatures()]) > 0:
+                        max3 = maxValue(layer, "probe_nr")
                         if ProbNrMax < max3:
                             ProbNrMax = max3
                 except Exception as e:

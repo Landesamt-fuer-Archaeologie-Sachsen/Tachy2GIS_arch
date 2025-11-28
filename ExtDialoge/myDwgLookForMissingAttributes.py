@@ -84,7 +84,7 @@ class LookForMissingAttributesDockWidget(QDockWidget, FORM_CLASS):
         self.befNrCol = self.numCol(",", "bef_nr")
         self.fundNrCol = self.numCol(",", "fund_nr")
         self.profNrCol = self.numCol(",", "prof_nr")
-        self.probNrCol = self.numCol(",", "prob_nr")
+        self.probNrCol = self.numCol(",", "probe_nr")
         self.ui.txtNextBef.setText(str(self.befNrCol[-1]))
         self.ui.txtNextFund.setText(str(self.fundNrCol[-1]))
         self.ui.txtNextProf.setText(str(self.profNrCol[-1]))

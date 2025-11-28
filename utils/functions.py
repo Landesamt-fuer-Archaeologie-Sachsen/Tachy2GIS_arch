@@ -750,7 +750,7 @@ def setAliasName():
                     layer.setFieldAlias(a, "Fund-Nr")
                 elif field.name() == "geo-arch":
                     layer.setFieldAlias(a, "Geo/Arch")
-                elif field.name() == "prob_nr":
+                elif field.name() == "probe_nr":
                     layer.setFieldAlias(a, "Probe-Nr")
                 a = a + 1
     # <Alias Namen erzeugen
