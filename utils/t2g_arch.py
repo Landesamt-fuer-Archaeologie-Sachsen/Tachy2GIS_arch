@@ -907,7 +907,7 @@ class T2gArch:
                 if int(value) >= int(self.__lastMaxNumber[0]):
                     self.measurementTab.txtNextBef.setText(str(int(value) + 1))
                 else:
-                    self.dockwidget.txtNextBef.setText(str(self.__lastMaxNumber[0]))
+                    self.measurementTab.txtNextBef.setText(str(self.__lastMaxNumber[0]))
             elif field.name() == "fund_nr":
                 if int(value) >= int(self.__lastMaxNumber[1]):
                     self.measurementTab.txtNextFund.setText(str(int(value) + 1))
@@ -917,7 +917,7 @@ class T2gArch:
                 if int(value) >= int(self.__lastMaxNumber[2]):
                     self.measurementTab.txtNextProf.setText(str(int(value) + 1))
                 else:
-                    self.dockwidget.txtNextProf.setText(str(self.__lastMaxNumber[2]))
+                    self.measurementTab.txtNextProf.setText(str(self.__lastMaxNumber[2]))
             elif field.name() == "prob_nr":
                 if int(value) >= int(self.__lastMaxNumber[3]):
                     self.measurementTab.txtNextProb.setText(str(int(value) + 1))
