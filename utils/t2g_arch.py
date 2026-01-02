@@ -158,7 +158,7 @@ class T2gArch:
 
         self.pluginIsActive = True
 
-        self.watch = QTimer()
+        self.autosaveTimer = QTimer()
 
         self.projPfad = ""
 
@@ -235,7 +235,7 @@ class T2gArch:
 
         self.layerPoly.selectionChanged.connect(self.selectFeatureChanged)
 
-        self.watch.timeout.connect(self.watchEvent)
+        self.autosaveTimer.timeout.connect(self.autosaveEvent)
         self.__lastMaxNumber = []
         self.setup()
 
@@ -308,7 +308,7 @@ class T2gArch:
                 self.layerPoly.featureAdded.disconnect(self.eventFeatureAdded)
             if self.geoEdit:
                 self.geoEdit.disconnectSignals()
-            self.watch.timeout.disconnect(self.watchEvent)
+            self.autosaveTimer.timeout.disconnect(self.autosaveEvent)
 
     def setupModules(self):
         # Messen
@@ -860,13 +860,13 @@ class T2gArch:
 
         if any2bool(autoSaveEnable):
             # trigger event now for first backup
-            self.watch.timeout.emit()
+            self.autosaveTimer.timeout.emit()
             # and then periodically
             autoSaveTime = ArchProjectConfig().get("AutoSave_interval_in_min")
-            self.watch.start(int(autoSaveTime) * 60000)
+            self.autosaveTimer.start(int(autoSaveTime) * 60000)
             QgsMessageLog.logMessage(f"Auto Backup: An, Takt {autoSaveTime} min", "T2G Archäologie", Qgis.Info)
         else:
-            self.watch.stop()
+            self.autosaveTimer.stop()
             QgsMessageLog.logMessage("Auto Backup: Aus", "T2G Archäologie", Qgis.Info)
 
     def eventFeatureAdded(self, fid):
@@ -1282,7 +1282,7 @@ class T2gArch:
         # myDlgSettingsView.setAutoFillBackground(True)
         myDlgSettingsView.show()
 
-    def watchEvent(self):
+    def autosaveEvent(self):
         keep_last_n_backups = ArchProjectConfig().get("AutoSave_keep_last_n_backups", 10)
         success = project_backup(self.iface, "automatisch", int(keep_last_n_backups))
         if success:
@@ -1306,7 +1306,7 @@ class T2gArch:
                 QgsProject.instance().write()
                 QApplication.processEvents()
                 # trigger event now for next try
-                self.watch.timeout.emit()
+                self.autosaveTimer.timeout.emit()
 
     # ToDo: refactoring - Map Tools
     def editFeature(self, layer, feature):
