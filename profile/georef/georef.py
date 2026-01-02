@@ -308,12 +308,10 @@ class Georef:
         # obj_typ 12 entspricht Fotoentzerrpunkt
         obj_typ_value = ArchProjectConfig().get("GeoRef_Fotoentzerrpunkt_ObjTyp")
         obj_art_value = ArchProjectConfig().get("GeoRef_Fotoentzerrpunkt_ObjArt")
-        pointLayer.setSubsetString(
-            # "obj_typ = '12' and "
-            # "obj_art = 'Profil' and "
-            # "prof_nr = '" + profileNumber + "'"
-            f"obj_typ = '{obj_typ_value}' and obj_art = '{obj_art_value}' and prof_nr = '{profileNumber}'"
-        )
+        filterString = f"obj_typ = '{obj_typ_value}' and prof_nr = '{profileNumber}'"
+        if obj_art_value:
+            filterString += f" and obj_art = '{obj_art_value}'"
+        pointLayer.setSubsetString(filterString)
 
         # Zielkoordinaten
         targetGCP = {"points": []}
@@ -428,10 +426,8 @@ class Georef:
 
         # lineLayer
         lineLayer = self.dockwidget.layerProfileGeoref.currentLayer().clone()
-        # lineLayer.setSubsetString("prof_nr = '" + profile_number + "'")
-        lineLayer.setSubsetString(
-            f'{ArchProjectConfig().get("GeoRef_Profil_ColName")} = \'' + profile_number + '\''
-        )
+        profil_column_name = ArchProjectConfig().get("GeoRef_Profil_ColName")
+        lineLayer.setSubsetString(f"{profil_column_name} = '{profile_number}'")
 
         if lineLayer.geometryType() != QgsWkbTypes.LineGeometry:
             return
