@@ -511,11 +511,10 @@ class T2gArch:
                 with open(outputFile[0], "w") as outputFile:
                     feats = []
                     for feat in layer.selectedFeatures():
-                        pt = (feat.geometry().asWkt()).split(" ", 1)[1]
-                        coord = pt.split(" ")
-                        x = round(float((coord[0]).replace("(", "")), 3)
-                        y = round(float((coord[1])), 3)
-                        z = round(float((coord[2]).replace(")", "")), 3)
+                        pt = feat.geometry().constGet()
+                        x = pt.x()
+                        y = pt.y()
+                        z = pt.z()
                         msgout = f'{feat["pt_nr"]}, {x}, {y}, {z}\n'
                         feats.append(msgout)
 
