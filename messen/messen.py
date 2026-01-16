@@ -928,6 +928,7 @@ class MeasurementTab(BASE, WIDGET):
             if self.checkGeometry(geom):
                 feature = self.createFeatureFromGeometry(geom)
                 _, features = self.layerToEdit.dataProvider().addFeatures([feature])
+                self.layerToEdit.featureAdded.emit(feature.id())
             else:
                 iface.messageBar().pushMessage(
                     "T2G Archäologie", f"Die Geometrie ist ungültig. Bitte korrigieren oder löschen", Qgis.Warning
@@ -936,6 +937,7 @@ class MeasurementTab(BASE, WIDGET):
         elif self.geometryType == "points":
             features = self.createFeatureFromGeometry(geom)
             _, features = self.layerToEdit.dataProvider().addFeatures(features)
+            self.layerToEdit.featureAdded.emit(features[0].id())
 
         if features:
             addedFeature = features[0]

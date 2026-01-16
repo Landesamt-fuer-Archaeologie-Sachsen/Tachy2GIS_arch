@@ -315,6 +315,7 @@ def addPoint3D(layer, point, attListe):
     layer.updateExtents()
 
     layer.dataProvider().changeAttributeValues({addedFeatures[-1].id(): attListe})
+    layer.featureAdded.emit(addedFeatures[-1].id())
 
 
 # -------------------- Refactoring ----------------------------
