@@ -66,11 +66,8 @@ from .functions import (
     delSelectFeature,
     FileFunctions,
     fileLineCount,
-    getCustomProjectVariable,
     getlayerSelectedFeatures,
-    isNumber,
     MarkersAndRubberbands,
-    maxValue,
     ProgressBar,
     setCustomProjectVariable,
     project_backup,
@@ -176,42 +173,13 @@ class T2gArch:
         self.rubberBand = MarkersAndRubberbands()
         self.pointMaker = MarkersAndRubberbands()
 
-        self.layerLine = QgsProject.instance().mapLayersByName(T2gLayers.Line.value)[0]
+        self.layerLine = T2gLayers.getLineLayer()
         self.layerLineId = self.layerLine.id()
-        self.layerPoly = QgsProject.instance().mapLayersByName(T2gLayers.Polygon.value)[0]
+        self.layerPoly = T2gLayers.getPolygonLayer()
         self.layerPolyId = self.layerPoly.id()
-        self.layerPoint = QgsProject.instance().mapLayersByName(T2gLayers.Point.value)[0]
+        self.layerPoint = T2gLayers.getPointLayer()
         self.layerPointId = self.layerPoint.id()
-        self.layerMesspoint = QgsProject.instance().mapLayersByName(T2gLayers.Messpunkte.value)[0]
-
-        self.layerLine.featuresDeleted.connect(self.__eventFeaturesDeleted)
-        self.layerPoly.featuresDeleted.connect(self.__eventFeaturesDeleted)
-        self.layerPoint.featuresDeleted.connect(self.__eventFeaturesDeleted)
-
-        self.layerLine.editingStarted.connect(self.eventEditingStarted)
-        self.layerPoly.editingStarted.connect(self.eventEditingStarted)
-        self.layerPoint.editingStarted.connect(self.eventEditingStarted)
-
-        self.layerLine.subsetStringChanged.connect(self.filterGesetzt)
-        self.layerPoly.subsetStringChanged.connect(self.filterGesetzt)
-        self.layerPoint.subsetStringChanged.connect(self.filterGesetzt)
-
-        self.lineLayerEdited = lambda fid, idx, value, lyr=self.layerPoly: self.eventAttributeValueChanged(
-            fid, idx, value, lyr
-        )
-        self.pointLayerEdited = lambda fid, idx, value, lyr=self.layerPoint: self.eventAttributeValueChanged(
-            fid, idx, value, lyr
-        )
-        self.polygonLayerEdited = lambda fid, idx, value, lyr=self.layerPoly: self.eventAttributeValueChanged(
-            fid, idx, value, lyr
-        )
-        self.layerLine.attributeValueChanged.connect(self.lineLayerEdited)
-        self.layerPoly.attributeValueChanged.connect(self.polygonLayerEdited)
-        self.layerPoint.attributeValueChanged.connect(self.pointLayerEdited)
-
-        self.layerLine.featureAdded.connect(self.eventFeatureAdded)
-        self.layerPoly.featureAdded.connect(self.eventFeatureAdded)
-        self.layerPoint.featureAdded.connect(self.eventFeatureAdded)
+        self.layerMesspoint = T2gLayers.getMesspunkteLayer()
 
         # ToDo: refactoring - Tab: "Tool Raster"
         self.dockwidget.pushButton_4.setIcon(QIcon(ICON_PATHS["V_Jpg-Tif"]))
@@ -236,14 +204,12 @@ class T2gArch:
         self.layerPoly.selectionChanged.connect(self.selectFeatureChanged)
 
         self.autosaveTimer.timeout.connect(self.autosaveEvent)
-        self.__lastMaxNumber = []
         self.setup()
 
     def setup(self):
         self.iface.setActiveLayer(self.layerPoly)
 
         self.initProjectVariables()
-        self.measurementTab.getMaxValues()
 
         QgsMessageLog.logMessage("Aufsatz Archäologie für T2G ist einsatzbereit.", self.plugin_name_tag, Qgis.Info)
 
@@ -275,8 +241,6 @@ class T2gArch:
         # self.dockwidget.tabWidget_2.setCurrentIndex(0)
         self.iface.actionSelectRectangle().trigger()
 
-        self.filterGesetzt()
-
         self.eventReadProject()
 
     def setupConnections(self):
@@ -288,24 +252,6 @@ class T2gArch:
     def disconnectSignals(self):
         QgsProject.instance().layerRemoved.disconnect(self.checkForPluginLayers)
         if self.pluginIsActive:
-            if self.layerPoint:
-                self.layerPoint.featuresDeleted.disconnect(self.__eventFeaturesDeleted)
-                self.layerPoint.editingStarted.disconnect(self.eventEditingStarted)
-                self.layerPoint.subsetStringChanged.disconnect(self.filterGesetzt)
-                self.layerPoint.attributeValueChanged.disconnect(self.pointLayerEdited)
-                self.layerPoint.featureAdded.disconnect(self.eventFeatureAdded)
-            if self.layerLine:
-                self.layerLine.featuresDeleted.disconnect(self.__eventFeaturesDeleted)
-                self.layerLine.editingStarted.disconnect(self.eventEditingStarted)
-                self.layerLine.subsetStringChanged.disconnect(self.filterGesetzt)
-                self.layerLine.attributeValueChanged.disconnect(self.lineLayerEdited)
-                self.layerLine.featureAdded.disconnect(self.eventFeatureAdded)
-            if self.layerPoly:
-                self.layerPoly.featuresDeleted.disconnect(self.__eventFeaturesDeleted)
-                self.layerPoly.editingStarted.disconnect(self.eventEditingStarted)
-                self.layerPoly.subsetStringChanged.disconnect(self.filterGesetzt)
-                self.layerPoly.attributeValueChanged.disconnect(self.polygonLayerEdited)
-                self.layerPoly.featureAdded.disconnect(self.eventFeatureAdded)
             if self.geoEdit:
                 self.geoEdit.disconnectSignals()
             self.autosaveTimer.timeout.disconnect(self.autosaveEvent)
@@ -425,7 +371,7 @@ class T2gArch:
 
     def importPoints(self):
         importPath = ArchProjectConfig().get("default_importordner", "./../Jobs")
-        pointsLayer = findLayerInProject("E_Point")
+        pointsLayer = T2gLayers.getPointLayer()
         if not pointsLayer:
             return
         result = QMessageBox.information(
@@ -446,7 +392,6 @@ class T2gArch:
             if inputFile[0] != "":
                 progress = ProgressBar("Fortschritt")
                 QCoreApplication.processEvents()
-                setCustomProjectVariable("maxWerteAktualisieren", False)
 
                 if dateiFormat == ".csv":
                     QgsMessageLog.logMessage("Point import- read data from .csv", self.plugin_name_tag, Qgis.Info)
@@ -533,7 +478,6 @@ class T2gArch:
                                     )
 
                             pointNumber += 1
-                setCustomProjectVariable("maxWerteAktualisieren", True)
 
                 if objCount > 0:
                     self.iface.messageBar().pushMessage(
@@ -869,75 +813,10 @@ class T2gArch:
             self.autosaveTimer.stop()
             QgsMessageLog.logMessage("Auto Backup: Aus", "T2G Archäologie", Qgis.Info)
 
-    def eventFeatureAdded(self, fid):
-        # Wird nirgends mehr verwendet # Sonst Fehler beim Digitalisieren
-        # self.newFeaturesIds.append(fid)
-        QgsMessageLog.logMessage(str(fid) + " neu", self.plugin_name_tag, Qgis.Info)
-
-    def eventEditingStarted(self):
-        # QgsMessageLog.logMessage('Änderung Start', 'T2G Archäologie', Qgis.Info)
-        # self.valueTemp1 = int(getCustomProjectVariable('nextBefNr'))
-        # setCustomProjectVariable('maxWerteAktualisieren', 'False')
-        QgsMessageLog.logMessage("Beginne Änderung", self.plugin_name_tag, Qgis.Info)
-        self.__lastMaxNumber = []
-        self.__lastMaxNumber.append(self.measurementTab.txtNextBef.text())
-        self.__lastMaxNumber.append(self.measurementTab.txtNextFund.text())
-        self.__lastMaxNumber.append(self.measurementTab.txtNextProf.text())
-        self.__lastMaxNumber.append(self.measurementTab.txtNextProb.text())
-
-    def __eventFeaturesDeleted(self, fid):
-        setCustomProjectVariable("maxWerteAktualisieren", True)
-        self.measurementTab.getMaxValues()
-        setCustomProjectVariable("maxWerteAktualisieren", False)
-        self.iface.mapCanvas().refreshAllLayers()
-
-    def eventAttributeValueChanged(self, fid, idx, value, lyr):
-
-        field = lyr.fields()[idx]
-        QgsMessageLog.logMessage(
-            f"Attribut in layer {lyr.name()} geändert: id={fid}, field={field.name()}, value={value}",
-            self.plugin_name_tag,
-            Qgis.Info,
-        )
-        if isNumber(str(value)):
-            if field.name() == "bef_nr":
-                if int(value) >= int(self.__lastMaxNumber[0]):
-                    self.measurementTab.txtNextBef.setText(str(int(value) + 1))
-                else:
-                    self.measurementTab.txtNextBef.setText(str(self.__lastMaxNumber[0]))
-            elif field.name() == "fund_nr":
-                if int(value) >= int(self.__lastMaxNumber[1]):
-                    self.measurementTab.txtNextFund.setText(str(int(value) + 1))
-                else:
-                    self.measurementTab.txtNextFund.setText(str(self.__lastMaxNumber[1]))
-            elif field.name() == "prof_nr":
-                if int(value) >= int(self.__lastMaxNumber[2]):
-                    self.measurementTab.txtNextProf.setText(str(int(value) + 1))
-                else:
-                    self.measurementTab.txtNextProf.setText(str(self.__lastMaxNumber[2]))
-            elif field.name() == "probe_nr":
-                if int(value) >= int(self.__lastMaxNumber[3]):
-                    self.measurementTab.txtNextProb.setText(str(int(value) + 1))
-                else:
-                    self.measurementTab.txtNextProb.setText(str(self.__lastMaxNumber[3]))
-
-    def filterGesetzt(self):
-        # QgsMessageLog.logMessage('filter gesetzt', 'T2G Archäologie', Qgis.Info)
-        list = [self.layerPoly, self.layerLine, self.layerPoint, self.layerMesspoint]
-        for layer in list:
-            # QgsMessageLog.logMessage(layer.source(), 'T2G Archäologie', Qgis.Info)
-            if "subset" in layer.source():
-                self.measurementTab.txtNextBef.setText("xxxxx")
-                self.measurementTab.txtNextFund.setText("xxxxx")
-                self.measurementTab.txtNextProf.setText("xxxxx")
-                self.measurementTab.txtNextProb.setText("xxxxx")
-                # QgsMessageLog.logMessage('Filter gesetzt', 'T2G Archäologie', Qgis.Info)
-
     def initProjectVariables(self):
         clearAutoAttributeProjectVariables()
         setCustomProjectVariable("autoAttribute", False)
         setCustomProjectVariable("autoZahl", False)
-        setCustomProjectVariable("maxWerteAktualisieren", True)
 
     # ToDo: refactoring - tab: "Tools Raster"
     def setCutMask(self):

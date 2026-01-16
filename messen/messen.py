@@ -3,10 +3,9 @@ import os
 import uuid
 from contextlib import contextmanager
 from datetime import date, datetime
-from functools import partial
 
-from qgis.PyQt import uic
-from qgis.PyQt.QtCore import Qt, QTimer, QVariant, QEvent
+from qgis.PyQt import uic, sip
+from qgis.PyQt.QtCore import Qt, QTimer, QVariant, QEvent, QObject
 from qgis.PyQt.QtGui import QColor, QCursor, QIcon, QKeySequence
 from qgis.PyQt.QtWidgets import (
     QAction,
@@ -18,9 +17,11 @@ from qgis.PyQt.QtWidgets import (
     QHeaderView,
     QTableWidgetItem,
     QShortcut,
+    QWidget,
 )
 from qgis.core import (
     Qgis,
+    QgsFeature,
     QgsGeometry,
     QgsLineString,
     QgsMessageLog,
@@ -30,6 +31,7 @@ from qgis.core import (
     QgsPolygon,
     QgsProject,
     QgsRectangle,
+    QgsVectorLayer,
     QgsVectorLayerUtils,
     QgsWkbTypes,
     QgsApplication,
@@ -42,6 +44,7 @@ from ..utils.functions import (
     enableAndDisableWidgets,
     getCustomProjectVariable,
     HelpWindow,
+    isNumber,
     maxValue,
     setCustomProjectVariable,
     showAndHideWidgets,
@@ -90,6 +93,17 @@ class MeasurementTab(BASE, WIDGET):
         self.markersAndRubberBand = None
         self.layerToEdit = None
 
+        self.nextIdUpdater = NextIdUpdater(
+            layers=T2gLayers.getEditLayers(),
+            widgets={
+                "bef_nr": self.txtNextBef,
+                "prof_nr": self.txtNextProf,
+                "fund_nr": self.txtNextFund,
+                "probe_nr": self.txtNextProb,
+            },
+            parent=self,
+        )
+        self.nextIdUpdater.start()
         self.setGuiContent()
         self.connectSignals()
 
@@ -172,13 +186,13 @@ class MeasurementTab(BASE, WIDGET):
         self.cmbZeit2.currentIndexChanged.connect(self.comboZeit2Changed)
         self.btnResetAutoAttributes.clicked.connect(self.resetAutoAttributeValues)
         self.cbActivateAutoAttributes.stateChanged.connect(self.setAutoAttributeMode)
-        self.schnitt_nr.editingFinished.connect(partial(self.onLineEditingFinished, self.schnitt_nr))
-        self.planum_nr.editingFinished.connect(partial(self.onLineEditingFinished, self.planum_nr))
-        self.bef_nr.editingFinished.connect(partial(self.onLineEditingFinished, self.bef_nr))
-        self.prof_nr.editingFinished.connect(partial(self.onLineEditingFinished, self.prof_nr))
-        self.pt_nr.editingFinished.connect(partial(self.onLineEditingFinished, self.pt_nr))
-        self.fund_nr.editingFinished.connect(partial(self.onLineEditingFinished, self.fund_nr))
-        self.probe_nr.editingFinished.connect(partial(self.onLineEditingFinished, self.probe_nr))
+        self.schnitt_nr.editingFinished.connect(self.onLineEditingFinished)
+        self.planum_nr.editingFinished.connect(self.onLineEditingFinished)
+        self.bef_nr.editingFinished.connect(self.onLineEditingFinished)
+        self.prof_nr.editingFinished.connect(self.onLineEditingFinished)
+        self.pt_nr.editingFinished.connect(self.onLineEditingFinished)
+        self.fund_nr.editingFinished.connect(self.onLineEditingFinished)
+        self.probe_nr.editingFinished.connect(self.onLineEditingFinished)
         self.btnSaveProject.clicked.connect(saveProject)
         self.btnHelp.clicked.connect(self.showHelp)
 
@@ -194,13 +208,13 @@ class MeasurementTab(BASE, WIDGET):
         self.leaveDigitizingMode()
         self.resetTabToBeginning()
         self.deactivateKeys()
+        self.nextIdUpdater.stop()
 
     def disconnectSignals(self):
         signal = connectedSignalsDict.get("setDigitizeAction")
         if signal:
             iface.mapCanvas().mapToolSet.disconnect(signal)
             connectedSignalsDict.pop("setDigitizeAction")
-        signal = connectedSignalsDict.get("resetToNewProject")
 
     def fillCmbLayerType(self):
 
@@ -907,7 +921,7 @@ class MeasurementTab(BASE, WIDGET):
                 break
 
         geom = self.createGeometry()
-        if geom == False:
+        if not geom:
             return
 
         if self.geometryType == "polygons" or self.geometryType == "lines":
@@ -977,76 +991,6 @@ class MeasurementTab(BASE, WIDGET):
             layer.selectByExpression(f"fid = {fid}")
             iface.actionZoomToSelected().trigger()
 
-    def getMaxValues(self):
-        if not getCustomProjectVariable("maxWerteAktualisieren"):
-            return
-
-        BefNrMax = 0
-        FundNrMax = 0
-        ProfNrMax = 0
-        ProbNrMax = 0
-
-        for layer in T2gLayers.getEditLayers():
-            BefNrMax = max(BefNrMax, maxValue(layer, "bef_nr"))
-            FundNrMax = max(FundNrMax, maxValue(layer, "fund_nr"))
-            ProbNrMax = max(ProbNrMax, maxValue(layer, "probe_nr"))
-            ProfNrMax = max(ProfNrMax, maxValue(layer, "prof_nr"))
-
-        self.txtNextBef.setText(str(BefNrMax + 1))
-        self.txtNextFund.setText(str(FundNrMax + 1))
-        self.txtNextProf.setText(str(ProfNrMax + 1))
-        self.txtNextProb.setText(str(ProbNrMax + 1))
-
-        setCustomProjectVariable("nextBefNr", str(BefNrMax + 1))
-        setCustomProjectVariable("nextProfNr", str(ProfNrMax + 1))
-        setCustomProjectVariable("nextFundNr", str(FundNrMax + 1))
-        setCustomProjectVariable("nextProbNr", str(ProbNrMax + 1))
-
-        setCustomProjectVariable("maxWerteAktualisieren", False)
-
-    # ToDo: refactoring
-    def nextValues(self):
-        if self.bef_nr.text() != "":
-            try:
-                if int(self.bef_nr.text()) >= int(self.txtNextBef.text()) and not "_" in self.bef_nr.text():
-                    self.txtNextBef.setText(str(int(self.bef_nr.text()) + 1))
-            except Exception as e:
-                QgsMessageLog.logMessage(
-                    message="MeasurementTab->nextValues: no setText: " + str(e),
-                    tag="T2G Archäologie",
-                    level=Qgis.MessageLevel.Warning,
-                )
-        if self.fund_nr.text() != "":
-            try:
-                if int(self.fund_nr.text()) >= int(self.txtNextFund.text()) and not "_" in self.fund_nr.text():
-                    self.txtNextFund.setText(str(int(self.fund_nr.text()) + 1))
-            except Exception as e:
-                QgsMessageLog.logMessage(
-                    message="MeasurementTab->nextValues: no setText: " + str(e),
-                    tag="T2G Archäologie",
-                    level=Qgis.MessageLevel.Warning,
-                )
-        if self.prof_nr.text() != "":
-            try:
-                if int(self.prof_nr.text()) >= int(self.txtNextProf.text()) and not "_" in self.prof_nr.text():
-                    self.txtNextProf.setText(str(int(self.prof_nr.text()) + 1))
-            except Exception as e:
-                QgsMessageLog.logMessage(
-                    message="MeasurementTab->nextValues: no setText: " + str(e),
-                    tag="T2G Archäologie",
-                    level=Qgis.MessageLevel.Warning,
-                )
-        if self.probe_nr.text() != "":
-            try:
-                if int(self.probe_nr.text()) >= int(self.txtNextProb.text()) and not "_" in self.probe_nr.text():
-                    self.txtNextProb.setText(str(int(self.probe_nr.text()) + 1))
-            except Exception as e:
-                QgsMessageLog.logMessage(
-                    message="MeasurementTab->nextValues: no setText: " + str(e),
-                    tag="T2G Archäologie",
-                    level=Qgis.MessageLevel.Warning,
-                )
-
     def showHelp(self):
         helpHtmPath = os.path.join(os.path.dirname(__file__), "Tips.htm")
         self.helpWindow.run(helpHtmPath, None, 280, 300)
@@ -1057,11 +1001,11 @@ class MeasurementTab(BASE, WIDGET):
         else:
             self.lblPointCount.setText(f"{self.verticesCount} Punkte")
 
-    def onLineEditingFinished(self, widget: QLineEdit):
+    def onLineEditingFinished(self):
         if self.geometryType == "no_layer":
             return
+        widget = self.sender()
         setCustomProjectVariable(f"{widget.objectName()}", widget.text())
-        self.nextValues()
 
     def openCloseCoordinatesGroupBox(self):
         collapsed = self.qgsGroupBoxCoordinates.isCollapsed()
@@ -1088,6 +1032,131 @@ class MeasurementTab(BASE, WIDGET):
             event.ignore()
             return True
         return False
+
+
+class NextIdUpdater(QObject):
+    def __init__(self, layers: list[QgsVectorLayer], widgets: dict[str, QLineEdit], parent: QWidget = None):
+        """
+        Keeps the display widgets up to date with the next available IDs for the given attributes.
+        This class monitors changes of all attributes (keys in the "widgets" dict) in the provided layers and updates
+        the corresponding widgets when features are added, deleted, or modified.
+
+        Args:
+            layers (list[QgsVectorLayer]): List of layers to monitor.
+            widgets (dict[str, QWidget]): Dictionary of widgets to update, keyed by attribute name.
+                Example: {bef_nr: QLineEdit, fund_nr: QLineEdit, prof_nr: QLineEdit, probe_nr: QLineEdit}
+        """
+        super().__init__(parent)
+        self.layers = layers
+        self.widgets = widgets
+        self._connected_layers: set[QgsVectorLayer] = set()
+
+    def start(self):
+        self._connectSignals()
+        self._updateFromFilters()
+
+    def stop(self):
+        self.clear()
+        self._disconnectSignals()
+
+    def clear(self):
+        for widget in self.widgets.values():
+            widget.clear()
+
+    def setMaxValues(self):
+        import time
+
+        t1 = time.time()
+        for attributeName, widget in self.widgets.items():
+            maxId = 0
+            for layer in self._connected_layers:
+                maxId = max(maxId, maxValue(layer, attributeName))
+            widget.setText(str(maxId + 1))
+
+    def _updateFromFilters(self):
+        if any([layer.subsetString() for layer in self.layers]):
+            for widget in self.widgets.values():
+                widget.setText("xxxxx")
+        else:
+            self.setMaxValues()
+
+    def _connectSignals(self):
+        for layer in self.layers:
+            if sip.isdeleted(layer) or layer in self._connected_layers:
+                continue
+            layer.editingStarted.connect(self._onEditingStarted)
+            layer.featureAdded.connect(self._onFeatureAdded)
+            layer.featuresDeleted.connect(self._onFeaturesDeleted)
+            layer.subsetStringChanged.connect(self._onSubsetStringChanged)
+            layer.attributeValueChanged.connect(self._onAttributeValueChanged)
+            layer.committedFeaturesAdded.connect(self._onCommittedFeaturesAdded)
+            layer.committedFeaturesRemoved.connect(self._onCommittedFeaturesRemoved)
+            layer.committedAttributeValuesChanges.connect(self._onCommittedAttributeValuesChanges)
+            self._connected_layers.add(layer)
+
+    def _disconnectSignals(self):
+        for layer in list(self._connected_layers):
+            if sip.isdeleted(layer):
+                self._connected_layers.discard(layer)
+                continue
+            layer.editingStarted.disconnect(self._onEditingStarted)
+            layer.featureAdded.disconnect(self._onFeatureAdded)
+            layer.featuresDeleted.disconnect(self._onFeaturesDeleted)
+            layer.subsetStringChanged.disconnect(self._onSubsetStringChanged)
+            layer.attributeValueChanged.disconnect(self._onAttributeValueChanged)
+            layer.committedFeaturesAdded.disconnect(self._onCommittedFeaturesAdded)
+            layer.committedFeaturesRemoved.disconnect(self._onCommittedFeaturesRemoved)
+            layer.committedAttributeValuesChanges.disconnect(self._onCommittedAttributeValuesChanges)
+            self._connected_layers.discard(layer)
+
+    def _onEditingStarted(self):
+        self.setMaxValues()
+
+    def _onFeatureAdded(self, fid):
+        self.setMaxValues()
+
+    def _onFeaturesDeleted(self, fid):
+        self.setMaxValues()
+
+    def _onAttributeValueChanged(self, fid, idx, value):
+        layer = self.sender()
+        if not layer or sip.isdeleted(layer):
+            return
+        field = layer.fields()[idx]
+        if not field:
+            return
+        if field.name() not in self.widgets:
+            return
+        if not isNumber(str(value)):
+            return
+        self.setMaxValues()
+
+    def _onSubsetStringChanged(self):
+        self._updateFromFilters()
+
+    def _onCommittedFeaturesAdded(self, layerId: str, added: list[QgsFeature]):
+        self.setMaxValues()
+
+    def _onCommittedFeaturesRemoved(self, layerId: str, removed: set[int]):
+        self.setMaxValues()
+
+    def _onCommittedAttributeValuesChanges(self, layerId: str, changes: dict[int, dict[int, QVariant]]):
+        relevant = False
+        for _fid, by_idx in changes.items():
+            if relevant:
+                break
+            # by_idx: {field_index: new_value}
+            for idx in by_idx.keys():
+                field = None
+                layer = self.sender()
+                if not layer or sip.isdeleted(layer):
+                    continue
+                field = layer.fields()[idx]
+                if field and field.name() in self.widgets:
+                    relevant = True
+                    break
+        if relevant:
+            self.setMaxValues()
 
 
 MARKERSIZE = 10
