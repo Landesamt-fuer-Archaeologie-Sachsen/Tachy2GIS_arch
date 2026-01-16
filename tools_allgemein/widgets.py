@@ -30,7 +30,6 @@ class ToolsAllgemeinTab(BASE, WIDGET):
     def setupConnections(self):
         self.butObjFind.clicked.connect(self.ozoom_1_ok)
         self.btnCheckHeights.clicked.connect(self.dlgFeatureCheckShow)
-        self.btnBefundLabel.clicked.connect(self.setBefundLabel_n)
 
     def ozoom_1_ok(self):
         iface.activeLayer().removeSelection()
@@ -81,59 +80,3 @@ class ToolsAllgemeinTab(BASE, WIDGET):
         dlgFeatureCheck = GeometryCheckDockWidget(iface.mapCanvas())  # mainWindow()
         dlgFeatureCheck.setAutoFillBackground(True)
         dlgFeatureCheck.show()
-
-    # ToDo: Refactoring, "Befundnummer setzen" in "Tools Allgemein"
-    def setBefundLabel_n(self):
-        pass
-        """
-        self.__abbruch = False
-        self.iface.messageBar().clearWidgets()
-        widgetMessage = self.iface.messageBar().createMessage('Befundlabel setzen abrechen.')
-        button = QPushButton(widgetMessage)
-        button.setText("Abbruch")
-        button.pressed.connect(self.__setAbbruch)
-        widgetMessage.layout().addWidget(button)
-        self.iface.messageBar().pushWidget(widgetMessage, Qgis.Info)
-
-        self.__delAutoAttribut()
-        self.__koordtableClear()
-        self.__dockwidget.chbAutoAtt.setChecked(True)
-        self.__dockwidget.chbAttributtable.setChecked(False)
-        self.__dockwidget.chbbefZ.setChecked(False)
-        self.__dockwidget.cboobjTyp.setCurrentText('Kartenbeschriftung')
-        self.__dockwidget.cboobjArt.setCurrentText('Befund')
-        self.__dockwidget.txtBefNr.setText('')
-        #return
-        var = 0
-        while self.__abbruch == False:
-            if not self.__dockwidget.chbbefZ.isChecked():
-                while self.__verticesCount == 0:
-                    QApplication.processEvents()
-                    pass
-                if self.__abbruch == True:
-                    break
-                self.__watchEvent()
-                befnr, ok = QInputDialog().getText(None, '', 'Befund Nr. eingeben')
-                if ok:
-                    self.__dockwidget.txtBefNr.setText(befnr)
-                    self.__geometryIdentify()
-                    if not self.__dockwidget.chbbefZ.isChecked() and var == 0:
-                        box = QMessageBox()
-                        box.setIcon(QMessageBox.Question)
-                        box.setText('Soll die Befundnummer hochgezählt werden?')
-                        box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-                        buttonY = box.button(QMessageBox.Yes)
-                        buttonY.setText('Ja')
-                        buttonN = box.button(QMessageBox.No)
-                        buttonN.setText('Nein')
-                        box.exec_()
-                        var = 1
-                        if box.clickedButton() == buttonY:
-                            self.__dockwidget.chbbefZ.setChecked(True)
-                            self.__dockwidget.txtBefNr.setText(str(int(befnr)+1))
-                else:
-                    self.__abbruch = True
-                    self.iface.messageBar().popWidget()
-            QApplication.processEvents()
-        self.__dockwidget.butBefundLabel.setStyleSheet("")
-        """
