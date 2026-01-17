@@ -24,7 +24,7 @@
 from os import path as os_path
 
 from qgis.PyQt.QtCore import Qt, pyqtSignal, QVariant
-from qgis.PyQt.QtGui import QColor
+from qgis.PyQt.QtGui import QBrush, QColor
 from qgis.PyQt.QtWidgets import QDockWidget, QTableWidgetItem
 from qgis.PyQt import uic
 from qgis.core import (
@@ -39,6 +39,7 @@ from qgis.core import (
     QgsFeature,
     QgsPoint,
     QgsGeometry,
+    QgsVertexId,
 )
 from qgis.utils import iface
 
@@ -64,9 +65,11 @@ class GeometryCheckDockWidget(QDockWidget, FORM_CLASS):
         self.layer = None
         self.templayer = None
         self.koordList = []
+        self.hasChanges = False
 
-        self.butOK.clicked.connect(self.ok)
-        self.butAbbruch.clicked.connect(self.abbruch)
+        self.butOK.clicked.connect(self.applyAndClose)
+        self.butAbbruch.clicked.connect(self.close)
+        self.butApply.clicked.connect(self.applyChanges)
         self.tableWidget.itemChanged.connect(self.vertexEdit)
         self.tableWidget.cellClicked.connect(self.on_cellClicked)
         self.cboLayerName.currentIndexChanged.connect(self.setCheckLayer)
@@ -81,11 +84,29 @@ class GeometryCheckDockWidget(QDockWidget, FORM_CLASS):
         layer_list = [T2gLayers.Polygon.value, T2gLayers.Line.value, T2gLayers.Point.value]
         self.cboLayerName.addItems(layer_list)
 
-    def ok(self):
+    def applyAndClose(self):
+        self.applyChanges()
         self.close()
 
-    def abbruch(self):
-        self.close()
+    def applyChanges(self):
+        if not self.hasChanges or not self.layer:
+            return
+
+        self.layer.startEditing()
+
+        for koord in self.koordList:
+            fid = koord["fid"]
+            vertex_idx = koord["vertex_idx"]
+            feature = self.layer.getFeature(fid)
+            geom = feature.geometry()
+
+            new_point = QgsPoint(float(koord["x"]), float(koord["y"]), float(koord["z"]))
+            geom.get().moveVertex(QgsVertexId(0, 0, vertex_idx), new_point)
+            self.layer.changeGeometry(fid, geom)
+
+        self.layer.commitChanges()
+        self.hasChanges = False
+        self.refresh()
 
     def addNewTempLayer(self, crs):
         templayer = QgsVectorLayer("Point", self.tempLayerName, "memory")
@@ -99,8 +120,6 @@ class GeometryCheckDockWidget(QDockWidget, FORM_CLASS):
         g = root.findGroup("Vermessung")
         g.insertChildNode(0, QgsLayerTreeLayer(templayer))
 
-        symbol = templayer.renderer().symbol()
-        symbol.setColor(QColor.fromRgb(0, 225, 0))
         sym = QgsMarkerSymbol.createSimple({"name": "circle", "color": "red", "size": "3", "outline_width": "1"})
         templayer.renderer().setSymbol(sym)
         templayer.triggerRepaint()
@@ -119,56 +138,63 @@ class GeometryCheckDockWidget(QDockWidget, FORM_CLASS):
         if self.layer.geometryType() == QgsWkbTypes.PointGeometry:
             for f in self.layer.getFeatures():
                 try:
-                    koord = {"x": f.geometry().get().x(), "y": f.geometry().get().y(), "z": f.geometry().get().z()}
+                    geom = f.geometry().get()
+                    koord = {"x": geom.x(), "y": geom.y(), "z": geom.z(), "fid": f.id(), "vertex_idx": 0}
                     self.koordList.append(koord)
                 except Exception as e:
                     QgsMessageLog.logMessage(str(e), "T2G Archäologie", Qgis.Info)
                     sel.append(f.id())
-                    # continue
 
         elif self.layer.geometryType() == QgsWkbTypes.LineGeometry:
             for f in self.layer.getFeatures():
                 if f.geometry().isMultipart():
                     parts = f.geometry().asGeometryCollection()
+                    vertex_idx = 0
                     for part in parts:
                         for vertex in part.vertices():
-                            koord = {"x": vertex.x(), "y": vertex.y(), "z": vertex.z()}
+                            koord = {
+                                "x": vertex.x(),
+                                "y": vertex.y(),
+                                "z": vertex.z(),
+                                "fid": f.id(),
+                                "vertex_idx": vertex_idx,
+                            }
                             self.koordList.append(koord)
+                            vertex_idx += 1
                 else:
                     try:
-                        for i in range(len(f.geometry().asPolyline()[0])):
-                            koord = {
-                                "x": f.geometry().vertexAt(i).x(),
-                                "y": f.geometry().vertexAt(i).y(),
-                                "z": f.geometry().vertexAt(i).z(),
-                            }
+                        for i, vertex in enumerate(f.geometry().vertices()):
+                            koord = {"x": vertex.x(), "y": vertex.y(), "z": vertex.z(), "fid": f.id(), "vertex_idx": i}
                             self.koordList.append(koord)
                     except:
                         sel.append(f.id())
-                        # continue
 
         elif self.layer.geometryType() == QgsWkbTypes.PolygonGeometry:
             for f in self.layer.getFeatures():
                 if f.geometry().isMultipart():
                     parts = f.geometry().asGeometryCollection()
+                    vertex_idx = 0
                     for part in parts:
                         for vertex in part.vertices():
-                            koord = {"x": vertex.x(), "y": vertex.y(), "z": vertex.z()}
+                            koord = {
+                                "x": vertex.x(),
+                                "y": vertex.y(),
+                                "z": vertex.z(),
+                                "fid": f.id(),
+                                "vertex_idx": vertex_idx,
+                            }
                             self.koordList.append(koord)
+                            vertex_idx += 1
                 else:
                     try:
-                        for i in range(len(f.geometry().asPolygon()[0])):
-                            koord = {
-                                "x": f.geometry().vertexAt(i).x(),
-                                "y": f.geometry().vertexAt(i).y(),
-                                "z": f.geometry().vertexAt(i).z(),
-                            }
+                        for i, vertex in enumerate(f.geometry().vertices()):
+                            koord = {"x": vertex.x(), "y": vertex.y(), "z": vertex.z(), "fid": f.id(), "vertex_idx": i}
                             self.koordList.append(koord)
                     except:
                         sel.append(f.id())
-                        # continue
 
         # self.layer.selectByIds(sel)
+        self.tableWidget.blockSignals(True)
         for i in range(len(self.koordList)):
             self.tableWidget.insertRow(i)
             self.tableWidget.setItem(i, 0, QTableWidgetItem(str(self.koordList[i]["x"])))
@@ -180,6 +206,7 @@ class GeometryCheckDockWidget(QDockWidget, FORM_CLASS):
             feature.setGeometry(QgsGeometry(pt))
             feature.setAttributes([int(i)])
             self.templayer.dataProvider().addFeatures([feature])
+        self.tableWidget.blockSignals(False)
 
         self.tableWidget.setSortingEnabled(True)
         self.labvertexcount.setText(str(len(self.koordList)) + " Punkte")
@@ -187,15 +214,23 @@ class GeometryCheckDockWidget(QDockWidget, FORM_CLASS):
         self.templayer.commitChanges()
 
     def vertexEdit(self, item):
-        # self.layer.changeGeometry(self.feature.id(), newgeom)
-        # QgsMessageLog.logMessage(str(item.text()), 'T2G Archäologie', Qgis.Info)
-        if isNumber(item.text()):
-            if item.column() == 0:
-                self.koordList[item.row()]["x"] = item.text()
-            if item.column() == 1:
-                self.koordList[item.row()]["y"] = item.text()
-            if item.column() == 2:
-                self.koordList[item.row()]["z"] = item.text()
+        if not isNumber(item.text()):
+            return
+        row = item.row()
+        col = item.column()
+        if col == 0:
+            self.koordList[row]["x"] = float(item.text())
+            self._markCellAsChanged(item)
+        elif col == 1:
+            self.koordList[row]["y"] = float(item.text())
+            self._markCellAsChanged(item)
+        elif col == 2:
+            self.koordList[row]["z"] = float(item.text())
+            self._markCellAsChanged(item)
+
+    def _markCellAsChanged(self, item):
+        item.setBackground(QBrush(QColor(255, 255, 150)))
+        self.hasChanges = True
 
     def on_cellClicked(self, row, column):
         if self.templayer is None:

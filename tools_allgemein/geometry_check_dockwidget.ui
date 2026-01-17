@@ -15,7 +15,7 @@
   </property>
   <property name="minimumSize">
    <size>
-    <width>202</width>
+    <width>302</width>
     <height>202</height>
    </size>
   </property>
@@ -123,6 +123,13 @@
        </spacer>
       </item>
       <item>
+       <widget class="QPushButton" name="butOK">
+        <property name="text">
+         <string>OK</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QPushButton" name="butAbbruch">
         <property name="text">
          <string>Abbruch</string>
@@ -130,9 +137,9 @@
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="butOK">
+       <widget class="QPushButton" name="butApply">
         <property name="text">
-         <string>OK</string>
+         <string>Anwenden</string>
         </property>
        </widget>
       </item>
