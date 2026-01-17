@@ -129,7 +129,6 @@ class GeometryCheckDockWidget(QDockWidget, FORM_CLASS):
     def refresh(self):
         delLayer(self.tempLayerName)
         self.templayer = self.addNewTempLayer(self.layer.crs())
-        sel = []
         self.koordList = []
         tableWidgetRemoveRows(self.tableWidget)
         self.tableWidget.setSortingEnabled(False)
@@ -143,57 +142,11 @@ class GeometryCheckDockWidget(QDockWidget, FORM_CLASS):
                     self.koordList.append(koord)
                 except Exception as e:
                     QgsMessageLog.logMessage(str(e), "T2G Archäologie", Qgis.Info)
-                    sel.append(f.id())
 
-        elif self.layer.geometryType() == QgsWkbTypes.LineGeometry:
+        elif self.layer.geometryType() in (QgsWkbTypes.LineGeometry, QgsWkbTypes.PolygonGeometry):
             for f in self.layer.getFeatures():
-                if f.geometry().isMultipart():
-                    parts = f.geometry().asGeometryCollection()
-                    vertex_idx = 0
-                    for part in parts:
-                        for vertex in part.vertices():
-                            koord = {
-                                "x": vertex.x(),
-                                "y": vertex.y(),
-                                "z": vertex.z(),
-                                "fid": f.id(),
-                                "vertex_idx": vertex_idx,
-                            }
-                            self.koordList.append(koord)
-                            vertex_idx += 1
-                else:
-                    try:
-                        for i, vertex in enumerate(f.geometry().vertices()):
-                            koord = {"x": vertex.x(), "y": vertex.y(), "z": vertex.z(), "fid": f.id(), "vertex_idx": i}
-                            self.koordList.append(koord)
-                    except:
-                        sel.append(f.id())
+                self._extractVerticesFromFeature(f)
 
-        elif self.layer.geometryType() == QgsWkbTypes.PolygonGeometry:
-            for f in self.layer.getFeatures():
-                if f.geometry().isMultipart():
-                    parts = f.geometry().asGeometryCollection()
-                    vertex_idx = 0
-                    for part in parts:
-                        for vertex in part.vertices():
-                            koord = {
-                                "x": vertex.x(),
-                                "y": vertex.y(),
-                                "z": vertex.z(),
-                                "fid": f.id(),
-                                "vertex_idx": vertex_idx,
-                            }
-                            self.koordList.append(koord)
-                            vertex_idx += 1
-                else:
-                    try:
-                        for i, vertex in enumerate(f.geometry().vertices()):
-                            koord = {"x": vertex.x(), "y": vertex.y(), "z": vertex.z(), "fid": f.id(), "vertex_idx": i}
-                            self.koordList.append(koord)
-                    except:
-                        sel.append(f.id())
-
-        # self.layer.selectByIds(sel)
         self.tableWidget.blockSignals(True)
         for i in range(len(self.koordList)):
             self.tableWidget.insertRow(i)
@@ -231,6 +184,27 @@ class GeometryCheckDockWidget(QDockWidget, FORM_CLASS):
     def _markCellAsChanged(self, item):
         item.setBackground(QBrush(QColor(255, 255, 150)))
         self.hasChanges = True
+
+    def _extractVerticesFromFeature(self, feature):
+        fid = feature.id()
+        geom = feature.geometry()
+        if geom.isMultipart():
+            vertex_idx = 0
+            for part in geom.asGeometryCollection():
+                for vertex in part.vertices():
+                    koord = {
+                        "x": vertex.x(),
+                        "y": vertex.y(),
+                        "z": vertex.z(),
+                        "fid": fid,
+                        "vertex_idx": vertex_idx,
+                    }
+                    self.koordList.append(koord)
+                    vertex_idx += 1
+        else:
+            for i, vertex in enumerate(geom.vertices()):
+                koord = {"x": vertex.x(), "y": vertex.y(), "z": vertex.z(), "fid": fid, "vertex_idx": i}
+                self.koordList.append(koord)
 
     def on_cellClicked(self, row, column):
         if self.templayer is None:
