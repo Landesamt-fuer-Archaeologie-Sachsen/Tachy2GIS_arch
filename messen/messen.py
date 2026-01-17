@@ -93,17 +93,7 @@ class MeasurementTab(BASE, WIDGET):
         self.markersAndRubberBand = None
         self.layerToEdit = None
 
-        self.nextIdUpdater = NextIdUpdater(
-            layers=T2gLayers.getEditLayers(),
-            widgets={
-                "bef_nr": self.txtNextBef,
-                "prof_nr": self.txtNextProf,
-                "fund_nr": self.txtNextFund,
-                "probe_nr": self.txtNextProb,
-            },
-            parent=self,
-        )
-        self.nextIdUpdater.start()
+        self.nextIdUpdater = None
         self.setGuiContent()
         self.connectSignals()
 
@@ -208,7 +198,8 @@ class MeasurementTab(BASE, WIDGET):
         self.leaveDigitizingMode()
         self.resetTabToBeginning()
         self.deactivateKeys()
-        self.nextIdUpdater.stop()
+        if self.nextIdUpdater:
+            self.nextIdUpdater.stop()
 
     def disconnectSignals(self):
         signal = connectedSignalsDict.get("setDigitizeAction")
@@ -335,6 +326,17 @@ class MeasurementTab(BASE, WIDGET):
             setCustomProjectVariable("aktcode", referenceNumber)
             enableAndDisableWidgets([self.cmbLayerType], [self.txtReference])
             self.activateKeys()
+            self.nextIdUpdater = NextIdUpdater(
+                layers=T2gLayers.getEditLayers(),
+                widgets={
+                    "bef_nr": self.txtNextBef,
+                    "prof_nr": self.txtNextProf,
+                    "fund_nr": self.txtNextFund,
+                    "probe_nr": self.txtNextProb,
+                },
+                parent=self,
+            )
+            self.nextIdUpdater.start()
         else:
             self.resetTabToBeginning()
             self.deactivateKeys()
