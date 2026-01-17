@@ -33,6 +33,7 @@ class ToolsAllgemeinTab(BASE, WIDGET):
         self.butSuche.setToolTip("Suchen")
         for displayname, fieldname in self.field_mapping.items():
             self.cboSuche.addItem(displayname, fieldname)
+        self.dlgFeatureCheck = None
         self.setupConnections()
 
     def setupConnections(self):
@@ -76,6 +77,7 @@ class ToolsAllgemeinTab(BASE, WIDGET):
             iface.mapCanvas().refresh()
 
     def dlgFeatureCheckShow(self):
-        dlgFeatureCheck = GeometryCheckDockWidget(iface.mapCanvas())  # mainWindow()
-        dlgFeatureCheck.setAutoFillBackground(True)
-        dlgFeatureCheck.show()
+        if self.dlgFeatureCheck:
+            self.dlgFeatureCheck.close()
+            self.dlgFeatureCheck = None
+        self.dlgFeatureCheck = GeometryCheckDockWidget(iface.mapCanvas())
