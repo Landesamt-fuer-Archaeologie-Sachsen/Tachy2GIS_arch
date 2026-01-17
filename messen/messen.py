@@ -893,12 +893,18 @@ class MeasurementTab(BASE, WIDGET):
                 features.append(feature)
             return features
 
-    def openAttributeForm(self, feature):
-        if self.cbAttributeFormular.isChecked():
-            self.layerToEdit.startEditing()
+    def openAttributeForm(self, features):
+        if not self.cbAttributeFormular.isChecked():
+            return
+        if not features:
+            return
+        feature = features[0]
+        self.layerToEdit.startEditing()
+        if len(features) == 1:
+            iface.openFeatureForm(self.layerToEdit, feature)
+        else:
             query = "fid >= " + str(feature.id())
-            box = iface.showAttributeTable(self.layerToEdit, query)
-            box.exec_()
+            iface.showAttributeTable(self.layerToEdit, query)
 
     def saveGeometry(self):
         if not self.layerToEdit:
@@ -942,13 +948,12 @@ class MeasurementTab(BASE, WIDGET):
             self.layerToEdit.featureAdded.emit(features[0].id())
 
         if features:
-            addedFeature = features[0]
             self.addMeasurementPoints()
             self.addLastMeasurementsToTable(features)
             self.deleteCurrentDigitizing()
             iface.mapCanvas().refreshAllLayers()
             self.tachy2GisPlugin.vtk_mouse_interactor_style.draw()
-            self.openAttributeForm(addedFeature)
+            self.openAttributeForm(features)
             self.beepSound()
 
     def addMeasurementPoints(self):
