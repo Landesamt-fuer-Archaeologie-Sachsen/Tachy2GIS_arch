@@ -693,6 +693,8 @@ class MeasurementTab(BASE, WIDGET):
         self.resetDigitizing()
 
     def startTachyWatch(self):
+        if self.tachyWatchActive:
+            return
         iface.messageBar().pushMessage(
             "Tachy2GisArch",
             f"Verbindung zu Tachy2Gis aufgebaut. Punkte für {layers[self.geometryType]} können erfasst werden.",
@@ -703,10 +705,11 @@ class MeasurementTab(BASE, WIDGET):
         self.tachyWatchActive = True
 
     def stopTachyWatch(self):
-        if self.tachyWatchActive:
-            QgsMessageLog.logMessage("Tachy2Gis watch stopped", "T2G Archäologie", Qgis.Info)
+        if not self.tachyWatchActive:
+            return
+        QgsMessageLog.logMessage("Tachy2Gis watch stopped", "T2G Archäologie", Qgis.Info)
         self.watch.stop()
-        self.tachyWatchActive = True
+        self.tachyWatchActive = False
 
     def watchevent(self):
         # Check for new points in 3D viewer
@@ -947,6 +950,7 @@ class MeasurementTab(BASE, WIDGET):
             self.addMeasurementPoints()
             self.addLastMeasurementsToTable(features)
             self.deleteCurrentDigitizing()
+            self.startTachyWatch()
             iface.mapCanvas().refreshAllLayers()
             self.tachy2GisPlugin.vtk_mouse_interactor_style.draw()
             self.openAttributeForm(features)
