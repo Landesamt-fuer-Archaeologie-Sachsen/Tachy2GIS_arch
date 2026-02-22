@@ -796,10 +796,8 @@ class MeasurementTab(BASE, WIDGET):
             self.markersAndRubberBand.setHightlightMarkers(selectedCoords)
 
     def createGeometry(self):
-        qgsPoints = []
-        for vertex in self.vertices:
-            point = QgsPoint(vertex[0], vertex[1], vertex[2])
-            qgsPoints.append(point)
+        qgsPoints = [QgsPoint(vertex[0], vertex[1], vertex[2]) for vertex in self.vertices]
+
         if self.geometryType == "polygons":
             polygonGeometryType = self.cmbPolygonDigitizingMode.currentData()
             if polygonGeometryType == "free":
@@ -810,11 +808,11 @@ class MeasurementTab(BASE, WIDGET):
                 return self.createCircleDiameterGeometry()
             elif polygonGeometryType == "rectangle":
                 return self.createRectangleGeometry()
-
         elif self.geometryType == "lines":
             return QgsLineString(qgsPoints)
         elif self.geometryType == "points":
             return qgsPoints
+        return None
 
     def createCircleRadiusGeometry(self):
         if self.verticesCount > 2:
@@ -874,24 +872,22 @@ class MeasurementTab(BASE, WIDGET):
             else:
                 return False
 
-    def createFeatureFromGeometry(self, geom):
-        uuidFeature = self.layerToEdit.dataProvider().fieldNameIndex("obj_uuid")
-        if self.geometryType == "polygons" or self.geometryType == "lines":
-            attr = {uuidFeature: "{" + str(uuid.uuid4()) + "}"}
-            feature = QgsVectorLayerUtils.createFeature(
-                layer=self.layerToEdit, geometry=QgsGeometry(geom), attributes=attr
-            )
-            return feature
-        elif self.geometryType == "points":
-            features = []
-            for pt in geom:
-                attr = {uuidFeature: "{" + str(uuid.uuid4()) + "}"}
-                feature = QgsVectorLayerUtils.createFeature(
-                    layer=self.layerToEdit, geometry=QgsGeometry(pt), attributes=attr
-                )
+    def createFeatureFromGeometry(self, geom: QgsGeometry):
+        uuidFieldIndex = self.layerToEdit.dataProvider().fieldNameIndex("obj_uuid")
+        attr = {uuidFieldIndex: "{" + str(uuid.uuid4()) + "}"}
+        feature = QgsVectorLayerUtils.createFeature(layer=self.layerToEdit, geometry=QgsGeometry(geom), attributes=attr)
+        return feature
 
-                features.append(feature)
-            return features
+    def createFeaturesFromPoints(self, points: list[QgsPoint]):
+        uuidFieldIndex = self.layerToEdit.dataProvider().fieldNameIndex("obj_uuid")
+        featuresData = [
+            QgsVectorLayerUtils.QgsFeatureData(
+                geometry=QgsGeometry(pt), attributes={uuidFieldIndex: "{" + str(uuid.uuid4()) + "}"}
+            )
+            for pt in points
+        ]
+        features = QgsVectorLayerUtils.createFeatures(self.layerToEdit, featuresData)
+        return features
 
     def openAttributeForm(self, features):
         if not self.cbAttributeFormular.isChecked():
@@ -943,7 +939,7 @@ class MeasurementTab(BASE, WIDGET):
                 )
                 return
         elif self.geometryType == "points":
-            features = self.createFeatureFromGeometry(geom)
+            features = self.createFeaturesFromPoints(geom)
             _, features = self.layerToEdit.dataProvider().addFeatures(features)
             self.layerToEdit.featureAdded.emit(features[0].id())
 
