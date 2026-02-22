@@ -21,11 +21,12 @@
  *                                                                         *
  ***************************************************************************/
 """
+from dataclasses import dataclass
 from os import path as os_path
 
-from qgis.PyQt.QtCore import Qt, pyqtSignal, QVariant
-from qgis.PyQt.QtGui import QBrush, QColor
-from qgis.PyQt.QtWidgets import QDockWidget, QTableWidgetItem
+from qgis.PyQt.QtCore import Qt, pyqtSignal, QVariant, QLocale
+from qgis.PyQt.QtGui import QBrush, QColor, QDoubleValidator
+from qgis.PyQt.QtWidgets import QDockWidget, QLineEdit, QTableWidgetItem, QStyledItemDelegate
 from qgis.PyQt import uic
 from qgis.core import (
     QgsProject,
@@ -41,10 +42,65 @@ from qgis.core import (
     QgsGeometry,
     QgsVertexId,
 )
-from qgis.utils import iface
+from qgis.utils import iface, OverrideCursor
 
 from ..utils.layers import T2gLayers
 from ..utils.functions import delLayer, tableWidgetRemoveRows, isNumber
+
+
+class NumericTableWidgetItem(QTableWidgetItem):
+    def __lt__(self, other):
+        try:
+            return float(self.text()) < float(other.text())
+        except ValueError:
+            return super().__lt__(other)
+
+
+class FixupDoubleValidator(QDoubleValidator):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setLocale(QLocale(QLocale.C))
+        self.setNotation(QDoubleValidator.StandardNotation)
+
+    def validate(self, inputStr, pos):
+        state, text, pos = super().validate(inputStr.replace(",", "."), pos)
+        return state, inputStr, pos
+
+
+class NumericDelegate(QStyledItemDelegate):
+    def createEditor(self, parent, option, index):
+        editor = QLineEdit(parent)
+        editor.setValidator(FixupDoubleValidator(editor))
+        return editor
+
+    def setEditorData(self, editor, index):
+        value = index.data(Qt.EditRole)
+        if value is not None:
+            editor.setText(str(value))
+
+    def setModelData(self, editor, model, index):
+        text = editor.text().replace(",", ".")
+        try:
+            value = float(text)
+            model.setData(index, value, Qt.EditRole)
+        except ValueError:
+            previousValue = index.data(Qt.EditRole)
+            editor.setText(str(previousValue))
+
+    def displayText(self, value, locale):
+        try:
+            return str(value)
+        except (ValueError, TypeError):
+            return super().displayText(value, locale)
+
+
+@dataclass
+class VertexCoordinate:
+    x: float
+    y: float
+    z: float
+    featureId: int
+    vertexId: QgsVertexId
 
 
 FORM_CLASS, _ = uic.loadUiType(os_path.join(os_path.dirname(__file__), "geometry_check_dockwidget.ui"))
@@ -55,24 +111,30 @@ class GeometryCheckDockWidget(QDockWidget, FORM_CLASS):
 
     closingPlugin = pyqtSignal()
 
+    columnX = 0
+    columnY = 1
+    columnZ = 2
+    columnTempId = 3
+
     def __init__(self, parent=None):
-        """Constructor."""
-        super(GeometryCheckDockWidget, self).__init__(parent)
+        super().__init__(parent)
         self.setupUi(self)
         self.setAutoFillBackground(True)
         iface.addDockWidget(Qt.TopDockWidgetArea, self)
 
         self.layer = None
         self.templayer = None
-        self.koordList = []
+        self.koordList: list[VertexCoordinate] = []
+        self.changedCoordIds: set[int] = set()
         self.hasChanges = False
 
         self.butOK.clicked.connect(self.applyAndClose)
         self.butAbbruch.clicked.connect(self.close)
         self.butApply.clicked.connect(self.applyChanges)
         self.tableWidget.itemChanged.connect(self.vertexEdit)
-        self.tableWidget.cellClicked.connect(self.on_cellClicked)
+        self.tableWidget.selectionModel().currentRowChanged.connect(self._onCurrentRowChanged)
         self.cboLayerName.currentIndexChanged.connect(self.setCheckLayer)
+        self.tableWidget.setItemDelegate(NumericDelegate())
 
         self.setup()
 
@@ -81,8 +143,8 @@ class GeometryCheckDockWidget(QDockWidget, FORM_CLASS):
         self.refresh()
 
     def setup(self):
-        layer_list = [T2gLayers.Polygon.value, T2gLayers.Line.value, T2gLayers.Point.value]
-        self.cboLayerName.addItems(layer_list)
+        layerList = [T2gLayers.Polygon.value, T2gLayers.Line.value, T2gLayers.Point.value]
+        self.cboLayerName.addItems(layerList)
 
     def applyAndClose(self):
         self.applyChanges()
@@ -94,18 +156,19 @@ class GeometryCheckDockWidget(QDockWidget, FORM_CLASS):
 
         self.layer.startEditing()
 
-        for koord in self.koordList:
-            fid = koord["fid"]
-            vertex_idx = koord["vertex_idx"]
-            feature = self.layer.getFeature(fid)
+        for koordId in self.changedCoordIds:
+            koord = self.koordList[koordId]
+            feature = self.layer.getFeature(koord.featureId)
             geom = feature.geometry()
 
-            new_point = QgsPoint(float(koord["x"]), float(koord["y"]), float(koord["z"]))
-            geom.get().moveVertex(QgsVertexId(0, 0, vertex_idx), new_point)
-            self.layer.changeGeometry(fid, geom)
+            new_point = QgsPoint(koord.x, koord.y, koord.z)
+            geom.get().moveVertex(koord.vertexId, new_point)
+            self.layer.changeGeometry(koord.featureId, geom)
 
         self.layer.commitChanges()
+        iface.mapCanvas().redrawAllLayers()
         self.hasChanges = False
+        self.changedCoordIds.clear()
         self.refresh()
 
     def addNewTempLayer(self, crs):
@@ -127,93 +190,106 @@ class GeometryCheckDockWidget(QDockWidget, FORM_CLASS):
         return templayer
 
     def refresh(self):
-        delLayer(self.tempLayerName)
-        self.templayer = self.addNewTempLayer(self.layer.crs())
-        self.koordList = []
-        tableWidgetRemoveRows(self.tableWidget)
-        self.tableWidget.setSortingEnabled(False)
-        self.templayer.startEditing()
+        with OverrideCursor(Qt.WaitCursor):
+            delLayer(self.tempLayerName)
+            self.templayer = self.addNewTempLayer(self.layer.crs())
+            self.koordList = []
+            self.changedCoordIds.clear()
+            tableWidgetRemoveRows(self.tableWidget)
+            self.tableWidget.setSortingEnabled(False)
 
-        if self.layer.geometryType() == QgsWkbTypes.PointGeometry:
-            for f in self.layer.getFeatures():
-                try:
-                    geom = f.geometry().get()
-                    koord = {"x": geom.x(), "y": geom.y(), "z": geom.z(), "fid": f.id(), "vertex_idx": 0}
-                    self.koordList.append(koord)
-                except Exception as e:
-                    QgsMessageLog.logMessage(str(e), "T2G Archäologie", Qgis.Info)
+            if self.layer.geometryType() == QgsWkbTypes.PointGeometry:
+                for f in self.layer.getFeatures():
+                    try:
+                        geom = f.geometry().get()
+                        koord = VertexCoordinate(
+                            x=geom.x(), y=geom.y(), z=geom.z(), featureId=f.id(), vertexId=QgsVertexId(0, 0, 0)
+                        )
+                        self.koordList.append(koord)
+                    except Exception as e:
+                        QgsMessageLog.logMessage(str(e), "T2G Archäologie", Qgis.Info)
 
-        elif self.layer.geometryType() in (QgsWkbTypes.LineGeometry, QgsWkbTypes.PolygonGeometry):
-            for f in self.layer.getFeatures():
-                self._extractVerticesFromFeature(f)
+            elif self.layer.geometryType() in (QgsWkbTypes.LineGeometry, QgsWkbTypes.PolygonGeometry):
+                for f in self.layer.getFeatures():
+                    self._extractVerticesFromFeature(f)
 
-        self.tableWidget.blockSignals(True)
-        for i in range(len(self.koordList)):
-            self.tableWidget.insertRow(i)
-            self.tableWidget.setItem(i, 0, QTableWidgetItem(str(self.koordList[i]["x"])))
-            self.tableWidget.setItem(i, 1, QTableWidgetItem(str(self.koordList[i]["y"])))
-            self.tableWidget.setItem(i, 2, QTableWidgetItem(str(self.koordList[i]["z"])))
-            self.tableWidget.setItem(i, 3, QTableWidgetItem(str(i)))
-            feature = QgsFeature()
-            pt = QgsPoint(float(self.koordList[i]["x"]), float(self.koordList[i]["y"]), float(self.koordList[i]["z"]))
-            feature.setGeometry(QgsGeometry(pt))
-            feature.setAttributes([int(i)])
-            self.templayer.dataProvider().addFeatures([feature])
-        self.tableWidget.blockSignals(False)
+            self.tableWidget.blockSignals(True)
+            tempFeatures = []
+            for i in range(len(self.koordList)):
+                vertexCoordinate = self.koordList[i]
+                self.tableWidget.insertRow(i)
+                self.tableWidget.setItem(i, self.columnX, NumericTableWidgetItem(str(vertexCoordinate.x)))
+                self.tableWidget.setItem(i, self.columnY, NumericTableWidgetItem(str(vertexCoordinate.y)))
+                self.tableWidget.setItem(i, self.columnZ, NumericTableWidgetItem(str(vertexCoordinate.z)))
+                itemId = NumericTableWidgetItem(str(i))
+                itemId.setFlags(itemId.flags() & ~Qt.ItemIsEditable)
+                self.tableWidget.setItem(i, self.columnTempId, itemId)
 
-        self.tableWidget.setSortingEnabled(True)
-        self.labvertexcount.setText(str(len(self.koordList)) + " Punkte")
-        self.templayer.updateExtents()
-        self.templayer.commitChanges()
+                feature = QgsFeature()
+                pt = QgsPoint(vertexCoordinate.x, vertexCoordinate.y, vertexCoordinate.z)
+                feature.setGeometry(QgsGeometry(pt))
+                feature.setAttributes([int(i)])
+                tempFeatures.append(feature)
+
+            self.templayer.dataProvider().addFeatures(tempFeatures)
+            self.tableWidget.blockSignals(False)
+            self.tableWidget.setSortingEnabled(True)
+            self.labvertexcount.setText(str(len(self.koordList)) + " Punkte")
+            self.templayer.updateExtents()
 
     def vertexEdit(self, item):
-        if not isNumber(item.text()):
+        newValue = item.data(Qt.EditRole)
+        if not isNumber(newValue):
             return
+
         row = item.row()
         col = item.column()
-        if col == 0:
-            self.koordList[row]["x"] = float(item.text())
-            self._markCellAsChanged(item)
-        elif col == 1:
-            self.koordList[row]["y"] = float(item.text())
-            self._markCellAsChanged(item)
-        elif col == 2:
-            self.koordList[row]["z"] = float(item.text())
-            self._markCellAsChanged(item)
+        koordId = int(self.tableWidget.item(row, self.columnTempId).text())
+        oldValue = {
+            self.columnX: self.koordList[koordId].x,
+            self.columnY: self.koordList[koordId].y,
+            self.columnZ: self.koordList[koordId].z,
+        }.get(col)
+        if oldValue == newValue:
+            return
 
-    def _markCellAsChanged(self, item):
+        self.tableWidget.setSortingEnabled(False)
+        self.tableWidget.blockSignals(True)
+
+        if col == self.columnX:
+            self.koordList[koordId].x = item.data(Qt.EditRole)
+            self._markCellAsChanged(item, koordId)
+        elif col == self.columnY:
+            self.koordList[koordId].y = item.data(Qt.EditRole)
+            self._markCellAsChanged(item, koordId)
+        elif col == self.columnZ:
+            self.koordList[koordId].z = item.data(Qt.EditRole)
+            self._markCellAsChanged(item, koordId)
+
+        self.tableWidget.blockSignals(False)
+        self.tableWidget.setSortingEnabled(True)
+
+    def _markCellAsChanged(self, item, koord_id):
         item.setBackground(QBrush(QColor(255, 255, 150)))
+        self.changedCoordIds.add(koord_id)
         self.hasChanges = True
 
     def _extractVerticesFromFeature(self, feature):
         fid = feature.id()
         geom = feature.geometry()
-        if geom.isMultipart():
-            vertex_idx = 0
-            for part in geom.asGeometryCollection():
-                for vertex in part.vertices():
-                    koord = {
-                        "x": vertex.x(),
-                        "y": vertex.y(),
-                        "z": vertex.z(),
-                        "fid": fid,
-                        "vertex_idx": vertex_idx,
-                    }
-                    self.koordList.append(koord)
-                    vertex_idx += 1
-        else:
-            for i, vertex in enumerate(geom.vertices()):
-                koord = {"x": vertex.x(), "y": vertex.y(), "z": vertex.z(), "fid": fid, "vertex_idx": i}
-                self.koordList.append(koord)
+        for i, vertex in enumerate(geom.vertices()):
+            exists, vertex_id = geom.vertexIdFromVertexNr(i)
+            koord = VertexCoordinate(x=vertex.x(), y=vertex.y(), z=vertex.z(), featureId=fid, vertexId=vertex_id)
+            self.koordList.append(koord)
 
-    def on_cellClicked(self, row, column):
-        if self.templayer is None:
+    def _onCurrentRowChanged(self, current, previous):
+        if self.templayer is None or not current.isValid():
             return
-        id = self.tableWidget.item(row, 3).text()
-        self.templayer.selectByExpression(f"id={id}")
+        _id = self.tableWidget.item(current.row(), self.columnTempId).text()
+        self.templayer.selectByExpression(f"id={_id}")
         if self.templayer.selectedFeatureCount():
-            iface.mapCanvas().zoomToSelected(self.templayer)
-            iface.mapCanvas().zoomByFactor(5)
+            iface.mapCanvas().panToSelected(self.templayer)
+            iface.mapCanvas().flashFeatureIds(self.templayer, self.templayer.selectedFeatureIds(), flashes=1)
 
     def closeEvent(self, event):
         self.dwgClose()
