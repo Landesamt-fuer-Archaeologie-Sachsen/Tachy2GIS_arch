@@ -1,0 +1,7 @@
+/.pydevproject
+/.project
+/.idea
+/.settings
+*.py[cod]
+/.vscode
+/.env
