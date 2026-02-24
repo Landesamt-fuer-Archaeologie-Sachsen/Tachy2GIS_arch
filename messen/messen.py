@@ -37,8 +37,9 @@ from qgis.core import (
     QgsApplication,
 )
 from qgis.gui import QgsMapTool, QgsSnapIndicator, QgsRubberBand, QgsVertexMarker
-from qgis.utils import iface, plugins
+from qgis.utils import iface
 
+from .autoattributes import getComboboxModelFromLayerConfig, clearAutoAttributeProjectVariables
 from ..Icons import ICON_PATHS
 from ..utils.functions import (
     enableAndDisableWidgets,
@@ -51,8 +52,6 @@ from ..utils.functions import (
 )
 from ..utils.layers import T2gLayers, findLayerInProject, layerHasPendingChanges
 from ..utils.toolbar_functions import saveProject
-from .autoattributes import getComboboxModelFromLayerConfig, clearAutoAttributeProjectVariables
-
 
 layers = {"polygons": T2gLayers.Polygon.value, "lines": T2gLayers.Line.value, "points": T2gLayers.Point.value}
 
@@ -354,11 +353,11 @@ class MeasurementTab(BASE, WIDGET):
         self.setReferenceNumberProjectVariable()
         self.tachy2GisVisible = False
 
+    def setTachy2GisInstance(self, t2g_instance):
+        self.tachy2GisPlugin = t2g_instance
+
     def getTachy2GisInstance(self):
-        for pluginName, plugin in plugins.items():
-            if pluginName.lower() == "tachy2gis" or pluginName.lower() == "tachy2gis-3d_viewer":
-                return plugin
-        return None
+        return self.tachy2GisPlugin
 
     def startTachy2GisInstance(self):
         if self.firstTachyStart:

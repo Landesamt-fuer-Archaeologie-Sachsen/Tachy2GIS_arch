@@ -2,7 +2,7 @@ import gc
 from os import path as os_path
 
 from qgis.PyQt import sip
-from qgis.PyQt.QtCore import QCoreApplication, QSize
+from qgis.PyQt.QtCore import QCoreApplication
 from qgis.PyQt.QtGui import QIcon, QPixmap, QColor
 from qgis.PyQt.QtWidgets import (
     QAction,
@@ -15,6 +15,7 @@ from qgis.core import QgsApplication, QgsProject
 from qgis.gui import QgisInterface
 
 from .Icons import ICON_PATHS
+from .Tachy2GIS import classFactory as T2GclassFactory
 from .utils.functions import set_vsi_cached, is_network_path, merge_icons, color_shift_icon, ArchProjectConfig, any2bool
 from .utils.t2g_arch import T2gArch
 from .utils.toolbar_functions import openProjectFolder, saveProject
@@ -31,6 +32,10 @@ class PluginInterface:
         self.actions = {}
         self.t2g_arch_instance = None
 
+        # why not calling constructor of T2G here?
+        # because it can fail, but a constructor is not allowed to fail
+        self.t2g_instance = None
+
     def initGui(self):
         """
         Diese Methode wird von QGIS aufgerufen, wenn das Plugin geladen wird.
@@ -40,6 +45,9 @@ class PluginInterface:
         QgsProject.instance().readProject.connect(self.onNewProjectLoaded)
         QgsProject.instance().cleared.connect(self.onProjectClosed)
         QgsProject.instance().projectSaved.connect(self.onProjectSaved)
+
+        self.t2g_instance = T2GclassFactory(self.iface)
+        self.t2g_instance.initGui()
 
     def unload(self):
         """
@@ -77,6 +85,9 @@ class PluginInterface:
         QgsProject.instance().readProject.disconnect(self.onNewProjectLoaded)
         QgsProject.instance().cleared.disconnect(self.onProjectClosed)
         QgsProject.instance().projectSaved.disconnect(self.onProjectSaved)
+
+        self.t2g_instance.unload()
+        self.t2g_instance = None
 
     def setupToolbar(self):
         self.actions = {}
@@ -217,6 +228,7 @@ class PluginInterface:
         if checked:
             if not self.t2g_arch_instance:
                 self.t2g_arch_instance = T2gArch(self.iface)
+                self.t2g_arch_instance.setTachy2GisInstance(self.t2g_instance)
                 self.t2g_arch_instance.initGui()
             if self.t2g_arch_instance.startAndStopPlugin(start=True):
                 if is_network_path(QgsProject.instance().fileName()):

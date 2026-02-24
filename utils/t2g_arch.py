@@ -26,7 +26,6 @@ import operator
 import os
 import uuid
 
-from qgis.PyQt.uic import loadUi
 from qgis.PyQt.QtCore import QCoreApplication, QSettings, Qt, QTimer, QTranslator, qVersion, QVariant
 from qgis.PyQt.QtGui import QIcon, QCursor
 from qgis.PyQt.QtWidgets import (
@@ -37,6 +36,7 @@ from qgis.PyQt.QtWidgets import (
     QMenu,
     QMessageBox,
 )
+from qgis.PyQt.uic import loadUi
 from qgis.core import (
     Qgis,
     QgsCoordinateReferenceSystem,
@@ -57,7 +57,6 @@ from qgis.core import (
     QgsApplication,
 )
 from qgis.gui import QgisInterface
-from qgis.utils import plugins, active_plugins
 
 from .functions import (
     ArchProjectConfig,
@@ -74,16 +73,16 @@ from .functions import (
     any2bool,
 )
 from .identifygeometry import IdentifyGeometry
-from .t2g_arch_dockwidget import T2GArchDockWidget
 from .layers import T2gLayers, findLayerInProject
+from .t2g_arch_dockwidget import T2GArchDockWidget
 from ..ExtDialoge.myDlgRasterLayerView import RasterLayerViewDockWidget
 from ..ExtDialoge.myDlgSettings import DlgSettings, Configfile
 from ..Icons import ICON_PATHS
 from ..geoEdit.geo_edit import GeoEdit
-from ..messen.messen import MeasurementTab
 from ..messen.autoattributes import clearAutoAttributeProjectVariables
-from ..tools_allgemein.widgets import ToolsAllgemeinTab
+from ..messen.messen import MeasurementTab
 from ..profile.profile import Profile
+from ..tools_allgemein.widgets import ToolsAllgemeinTab
 from ..transformation.transformation_gui import TransformationGui
 
 
@@ -132,6 +131,10 @@ class T2gArch:
         self.pluginIsActive = False
         self.dockwidget = None
         self.number_of_unsuccessful_auto_backups = 0
+        self.t2g_instance = None
+
+    def setTachy2GisInstance(self, t2g_instance):
+        self.t2g_instance = t2g_instance
 
     def initGui(self):
         self.dockwidget = T2GArchDockWidget()
@@ -258,6 +261,7 @@ class T2gArch:
     def setupModules(self):
         # Messen
         self.measurementTab = MeasurementTab()
+        self.measurementTab.setTachy2GisInstance(self.t2g_instance)
         self.dockwidget.tab_measurement.layout().addWidget(self.measurementTab)
 
         # Tools Allgemein
