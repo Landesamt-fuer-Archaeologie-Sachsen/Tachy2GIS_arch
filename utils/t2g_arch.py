@@ -237,7 +237,6 @@ class T2gArch:
             layer.commitChanges()
         # <uuid ereugen wenn Feld uuid leer
 
-        self.T2G = plugins.get([s for s in active_plugins if "Tachy2GIS" in s][0])
         # self.dockwidget.tabWidget_2.setCurrentIndex(0)
         self.iface.actionSelectRectangle().trigger()
 
