@@ -24,8 +24,9 @@ from cmath import log
 from os.path import basename
 from unittest import result
 
-#from T2G.gc_constants import TMC_DoMeasure
+# from T2G.gc_constants import TMC_DoMeasure
 from . import resources
+
 """
 import pydevd
 try:
@@ -40,15 +41,52 @@ except ConnectionRefusedError:
 import os, sys, glob
 import gc as garbagecollector
 from PyQt5.QtSerialPort import QSerialPortInfo, QSerialPort
-from PyQt5.QtWidgets import QAction, QHeaderView, QDialog, QFileDialog, QSizePolicy, QVBoxLayout, QLineEdit,\
-    QPushButton, QProgressDialog, QProgressBar, qApp, QLabel
-from PyQt5.QtCore import QSettings, QItemSelectionModel, QTranslator, QCoreApplication, QThread, qVersion, Qt,\
-    QEvent, QObject, pyqtSignal, QTimer
+from PyQt5.QtWidgets import (
+    QAction,
+    QHeaderView,
+    QDialog,
+    QFileDialog,
+    QSizePolicy,
+    QVBoxLayout,
+    QLineEdit,
+    QPushButton,
+    QProgressDialog,
+    QProgressBar,
+    qApp,
+    QLabel,
+    QMenu,
+)
+from PyQt5.QtCore import (
+    QSettings,
+    QItemSelectionModel,
+    QTranslator,
+    QCoreApplication,
+    QThread,
+    qVersion,
+    Qt,
+    QEvent,
+    QObject,
+    pyqtSignal,
+    QTimer,
+)
 from PyQt5.QtGui import QIcon
 from qgis.utils import iface
-from qgis.core import Qgis, QgsMapLayerProxyModel, QgsProject, QgsMapLayerType, QgsWkbTypes, QgsLayerTreeGroup,\
-    QgsLayerTreeLayer, QgsGeometry, QgsVectorDataProvider, QgsFeature, QgsExpression, QgsExpressionContext, QgsExpressionContextUtils , \
-    QgsVectorLayer
+from qgis.core import (
+    Qgis,
+    QgsMapLayerProxyModel,
+    QgsProject,
+    QgsMapLayerType,
+    QgsWkbTypes,
+    QgsLayerTreeGroup,
+    QgsLayerTreeLayer,
+    QgsGeometry,
+    QgsVectorDataProvider,
+    QgsFeature,
+    QgsExpression,
+    QgsExpressionContext,
+    QgsExpressionContextUtils,
+    QgsVectorLayer,
+)
 from qgis.gui import QgsMapToolPan
 
 import vtk
@@ -57,16 +95,18 @@ from PyQt5 import QtCore, QtWidgets
 from .T2G.TachyReader import AvailabilityWatchdog
 from .FieldDialog import FieldDialog
 from .Tachy2GIS_dialog import Tachy2GisDialog
+
 # from .T2G.autoZoomer import ExtentProvider, AutoZoomer
 from .T2G.geo_com import connect_beep
 from .T2G.visualization import VtkWidget, VtkMouseInteractorStyle, VtkPointCloudLayer
 
-from tachyconnect.ReplyHandler import ReplyHandler
-from tachyconnect.ts_control import MessageQueue, Dispatcher, CommunicationConstants
-from tachyconnect.GSI_Parser import make_vertex
-from tachyconnect.TachyRequest import TMC_GetCoordinate, TMC_DoMeasure, TMC_GetHeight, TMC_SetHeight
-from tachyconnect.TachyJoystick import TachyJoystick
-import tachyconnect.gc_constants as gc
+from .tachyconnect_t2g.ReplyHandler import ReplyHandler
+from .tachyconnect_t2g.ts_control import MessageQueue, Dispatcher, CommunicationConstants
+from .tachyconnect_t2g.GSI_Parser import make_vertex
+from .tachyconnect_t2g.TachyRequest import TMC_GetCoordinate, TMC_DoMeasure, TMC_GetHeight, TMC_SetHeight
+from .tachyconnect_t2g.TachyJoystick import TachyJoystick
+from .tachyconnect_t2g import gc_constants as gc
+
 
 def make_axes_actor(scale, xyzLabels):
     axes = vtk.vtkAxesActor()
@@ -89,13 +129,13 @@ def make_axes_actor(scale, xyzLabels):
 
 
 class Tachy2Gis:
-    NO_PORT = 'Select tachymeter USB port'
-    REF_HEIGHT_PAUSED = '🟠'
-    REF_HEIGHT_DISCONNECTED = '🔴'
-    REF_HEIGHT_IDLE = '🟡'
-    REF_HEIGHT_CONNECTED = '🟢'
-    REF_HEIGHT_CHANGED = '⚠️'
-    SERIAL_CONNECTED = '🔗'
+    NO_PORT = "Select tachymeter USB port"
+    REF_HEIGHT_PAUSED = "🟠"
+    REF_HEIGHT_DISCONNECTED = "🔴"
+    REF_HEIGHT_IDLE = "🟡"
+    REF_HEIGHT_CONNECTED = "🟢"
+    REF_HEIGHT_CHANGED = "⚠️"
+    SERIAL_CONNECTED = "🔗"
 
     """QGIS Plugin Implementation."""
     # Custom methods go here:
@@ -110,22 +150,19 @@ class Tachy2Gis:
         # initialize plugin directory
         self.plugin_dir = os.path.dirname(__file__)
         # initialize locale
-        locale = QSettings().value('locale/userLocale')[0:2]
-        locale_path = os.path.join(
-            self.plugin_dir,
-            'i18n',
-            'Tachy2Gis_{}.qm'.format(locale))
+        locale = QSettings().value("locale/userLocale")[0:2]
+        locale_path = os.path.join(self.plugin_dir, "i18n", "Tachy2Gis_{}.qm".format(locale))
 
         if os.path.exists(locale_path):
             self.translator = QTranslator()
             self.translator.load(locale_path)
 
-            if qVersion() > '4.3.3':
+            if qVersion() > "4.3.3":
                 QCoreApplication.installTranslator(self.translator)
 
         # Declare instance attributes
         self.actions = []
-        self.menu = self.tr('&Tachy2GIS')
+        self.menu = self.tr("&Tachy2GIS")
         # remove empty toolbar
         # self.toolbar = self.iface.addToolBar('Tachy2Gis')
         # self.toolbar.setObjectName('Tachy2Gis')
@@ -151,15 +188,12 @@ class Tachy2Gis:
         self.markerWidget.InteractiveOff()
 
         self.reply_handler = ReplyHandler()
-        self.dispatcher = Dispatcher(MessageQueue(1),
-                                     MessageQueue(7),
-                                     self.reply_handler)
+        self.dispatcher = Dispatcher(MessageQueue(1), MessageQueue(7), self.reply_handler)
         # self.reply_handler.register_command(TMC_GetCoordinate, self.coordinates_received)
         # self.reply_handler.register_command(TMC_DoMeasure, self.request_coordinates)
         # self.reply_handler.register_command(TMC_GetHeight, self.dlg_set_ref_height)
 
-
-        #tachyJoystick
+        # tachyJoystick
         self.tachy_joystick_dlg = TachyJoystick(self.dispatcher, self.dlg, Qt.Dialog | Qt.Tool)
         # custom QLineEdit
         self.refHeightLineEdit = SignalizingLineEdit()
@@ -178,14 +212,17 @@ class Tachy2Gis:
         self.refHeightStatusLabel.setToolTip(self.tr("Zeigt an, ob die Reflektorhöhe ausgelesen wird"))
 
         self.availability_watchdog = AvailabilityWatchdog()
-        self.dlg.zoomModeComboBox.addItems([self.tr('Letzter Punkt'),
-                                            self.tr('Layer'),
-                                            self.tr('Letztes feature'),
-                                            self.tr('Letzte 2 features'),
-                                            self.tr('Letzte 4 features'),
-                                            self.tr('Letzte 8 features'),
-                                            self.tr('Aus')
-                                            ])
+        self.dlg.zoomModeComboBox.addItems(
+            [
+                self.tr("Letzter Punkt"),
+                self.tr("Layer"),
+                self.tr("Letztes feature"),
+                self.tr("Letzte 2 features"),
+                self.tr("Letzte 4 features"),
+                self.tr("Letzte 8 features"),
+                self.tr("Aus"),
+            ]
+        )
 
         self.refHeightStatus = RefHeightStatus()
         self.refHeightPollingThread = QThread()
@@ -197,13 +234,13 @@ class Tachy2Gis:
         self.pluginIsActive = False
 
     def request_coordinates(self, *args):
-        self.dispatcher.send(TMC_GetCoordinate(args=('1000', '1')).get_geocom_command())
+        self.dispatcher.send(TMC_GetCoordinate(args=("1000", "1")).get_geocom_command())
 
     def coordinates_received(self, *args):
         print("Args: ", args)
         log_file_name = self.dlg.select_log_file.toolTip()
-        if log_file_name and not log_file_name.startswith('Log-Datei'):
-            with open(log_file_name, 'a') as log_file:
+        if log_file_name and not log_file_name.startswith("Log-Datei"):
+            with open(log_file_name, "a") as log_file:
                 log_file.write(f"{str(args)}\n")
         retcode = int(args[0])
 
@@ -221,18 +258,22 @@ class Tachy2Gis:
             self.dlg.coords.setText(message)
             iface.messageBar().pushMessage(self.tr("Warnung: "), self.tr(f"Tachy Fehler: {message}"), Qgis.Warning, 10)
 
-        #self.dispatcher.send(TMC_DoMeasure(args=(gc.TMC_MEASURE_PRG.TMC_CLEAR, gc.TMC_INCLINE_PRG.TMC_AUTO_INC)).get_geocom_command())
+        # self.dispatcher.send(TMC_DoMeasure(args=(gc.TMC_MEASURE_PRG.TMC_CLEAR, gc.TMC_INCLINE_PRG.TMC_AUTO_INC)).get_geocom_command())
 
     def trigger_measurement(self):
-        self.dispatcher.send(TMC_DoMeasure(args=(gc.TMC_MEASURE_PRG.TMC_DEF_DIST.value, gc.TMC_INCLINE_PRG.TMC_AUTO_INC.value)).get_geocom_command())
+        self.dispatcher.send(
+            TMC_DoMeasure(
+                args=(gc.TMC_MEASURE_PRG.TMC_DEF_DIST.value, gc.TMC_INCLINE_PRG.TMC_AUTO_INC.value)
+            ).get_geocom_command()
+        )
 
     def vertex_received(self, line):
         print(line)
         if line.startswith(CommunicationConstants.GEOCOM_REPLY_PREFIX):
-                return
+            return
         log_file_name = self.dlg.select_log_file.toolTip()
-        if log_file_name and not log_file_name.startswith('Log-Datei'):
-            with open(log_file_name, 'a') as log_file:
+        if log_file_name and not log_file_name.startswith("Log-Datei"):
+            with open(log_file_name, "a") as log_file:
                 log_file.write(line)
         new_vtx = make_vertex(line)
         self.vtk_mouse_interactor_style.add_vertex(new_vtx)
@@ -326,7 +367,7 @@ class Tachy2Gis:
         self.dlg.traceButton.clicked.disconnect()
         self.dlg.deleteVertexButton.clicked.disconnect()
         self.vtk_mouse_interactor_style.point_added.signal.disconnect(self.point_added)
-        #self.dlg.setRefHeight.returnPressed.disconnect()
+        # self.dlg.setRefHeight.returnPressed.disconnect()
         self.dlg.zoomResetButton.clicked.disconnect()
         self.availability_watchdog.serial_available.disconnect()
         self.dlg.loadPointCloud.clicked.disconnect()
@@ -351,7 +392,7 @@ class Tachy2Gis:
         self.refHeightPollingThread.quit()
         self.pluginIsActive = False
         garbagecollector.collect()
-        print('Signals disconnected!')
+        print("Signals disconnected!")
 
     # switch target layer to source layer when changing source layer
     def switchTargetLayer(self):
@@ -379,16 +420,14 @@ class Tachy2Gis:
 
     # TODO: Log default path QgsProject.instance().homePath()?
     def set_log(self):
-        logFileName = QFileDialog.getSaveFileName(None,
-                                                  self.tr('Log-Datei speichern...'),
-                                                  QgsProject.instance().homePath(),
-                                                  'Text (*.txt)',
-                                                  '*.txt')[0]
+        logFileName = QFileDialog.getSaveFileName(
+            None, self.tr("Log-Datei speichern..."), QgsProject.instance().homePath(), "Text (*.txt)", "*.txt"
+        )[0]
         self.dlg.select_log_file.setToolTip(logFileName)
         # self.tachyReader.setLogfile(logFileName)
 
     def dumpEnabled(self):
-        verticesAvailable = (len(self.vtk_mouse_interactor_style.vertices) > 0)
+        verticesAvailable = len(self.vtk_mouse_interactor_style.vertices) > 0
         # Selecting a target layer while there are no vertices in the vertex list may cause segfaults. To avoid this,
         # the 'Dump' button is disabled as long there are none:
         self.dlg.dumpButton.setEnabled(verticesAvailable)
@@ -400,7 +439,7 @@ class Tachy2Gis:
 
     def autozoom(self, *args):
         index = self.dlg.zoomModeComboBox.currentIndex()
-        if index == 6: # Off
+        if index == 6:  # Off
             return
 
         if self.dlg.sourceLayerComboBox.currentLayer() == self.dlg.targetLayerComboBox.currentLayer():
@@ -422,12 +461,14 @@ class Tachy2Gis:
         if index == 0:  # Track last point
             if self.dlg.zoomModeComboBox.currentIndex() == 0:
                 if self.vtk_mouse_interactor_style.vertices:
-                    self.vtk_widget.renderer.ResetCamera(self.vtk_mouse_interactor_style.vertices[-1][0],
-                                                         self.vtk_mouse_interactor_style.vertices[-1][0],
-                                                         self.vtk_mouse_interactor_style.vertices[-1][1],
-                                                         self.vtk_mouse_interactor_style.vertices[-1][1],
-                                                         self.vtk_mouse_interactor_style.vertices[-1][2],
-                                                         self.vtk_mouse_interactor_style.vertices[-1][2])
+                    self.vtk_widget.renderer.ResetCamera(
+                        self.vtk_mouse_interactor_style.vertices[-1][0],
+                        self.vtk_mouse_interactor_style.vertices[-1][0],
+                        self.vtk_mouse_interactor_style.vertices[-1][1],
+                        self.vtk_mouse_interactor_style.vertices[-1][1],
+                        self.vtk_mouse_interactor_style.vertices[-1][2],
+                        self.vtk_mouse_interactor_style.vertices[-1][2],
+                    )
                     self.vtk_widget.renderer.GetActiveCamera().Zoom(3)
                     self.vtk_widget.renderer.ResetCameraClippingRange()
                     self.vtk_widget.renderer.GetRenderWindow().Render()
@@ -444,11 +485,14 @@ class Tachy2Gis:
             self.vtk_widget.renderer.GetActiveCamera().SetViewUp(0, 1, 0)
             self.vtk_widget.renderer.GetActiveCamera().SetPosition(0, 0, 0)
             self.vtk_widget.renderer.GetActiveCamera().SetFocalPoint(0, 0, -1)
-            self.vtk_widget.renderer.ResetCamera(current_layer.extent().xMinimum(),
-                                                 current_layer.extent().xMaximum(),
-                                                 current_layer.extent().yMinimum(),
-                                                 current_layer.extent().yMaximum(),
-                                                 min(zVtx), max(zVtx))
+            self.vtk_widget.renderer.ResetCamera(
+                current_layer.extent().xMinimum(),
+                current_layer.extent().xMaximum(),
+                current_layer.extent().yMinimum(),
+                current_layer.extent().yMaximum(),
+                min(zVtx),
+                max(zVtx),
+            )
             self.vtk_widget.renderer.ResetCameraClippingRange()
             self.vtk_widget.renderer.GetRenderWindow().Render()
 
@@ -458,10 +502,7 @@ class Tachy2Gis:
                 self.autozoom(1)
                 return
             featIds = [f.id() for f in feats]
-            count = {2: 1,
-                     3: 2,
-                     4: 4,
-                     5: 8}
+            count = {2: 1, 3: 2, 4: 4, 5: 8}
             zoom_to = count[index]
 
             buffered = sorted(filter(lambda id: id < 0, featIds))
@@ -487,9 +528,7 @@ class Tachy2Gis:
             self.vtk_widget.renderer.GetActiveCamera().SetViewUp(0, 1, 0)
             self.vtk_widget.renderer.GetActiveCamera().SetPosition(0, 0, 0)
             self.vtk_widget.renderer.GetActiveCamera().SetFocalPoint(0, 0, -1)
-            self.vtk_widget.renderer.ResetCamera(min(xMin), max(xMax),
-                                                 min(yMin), max(yMax),
-                                                 min(zVtx), max(zVtx))
+            self.vtk_widget.renderer.ResetCamera(min(xMin), max(xMax), min(yMin), max(yMax), min(zVtx), max(zVtx))
             self.vtk_widget.renderer.ResetCameraClippingRange()
             self.vtk_widget.renderer.GetRenderWindow().Render()
 
@@ -511,12 +550,14 @@ class Tachy2Gis:
         active_camera.SetViewUp(0, 1, 0)
         active_camera.SetPosition(0, 0, 0)
         active_camera.SetFocalPoint(0, 0, -1)
-        self.vtk_widget.renderer.ResetCamera(iface.mapCanvas().extent().xMinimum(),
-                                             iface.mapCanvas().extent().xMaximum(),
-                                             iface.mapCanvas().extent().yMinimum(),
-                                             iface.mapCanvas().extent().yMaximum(),
-                                             self.vtk_widget.renderer.ComputeVisiblePropBounds()[-2],
-                                             self.vtk_widget.renderer.ComputeVisiblePropBounds()[-1])
+        self.vtk_widget.renderer.ResetCamera(
+            iface.mapCanvas().extent().xMinimum(),
+            iface.mapCanvas().extent().xMaximum(),
+            iface.mapCanvas().extent().yMinimum(),
+            iface.mapCanvas().extent().yMaximum(),
+            self.vtk_widget.renderer.ComputeVisiblePropBounds()[-2],
+            self.vtk_widget.renderer.ComputeVisiblePropBounds()[-1],
+        )
         active_camera.Zoom(3)
         self.vtk_widget.renderer.ResetCameraClippingRange()
         self.vtk_widget.renderer.GetRenderWindow().Render()
@@ -527,7 +568,7 @@ class Tachy2Gis:
     # todo: old - remove
     def setRefHeight(self):
         pass
-        #refHeight = self.dlg.setRefHeight.text()
+        # refHeight = self.dlg.setRefHeight.text()
         # self.tachyReader.setReflectorHeight(refHeight)
 
     def getRefHeight(self):
@@ -537,12 +578,14 @@ class Tachy2Gis:
     # Testline XYZRGB: 32565837.246360727 5933518.657366993 2.063523623769514 255 255 255
     def loadPointCloud(self, cloudFileName=None):
         if not cloudFileName:
-            cloudFileName = QFileDialog.getOpenFileName(None,
-                                                        self.tr('PointCloud laden...'),
-                                                        QgsProject.instance().homePath(),
-                                                        'XYZRGB (*.xyz);;Text (*.txt)',
-                                                        '*.xyz;;*.txt')[0]
-            if cloudFileName == '':
+            cloudFileName = QFileDialog.getOpenFileName(
+                None,
+                self.tr("PointCloud laden..."),
+                QgsProject.instance().homePath(),
+                "XYZRGB (*.xyz);;Text (*.txt)",
+                "*.xyz;;*.txt",
+            )[0]
+            if cloudFileName == "":
                 return
         progress = QProgressDialog(self.tr("Lade PointCloud..."), self.tr("Abbrechen"), 0, 0)
         progress.setWindowTitle(self.tr("PointCloud laden..."))
@@ -550,7 +593,7 @@ class Tachy2Gis:
         progress.show()
 
         pcLayer = QgsVectorLayer("PointZ", "⛅ " + basename(cloudFileName), "memory")
-        QgsExpressionContextUtils.setLayerVariable(pcLayer, 'cloud_path', cloudFileName)
+        QgsExpressionContextUtils.setLayerVariable(pcLayer, "cloud_path", cloudFileName)
         cloud_layer = VtkPointCloudLayer(cloudFileName, pcLayer)
         self.vtk_widget.layers[cloud_layer.id] = cloud_layer
         self.vtk_widget.renderer.AddActor(cloud_layer.vtkActor)
@@ -585,14 +628,16 @@ class Tachy2Gis:
 
     # read reflector height
     def dlg_set_ref_height(self, *args):
-        refHeight = f'{float(args[-1][:6]):<06}'
+        refHeight = f"{float(args[-1][:6]):<06}"
         retcode = int(args[0])
         if retcode == gc.GRC_OK:
             if self.refHeightLineEdit.text():
                 # check if ref height changed
                 if refHeight != self.refHeightLineEdit.text():
                     self.refHeightStatusLabel.setText(self.REF_HEIGHT_CHANGED)
-                    iface.messageBar().pushMessage(self.tr("Warnung: "), self.tr("Reflektorhöhe wurde geändert!"), Qgis.Warning, 30)
+                    iface.messageBar().pushMessage(
+                        self.tr("Warnung: "), self.tr("Reflektorhöhe wurde geändert!"), Qgis.Warning, 30
+                    )
                     # todo?: stop poll and wait for new input?
                     # give warning but show new ref height and continue
                     self.refHeightLineEdit.setText(refHeight)
@@ -604,11 +649,13 @@ class Tachy2Gis:
                         self.refHeightLineEdit.setText(refHeight)
             # put ref height into LineEdit if empty
             else:
-                self.refHeightLineEdit.setText(f'{args[-1][:6]}')
+                self.refHeightLineEdit.setText(f"{args[-1][:6]}")
 
         else:
             self.refHeightStatusLabel.setText(self.REF_HEIGHT_DISCONNECTED)
-            iface.messageBar().pushMessage(self.tr("Warnung: "), self.tr(f"Tachy Fehler: {gc.MESSAGES[retcode]}"), Qgis.Warning, 10)
+            iface.messageBar().pushMessage(
+                self.tr("Warnung: "), self.tr(f"Tachy Fehler: {gc.MESSAGES[retcode]}"), Qgis.Warning, 10
+            )
 
     # set reflector height on returnPressed
     def set_ref_height(self):
@@ -619,7 +666,7 @@ class Tachy2Gis:
         except:
             iface.messageBar().pushMessage(self.tr("Fehler: "), self.tr("Ungültiger Wert"), Qgis.Critical, 10)
             return
-        self.dispatcher.send(TMC_SetHeight(args = ([refHeight])).get_geocom_command())
+        self.dispatcher.send(TMC_SetHeight(args=([refHeight])).get_geocom_command())
         # start ref height status poll again
         self.refHeightStatus.start()
 
@@ -684,6 +731,10 @@ class Tachy2Gis:
         self.dispatcher.serial_connected.connect(self.tachy_connected)
         self.dispatcher.serial_disconnected.connect(self.tachy_disconnected)
         self.dlg.tachy_connect_button.clicked.connect(self.dispatcher.hook_up)
+        tachy_menu = QMenu(self.dlg.tachy_connect_button)
+        tachy_menu.addAction(self.tr("Tachy verbinden"), self.dispatcher.hook_up)
+        tachy_menu.addAction(self.tr("Port manuell wählen..."), self.dispatcher.manual_hook_up)
+        self.dlg.tachy_connect_button.setMenu(tachy_menu)
         self.dlg.tachyJoystick.clicked.connect(self.show_joystick)
 
         # custom QLineEdit with focus event
@@ -789,7 +840,7 @@ class Tachy2Gis:
         :rtype: QString
         """
         # noinspection PyTypeChecker,PyArgumentList,PyCallByClass
-        return QCoreApplication.translate('Tachy2Gis', message)
+        return QCoreApplication.translate("Tachy2Gis", message)
 
     def add_action(
         self,
@@ -801,7 +852,8 @@ class Tachy2Gis:
         add_to_toolbar=True,
         status_tip=None,
         whats_this=None,
-        parent=None):
+        parent=None,
+    ):
         """Add a toolbar icon to the toolbar.
 
         :param icon_path: Path to the icon for this action. Can be a resource
@@ -860,9 +912,7 @@ class Tachy2Gis:
             self.iface.addToolBarIcon(action)
 
         if add_to_menu:
-            self.iface.addPluginToMenu(
-                self.menu,
-                action)
+            self.iface.addPluginToMenu(self.menu, action)
 
         self.actions.append(action)
 
@@ -871,19 +921,13 @@ class Tachy2Gis:
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
 
-        icon_path = ':/plugins/Tachy2Gis/icon.png'
-        self.add_action(
-            icon_path,
-            text=self.tr('Tachy2GIS'),
-            callback=self.run,
-            parent=self.iface.mainWindow())
+        icon_path = ":/plugins/Tachy2Gis/icon.png"
+        self.add_action(icon_path, text=self.tr("Tachy2GIS"), callback=self.run, parent=self.iface.mainWindow())
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
         for action in self.actions:
-            self.iface.removePluginMenu(
-                self.tr('&Tachy2GIS'),
-                action)
+            self.iface.removePluginMenu(self.tr("&Tachy2GIS"), action)
             self.iface.removeToolBarIcon(action)
         # remove the toolbar
         # del self.toolbarminec
@@ -940,7 +984,7 @@ class RefHeightStatus(QObject):
     def start(self):
         self.pollingTimer.start(2000)
         self.register_ref_height.emit()
-        #self.parent.reply_handler.register_command(TMC_GetHeight, self.parent.dlg_set_ref_height)
+        # self.parent.reply_handler.register_command(TMC_GetHeight, self.parent.dlg_set_ref_height)
 
     def stop(self):
         self.pollingTimer.stop()
@@ -948,4 +992,4 @@ class RefHeightStatus(QObject):
     def poll(self):
         print("Ref height poll")
         self.ref_height_get.emit()
-        #self.parent.request_ref_height()
+        # self.parent.request_ref_height()

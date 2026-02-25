@@ -393,7 +393,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="tachy_connect_button">
+       <widget class="QToolButton" name="tachy_connect_button">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
           <horstretch>0</horstretch>
@@ -402,13 +402,13 @@
         </property>
         <property name="minimumSize">
          <size>
-          <width>26</width>
+          <width>38</width>
           <height>26</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>26</width>
+          <width>38</width>
           <height>26</height>
          </size>
         </property>
@@ -422,6 +422,12 @@
         </property>
         <property name="text">
          <string>⚠️</string>
+        </property>
+        <property name="popupMode">
+         <enum>QToolButton::MenuButtonPopup</enum>
+        </property>
+        <property name="toolButtonStyle">
+         <enum>Qt::ToolButtonTextOnly</enum>
         </property>
        </widget>
       </item>
