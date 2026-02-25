@@ -1073,9 +1073,6 @@ class NextIdUpdater(QObject):
             widget.clear()
 
     def setMaxValues(self):
-        import time
-
-        t1 = time.time()
         for attributeName, widget in self.widgets.items():
             maxId = 0
             for layer in self._connected_layers:
