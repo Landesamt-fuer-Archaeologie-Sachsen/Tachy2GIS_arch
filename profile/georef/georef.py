@@ -101,6 +101,30 @@ class Georef:
             )
             return
 
+        imageFilePath = self.dockwidget.profileFotosComboGeoref.filePath()
+        if not imageFilePath:
+            QMessageBox.critical(
+                self.dockwidget,
+                "Invalide Einstellung",
+                "Bitte ein Profilfoto auswählen!",
+                QMessageBox.Abort,
+            )
+            return
+
+        imageFolder = pathlib.Path(imageFilePath).parent
+        try:
+            testFile = imageFolder / ".write_test"
+            testFile.touch()
+            testFile.unlink()
+        except OSError:
+            QMessageBox.critical(
+                self.dockwidget,
+                "Invalide Einstellung",
+                f"Der Ordner '{imageFolder}' ist nicht beschreibbar!",
+                QMessageBox.Abort,
+            )
+            return
+
         transform_methods = []
         if self.dockwidget.check_transform_original.isChecked():
             transform_methods.append("original")
