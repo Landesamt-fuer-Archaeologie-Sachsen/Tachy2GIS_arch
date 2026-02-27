@@ -86,7 +86,6 @@ class Georef:
         self.draw_polygon_window_list = []
         self.polygon_list = []
         self.ref_data_pair = []
-        self.ref_data_pair.append(self.getSelectedValues())
 
         if not (
             self.dockwidget.check_transform_original.isChecked()
@@ -133,7 +132,18 @@ class Georef:
         if self.dockwidget.check_transform_absolut.isChecked():
             transform_methods.append("absolute height")
 
+        self.ref_data_pair.append(self.getSelectedValues())
         self.ref_data_pair[0]["transform_methods"] = transform_methods
+
+        if len(self.ref_data_pair[0]["targetGCP"]["points"]) < 4:
+            # Die projective Transformation hat 8 Freiheitsgrade und braucht mindestens 4
+            QMessageBox.critical(
+                self.dockwidget,
+                "Invalide Einstellung",
+                f"Mindestens 4 Entzerrpunkte für Profil {self.ref_data_pair[0]['profileNumber']} erforderlich!",
+                QMessageBox.Abort,
+            )
+            return
 
         # case no kreuzprofil:
         if not self.dockwidget.checkboxKreuzprofil.isChecked():
@@ -189,6 +199,17 @@ class Georef:
                 QMessageBox.Abort,
             )
             return
+
+        if len(self.ref_data_pair[1]["targetGCP"]["points"]) < 4:
+            # Die projective Transformation hat 8 Freiheitsgrade und braucht mindestens 4
+            QMessageBox.critical(
+                self.dockwidget,
+                "Invalide Einstellung",
+                f"Mindestens 4 Entzerrpunkte für Profil {self.ref_data_pair[1]['profileNumber']} erforderlich!",
+                QMessageBox.Abort,
+            )
+            return
+
         self.startGeoreferencingDialog(self.ref_data_pair[0], True)
         self.startGeoreferencingDialog(self.ref_data_pair[1], True)
 
