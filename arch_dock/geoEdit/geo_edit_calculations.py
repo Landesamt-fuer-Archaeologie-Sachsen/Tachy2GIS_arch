@@ -5,6 +5,7 @@ from qgis.PyQt.QtGui import QColor
 from qgis.PyQt.QtWidgets import QMessageBox, QApplication, QPushButton
 from qgis.core import QgsGeometry, QgsApplication, QgsWkbTypes, QgsMapLayer, QgsFeature, Qgis, QgsMessageLog, QgsPoint
 from qgis.gui import QgsRubberBand
+from qgis.utils import iface
 
 from common.utils import delSelectFeature
 from utils.identifygeometry import IdentifyGeometry
@@ -25,7 +26,6 @@ class GeoEditCalculations:
         self.abbruch = None
         self.geoEditInstance = geoEditInstance
         self.dockwidget = geoEditInstance.dockwidget
-        self.iface = geoEditInstance.iface
 
         self.createMaptools()
 
@@ -230,11 +230,11 @@ class GeoEditCalculations:
         sourceLayer.commitChanges()
 
     def createMaptools(self):
-        self.mapToolSel = IdentifyGeometry(self.iface.mapCanvas())
+        self.mapToolSel = IdentifyGeometry(iface.mapCanvas())
         self.mapToolSel.geomIdentified.connect(self.featureSelect2)
 
     def insideClip(self):  # inside
-        layer = self.iface.mapCanvas().currentLayer()
+        layer = iface.mapCanvas().currentLayer()
         if layer.type() == QgsMapLayer.VectorLayer:
             if layer.geometryType() == QgsWkbTypes.PolygonGeometry:
                 selection = layer.selectedFeatures()
@@ -257,12 +257,12 @@ class GeoEditCalculations:
                                 layer.deleteFeature(fsel.id())
 
                         # refresh the view and clear selection
-                    self.iface.mapCanvas().refresh()
-                    self.iface.mapCanvas().currentLayer().selectAll()
-                    self.iface.mapCanvas().currentLayer().invertSelection()
+                    iface.mapCanvas().refresh()
+                    iface.mapCanvas().currentLayer().selectAll()
+                    iface.mapCanvas().currentLayer().invertSelection()
 
     def outsideClip(self):  # outside
-        layer = self.iface.mapCanvas().currentLayer()
+        layer = iface.mapCanvas().currentLayer()
         if layer.type() == QgsMapLayer.VectorLayer:
             if layer.geometryType() == QgsWkbTypes.PolygonGeometry:
                 selection = layer.selectedFeatures()
@@ -285,18 +285,18 @@ class GeoEditCalculations:
                                 layer.deleteFeature(fsel.id())
 
                         # refresh the view and clear selection
-                    self.iface.mapCanvas().refresh()
-                    self.iface.mapCanvas().currentLayer().selectAll()
-                    self.iface.mapCanvas().currentLayer().invertSelection()
+                    iface.mapCanvas().refresh()
+                    iface.mapCanvas().currentLayer().selectAll()
+                    iface.mapCanvas().currentLayer().invertSelection()
 
     def contactClip(self):
-        self.iface.mapCanvas().setMapTool(self.mapToolSel)
+        iface.mapCanvas().setMapTool(self.mapToolSel)
         self.mapToolSel.geomIdentified.connect(self.featureSelect2)
         rubber_list = []
         feature_list = []
         self.abbruch = False
         self.selectedFeature = None
-        layer = self.iface.mapCanvas().currentLayer()
+        layer = iface.mapCanvas().currentLayer()
         try:
             if layer.type() == QgsMapLayer.VectorLayer:
                 if layer.geometryType() == QgsWkbTypes.PolygonGeometry:
@@ -314,7 +314,7 @@ class GeoEditCalculations:
 
                         if self.selectedLayer.name() == "E_Polygon":
                             fsel = self.selectedFeature
-                            r = QgsRubberBand(self.iface.mapCanvas())
+                            r = QgsRubberBand(iface.mapCanvas())
                             r.setToGeometry(fsel.geometry(), None)
                             r.setColor(QColor(0, 0, 255, 180))
                             r.setWidth(5)
@@ -324,13 +324,13 @@ class GeoEditCalculations:
                         layer.removeSelection()
                         self.selectedFeature = None
                         # Feature zwei
-                        self.iface.messageBar().popWidget()
+                        iface.messageBar().popWidget()
                         self.createCancellationMessage("Schnittobjekt wählen.")
                         while self.selectedFeature is None:
                             if self.abbruch:
 
                                 for maker in rubber_list:
-                                    self.iface.mapCanvas().scene().removeItem(maker)
+                                    iface.mapCanvas().scene().removeItem(maker)
 
                                 raise NameError
                             QApplication.processEvents()
@@ -353,7 +353,7 @@ class GeoEditCalculations:
                             for i in range(len(geo)):
                                 item = QgsPoint(diff.geometry().vertexAt(i).x(), diff.geometry().vertexAt(i).y())
                                 ptList.append(item)
-                            r = QgsRubberBand(self.iface.mapCanvas())
+                            r = QgsRubberBand(iface.mapCanvas())
                             r.setToGeometry(QgsGeometry.fromPolyline(ptList), None)
                             r.setColor(QColor(255, 0, 0))
                             r.setWidth(5)
@@ -379,29 +379,29 @@ class GeoEditCalculations:
                                 # layer.commitChanges()
                                 # layer.endEditCommand()
         except NameError:
-            QgsMessageLog.logMessage("Abbruch", "T2G Archäologie", Qgis.Info)
+            QgsMessageLog.logMessage("Abbruch", PLUGIN_NAME, Qgis.Info)
         for maker in rubber_list:
-            self.iface.mapCanvas().scene().removeItem(maker)
+            iface.mapCanvas().scene().removeItem(maker)
 
         # layer.commitChanges()
         # layer.endEditCommand()
         layer.removeSelection()
-        self.iface.actionSelect().trigger()
-        self.iface.messageBar().clearWidgets()
+        iface.actionSelect().trigger()
+        iface.messageBar().clearWidgets()
         # self.selectedFeature == None
         self.mapToolSel.geomIdentified.disconnect()
 
     def featureSelect2(self, layer, feature):
         self.selectedLayer = layer
         self.selectedFeature = feature
-        self.iface.setActiveLayer(self.selectedLayer)
+        iface.setActiveLayer(self.selectedLayer)
         self.selectedLayer.select(int(self.selectedFeature.id()))
         # layer.select(int(feature.id()))
         QgsMessageLog.logMessage(str(layer.name()) + str(feature.id()), "aaa", Qgis.Info)
 
     def createCancellationMessage(self, text):
-        self.iface.messageBar().clearWidgets()
-        widgetMessage = self.iface.messageBar().createMessage(text)
+        iface.messageBar().clearWidgets()
+        widgetMessage = iface.messageBar().createMessage(text)
         button = QPushButton(widgetMessage)
         button.setText("Abbruch")
         # TODO QGIS kann nicht beendet werden / Plugin kann nicht neu geladen werden
@@ -412,9 +412,9 @@ class GeoEditCalculations:
         # button = QPushButton(widgetMessage)
         # button.setText("Weiter")
         # widgetMessage.layout().addWidget(button)
-        self.iface.messageBar().pushWidget(widgetMessage, Qgis.Info)
+        iface.messageBar().pushWidget(widgetMessage, Qgis.Info)
 
     # ToDo: refactoring - befundlabel helper
     def setAbbruch(self):
         self.abbruch = True
-        self.iface.messageBar().clearWidgets()
+        iface.messageBar().clearWidgets()
