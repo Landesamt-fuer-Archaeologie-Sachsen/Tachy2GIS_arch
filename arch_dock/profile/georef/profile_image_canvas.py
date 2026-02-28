@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import logging
+
 from qgis.PyQt.QtCore import Qt, QSizeF, QPointF
 from qgis.PyQt.QtGui import QColor, QTextDocument
 from qgis.core import (
@@ -18,6 +20,8 @@ from qgis.gui import (
 
 from .maptool_move import MapToolMove
 from ..publisher import Publisher
+
+LOGGER = logging.getLogger(__name__)
 
 
 ## @brief With the ProfileImageCanvas class a map canvas element is realized. It should be used in the profile dialog
@@ -235,11 +239,11 @@ class ProfileImageCanvas(QgsMapCanvas):
 
         self.imageLayer = QgsRasterLayer(imageLayerPath, "Profile image")
         if not self.imageLayer.isValid():
-            print("Layer failed to load!")
+            LOGGER.warning("Layer failed to load!")
             checker = False
         else:
             checker = True
-            print("Layer is loaded!")
+            LOGGER.debug("Layer is loaded!")
 
             sourceCrs = self.imageLayer.crs()
 

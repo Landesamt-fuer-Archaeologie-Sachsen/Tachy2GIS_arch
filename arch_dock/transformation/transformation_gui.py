@@ -1,5 +1,6 @@
 ## @package QGIS transformation extension..
 import csv
+import logging
 import os
 
 from qgis.PyQt.QtWidgets import QMessageBox
@@ -16,6 +17,8 @@ from qgis.utils import iface
 from .transformation_calculations import TransformationCalculations
 from .transformation_dialog import TransformationDialog
 from ...common.utils import ArchProjectConfig, project_backup
+
+LOGGER = logging.getLogger(__name__)
 
 
 ## @brief The class is used to implement GUI functionalities for transformation within the dock widget of the Tachy2GIS_arch plugin
@@ -79,7 +82,7 @@ class TransformationGui:
     def saveProject(self):
 
         projectFile = QgsProject.instance().fileName()
-        print("Save projectfile: ", projectFile)
+        LOGGER.debug(f"Save projectfile: {projectFile}")
         if projectFile != "":
             QgsProject.instance().write(projectFile)
 
@@ -265,7 +268,7 @@ class TransformationGui:
                     sourceLayer, inputLayers, QgsCoordinateReferenceSystem(self.targetCrs), gcpSource, targetGCP
                 )
         else:
-            print("Validation", False)
+            LOGGER.warning("Validation failed: isValidGCPFile or isValidSourceLayer is False")
 
     ## \brief Open messagebox before reverse calculation of the transformation starts
     #
@@ -612,7 +615,7 @@ class TransformationGui:
                         pointObj = {"pt_nr": row[0], "x": float(row[1]), "y": float(row[2]), "z": float(row[3])}
                         targetGCP["points"].append(pointObj)
                     else:
-                        print("Leerzeile")
+                        LOGGER.debug("Leerzeile in GCP-Datei übersprungen")
             return True, targetGCP
         except:
             iface.messageBar().pushMessage("GCP-File", "Datei kann nicht eingelesen werden!", level=1, duration=5)
@@ -680,7 +683,7 @@ class TransformationGui:
 
                 for layer in inputLayers:
 
-                    print("layer_name: ", layer.name())
+                    LOGGER.debug(f"layer_name: {layer.name()}")
 
                     layer.removeSelection()
 
@@ -690,7 +693,7 @@ class TransformationGui:
 
                     layerType = layer.wkbType()
 
-                    print("layerType: ", layerType)
+                    LOGGER.debug(f"layerType: {layerType}")
                     # Abfrage nach Z und ZM Single Layertypen - layerTranslationXYZ gibt dort keinen korrekten Z Wert aus
                     # 3002 LineStringZM , 3001 PointZM, 3003 PolygonZM
                     if (
@@ -699,7 +702,7 @@ class TransformationGui:
                         or layerType == QgsWkbTypes.PolygonZM
                     ):
 
-                        print("Translation XY")
+                        LOGGER.debug("Using Translation XY (ZM layer type)")
 
                         # Rotation
                         self.paramCalc.layerRotation(layer, "forward", self.zAngle)
@@ -710,7 +713,7 @@ class TransformationGui:
                         # Translation in X und Y
                         self.paramCalc.layerTranslationXY(layer, "forward", self.translationX, self.translationY)
                     else:
-                        print("Translation XYZ")
+                        LOGGER.debug("Using Translation XYZ")
                         # Rotation
                         self.paramCalc.layerRotation(layer, "forward", self.zAngle)
                         # Translation in X, Y und Z
@@ -725,7 +728,7 @@ class TransformationGui:
 
                     layer.removeSelection()
 
-                    print("Finish Transform of Layer " + layer.name() + " !")
+                    LOGGER.info(f"Finish Transform of Layer {layer.name()} !")
 
                 self.setTransformationState2Project(1)
 
@@ -779,7 +782,7 @@ class TransformationGui:
 
                 for layer in inputLayers:
 
-                    print("layer_name", layer.name())
+                    LOGGER.debug(f"layer_name: {layer.name()}")
 
                     layer.removeSelection()
 
@@ -789,7 +792,7 @@ class TransformationGui:
 
                     layerType = layer.wkbType()
 
-                    print("layerType", layerType)
+                    LOGGER.debug(f"layerType: {layerType}")
 
                     # Abfrage nach Z und ZM Single Layertypen - layerTranslationXYZ gibt dort keinen korrekten Z Wert aus
                     if (
@@ -821,7 +824,7 @@ class TransformationGui:
 
                     layer.removeSelection()
 
-                    print("Finish Reversetransform of Layer " + layer.name() + " !")
+                    LOGGER.info(f"Finish Reversetransform of Layer {layer.name()} !")
 
                 self.setTransformationState2Project(2)
 

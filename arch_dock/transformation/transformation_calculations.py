@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 import math
 
 import numpy as np
@@ -6,6 +7,8 @@ from processing.gui import AlgorithmExecutor
 from qgis.core import QgsGeometry, QgsApplication, QgsRectangle, QgsWkbTypes
 
 from .simil import Simil
+
+LOGGER = logging.getLogger(__name__)
 
 
 ## @brief Core calculations for the transformation
@@ -195,9 +198,9 @@ class TransformationCalculations:
                 provGeom = layer.dataProvider().convertToProviderType(retAdjustGeom)
                 fid = zFeat.id()
 
-                print("adjustGeom: ", adjustGeom)
-                print("retAdjustGeom: ", retAdjustGeom)
-                print("provGeom: ", provGeom)
+                LOGGER.debug(f"adjustGeom: {adjustGeom}")
+                LOGGER.debug(f"retAdjustGeom: {retAdjustGeom}")
+                LOGGER.debug(f"provGeom: {provGeom}")
 
                 if provGeom == None:
                     layer.dataProvider().changeGeometryValues({fid: retAdjustGeom})
@@ -226,7 +229,7 @@ class TransformationCalculations:
 
     def layerRotation(self, layer, rotationDirection, zAngle):
 
-        print("Transformation - Rotation: ", layer.name())
+        LOGGER.debug(f"Transformation - Rotation: {layer.name()}")
         # Rotation
         if rotationDirection == "forward":
             angleValue = zAngle * -1
@@ -258,7 +261,7 @@ class TransformationCalculations:
             tranlationXValue = translationX * -1
             tranlationYValue = translationY * -1
 
-        print("Transformation - Translation X and Y: ", layerName)
+        LOGGER.debug(f"Transformation - Translation X and Y: {layerName}")
 
         layer.startEditing()
         translateAlg = QgsApplication.processingRegistry().createAlgorithmById("native:translategeometry")
@@ -287,13 +290,13 @@ class TransformationCalculations:
             tranlationYValue = translationY * -1
             tranlationZValue = translationZ * -1
 
-        print("Transformation - Translation X, Y and Z: ", layerName)
+        LOGGER.debug(f"Transformation - Translation X, Y and Z: {layerName}")
 
         layer.startEditing()
         translateAlg = QgsApplication.processingRegistry().createAlgorithmById("native:translategeometry")
 
         layerType = layer.wkbType()
-        print("layerType", layerType)
+        LOGGER.debug(f"layerType: {layerType}")
         # Abfrage nach Z und ZM Multi Layertypen
         # 1004 MultiPointZ , 1005 MultiLineZ, 1006 MultiPolygonZ
         if (
@@ -321,7 +324,7 @@ class TransformationCalculations:
                 "INPUT": layer,
             }
 
-        print("paramTranslate ", paramTranslate)
+        LOGGER.debug(f"paramTranslate: {paramTranslate}")
         AlgorithmExecutor.execute_in_place(translateAlg, paramTranslate)
         layer.commitChanges()
 
@@ -464,11 +467,11 @@ class TransformationCalculations:
         dC = np.diag(C)
 
         if (dC < 0.0).any():
-            print(
-                "\n{0}\ndetected a negative number in your"
+            LOGGER.warning(
+                f"\n{dC}\ndetected a negative number in your"
                 "covariance matrix. Taking the absolute value"
                 "of the diagonal. something is probably wrong"
-                "with your data or model".format(dC)
+                "with your data or model"
             )
             dC = np.abs(dC)
 
@@ -545,7 +548,7 @@ class TransformationCalculations:
             elif geom_total[1].isEmpty() or geom_total[1].isGeosValid() == False:
                 ret_geom = geom_total[0]
             else:
-                print("Achtung, es wird der erste Teil der Multi-Geometrie verwendet!")
+                LOGGER.warning("Achtung, es wird der erste Teil der Multi-Geometrie verwendet!")
                 ret_geom = geom_total[0]
         elif len(geom_total) == 1:
             ret_geom = geom_total[0]

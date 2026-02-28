@@ -7,7 +7,11 @@
 # @author Mario Uhlig, VisDat geodatentechnologie GmbH, mario.uhlig@visdat.de
 # @date 2020-11-09
 
+import logging
+
 from ..publisher import Publisher
+
+LOGGER = logging.getLogger(__name__)
 
 
 class DataStoreDigitize:
@@ -18,7 +22,7 @@ class DataStoreDigitize:
 
     def __init__(self):
 
-        print("init_dataStore_digitize")
+        LOGGER.debug("init_dataStore_digitize")
 
         self.pup = Publisher()
 
@@ -78,5 +82,5 @@ class DataStoreDigitize:
             return self.aarTransformationParamsOriginal
 
     def triggerAarTransformationParams(self, aar_direction):
-        print("wurde getriggert", self.getAarTransformationParams(aar_direction))
+        LOGGER.debug(f"triggerAarTransformationParams triggered: {self.getAarTransformationParams(aar_direction)}")
         self.pup.publish("pushTransformationParams", self.getAarTransformationParams(aar_direction))

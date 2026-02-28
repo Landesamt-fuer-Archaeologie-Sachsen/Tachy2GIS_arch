@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import tempfile
 from glob import glob
@@ -26,6 +27,8 @@ from .data_store_plan import DataStorePlan
 from ..rotation_coords import RotationCoords
 from ....common.utils import layers_not_in_edit_mode, set_vsi_cached, is_vsi_cached
 
+LOGGER = logging.getLogger(__name__)
+
 
 ## @brief The class is used to implement functionalities for work with profile-plans within the dock widget of the Tachy2GIS_arch plugin
 #
@@ -39,7 +42,7 @@ class Plan:
     #  @param dockWidget pointer to the dockwidget
     #  @param iFace pointer to the iface class
     def __init__(self, arch_dock):
-        print("init plan")
+        LOGGER.debug("init plan")
         self.__dockwidget = arch_dock
 
         self.aar_direction = None
@@ -113,7 +116,7 @@ class Plan:
 
         planData = {"profilePath": profilePath}
 
-        print("planData", planData)
+        LOGGER.debug(f"planData: {planData}")
 
         return planData
 
@@ -411,7 +414,7 @@ class Plan:
         geopackage_layers = []
         all_project_layer = QgsVectorLayer(geopackage_path, "", "ogr")
         if not all_project_layer.isValid():
-            print("Failed to open GeoPackage")
+            LOGGER.error("Failed to open GeoPackage")
             return
         for subLayerName in all_project_layer.dataProvider().subLayers():
             subLayerName = subLayerName.split("!!::!!")[1]  # Extract layer name
@@ -422,13 +425,13 @@ class Plan:
             # save existing data:
             tmp_data_path = self.layer_from_gpkg_to_gpkg(layer_name, geopackage_path)
             if not tmp_data_path:
-                print(f"ERROR saving tmp data")
+                LOGGER.error("ERROR saving tmp data")
                 return
 
             # delete layer:
             ds = ogr.Open(geopackage_path, update=1)
             if ds is None:
-                print(f"Could not open {geopackage_path}")
+                LOGGER.error(f"Could not open {geopackage_path}")
                 return
             ds.DeleteLayer(layer_name)
             ds = None  # Close the datasource
@@ -471,7 +474,7 @@ class Plan:
             # restoring existing data into temporary_layer:
             tmp_data_feature_list = self.layer_from_gpkg_to_feature_list(layer_name, tmp_data_path)
             if not isinstance(tmp_data_feature_list, list):
-                print("ERROR restoring tmp data")
+                LOGGER.error("ERROR restoring tmp data")
                 return
             # if inputLayer.name() == "gcp_points":
             #     print("### DEBUG: tmp_data_feature_list")
@@ -498,9 +501,9 @@ class Plan:
         error = QgsVectorFileWriter.writeAsVectorFormatV3(
             temporary_layer, str(geopackage_path), QgsProject.instance().transformContext(), options
         )
-        print(error, "temporary_layer is written to:", geopackage_path)
+        LOGGER.debug(f"temporary_layer is written to: {geopackage_path}, error: {error}")
         if error[0] == 7:
-            print(
+            LOGGER.warning(
                 "MÖGLICHE LÖSUNG für unique table name nach manuellem Löschen der Tabellen: "
                 "lösche auch Referenzen in gpkg_*-Tabellen!"
             )
@@ -513,7 +516,7 @@ class Plan:
     def __delete_profile_number(self, gpkg_path, layer_name, profile_number):
         layer = QgsVectorLayer(f"{gpkg_path}|layername={layer_name}", layer_name, "ogr")
         if not layer.isValid():
-            print(
+            LOGGER.error(
                 f"__delete_profile_number({gpkg_path}, {layer_name}, {profile_number}) Layer failed to load! "
                 f"Fehlerdetails: {layer.dataProvider().lastError()}"
             )
@@ -528,17 +531,19 @@ class Plan:
 
         feature_ids = [feature.id() for feature in features]
         if not feature_ids:
-            print(
+            LOGGER.debug(
                 f"__delete_profile_number({gpkg_path}, {layer_name}, {profile_number}) No features matched the filter."
             )
             return
 
         if layer.deleteFeatures(feature_ids):
-            print(
+            LOGGER.debug(
                 f"__delete_profile_number({gpkg_path}, {layer_name}, {profile_number}) Features deleted successfully."
             )
         else:
-            print(f"__delete_profile_number({gpkg_path}, {layer_name}, {profile_number}) Failed to delete features.")
+            LOGGER.error(
+                f"__delete_profile_number({gpkg_path}, {layer_name}, {profile_number}) Failed to delete features."
+            )
 
         layer.commitChanges()
         layer = None
@@ -571,7 +576,7 @@ class Plan:
         from_layer = QgsVectorLayer(uri, layer_name, "ogr")
 
         if not from_layer.isValid():
-            print(f"Layer {layer_name} not loaded.")
+            LOGGER.error(f"Layer {layer_name} not loaded.")
             return None
 
         error = QgsVectorFileWriter.writeAsVectorFormatV3(
@@ -579,11 +584,10 @@ class Plan:
         )
 
         if error[0] != QgsVectorFileWriter.NoError:
-            print(f"Error when writing vector layer to {to_gpkg_path}")
-            print(error)
+            LOGGER.error(f"Error when writing vector layer to {to_gpkg_path}: {error}")
             return None
 
-        print(f"Layer {layer_name} has been copied to {to_gpkg_path}")
+        LOGGER.debug(f"Layer {layer_name} has been copied to {to_gpkg_path}")
 
         from_layer = None
         return to_gpkg_path
@@ -592,7 +596,7 @@ class Plan:
         layer = QgsVectorLayer(f"{from_gpkg}|layername={layer_name}", layer_name, "ogr")
 
         if not layer.isValid():
-            print(
+            LOGGER.error(
                 f"layer_from_gpkg_to_feature_list() Layer failed to load! Fehlerdetails: {layer.dataProvider().lastError()}"
             )
             return None
@@ -614,20 +618,12 @@ class Plan:
         return features_list
 
     def print_feature_list(self, features_list):
-        # Assuming 'features' is your list of QgsFeature objects
         for feature in features_list:
-            # Print feature ID
-            print(f"Feature ID: {feature.id()}")
-
-            # Print feature geometry
+            LOGGER.debug(f"Feature ID: {feature.id()}")
             geom = feature.geometry()
-            print(f"Geometry: {geom.asWkt()}")
-
-            # Print feature attributes
+            LOGGER.debug(f"Geometry: {geom.asWkt()}")
             attributes = feature.attributes()
-            print("Attributes:")
+            LOGGER.debug("Attributes:")
             for i, attr in enumerate(attributes):
-                print(f"  {i}: {attr}")
-
-            # Print a separator for better readability
-            print("---")
+                LOGGER.debug(f"  {i}: {attr}")
+            LOGGER.debug("---")

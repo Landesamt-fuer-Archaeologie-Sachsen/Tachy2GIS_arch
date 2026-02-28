@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 from operator import itemgetter
 from typing import List
 
@@ -16,6 +17,8 @@ from qgis.PyQt.QtWidgets import (
 
 from .residuals import Residuals
 from ..publisher import Publisher
+
+LOGGER = logging.getLogger(__name__)
 
 
 ## @brief With the TransformationDialogTable class a table based on QTableWidget is realized
@@ -176,7 +179,7 @@ class GeorefTable(QTableWidget):
                 if key in errorObject:
                     pass
                 else:
-                    print("key is missing:", key)
+                    LOGGER.warning(f"key is missing: {key}")
                     validationValue = False
 
         return validationValue

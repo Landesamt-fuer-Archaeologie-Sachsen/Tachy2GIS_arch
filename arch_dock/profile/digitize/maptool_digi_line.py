@@ -1,3 +1,5 @@
+import logging
+
 from qgis.PyQt.QtCore import pyqtSignal, pyqtSlot
 from qgis.core import QgsFeature, QgsGeometry, QgsFeatureRequest, QgsMessageLog, Qgis, QgsProject
 from qgis.gui import QgsAttributeDialog, QgsAttributeEditorContext
@@ -5,6 +7,8 @@ from qgis.gui import QgsAttributeDialog, QgsAttributeEditorContext
 from .map_tools import MultilineMapTool
 from .maptool_mixin import MapToolMixin
 from ..publisher import Publisher
+
+LOGGER = logging.getLogger(__name__)
 
 
 class MapToolDigiLine(MultilineMapTool, MapToolMixin):
@@ -265,11 +269,9 @@ class MapToolDigiLine(MultilineMapTool, MapToolMixin):
             # update feature attribute in digiLineLayer
             self.digiLineLayer.startEditing()
             self.digiLineLayer.changeAttributeValue(
-                feature.id(),
-                self.digiLineLayer.fields().indexFromName("fid"),
-                field_default_value
+                feature.id(), self.digiLineLayer.fields().indexFromName("fid"), field_default_value
             )
-            print("commitChanges", self.digiLineLayer.commitChanges())
+            LOGGER.debug(f"commitChanges digiLineLayer: {self.digiLineLayer.commitChanges()}")
             self.digiLineLayer.endEditCommand()
 
             # update table fid
@@ -287,6 +289,6 @@ class MapToolDigiLine(MultilineMapTool, MapToolMixin):
                 if feature["geo_quelle"] == "profile_object":
                     self.refData["lineLayer"].startEditing()
                     self.refData["lineLayer"].deleteFeature(feature.id())
-                    print("commitChanges", self.refData["lineLayer"].commitChanges())
+                    LOGGER.debug(f"commitChanges lineLayer: {self.refData['lineLayer'].commitChanges()}")
 
         self.digi_layer_changed.emit()

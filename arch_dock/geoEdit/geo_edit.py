@@ -1,4 +1,5 @@
 ## @package QGIS geoEdit extension..
+import logging
 
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QMessageBox
@@ -16,6 +17,8 @@ from qgis.utils import iface
 
 from .geo_edit_calculations import GeoEditCalculations
 from ...icons import ICON_PATHS
+
+LOGGER = logging.getLogger(__name__)
 
 
 ## @brief The class is used to implement functionalities for edit geometies within the dock widget of the Tachy2GIS_arch plugin
@@ -164,7 +167,7 @@ class GeoEdit:
         self.createLayerSpatialIndex()
         # Get wkb type of the sourcelayer
         layerType = self.sourceLayer.wkbType()
-        print("layerType", layerType)
+        LOGGER.debug(f"layerType: {layerType}")
 
         self.geoCalc.layerTranslationXYZ(
             tranlationDirection, self.sourceLayer, self.translationX, self.translationY, self.translationZ
@@ -306,8 +309,7 @@ class GeoEdit:
             generalValid = True
 
             layerSourceType = self.sourceLayer.dataProvider().storageType()
-
-            print("layerSourceType", layerSourceType)
+            LOGGER.debug(f"layerSourceType: {layerSourceType}")
 
             if layerSourceType == "GPKG":
 

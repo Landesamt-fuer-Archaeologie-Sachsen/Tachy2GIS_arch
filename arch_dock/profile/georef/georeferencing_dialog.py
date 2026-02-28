@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import json
+import logging
 import os
 import pathlib
 import tempfile
@@ -36,6 +37,8 @@ from .profile_image_canvas import ProfileImageCanvas
 from ..profileAAR.profileAAR import ProfileAAR
 from ....icons import ICON_PATHS
 
+LOGGER = logging.getLogger(__name__)
+
 
 ## @brief With the GeoreferencingDialog class a dialog window for the georeferencing of profiles is realized
 #
@@ -45,7 +48,7 @@ from ....icons import ICON_PATHS
 # @date 2021-25-05
 class GeoreferencingDialog(QMainWindow):
     def __init__(self, t2GArchInstance, rotationCoords, iFace):
-        print("Start GeoreferencingDialog")
+        LOGGER.debug("Start GeoreferencingDialog")
         super().__init__()
         self.style_button_enabled = "background-color: green; width: 200px"
         self.style_button_disabled = "background-color: lightgrey; width: 200px"
@@ -74,7 +77,7 @@ class GeoreferencingDialog(QMainWindow):
         self.createConnects()
 
     def closeEvent(self, event):
-        print("close")
+        LOGGER.debug("closeEvent called")
         super().closeEvent(event)
         self.dataStoreGeoref.clearStore()
         # self.georefTable.cleanGeorefTable()
@@ -114,7 +117,7 @@ class GeoreferencingDialog(QMainWindow):
     # creates the menuBar at upper part of the window and statusBar in the lower part
     #
     def createMenu(self):
-        print("Start createMenu")
+        LOGGER.debug("Start createMenu")
         self.statusBar()
 
         self.statusBar().reformat()
@@ -246,7 +249,7 @@ class GeoreferencingDialog(QMainWindow):
         verticalLayout.addWidget(self.georefTable)
 
     def createFolders(self, refData):
-        print("Create missing folders ...")
+        LOGGER.debug("Create missing folders ...")
 
         profileDirs = refData["profileDirs"].copy()
 
@@ -343,7 +346,7 @@ class GeoreferencingDialog(QMainWindow):
     # \param refData
     def showGeoreferencingDialog(self, refData):
         self.refData = refData
-        print(self.refData)
+        LOGGER.debug(f"showGeoreferencingDialog refData: {self.refData}")
 
         self.startGeorefBtn.setEnabled(False)
         self.startGeorefBtn.setStyleSheet(self.style_button_disabled)
@@ -360,7 +363,7 @@ class GeoreferencingDialog(QMainWindow):
             elif self.refData is self.ref_data_pair[1]:
                 self.profile_set = 1
             else:
-                print("Fehler42")
+                LOGGER.error("Fehler42: refData does not match any entry in ref_data_pair")
                 return
 
             if self.profile_set == 0:
@@ -536,7 +539,7 @@ class GeoreferencingDialog(QMainWindow):
                 )
 
         except Exception as e:
-            print(f"An exception occurred {type(e)} \n {traceback.format_exc()}")
+            LOGGER.error(f"An exception occurred {type(e)} \n {traceback.format_exc()}")
             QMessageBox.critical(
                 self,
                 "Fehler bei der Profilentzerrung!",

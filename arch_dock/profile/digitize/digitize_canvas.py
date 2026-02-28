@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import logging
 import processing
 from qgis.PyQt.QtGui import QFont
 from qgis.core import (
@@ -20,6 +21,8 @@ from qgis.gui import QgsMapCanvas, QgsMapToolPan, QgsMapToolZoom, QgsAttributeDi
 
 from ..publisher import Publisher
 from ....common.utils import ArchProjectConfig
+
+LOGGER = logging.getLogger(__name__)
 
 
 ## @brief With the ProfileImageCanvas class a map canvas element is realized. It should be used in the profile dialog
@@ -129,7 +132,7 @@ class DigitizeCanvas(QgsMapCanvas):
         #     """
         # )
         rule_pt.setFilterExpression(
-            " OR ".join([f'"obj_typ" = \'{value}\'' for value in ArchProjectConfig().get("Digitize_display_points")])
+            " OR ".join([f"\"obj_typ\" = '{value}'" for value in ArchProjectConfig().get("Digitize_display_points")])
         )
         rule_bef = QgsRuleBasedLabeling.Rule(
             self.createLabelSettings(
@@ -769,7 +772,7 @@ class DigitizeCanvas(QgsMapCanvas):
             if feature["obj_uuid"] == uuid:
                 self.digiPolygonLayer.startEditing()
                 self.digiPolygonLayer.deleteFeature(feature.id())
-                print("commitChanges", self.digiPolygonLayer.commitChanges())
+                LOGGER.debug(f"commitChanges digiPolygonLayer: {self.digiPolygonLayer.commitChanges()}")
 
         featuresLine = self.digiLineLayer.getFeatures()
 
@@ -777,7 +780,7 @@ class DigitizeCanvas(QgsMapCanvas):
             if feature["obj_uuid"] == uuid:
                 self.digiLineLayer.startEditing()
                 self.digiLineLayer.deleteFeature(feature.id())
-                print("commitChanges", self.digiLineLayer.commitChanges())
+                LOGGER.debug(f"commitChanges digiLineLayer: {self.digiLineLayer.commitChanges()}")
 
         featuresPoint = self.digiPointLayer.getFeatures()
 
@@ -785,7 +788,7 @@ class DigitizeCanvas(QgsMapCanvas):
             if feature["obj_uuid"] == uuid:
                 self.digiPointLayer.startEditing()
                 self.digiPointLayer.deleteFeature(feature.id())
-                print("commitChanges", self.digiPointLayer.commitChanges())
+                LOGGER.debug(f"commitChanges digiPointLayer: {self.digiPointLayer.commitChanges()}")
 
                 # layer.dataProvider().deleteFeatures([5, 10])
 
@@ -810,7 +813,7 @@ class DigitizeCanvas(QgsMapCanvas):
 
         self.imageLayer = QgsRasterLayer(imageLayerPath, "Profile image")
         if not self.imageLayer.isValid():
-            print("Layer failed to load!")
+            LOGGER.warning("Layer failed to load!")
 
         sourceCrs = self.imageLayer.crs()
 

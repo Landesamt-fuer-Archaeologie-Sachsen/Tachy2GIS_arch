@@ -3,13 +3,16 @@
 # @author Mario Uhlig, VisDat geodatentechnologie GmbH, mario.uhlig@visdat.de
 # @date 2022-04-12
 
+import logging
+
 from ..publisher import Publisher
+
+LOGGER = logging.getLogger(__name__)
 
 
 class DataStorePlan:
     def __init__(self):
-
-        print("init_dataStore_plan")
+        LOGGER.debug("init_dataStore_plan")
 
         self.pup = Publisher()
 

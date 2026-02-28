@@ -1,4 +1,5 @@
 ## @package QGIS geoEdit extension..
+import logging
 import math
 import pathlib
 from functools import partial
@@ -11,6 +12,8 @@ from qgis.utils import iface
 
 from .georeferencing_dialog import GeoreferencingDialog
 from ....common.utils import natural_sort_key, ArchProjectConfig
+
+LOGGER = logging.getLogger(__name__)
 
 
 ## @brief The class is used to implement functionalities for work with profiles
@@ -78,7 +81,7 @@ class Georef:
             self.preselectedLineLayer.editingStopped.connect(self.onLineLayerEdited)
 
         else:
-            print("preselectedLineLayer is kein QgsVectorLayer")
+            LOGGER.warning("preselectedLineLayer is kein QgsVectorLayer")
 
     def startGeoreferencingBtn_clicked(self):
         # reset old dialogues, windows and ref data:
@@ -448,7 +451,7 @@ class Georef:
             # print("line", line)
 
             if not len(line):
-                print("Kein Profil gefunden!")
+                LOGGER.warning("Kein Profil gefunden!")
                 return
 
             pointA = line[0]

@@ -1,3 +1,5 @@
+import logging
+
 from qgis.PyQt.QtCore import pyqtSignal, pyqtSlot
 from qgis.core import QgsFeature, QgsGeometry, QgsFeatureRequest, QgsPoint, QgsProject, QgsMessageLog, Qgis
 from qgis.gui import QgsAttributeDialog, QgsAttributeEditorContext
@@ -5,6 +7,8 @@ from qgis.gui import QgsAttributeDialog, QgsAttributeEditorContext
 from .map_tools import PointMapTool
 from .maptool_mixin import MapToolMixin
 from ..publisher import Publisher
+
+LOGGER = logging.getLogger(__name__)
 
 
 class MapToolDigiPoint(PointMapTool, MapToolMixin):
@@ -283,11 +287,9 @@ class MapToolDigiPoint(PointMapTool, MapToolMixin):
             # update feature attribute in digiLineLayer
             self.digiPointLayer.startEditing()
             self.digiPointLayer.changeAttributeValue(
-                feature.id(),
-                self.digiPointLayer.fields().indexFromName("fid"),
-                field_default_value
+                feature.id(), self.digiPointLayer.fields().indexFromName("fid"), field_default_value
             )
-            print("commitChanges", self.digiPointLayer.commitChanges())
+            LOGGER.debug(f"commitChanges digiPointLayer: {self.digiPointLayer.commitChanges()}")
             self.digiPointLayer.endEditCommand()
 
             # update table fid
@@ -305,6 +307,6 @@ class MapToolDigiPoint(PointMapTool, MapToolMixin):
                 if feature["geo_quelle"] == "profile_object":
                     self.refData["pointLayer"].startEditing()
                     self.refData["pointLayer"].deleteFeature(feature.id())
-                    print("commitChanges", self.refData["pointLayer"].commitChanges())
+                    LOGGER.debug(f"commitChanges pointLayer: {self.refData['pointLayer'].commitChanges()}")
 
         self.digi_layer_changed.emit()

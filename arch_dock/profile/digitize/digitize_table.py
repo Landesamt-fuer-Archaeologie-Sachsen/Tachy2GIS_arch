@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import logging
+
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QIcon, QPalette, QColor
 from qgis.PyQt.QtWidgets import QTableWidget, QTableWidgetItem, QHeaderView, QPushButton, QMessageBox
@@ -7,6 +9,8 @@ from qgis.core import QgsApplication
 
 from ..publisher import Publisher
 from ....icons import ICON_PATHS
+
+LOGGER = logging.getLogger(__name__)
 
 
 ## @brief With the DigitizeTable class a table based on QTableWidget is realized
@@ -224,7 +228,7 @@ class DigitizeTable(QTableWidget):
                 if dataObj["obj_uuid"] == tblUuid:
 
                     if head == "ID" and "fid" in dataObj:
-                        print(dataObj)
+                        LOGGER.debug(f"dataObj: {dataObj}")
                         self.item(i, j).setText(str(dataObj["fid"]))
 
                     if head == "Objekttyp" and "obj_typ" in dataObj:

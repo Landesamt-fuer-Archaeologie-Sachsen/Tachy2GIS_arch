@@ -1,3 +1,4 @@
+import logging
 import re
 
 from qgis.core import QgsFeatureRequest, QgsVectorLayer
@@ -5,6 +6,8 @@ from qgis.PyQt.QtCore import QVariant
 
 from ...common.utils import setCustomProjectVariable
 from ...common.layers import findLayerInProject
+
+LOGGER = logging.getLogger(__name__)
 
 autoAttributeProjectVariables = [
     "obj_typ_polygons",
@@ -38,11 +41,11 @@ def getComboboxModelFromLayerConfig(layer: QgsVectorLayer, fieldName: str, curre
         currentValues = {}
     fieldIdx = layer.fields().indexFromName(fieldName)
     if fieldIdx == -1:
-        print(f"Field '{fieldName}' not found in layer '{layer.name()}'.")
+        LOGGER.warning(f"Field '{fieldName}' not found in layer '{layer.name()}'.")
         return {}
     editorConfig = layer.fields().field(fieldIdx).editorWidgetSetup().config()
     if not editorConfig:
-        print(f"No editor config found for field '{fieldName}' in layer '{layer.name()}'.")
+        LOGGER.warning(f"No editor config found for field '{fieldName}' in layer '{layer.name()}'.")
         return {}
     layerName = editorConfig["LayerName"]
     keyField = editorConfig["Key"]
@@ -51,7 +54,7 @@ def getComboboxModelFromLayerConfig(layer: QgsVectorLayer, fieldName: str, curre
     filterExpression = replaceCurrentValues(layerFilterExpression, currentValues)
     relLayer = findLayerInProject(layerName)
     if not relLayer:
-        print(f"Related layer '{layerName}' not found in the project.")
+        LOGGER.warning(f"Related layer '{layerName}' not found in the project.")
         return {}
     return getLookupDict(relLayer, keyField, valueField, filterExpression)
 

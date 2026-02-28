@@ -1,7 +1,10 @@
+import logging
 from math import pi, cos, sin
 
 import numpy as np
 from qgis.core import QgsGeometry, QgsPoint, QgsMessageLog, Qgis, QgsWkbTypes
+
+LOGGER = logging.getLogger(__name__)
 
 
 class RotationCoords:
@@ -86,7 +89,7 @@ class RotationCoords:
             )
 
         else:
-            print("Wrong AAR-Direction")
+            LOGGER.warning("Wrong AAR-Direction")
 
         return {"x_trans": x_trans, "y_trans": y_trans, "z_trans": z_trans}
 
@@ -457,7 +460,7 @@ class RotationCoords:
             elif geom_total[1].isEmpty() or geom_total[1].isGeosValid() == False:
                 ret_geom = geom_total[0]
             else:
-                print("Achtung, es wird der erste Teil der Multi-Geometrie verwendet!")
+                LOGGER.warning("Achtung, es wird der erste Teil der Multi-Geometrie verwendet!")
                 ret_geom = geom_total[0]
         elif len(geom_total) == 1:
             ret_geom = geom_total[0]
@@ -496,7 +499,7 @@ class RotationCoords:
             is_polygon = True
             if debugging_print:
                 for p in list_of_qgspoints:
-                    print("original:", p.x(), p.y(), p.z())
+                    LOGGER.debug(f"original: {p.x()} {p.y()} {p.z()}")
 
         if not is_polygon:
             anzahl_der_abzuhebenden = len(list_of_qgspoints)
@@ -508,7 +511,9 @@ class RotationCoords:
                 # wenn Abstand kleiner, dann ist es vermutlich ein vormals eingefügter Punkt:
                 if list_of_qgspoints[i].distance3D(list_of_qgspoints[i + 1]) < 0.000001:
                     if debugging_print:
-                        print("pop", list_of_qgspoints[i], "distance", list_of_qgspoints[i].distance(list_of_qgspoints[i + 1]))
+                        LOGGER.debug(
+                            f"pop {list_of_qgspoints[i]} distance {list_of_qgspoints[i].distance(list_of_qgspoints[i + 1])}"
+                        )
                     list_of_qgspoints.pop(i)
                 else:
                     i += 1
@@ -535,7 +540,7 @@ class RotationCoords:
                 index_stufen.append((i, abhebung_stufe))
 
         if debugging_print:
-            print("index_stufen", index_stufen)
+            LOGGER.debug(f"index_stufen: {index_stufen}")
 
         abhebung = 0.000001  # 1000stel mm
         # abhebung = 0.001  # zum Angucken
@@ -546,13 +551,15 @@ class RotationCoords:
             vektor_abhebung = self.calculate_normal_vector(list_of_qgspoints, abhebung_stufe * abhebung)
 
             if debugging_print:
-                print(f"{index:2d} Vektor der Abhebung: {vektor_abhebung}, Betrag {np.linalg.norm(vektor_abhebung)}")
+                LOGGER.debug(
+                    f"{index:2d} Vektor der Abhebung: {vektor_abhebung}, Betrag {np.linalg.norm(vektor_abhebung)}"
+                )
 
             shifted_points.append(
                 QgsPoint(
                     list_of_qgspoints[index].x() + vektor_abhebung[0],
                     list_of_qgspoints[index].y() + vektor_abhebung[1],
-                    list_of_qgspoints[index].z() + vektor_abhebung[2]
+                    list_of_qgspoints[index].z() + vektor_abhebung[2],
                 )
             )
 
@@ -562,17 +569,16 @@ class RotationCoords:
 
             if debugging_print:
                 for p in shifted_points:
-                    print("shifted:", p.x(), p.y(), p.z())
+                    LOGGER.debug(f"shifted: {p.x()} {p.y()} {p.z()}")
 
         fehler = (abhebung * 1000) * max(index_stufen, key=lambda i: i[1])[1]
-        print(
-            f"Abhebung: {abhebung * 1000:.15f}mm\n"
-            f"Fehler insgesamt: {fehler:.15f}mm"
-        )
+        LOGGER.debug(f"Abhebung: {abhebung * 1000:.15f}mm\n" f"Fehler insgesamt: {fehler:.15f}mm")
         if fehler > 0.5:
             QgsMessageLog.logMessage(
                 f"Achtung, iterative Abhebung der Punkte von der Profillinie ergibt einen Fehler von "
-                f"zuletzt {fehler:.15f}mm!", "T2G Archäologie", Qgis.Warning
+                f"zuletzt {fehler:.15f}mm!",
+                "T2G Archäologie",
+                Qgis.Warning,
             )
 
         return shifted_points

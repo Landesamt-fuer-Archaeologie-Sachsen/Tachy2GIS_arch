@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import csv
+import logging
 import os
 
 from qgis.PyQt.QtCore import Qt
@@ -23,6 +24,8 @@ from .transformation_dialog_canvas import TransformationDialogCanvas
 from .transformation_dialog_parambar import TransformationDialogParambar
 from .transformation_dialog_table import TransformationDialogTable
 from ...icons import ICON_PATHS
+
+LOGGER = logging.getLogger(__name__)
 
 
 ## @brief With the TransformationDialog class a dialog window for the calculation of transformation parameters is realized
@@ -313,7 +316,7 @@ class TransformationDialog(QMainWindow):
         dialog = QFileDialog(self)
         dialog.setNameFilter("Text Files (*.txt)")
         openFileName = dialog.getOpenFileName()[0]
-        print("Import GCP Data from " + openFileName)
+        LOGGER.info(f"Import GCP Data from {openFileName}")
 
         if openFileName:
 
@@ -387,7 +390,7 @@ class TransformationDialog(QMainWindow):
 
                     lineCounter += 1
 
-            print("Finish load GCP Data from " + openFileName)
+            LOGGER.info(f"Finish load GCP Data from {openFileName}")
 
             self.gcpTable.updateGcpTableFromImport(loadedGcpData, loadedTargetGcp)
 
@@ -464,7 +467,7 @@ class TransformationDialog(QMainWindow):
 
                     csvWriter.writerow(rowArray)
 
-            print("Finish write GCP Data to " + saveFileName)
+            LOGGER.info(f"Finish write GCP Data to {saveFileName}")
 
     ## \brief Function to output current parameters
     #

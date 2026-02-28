@@ -53,11 +53,14 @@
 """
 
 import sys
+import logging
 from math import atan, fabs, pi, cos, sin, tan, isnan, sqrt
 
 import numpy as np
 
 from .errorhandling import ErrorHandler
+
+LOGGER = logging.getLogger(__name__)
 
 
 def rotation(coord_proc, slope_deg, zAdaption):
@@ -749,11 +752,10 @@ class MagicBox:
         new_distance = self.calculate_distance_from_outer_profile_points_proc(new_outer_points)
 
         if abs(original_distance - new_distance) > 0.01:
-            print("Error", "Profile was calculated incorrect (1cm acc.) See Log-Window: " + str(str(coord_proc[0][4])))
+            LOGGER.error(f"Profile was calculated incorrect (1cm acc.) See Log-Window: {str(coord_proc[0][4])}")
+            LOGGER.warning(f"DISTANCE WARNING! Original distance: {original_distance} | New distance: {new_distance}")
 
-            print("DISTANCE WARNING!", "Distance")
-
-        print("########################")
+        LOGGER.debug("########################")
 
         array_z_org = []
         for point in coord_proc:

@@ -52,7 +52,11 @@
 
 """
 
+import logging
+
 import numpy as np
+
+LOGGER = logging.getLogger(__name__)
 
 
 # columreader in a "table" (list of lists)
@@ -80,9 +84,7 @@ class ErrorHandler(object):
         if len(coord_proc) <= 3:
             # if it is less, print error message
 
-            print(self, "Error", "A profile needs min. 4 points. Error on profile: " + str(profile_name))
-
-            print(self, "A profile needs min. 4 points. Error on profile: " + str(profile_name), "Error_LOG")
+            LOGGER.error(f"A profile needs min. 4 points. Error on profile: {profile_name}")
 
             # cancel execution of the script
 
@@ -93,18 +95,9 @@ class ErrorHandler(object):
         if len(view_check) != 1:
             # if it is not the same, print error message
 
-            print(
-                self,
-                "Error",
-                "The view column of your data is inconsistant "
-                "(either non or two different views are present). Error on profile: " + str(profile_name),
-            )
-
-            print(
-                self,
-                "The view column of your data is inconsistant "
-                "(either non or two different views are present). Error on profile: " + str(profile_name),
-                "Error_LOG",
+            LOGGER.error(
+                f"The view column of your data is inconsistant "
+                f"(either non or two different views are present). Error on profile: {profile_name} - Error_LOG"
             )
 
             # cancel execution of the script
@@ -116,18 +109,9 @@ class ErrorHandler(object):
         if view_check[0].upper() not in ["N", "E", "S", "W"]:
             # if it is not the same, print error message
 
-            print(
-                self,
-                "Error",
-                "The view value is not one of the four cardinal directions. ",
-                "Error on profile: " + str(profile_name),
-            )
-
-            print(
-                self,
-                "The view value is not one of the four cardinal directions. ",
-                "Error on profile: " + str(profile_name),
-                "Error_LOG",
+            LOGGER.error(f"The view value is not one of the four cardinal directions. Error on profile: {profile_name}")
+            LOGGER.error(
+                f"The view value is not one of the four cardinal directions. Error on profile: {profile_name} - Error_LOG"
             )
 
             # cancel execution of the script
@@ -141,16 +125,9 @@ class ErrorHandler(object):
             if str(selection_check[i]) not in ["1", "0"]:
                 # if it is not the same, print error message
 
-                print(
-                    self,
-                    "Error",
-                    "Only 0 or 1 are allowed in the selection/use. Error on profile: " + str(profile_name),
-                )
-
-                print(
-                    self,
-                    "Only 0 or 1 are allowed in the selection/use. Error on profile: : " + str(profile_name),
-                    "Error_LOG",
+                LOGGER.error(f"Only 0 or 1 are allowed in the selection/use. Error on profile: {profile_name}")
+                LOGGER.error(
+                    f"Only 0 or 1 are allowed in the selection/use. Error on profile: {profile_name} - Error_LOG"
                 )
 
                 # cancel execution of the script
@@ -172,29 +149,9 @@ class ErrorHandler(object):
             for j in range(len(xyz)):
 
                 if xyz[j] < xyz_lower or xyz[j] > xyz_upper:
-                    print(
-                        self,
-                        "Warning",
-                        "Warning: Profile "
-                        + str(profile_name)
-                        + ": "
-                        + chr(120 + i)
-                        + "Pt "
-                        + str(j + 1)
-                        + " exceeds the 2std interval of "
-                        + chr(120 + i),
-                    )
-                    print(
-                        self,
-                        "Warning: Profile "
-                        + str(profile_name)
-                        + ": "
-                        + chr(120 + i)
-                        + "Pt "
-                        + str(j + 1)
-                        + " exceeds the 2std interval of "
-                        + chr(120 + i),
-                        "Error_LOG",
+                    LOGGER.warning(
+                        f"Warning: Profile {profile_name}: {chr(120 + i)}Pt {j + 1} "
+                        f"exceeds the 2std interval of {chr(120 + i)}"
                     )
         return errorCheck
 
@@ -207,17 +164,7 @@ class ErrorHandler(object):
         # Check if the vectorlayer is projected
 
         if layer.crs().isGeographic() is True:
-            print(
-                self,
-                "Error",
-                "Layer " + layer.name() + " is not projected. Please choose an projected reference system.",
-            )
-
-            print(
-                self,
-                "Layer " + layer.name() + " is not projected. Please choose an projected reference system.",
-                "Error_LOG",
-            )
+            LOGGER.error(f"Layer {layer.name()} is not projected. Please choose an projected reference system.")
 
             # cancel execution of the script
 
@@ -236,9 +183,7 @@ class ErrorHandler(object):
                 if field.typeName() != "Real" and field.typeName() != "double":
                     # Give a message
 
-                    print(self, "Error", "The z-Value needs to be a float. Check the field type of the z-Value")
-
-                    print(self, "The z-Value needs to be a float. Check the field type of the z-Value", "Error_LOG")
+                    LOGGER.error("The z-Value needs to be a float. Check the field type of the z-Value")
 
                     # cancel execution of the script
                     errorCheck = True
@@ -252,7 +197,7 @@ class ErrorHandler(object):
         errorCheck = False
 
         if str(value) == "":
-            print(self, "Error", "Please choose an output file!")
+            LOGGER.error("Please choose an output file!")
             # cancel execution of the script
             errorCheck = True
         return errorCheck

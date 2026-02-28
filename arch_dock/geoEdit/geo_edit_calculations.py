@@ -1,4 +1,5 @@
 ## @package QGIS geoEdit extension..
+import logging
 
 from processing.gui import AlgorithmExecutor
 from qgis.PyQt.QtGui import QColor
@@ -10,6 +11,8 @@ from qgis.utils import iface
 from ...common.utils import delSelectFeature
 from ...common.maptools import IdentifyGeometry
 from ...settings import PLUGIN_NAME
+
+LOGGER = logging.getLogger(__name__)
 
 
 ## @brief The class is used to implement functionalities for translate geometies within the geoEdit Module
@@ -47,12 +50,12 @@ class GeoEditCalculations:
         if tranlationDirection == "forward":
             tranlationZValue = translationZ
 
-            print("Translation z - forward and absolute: ", layerName)
+            LOGGER.debug(f"Translation z - forward and absolute: {layerName}")
 
             sourceLayer.startEditing()
             translateAlg = QgsApplication.processingRegistry().createAlgorithmById("qgis:setzvalue")
             paramTranslate = {"Z_VALUE": tranlationZValue, "INPUT": sourceLayer}
-            print(paramTranslate)
+            LOGGER.debug(f"paramTranslate: {paramTranslate}")
             AlgorithmExecutor.execute_in_place(translateAlg, paramTranslate)
 
             sourceLayer.commitChanges()
@@ -60,7 +63,7 @@ class GeoEditCalculations:
         # Translation reverse
         if tranlationDirection == "reverse":
 
-            print("Translation z - reverse and absolute: ", layerName)
+            LOGGER.debug(f"Translation z - reverse and absolute: {layerName}")
             sourceLayer.startEditing()
 
             for feat in sourceLayer.getFeatures():
@@ -80,7 +83,7 @@ class GeoEditCalculations:
     def layerTranslationZ(self, tranlationDirection, sourceLayer, translationZ):
 
         layerName = sourceLayer.name()
-        print("Transformation - Translation Z: ", layerName)
+        LOGGER.debug(f"Transformation - Translation Z: {layerName}")
 
         # layer.startEditing()
         sourceLayer.beginEditCommand("Beginn edit Translation Z")
@@ -145,12 +148,12 @@ class GeoEditCalculations:
             tranlationXValue = translationX * -1
             tranlationYValue = translationY * -1
 
-        print("Transformation - Translation X and Y: ", layerName)
+        LOGGER.debug(f"Transformation - Translation X and Y: {layerName}")
 
         sourceLayer.startEditing()
         translateAlg = QgsApplication.processingRegistry().createAlgorithmById("native:translategeometry")
         paramTranslate = {"DELTA_Y": tranlationYValue, "DELTA_X": tranlationXValue, "INPUT": sourceLayer}
-        print(paramTranslate)
+        LOGGER.debug(f"paramTranslate: {paramTranslate}")
         AlgorithmExecutor.execute_in_place(translateAlg, paramTranslate)
 
         sourceLayer.commitChanges()
@@ -175,13 +178,13 @@ class GeoEditCalculations:
             tranlationYValue = translationY * -1
             tranlationZValue = translationZ * -1
 
-        print("Transformation - Translation X, Y and Z: ", layerName)
+        LOGGER.debug(f"Transformation - Translation X, Y and Z: {layerName}")
 
         sourceLayer.startEditing()
         translateAlg = QgsApplication.processingRegistry().createAlgorithmById("native:translategeometry")
 
         layerType = sourceLayer.wkbType()
-        print("layerType", layerType)
+        LOGGER.debug(f"layerType: {layerType}")
 
         # Abfrage nach Z und ZM Multi Layertypen
         if (
@@ -224,9 +227,9 @@ class GeoEditCalculations:
                 f"Kann Geometrietyp {layerType} nicht verarbeiten!",
                 QMessageBox.Abort,
             )
-            print("Kann Geometrietyp nicht verarbeiten ", layerType)
+            LOGGER.warning(f"Kann Geometrietyp nicht verarbeiten: {layerType}")
 
-        print("paramTranslate ", paramTranslate)
+        LOGGER.debug(f"paramTranslate: {paramTranslate}")
         AlgorithmExecutor.execute_in_place(translateAlg, paramTranslate)
         sourceLayer.commitChanges()
 
