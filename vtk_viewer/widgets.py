@@ -630,12 +630,15 @@ class VtkViewer(QDockWidget, FORM_CLASS):
             layerIds = [layerIds]
         # featuresDeleted
         if isinstance(layerIds[0], int):
-            if type(self.vtk_widget.layers[iface.activeLayer().id()].vtkActor) == tuple:
-                for actor in self.vtk_widget.layers[iface.activeLayer().id()].vtkActor:
+            active_layer_id = iface.activeLayer().id()
+            if active_layer_id not in self.vtk_widget.layers:
+                return
+            if type(self.vtk_widget.layers[active_layer_id].vtkActor) == tuple:
+                for actor in self.vtk_widget.layers[active_layer_id].vtkActor:
                     self.vtk_widget.renderer.RemoveActor(actor)
             else:
-                self.vtk_widget.renderer.RemoveActor(self.vtk_widget.layers[iface.activeLayer().id()].vtkActor)
-            self.vtk_widget.layers.pop(iface.activeLayer().id())
+                self.vtk_widget.renderer.RemoveActor(self.vtk_widget.layers[active_layer_id].vtkActor)
+            self.vtk_widget.layers.pop(active_layer_id)
             self.update_renderer()
             return
         # legendLayersAdded/ layerRemoved
