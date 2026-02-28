@@ -7,9 +7,9 @@ from qgis.utils import iface
 from qgis.core import QgsRectangle
 
 from .geometry_check_dockwidget import GeometryCheckDockWidget
-from common.utils import isNumber, delSelectFeature
-from common.layers import T2gLayers
-from Icons import ICON_PATHS
+from ...common.utils import isNumber, delSelectFeature
+from ...common.layers import T2gLayers
+from ...icons import ICON_PATHS
 
 
 WIDGET, BASE = uic.loadUiType(os.path.join(os.path.dirname(__file__), "tools_allgemein.ui"))

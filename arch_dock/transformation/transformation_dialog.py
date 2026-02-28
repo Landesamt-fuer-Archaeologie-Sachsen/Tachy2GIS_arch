@@ -22,7 +22,7 @@ from .transformation_calculations import TransformationCalculations
 from .transformation_dialog_canvas import TransformationDialogCanvas
 from .transformation_dialog_parambar import TransformationDialogParambar
 from .transformation_dialog_table import TransformationDialogTable
-from Icons import ICON_PATHS
+from ...icons import ICON_PATHS
 
 
 ## @brief With the TransformationDialog class a dialog window for the calculation of transformation parameters is realized

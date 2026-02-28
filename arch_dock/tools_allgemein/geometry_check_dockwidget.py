@@ -44,8 +44,8 @@ from qgis.core import (
 )
 from qgis.utils import iface, OverrideCursor
 
-from common.layers import T2gLayers
-from common.utils import delLayer, tableWidgetRemoveRows, isNumber
+from ...common.layers import T2gLayers
+from ...common.utils import delLayer, tableWidgetRemoveRows, isNumber
 
 
 class NumericTableWidgetItem(QTableWidgetItem):

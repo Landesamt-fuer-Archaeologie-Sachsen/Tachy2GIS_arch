@@ -11,10 +11,11 @@ from qgis.core import (
     QgsCoordinateReferenceSystem,
     QgsWkbTypes,
 )
+from qgis.utils import iface
 
 from .transformation_calculations import TransformationCalculations
 from .transformation_dialog import TransformationDialog
-from common.utils import ArchProjectConfig, project_backup
+from ...common.utils import ArchProjectConfig, project_backup
 
 
 ## @brief The class is used to implement GUI functionalities for transformation within the dock widget of the Tachy2GIS_arch plugin
@@ -31,10 +32,8 @@ class TransformationGui:
     #  Initialize class TransformationDialog as self.transformationDialog
     #
     #  @param dockWidget pointer to the dockwidget
-    #  @param iFace pointer to the iface class
-    def __init__(self, dockWidget, iFace):
+    def __init__(self, dockWidget):
 
-        self.iface = iFace
         self.dockwidget = dockWidget
         # self.colNameGcpSource = "11"  # entspricht 'Festpunkt'
         self.colNameGcpSource = ArchProjectConfig().get("Transformation_colNameGcpSource")
@@ -405,7 +404,7 @@ class TransformationGui:
                 field_index = sourceLayer.fields().indexFromName("obj_typ")
 
                 if field_index == -1:
-                    self.iface.messageBar().pushMessage(
+                    iface.messageBar().pushMessage(
                         "Error", "Im Eingabelayer fehlt die Spalte 'obj_typ'", level=1, duration=5
                     )
                     isValid = False
@@ -421,7 +420,7 @@ class TransformationGui:
 
                     if counterGeoref < 2:
                         isValid = False
-                        self.iface.messageBar().pushMessage(
+                        iface.messageBar().pushMessage(
                             "Error",
                             "Min. zwei Einträge 'Festpunkt' in Spalte 'obj_typ' sind notwendig",
                             level=1,
@@ -432,13 +431,13 @@ class TransformationGui:
 
             else:
                 isValid = False
-                self.iface.messageBar().pushMessage(
+                iface.messageBar().pushMessage(
                     "Error", "Sourcelayer muss PointZ, PointZM, MultiPointZ oder MultipointZM sein", level=1, duration=5
                 )
 
         else:
             isValid = False
-            self.iface.messageBar().pushMessage("Error", "Sourcelayer ist kein Vektorlayer", level=1, duration=5)
+            iface.messageBar().pushMessage("Error", "Sourcelayer ist kein Vektorlayer", level=1, duration=5)
 
         return isValid
 
@@ -471,7 +470,7 @@ class TransformationGui:
                             isValid = True
                         else:
                             isValid = False
-                            self.iface.messageBar().pushMessage(
+                            iface.messageBar().pushMessage(
                                 "Error",
                                 "GCP Datei ist ungültig: Anzahl Spalten ungleich " + str(checkCountColumns),
                                 level=1,
@@ -480,7 +479,7 @@ class TransformationGui:
 
                 else:
                     isValid = False
-                    self.iface.messageBar().pushMessage(
+                    iface.messageBar().pushMessage(
                         "Error",
                         "GCP Datei ist ungültig: min. " + str(checkCountRows) + " Zeilen notwendig",
                         level=1,
@@ -490,7 +489,7 @@ class TransformationGui:
         else:
 
             isValid = False
-            self.iface.messageBar().pushMessage("Error", "Keine GCP Datei ausgewählt!", level=1, duration=5)
+            iface.messageBar().pushMessage("Error", "Keine GCP Datei ausgewählt!", level=1, duration=5)
 
         return isValid
 
@@ -616,12 +615,12 @@ class TransformationGui:
                         print("Leerzeile")
             return True, targetGCP
         except:
-            self.iface.messageBar().pushMessage("GCP-File", "Datei kann nicht eingelesen werden!", level=1, duration=5)
+            iface.messageBar().pushMessage("GCP-File", "Datei kann nicht eingelesen werden!", level=1, duration=5)
 
             return False, targetGCP
 
     def backupBeforeTransformation(self):
-        project_backup(self.iface, "vor_Transformation")
+        project_backup("vor_Transformation")
 
     ## \brief Get all inputlayers from the folder "Eingabelayer" of the layertree
     #
@@ -738,7 +737,7 @@ class TransformationGui:
 
                 # self.enableTransformation(False)
 
-                self.iface.mapCanvas().refresh()
+                iface.mapCanvas().refresh()
 
                 self.saveProject()
 
@@ -747,7 +746,7 @@ class TransformationGui:
                 self.validityMessageBox(validationText, detailedText)
 
         else:
-            self.iface.messageBar().pushMessage(
+            iface.messageBar().pushMessage(
                 "Tranformationsparameter", "Berechnen Sie zuerst die Transformationsparameter!", level=1, duration=5
             )
 
@@ -838,13 +837,13 @@ class TransformationGui:
 
                 # self.enableTransformation(True)
 
-                self.iface.mapCanvas().refresh()
+                iface.mapCanvas().refresh()
 
             else:
                 self.validityMessageBox(validationText, detailedText)
 
         else:
-            self.iface.messageBar().pushMessage(
+            iface.messageBar().pushMessage(
                 "Tranformationsparameter",
                 "Zurücksetzen der Transformation nicht möglich - keine Transformationsparameter vorhanden!",
                 level=1,
