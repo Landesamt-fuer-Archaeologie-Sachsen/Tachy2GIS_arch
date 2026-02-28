@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import csv
 import ctypes
 import logging
 import os
@@ -17,10 +16,10 @@ from ctypes import wintypes
 from datetime import datetime
 from pathlib import Path
 
-from qgis.PyQt.QtCore import pyqtSignal, QCoreApplication, QRect, Qt, QUrl, QVariant
-from qgis.PyQt.QtGui import QColor, QPainter, QIcon
+from qgis.PyQt.QtCore import QCoreApplication, QRect, Qt, QUrl, QVariant
+from qgis.PyQt.QtGui import QPainter, QIcon
 
-from qgis.PyQt.QtWidgets import QDesktopWidget, QGridLayout, QMessageBox, QLabel, QProgressBar, QTextBrowser, QWidget
+from qgis.PyQt.QtWidgets import QDesktopWidget, QGridLayout, QLabel, QProgressBar, QTextBrowser, QWidget
 from qgis.core import (
     QgsDefaultValue,
     QgsExpressionContextUtils,
@@ -29,17 +28,11 @@ from qgis.core import (
     QgsField,
     QgsGeometry,
     Qgis,
-    QgsLayerTreeGroup,
-    QgsLayerTreeLayer,
     QgsMapLayer,
     QgsMessageLog,
-    QgsPoint,
-    QgsPointXY,
     QgsProject,
     QgsVectorLayer,
-    QgsWkbTypes,
 )
-from qgis.gui import QgsMapToolEmitPoint, QgsRubberBand, QgsVertexMarker
 from qgis.utils import iface
 
 from ..settings import PLUGIN_NAME
@@ -116,23 +109,6 @@ def layers_not_in_edit_mode(list_of_layer_names: list[str]):
         if any([layer.isEditable() for layer in layers]):
             LOGGER.warning(f"Layer '{layer_name}' is in edit mode.")
             return False
-
-    return True
-
-
-def commit_changes_in_layers(list_of_layer_names: list[str] = None):
-    project = QgsProject.instance()
-
-    for layer_name in list_of_layer_names:
-        layers = project.mapLayersByName(layer_name)
-        if not layers:
-            LOGGER.warning(f"Layer '{layer_name}' not found in the project.")
-            return False
-
-        for layer in layers:
-            if layer.isEditable() and layer.isModified():
-                layer.commitChanges()
-                layer.startEditing()
 
     return True
 
@@ -384,62 +360,6 @@ class FileFunctions:
             return False
 
 
-class MarkersAndRubberbands:
-    def __init__(self):
-        self.iface = iface
-        self.canvas = iface.mapCanvas()
-        self.lMarkers = []
-        self.lRubberbands = []
-        self.markerType = QgsVertexMarker.ICON_BOX
-        self.color = QColor(255, 0, 0)
-
-    def setMarkerType(self, vertexMaker):
-        self.markerType = vertexMaker
-
-    def setColor(self, color):
-        self.color = color
-
-    def setMarker(self, x, y, size, penwidth):
-        m = QgsVertexMarker(self.canvas)
-        m.setCenter(QgsPointXY(float(x), float(y)))
-        m.setColor(self.color)
-        m.setIconSize(size)
-        m.setIconType(self.markerType)
-        m.setPenWidth(penwidth)
-        m.show()
-        self.lMarkers.append(m)
-
-    def setRubberBandPoly(self, ptList, penwidth):
-        pointList = [QgsPoint(float(a[0]), float(a[1]), float(a[2])) for a in ptList]
-        r = QgsRubberBand(self.canvas)
-        r.setToGeometry(QgsGeometry.fromPolyline(pointList), None)
-        r.setColor(self.color)
-        r.setWidth(penwidth)
-        r.show()
-        self.lRubberbands.append(r)
-
-    def makerClean(self):
-        for maker in self.lMarkers:
-            self.canvas.scene().removeItem(maker)
-
-    def rubberBandClean(self):
-        for maker in self.lRubberbands:
-            self.canvas.scene().removeItem(maker)
-
-
-def isDate(datum, spl):
-    correctDate = None
-    year = int(datum.split(spl)[0])
-    month = int(datum.split(spl)[1])
-    day = int(datum.split(spl)[2])
-    try:
-        newDate = datetime(year, month, day)
-        correctDate = True
-    except ValueError:
-        correctDate = False
-    return correctDate
-
-
 def isNumber(str):
     try:
         float(str)
@@ -490,145 +410,6 @@ def maxValue(layer, fieldname):
     return int(max(values))
 
 
-def maxValueInt(layer, fieldname):
-    idx = layer.dataProvider().fieldNameIndex(fieldname)
-    if layer.maximumValue(idx) == None:
-        max = 0
-    else:
-        max = layer.maximumValue(idx)
-    return int(max)
-
-
-def ValueList(layer, fieldname):
-    befnr = []
-
-    for field in layer.fields():
-        if field.name() == fieldname:
-            idField = layer.dataProvider().fieldNameIndex(fieldname)
-            for feat in layer.selectedFeatures():
-                attrs = feat.attributes()
-                if attrs[idField] != None:
-                    try:
-                        befnr.append(int(attrs[idField]))
-                    except ValueError:
-                        pass
-    try:
-        return befnr
-    except ValueError:
-        befnr.append(0)
-        return befnr
-
-
-def mapCanvasRefresh():
-    cachingEnabled = iface.mapCanvas().isCachingEnabled()
-    for layer in iface.mapCanvas().layers():
-        if cachingEnabled:
-            layer.triggerRepaint()
-    iface.mapCanvas().refresh()
-
-
-def setColumnVisibility(layer, columnName, visible):
-    config = layer.attributeTableConfig()
-    columns = config.columns()
-    for column in columns:
-        if column.name == columnName:
-            column.hidden = not visible
-            break
-    config.setColumns(columns)
-    layer.setAttributeTableConfig(config)
-
-
-def setColumnSort(layer, columnName, sort):
-    config = layer.attributeTableConfig()
-
-
-def csvListfilter(pfad, spalte, suchspalte, suchwert, vergleich):
-    path = os.path.join(pfad)
-    with open(path, newline="", encoding="utf-8") as f:
-        reader = csv.reader(f, delimiter=";")
-        d = list(reader)
-        w = Listfilter(d, spalte, suchspalte, suchwert, vergleich)
-    f.close()
-    return w
-
-
-def csvToList(pfad):
-    path = os.path.join(pfad)
-    with open(path, "r") as f:
-        reader = csv.reader(f, delimiter=";")
-        d = list(reader)
-    f.close()
-    return d
-
-
-def Listfilter(liste, spalte, suchspalte, suchwert, vergleich):
-    w = []
-    for i in range(len(liste)):
-        if vergleich == "genau":
-            if suchwert == (liste[i][suchspalte]):
-                w.append(liste[i][spalte])
-        else:
-            if suchwert in (liste[i][suchspalte]):
-                w.append(liste[i][spalte])
-    return w
-
-
-def getListfilterIndex(liste, suchspalte, suchwert, vergleich):
-    w = None
-    for i in range(len(liste)):
-        if vergleich == "genau":
-            if suchwert == (liste[i][suchspalte]):
-                w = i
-                return w
-        else:
-            if suchwert in (liste[i][suchspalte]):
-                w = i
-                return w
-    return w
-
-
-def csvWriter(pfad, list):
-    output_file = open(pfad, "w")
-    row2 = ""
-    for row in range(len(list)):
-        for i in range(len(list[row])):
-            row2 = row2 + list[row][i] + ";"
-        row2 = row2[:-1] + "\n"
-    output_file.write(row2.strip())
-    output_file.close()
-
-
-def featureAttributEdit(layer, feature, attList):
-    for item in attList:
-        fIndex = layer.dataProvider().fieldNameIndex(item)
-        layer.changeAttributeValue(feature.id(), fIndex, attList[item])
-
-
-def addAttributField(layer, fieldname, typ, length):
-    layer.startEditing()
-    if layer.dataProvider().fieldNameIndex(fieldname) == -1:
-        layer.dataProvider().addAttributes([QgsField(fieldname, typ, len=length)])
-        layer.updateFields()
-
-
-def setSelectAllFeatures(layer):
-    meldung = True
-    it = layer.getFeatures()
-    ids = [i.id() for i in it]
-    layer.selectByIds(ids)
-
-    if layer.selectedFeatureCount() > 0:
-        iface.mapCanvas().zoomToSelected(layer)
-        if not layer.geometryType() == QgsWkbTypes.PointGeometry:
-            iface.mapCanvas().zoomByFactor(5)
-        # iface.mapCanvas().refresh()
-        meldung = False
-    else:
-        meldung = True
-    if meldung == True:
-        QMessageBox.warning(None, "Meldung", "Keine Objekte gefunden!")
-
-
 def delSelectFeature():
     for layer in QgsProject.instance().mapLayers().values():
         if layer.type() == QgsMapLayer.VectorLayer:
@@ -644,15 +425,6 @@ def fileLineCount(file):
     return linecount
 
 
-def getlayerSelectedFeatures():
-    for layer in QgsProject.instance().mapLayers().values():
-        if layer.type() == QgsMapLayer.VectorLayer:
-            if layer.selectedFeatureCount() > 0:
-                layer
-                break
-    return layer
-
-
 def delLayer(layername):
     if len([lyr for lyr in QgsProject.instance().mapLayers().values() if lyr.name() == layername]) != 0:
         templayer = QgsProject.instance().mapLayersByName(layername)[0]
@@ -662,112 +434,6 @@ def delLayer(layername):
 def tableWidgetRemoveRows(widget):
     for row in reversed(range(widget.rowCount())):
         widget.removeRow(row)
-
-
-class LayerTree:
-    def __init__(self, objekt=QgsProject.instance().layerTreeRoot()):
-        self.tree = objekt
-        self.visible = True
-        self.expanded = True
-
-    def allChildsVisible(self, value):
-        self.setVisible(value)
-        for child in self.tree.children():
-            self.layerTreeVisible(child)
-
-    def allGroupsVisible(self, value):
-        self.setVisible(value)
-        for child in self.tree.children():
-            self.layerGroupVisible(child)
-
-    def allGroupsExpanded(self, value):
-        self.setExpanded(value)
-        for child in self.tree.children():
-            self.layerGroupExpanded(child)
-
-    def childVisible(self):
-        pass
-
-    def setVisible(self, value):
-        self.visible = value
-
-    def setExpanded(self, value):
-        self.expanded = value
-
-    # ---------------------------------------------------------------------------------------------------------------------
-
-    def layerTreeVisible(self, child):
-        child.setItemVisibilityChecked(self.visible)
-        for child in child.children():
-            # QgsMessageLog.logMessage(str(child.dump()), 'T2G Archäologie', Qgis.Info)
-            if isinstance(child, QgsLayerTreeGroup):
-                self.layerTreeVisible(child)
-                pass
-            elif isinstance(child, QgsLayerTreeLayer):
-                child.setItemVisibilityChecked(self.visible)
-
-    def layerGroupVisible(self, child):
-        if isinstance(child, QgsLayerTreeGroup):
-            child.setItemVisibilityChecked(self.visible)
-        for child in child.children():
-            # QgsMessageLog.logMessage(str(child.dump()), 'T2G Archäologie', Qgis.Info)
-            if isinstance(child, QgsLayerTreeGroup):
-                # child.setItemVisibilityChecked(self.visible)
-                self.layerGroupVisible(child)
-
-    def layerGroupExpanded(self, child):
-        if isinstance(child, QgsLayerTreeGroup):
-            child.setExpanded(self.expanded)
-        elif isinstance(child, QgsLayerTreeLayer):
-            child.setExpanded(False)
-        for child in child.children():
-            if isinstance(child, QgsLayerTreeGroup):
-                child.setExpanded(self.expanded)
-                self.layerGroupExpanded(child)
-            elif isinstance(child, QgsLayerTreeLayer):
-                child.setExpanded(False)
-
-    def layerExpanded(self, child):
-        if isinstance(child, QgsLayerTreeLayer):
-            child.setExpanded(self.expanded)
-        for child in child.children():
-            if isinstance(child, QgsLayerTreeLayer):
-                child.setExpanded(self.expanded)
-        pass
-
-
-def setAliasName():
-    # >Alias Namen erzeugen
-    for layer in QgsProject.instance().mapLayers().values():
-        if layer.type() == QgsMapLayer.VectorLayer:
-            a = 0
-            for field in layer.fields():
-                if field.name() == "messatum":
-                    layer.setFieldAlias(a, "Aufnamedatum")
-                elif field.name() == "aktcode":
-                    layer.setFieldAlias(a, "Grabung")
-                elif field.name() == "obj_typ":
-                    layer.setFieldAlias(a, "Objekttyp")
-                elif field.name() == "obj_art":
-                    layer.setFieldAlias(a, "Objektart")
-                elif field.name() == "schnitt_nr":
-                    layer.setFieldAlias(a, "Schnitt-Nr")
-                elif field.name() == "planum":
-                    layer.setFieldAlias(a, "Planum")
-                elif field.name() == "material":
-                    layer.setFieldAlias(a, "Material")
-                elif field.name() == "bemerkung":
-                    layer.setFieldAlias(a, "Bemerkung")
-                elif field.name() == "bef_nr":
-                    layer.setFieldAlias(a, "Befund-Nr")
-                elif field.name() == "fund_nr":
-                    layer.setFieldAlias(a, "Fund-Nr")
-                elif field.name() == "geo-arch":
-                    layer.setFieldAlias(a, "Geo/Arch")
-                elif field.name() == "probe_nr":
-                    layer.setFieldAlias(a, "Probe-Nr")
-                a = a + 1
-    # <Alias Namen erzeugen
 
 
 class ProgressBar(QWidget):
@@ -798,93 +464,6 @@ class ProgressBar(QWidget):
     def closeEvent(self, event):
         self.close = True
         event.accept()
-
-
-class PrintClickedPoint(QgsMapToolEmitPoint):
-    geomPoint = pyqtSignal()
-
-    def __init__(self, canvas, dlg):
-        self.canvas = canvas
-        QgsMapToolEmitPoint.__init__(self, self.canvas)
-        self.dlg = dlg
-
-    def canvasMoveEvent(self, e):
-        try:
-            # point = self.toMapCoordinates(self.canvas.mouseLastXY())
-            # point = e.originalMapPoint()
-            # point = e.snapPoint()
-            # self.dlg.activateWindow()
-            # self.dlg.txtPoint_2.setText(str(point.x())+','+str(point.y()))
-            pass
-        except:
-            pass
-
-    def canvasPressEvent(self, e):
-        # try:
-        point = e.snapPoint()
-        # point = self.asWkb(e.snapPoint())
-        self.dlg.activateWindow()
-        self.dlg.txtPointTemp.setText(str(point.x()) + "," + str(point.y()))
-        # except:
-        #    pass
-
-
-class ClickedPoint(QgsMapToolEmitPoint):
-    geomPoint = pyqtSignal()
-    tempPoint = pyqtSignal()
-
-    def __init__(self, canvas, dlg):
-        self.canvas = canvas
-        QgsMapToolEmitPoint.__init__(self, self.canvas)
-        self.dlg = dlg
-
-    def canvasMoveEvent(self, e):
-        try:
-            point = self.toMapCoordinates(self.canvas.mouseLastXY())
-            point = e.originalMapPoint()
-            point = e.snapPoint()
-            self.geomPoint.emit()
-            self.dlg.activateWindow()
-        except:
-            pass
-
-    def canvasPressEvent(self, e):
-        # try:
-        point = e.snapPoint()
-
-        # point = self.asWkb(e.snapPoint())
-        self.dlg.activateWindow()
-        self.tempPoint.emit()
-
-
-class xml:
-    def __init__(self, file):
-        self.file = file
-
-    def getValue(self, element, key):
-        import xml.etree.ElementTree as ElementTree
-
-        tree = ElementTree.parse(self.file)
-        root = tree.getroot()
-
-        for elem in root:
-            if elem.tag == element:
-                for child in elem:
-                    if child.attrib["name"] == key:
-                        return child.text
-
-    def setValue(self, element, key, wert):
-        import xml.etree.ElementTree as ElementTree
-
-        tree = ElementTree.parse(self.file)
-        root = tree.getroot()
-
-        for elem in root:
-            if elem.tag == element:
-                for child in elem:
-                    if child.attrib["name"] == key:
-                        child.text = wert
-        tree.write(self.file)
 
 
 class HelpWindow(QWidget):
