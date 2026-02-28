@@ -1,4 +1,3 @@
-from os import listdir
 from os.path import exists, abspath, join, dirname
 
 ICON_PATHS = {
@@ -15,6 +14,7 @@ ICON_PATHS = {
     "rectangle": "Rectangle.gif",
     "add_vertex": "addVertex.png",
     "Formular": "Formular.jpg",
+    "Frage": "Frage.gif",
     "FeatureSelect": "FeatureSelect.gif",
     "FeatureMove": "FeatureMove.gif",
     "FeatureVertexMove": "FeatureVertexMove.gif",
@@ -70,10 +70,6 @@ for icon_name, icon_path in ICON_PATHS.items():
     if icon_path in list_of_paths:
         print("ICON_PATHS: duplicate entry found: " + icon_path, icon_name)
     list_of_paths.append(icon_path)
-
-# for file_path in listdir(icon_dir):
-#     if abspath(join(icon_dir, file_path)) not in list_of_paths:
-#         print("ICON_PATHS: file not used? look also in .ui files: " + file_path)
 
 del list_of_paths
 del icon_dir
