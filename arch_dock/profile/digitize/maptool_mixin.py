@@ -2,7 +2,7 @@ import uuid
 
 from qgis.core import QgsProject, QgsExpression, QgsExpressionContextUtils, QgsMessageLog, Qgis
 
-from common.utils import ArchProjectConfig
+from ....common.utils import ArchProjectConfig
 
 
 class MapToolMixin:

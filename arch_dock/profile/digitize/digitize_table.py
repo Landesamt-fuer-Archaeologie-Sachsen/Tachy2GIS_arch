@@ -6,7 +6,7 @@ from qgis.PyQt.QtWidgets import QTableWidget, QTableWidgetItem, QHeaderView, QPu
 from qgis.core import QgsApplication
 
 from ..publisher import Publisher
-from icons import ICON_PATHS
+from ....icons import ICON_PATHS
 
 
 ## @brief With the DigitizeTable class a table based on QTableWidget is realized

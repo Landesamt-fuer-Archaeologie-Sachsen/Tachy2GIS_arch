@@ -7,9 +7,10 @@ from qgis.PyQt.QtCore import Qt, pyqtSlot, QObject
 from qgis.PyQt.QtWidgets import QMessageBox, QComboBox, QLabel
 from qgis.core import QgsProject, QgsVectorLayer, QgsLayerTreeGroup, QgsLayerTreeLayer, QgsWkbTypes
 from qgis.gui import QgsFileWidget
+from qgis.utils import iface
 
 from .georeferencing_dialog import GeoreferencingDialog
-from common.utils import natural_sort_key, ArchProjectConfig
+from ....common.utils import natural_sort_key, ArchProjectConfig
 
 
 ## @brief The class is used to implement functionalities for work with profiles
@@ -23,10 +24,9 @@ class Georef:
     #
     #  @param dockWidget pointer to the dockwidget
     #  @param iFace pointer to the iface class
-    def __init__(self, t2gArchInstance, iFace, rotationCoords):
+    def __init__(self, arch_dock, rotationCoords):
         self.preselectedLineLayer = None
-        self.dockwidget = t2gArchInstance.dockwidget
-        self.iface = iFace
+        self.dockwidget = arch_dock
 
         self.rotationCoords = rotationCoords
 
@@ -148,7 +148,7 @@ class Georef:
     #
     #
     def startGeoreferencingDialog(self, refData, set_for_kreuzprofil=False):
-        georeferencingDialog = GeoreferencingDialog(self, self.rotationCoords, self.iface)
+        georeferencingDialog = GeoreferencingDialog(self, self.rotationCoords, iface)
         if set_for_kreuzprofil:
             georeferencingDialog.set_for_kreuzprofil(self.ref_data_pair)
             georeferencingDialog.destroyed.connect(partial(self.on_dialog_closed, self))
@@ -344,7 +344,7 @@ class Georef:
 
         if validGeomCheck is False:
             errorMsg = f"Kann Geometrietyp nicht verarbeiten {orgGeomType}"
-            self.iface.messageBar().pushMessage("Error", errorMsg, level=1, duration=3)
+            iface.messageBar().pushMessage("Error", errorMsg, level=1, duration=3)
 
         if second_set:
             imagePath = self.dockwidget.profileFotosComboGeoref_2.filePath()

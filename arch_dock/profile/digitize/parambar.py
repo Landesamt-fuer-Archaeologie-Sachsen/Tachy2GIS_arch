@@ -20,8 +20,8 @@ from qgis.core import QgsApplication
 from qgis.utils import iface
 
 from ..publisher import Publisher
-from icons import ICON_PATHS
-from common.utils import layers_not_in_edit_mode
+from ....icons import ICON_PATHS
+from ....common.utils import layers_not_in_edit_mode
 
 
 ## @brief With the TransformationDialogParambar class a bar based on QWidget is realized

@@ -6,7 +6,7 @@ from qgis.PyQt.QtWidgets import QWidget, QHBoxLayout, QSizePolicy, QToolBar, QAc
 from qgis.core import QgsApplication
 
 from ..digitize.map_tools import PolygonMapTool
-from utils.t2g_arch import ICON_PATHS
+from ....icons import ICON_PATHS
 
 
 class ImageParambar(QWidget):

@@ -19,7 +19,7 @@ from qgis.core import (
 from qgis.gui import QgsMapCanvas, QgsMapToolPan, QgsMapToolZoom, QgsAttributeDialog
 
 from ..publisher import Publisher
-from common.utils import ArchProjectConfig
+from ....common.utils import ArchProjectConfig
 
 
 ## @brief With the ProfileImageCanvas class a map canvas element is realized. It should be used in the profile dialog
@@ -34,7 +34,7 @@ class DigitizeCanvas(QgsMapCanvas):
     ## The constructor.
     # @param dialogInstance pointer to the dialogInstance
 
-    def __init__(self, dialogInstance, iFace):
+    def __init__(self, dialogInstance):
         super(DigitizeCanvas, self).__init__()
 
         self.pup = Publisher()
@@ -129,7 +129,7 @@ class DigitizeCanvas(QgsMapCanvas):
         #     """
         # )
         rule_pt.setFilterExpression(
-            " OR ".join([f"\"obj_typ\" = '{value}'" for value in ArchProjectConfig().get("Digitize_display_points")])
+            " OR ".join([f'"obj_typ" = \'{value}\'' for value in ArchProjectConfig().get("Digitize_display_points")])
         )
         rule_bef = QgsRuleBasedLabeling.Rule(
             self.createLabelSettings(

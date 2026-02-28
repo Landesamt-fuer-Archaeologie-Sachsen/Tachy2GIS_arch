@@ -20,10 +20,11 @@ from qgis.core import (
     QgsFeatureRequest,
     QgsVectorFileWriter,
 )
+from qgis.utils import iface
 
 from .data_store_plan import DataStorePlan
 from ..rotation_coords import RotationCoords
-from common.utils import layers_not_in_edit_mode, set_vsi_cached, is_vsi_cached
+from ....common.utils import layers_not_in_edit_mode, set_vsi_cached, is_vsi_cached
 
 
 ## @brief The class is used to implement functionalities for work with profile-plans within the dock widget of the Tachy2GIS_arch plugin
@@ -37,11 +38,9 @@ class Plan:
     #
     #  @param dockWidget pointer to the dockwidget
     #  @param iFace pointer to the iface class
-    def __init__(self, t2gArchInstance, iFace):
+    def __init__(self, arch_dock):
         print("init plan")
-        self.__t2gArchInstance = t2gArchInstance
-        self.__dockwidget = t2gArchInstance.dockwidget
-        self.__iface = iFace
+        self.__dockwidget = arch_dock
 
         self.aar_direction = None
         self.prof_nr = None
@@ -74,7 +73,7 @@ class Plan:
     def __startPlanCreation(self):
 
         if not layers_not_in_edit_mode(["E_Point", "E_Line", "E_Polygon", "Messpunkte"]):
-            self.__iface.messageBar().pushMessage(
+            iface.messageBar().pushMessage(
                 "Error", "Bitte den Editiermodus der Eingabelayer beenden.", level=1, duration=3
             )
             return
@@ -89,7 +88,7 @@ class Plan:
 
         except ValueError as err:
             metaChecker = False
-            self.__iface.messageBar().pushMessage("Error", str(err.args[0]), level=1, duration=3)
+            iface.messageBar().pushMessage("Error", str(err.args[0]), level=1, duration=3)
 
         if metaChecker == True:
             self.dataStorePlan.triggerAarTransformationParams(self.aar_direction)
@@ -98,7 +97,7 @@ class Plan:
 
             self.__exportPlanLayers(refData, baseFilePath)
 
-            self.__iface.messageBar().pushMessage(
+            iface.messageBar().pushMessage(
                 "Hinweis",
                 "Die Daten zum Plan wurden im Geopackage des Projektes in den (unregistrierten) Tabellen profildata_* abgelegt",
                 level=3,

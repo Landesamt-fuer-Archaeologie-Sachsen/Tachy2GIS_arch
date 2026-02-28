@@ -14,16 +14,15 @@ class Profile:
     #  Defines attributes for the Profile
     #
     #  @param dockWidget pointer to the dockwidget
-    #  @param iFace pointer to the iface class
-    def __init__(self, t2gArchInstance, iFace):
-        self.__t2gArchInstance = t2gArchInstance
+    def __init__(self, arch_dock):
+        self.dockwidget = arch_dock
 
         # RotationCoords
         self.rotationCoords = RotationCoords()
 
-        self.georef = Georef(self.__t2gArchInstance, iFace, self.rotationCoords)
-        self.digitize = Digitize(self.__t2gArchInstance, iFace, self.rotationCoords)
-        self.plan = Plan(self.__t2gArchInstance, iFace)
+        self.georef = Georef(self.dockwidget, self.rotationCoords)
+        self.digitize = Digitize(self.dockwidget, self.rotationCoords)
+        self.plan = Plan(self.dockwidget)
 
     ## @brief Initializes the functionality for profile modul
     #

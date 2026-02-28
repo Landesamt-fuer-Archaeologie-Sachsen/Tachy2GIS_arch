@@ -5,6 +5,7 @@ from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QWidget, QMainWindow, QAction, QVBoxLayout
 from qgis.core import QgsPointXY
 from qgis.gui import QgsMessageBar
+from qgis.utils import iface
 
 from .digitize_canvas import DigitizeCanvas
 from .digitize_table import DigitizeTable
@@ -13,7 +14,7 @@ from .maptool_digi_point import MapToolDigiPoint
 from .maptool_digi_polygon import MapToolDigiPolygon
 from .maptool_identify import MapToolIdentify
 from .parambar import Parambar
-from icons import ICON_PATHS
+from ....icons import ICON_PATHS
 
 
 ## @brief With the GeoreferencingDialog class a dialog window for the georeferencing of profiles is realized
@@ -25,10 +26,8 @@ from icons import ICON_PATHS
 
 
 class DigitizeDialog(QMainWindow):
-    def __init__(self, dataStoreDigitize, rotationCoords, iFace, aar_direction):
+    def __init__(self, dataStoreDigitize, rotationCoords, aar_direction):
         super(DigitizeDialog, self).__init__()
-
-        self.__iface = iFace
 
         self.aar_direction = aar_direction
 
@@ -80,18 +79,18 @@ class DigitizeDialog(QMainWindow):
         self.messageBar = QgsMessageBar()
 
         # Canvas Elemente
-        self.canvasDigitize = DigitizeCanvas(self, self.__iface)
+        self.canvasDigitize = DigitizeCanvas(self)
 
         # MapTools
-        self.toolIdentify = MapToolIdentify(self.canvasDigitize, self.__iface)
+        self.toolIdentify = MapToolIdentify(self.canvasDigitize, iface)
         self.toolDigiPoint = MapToolDigiPoint(
-            self.canvasDigitize, self.__iface, self.rotationCoords, self.dataStoreDigitize
+            self.canvasDigitize, iface, self.rotationCoords, self.dataStoreDigitize
         )
         self.toolDigiLine = MapToolDigiLine(
-            self.canvasDigitize, self.__iface, self.rotationCoords, self.dataStoreDigitize
+            self.canvasDigitize, iface, self.rotationCoords, self.dataStoreDigitize
         )
         self.toolDigiPolygon = MapToolDigiPolygon(
-            self.canvasDigitize, self.__iface, self.rotationCoords, self.dataStoreDigitize
+            self.canvasDigitize, iface, self.rotationCoords, self.dataStoreDigitize
         )
 
         # paramsBar

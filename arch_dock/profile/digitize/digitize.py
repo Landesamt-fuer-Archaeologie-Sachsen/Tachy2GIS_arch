@@ -7,7 +7,7 @@ from qgis.utils import iface
 
 from .data_store_digitize import DataStoreDigitize
 from .digitize_dialog import DigitizeDialog
-from common.utils import layers_not_in_edit_mode
+from ....common.utils import layers_not_in_edit_mode
 
 
 ## @brief The class is used to implement functionalities for work with profiles within the dock widget of the Tachy2GIS_arch plugin
@@ -21,10 +21,9 @@ class Digitize:
     #
     #  @param dockWidget pointer to the dockwidget
     #  @param iFace pointer to the iface class
-    def __init__(self, t2gArchInstance, iFace, rotationCoords):
+    def __init__(self, arch_dock, rotationCoords):
 
-        self.__dockwidget = t2gArchInstance.dockwidget
-        self.__iface = iFace
+        self.__dockwidget = arch_dock
 
         self.digitizeDialog = None
 
@@ -62,7 +61,7 @@ class Digitize:
 
             except ValueError as err:
                 metaChecker = False
-                self.__iface.messageBar().pushMessage("Error", str(err.args[0]), level=1, duration=3)
+                iface.messageBar().pushMessage("Error", str(err.args[0]), level=1, duration=3)
 
             if metaChecker == True:
 
@@ -70,7 +69,7 @@ class Digitize:
                     self.digitizeDialog.close()
 
                 self.digitizeDialog = DigitizeDialog(
-                    self.dataStoreDigitize, self.rotationCoords, self.__iface, self.aar_direction
+                    self.dataStoreDigitize, self.rotationCoords, iface, self.aar_direction
                 )
                 self.dataStoreDigitize.triggerAarTransformationParams(self.aar_direction)
                 self.digitizeDialog.showDigitizeDialog(refData, self.dataStoreDigitize.getProfileNumber())
@@ -125,7 +124,7 @@ class Digitize:
 
             if checkerGeoQuelle == False:
                 errorArray.append({"error": True, "layer": layer.name()})
-                self.__iface.messageBar().pushMessage(
+                iface.messageBar().pushMessage(
                     "Error", "Im Layer " + layer.name() + " fehlt die Spalte 'geo_quelle'", level=1, duration=5
                 )
 

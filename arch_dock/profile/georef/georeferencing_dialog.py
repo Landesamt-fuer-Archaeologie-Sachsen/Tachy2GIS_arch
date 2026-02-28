@@ -34,7 +34,7 @@ from .profile_gcp_canvas import ProfileGcpCanvas
 from .profile_georef_table import GeorefTable
 from .profile_image_canvas import ProfileImageCanvas
 from ..profileAAR.profileAAR import ProfileAAR
-from icons import ICON_PATHS
+from ....icons import ICON_PATHS
 
 
 ## @brief With the GeoreferencingDialog class a dialog window for the georeferencing of profiles is realized
