@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import csv
 import ctypes
+import logging
 import os
 import os.path
 import re
@@ -42,6 +43,8 @@ from qgis.gui import QgsMapToolEmitPoint, QgsRubberBand, QgsVertexMarker
 from qgis.utils import iface
 
 from ..settings import PLUGIN_NAME
+
+LOGGER = logging.getLogger(__name__)
 
 
 def is_network_path(path):
@@ -91,13 +94,13 @@ def set_vsi_cached(activate: bool):
     [3] https://www.sqlite.org/whentouse.html#situations_where_a_client_server_rdbms_may_work_better
     """
     if activate:
-        print(
+        LOGGER.info(
             "set SQLITE_USE_OGR_VFS (This is used for opening and editing geopackage-based projects directly"
             " on windows network shared folders and accepting possible database corruption.)"
         )
         os.environ["SQLITE_USE_OGR_VFS"] = "1"
     elif is_vsi_cached():
-        print("unset SQLITE_USE_OGR_VFS")
+        LOGGER.info("unset SQLITE_USE_OGR_VFS")
         del os.environ["SQLITE_USE_OGR_VFS"]
 
 
@@ -107,11 +110,11 @@ def layers_not_in_edit_mode(list_of_layer_names: list[str]):
     for layer_name in list_of_layer_names:
         layers = project.mapLayersByName(layer_name)
         if not layers:
-            print(f"Layer '{layer_name}' not found in the project.")
+            LOGGER.warning(f"Layer '{layer_name}' not found in the project.")
             return False
 
         if any([layer.isEditable() for layer in layers]):
-            print(f"Layer '{layer_name}' is in edit mode.")
+            LOGGER.warning(f"Layer '{layer_name}' is in edit mode.")
             return False
 
     return True
@@ -123,7 +126,7 @@ def commit_changes_in_layers(list_of_layer_names: list[str] = None):
     for layer_name in list_of_layer_names:
         layers = project.mapLayersByName(layer_name)
         if not layers:
-            print(f"Layer '{layer_name}' not found in the project.")
+            LOGGER.warning(f"Layer '{layer_name}' not found in the project.")
             return False
 
         for layer in layers:
@@ -141,7 +144,7 @@ def get_source_file_paths_of_layers(list_of_layer_names: list[str]):
     for layer_name in list_of_layer_names:
         layers = project.mapLayersByName(layer_name)
         if not layers:
-            print(f"Layer '{layer_name}' not found in the project.")
+            LOGGER.warning(f"Layer '{layer_name}' not found in the project.")
             return []
 
         for layer in layers:
@@ -219,9 +222,9 @@ def project_backup(subfolder: str, keep_only_last_n_backups: int = None):
         for folder in folders[:num_to_delete]:
             try:
                 shutil.rmtree(folder)
-                print(f"BACKUP: Deleted folder: {folder}")
+                LOGGER.info(f"BACKUP: Deleted folder: {folder}")
             except Exception as e:
-                print(f"BACKUP: ERROR deleting folder {folder}: {e}")
+                LOGGER.error(f"BACKUP: ERROR deleting folder {folder}: {e}")
 
     def show_message(text, critical=False):
         iface.messageBar().pushMessage(
@@ -257,7 +260,7 @@ def project_backup(subfolder: str, keep_only_last_n_backups: int = None):
         backup_folder_name = f"_Sicherungen_/{subfolder}"
         projectPath = project.readPath("..")  # from "Projekt" folder go one up
         target_folder = os.path.join(projectPath, backup_folder_name, datetime.now().strftime(strftime_format_string))
-        print("BACKUP: creating target folder: " + target_folder)
+        LOGGER.info(f"BACKUP: creating target folder: {target_folder}")
         os.makedirs(target_folder)
     except Exception as e:
         show_message(f"Failed to create backup folder: {e}", True)
@@ -267,7 +270,7 @@ def project_backup(subfolder: str, keep_only_last_n_backups: int = None):
         projectFileName = project.fileName()
         newFileName = os.path.join(target_folder, Path(projectFileName).name)
         tmpFileName = str(projectFileName) + "_tmp.qgz"  # same folder or relative paths to layers will be wrong
-        print("BACKUP: copying project file to: " + newFileName)
+        LOGGER.info(f"BACKUP: copying project file to: {newFileName}")
         # project.write()
         project.write(tmpFileName)
         project.write(projectFileName)
@@ -285,7 +288,7 @@ def project_backup(subfolder: str, keep_only_last_n_backups: int = None):
                 conn.commit()
                 conn.close()
 
-            print(f"BACKUP: copying GeoPackage {gpkg_path}")
+            LOGGER.info(f"BACKUP: copying GeoPackage {gpkg_path}")
             shutil.copy2(gpkg_path, target_folder)
 
     except Exception as e:
@@ -355,7 +358,7 @@ class FileFunctions:
             exclude_dirs_on_top_level = []
 
         if os.path.exists(destination):
-            print(f"directory_copy() directory '{destination}' exists already.")
+            LOGGER.warning(f"directory_copy() directory '{destination}' exists already.")
             return False
 
         try:
@@ -376,7 +379,7 @@ class FileFunctions:
             return True
 
         except Exception as e:
-            print(e)
+            LOGGER.error(f"directory_copy() failed: {e}")
             FileFunctions().directory_del(destination)
             return False
 
@@ -942,7 +945,7 @@ class ArchProjectConfig(metaclass=SingletonMeta):
             self.file_path = os.path.join(project_dir, self.file_path)
 
     def load_config(self):
-        print(f"Tachy2GIS_arch plugin is loading config file {self.file_path}", flush=True)
+        LOGGER.info(f"Tachy2GIS_arch plugin is loading config file {self.file_path}")
 
         try:
             with open(self.file_path, "r") as file:
@@ -952,7 +955,7 @@ class ArchProjectConfig(metaclass=SingletonMeta):
         except yaml.YAMLError as e:
             raise ValueError(f"Error parsing YAML file: {e}")
 
-        print(f"Using following config data: {self.config_data}")
+        LOGGER.debug(f"Using following config data: {self.config_data}")
 
         if not isinstance(self.config_data, dict):
             raise ValueError("At top level the YAML file has to contain only variables.")
@@ -1017,7 +1020,7 @@ def openProjectFolder():
     # from "Projekt" folder go one up
     projectPath = QgsProject.instance().readPath("..")
     if sys.platform == "win32":
-        os.startfile(projectPath.replace('/', '\\'))
+        os.startfile(projectPath.replace("/", "\\"))
     else:
         opener = "open" if sys.platform == "darwin" else "xdg-open"
         subprocess.call([opener, projectPath])
