@@ -38,8 +38,7 @@ class TransformationGui:
     def __init__(self, dockWidget):
 
         self.dockwidget = dockWidget
-        # self.colNameGcpSource = "11"  # entspricht 'Festpunkt'
-        self.colNameGcpSource = ArchProjectConfig().get("Transformation_colNameGcpSource")
+        self._colNameGcpSource = None
         self.transformationDialog = TransformationDialog(self)
         self.paramCalc = TransformationCalculations(self)
         self.transformationParametersDone = False
@@ -48,6 +47,16 @@ class TransformationGui:
         self.translationY = float("NAN")
         self.translationZ = float("NAN")
         self.defaultEpsg = QgsCoordinateReferenceSystem("EPSG:31469")
+
+    @property
+    def colNameGcpSource(self):
+        if self._colNameGcpSource is None:
+            self._colNameGcpSource = ArchProjectConfig().get("Transformation_colNameGcpSource")
+        return self._colNameGcpSource
+
+    @colNameGcpSource.setter
+    def colNameGcpSource(self, value):
+        self._colNameGcpSource = value
 
     ## @brief Initializes the functionality for transformation modul
     # - Reads the transformation status and any transformation parameters from the QGIS project file

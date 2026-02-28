@@ -43,7 +43,6 @@ class TransformationDialog(QMainWindow):
         super(TransformationDialog, self).__init__()
 
         self.t2GArchInstance = t2GArchInstance
-        self.colNameGcpSource = t2GArchInstance.colNameGcpSource
 
         self.gcpTable = None
         self.canvasTransform = None
@@ -65,6 +64,10 @@ class TransformationDialog(QMainWindow):
         self.createComponents()
         self.createLayout()
         self.createConnects()
+
+    @property
+    def colNameGcpSource(self):
+        return self.t2GArchInstance.colNameGcpSource
 
     ## \brief Create different menus
     #

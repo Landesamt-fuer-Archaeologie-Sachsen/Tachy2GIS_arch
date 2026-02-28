@@ -515,15 +515,20 @@ class SingletonMeta(type):
 
 
 class ArchProjectConfig(metaclass=SingletonMeta):
+    CONFIG_FILE_NAME = "ArchProjectConfig.yaml"
+
     def __init__(self):
         self.config_data = None
-        self.file_path = "ArchProjectConfig.yaml"
+        self.file_path = None
+
+    def _resolve_file_path(self):
         projectFile = QgsProject.instance().fileName()
-        if projectFile and projectFile != "":
-            project_dir = os.path.dirname(projectFile)
-            self.file_path = os.path.join(project_dir, self.file_path)
+        if projectFile:
+            return os.path.join(os.path.dirname(projectFile), self.CONFIG_FILE_NAME)
+        return self.CONFIG_FILE_NAME
 
     def load_config(self):
+        self.file_path = self._resolve_file_path()
         LOGGER.info(f"Tachy2GIS_arch plugin is loading config file {self.file_path}")
 
         try:
@@ -566,7 +571,6 @@ class ArchProjectConfig(metaclass=SingletonMeta):
                 raise ValueError(f"The key {key} is not present in the configuration file {self.file_path}.")
 
     def get(self, key, default=None):
-        return 1
         if self.config_data is None:
             self.load_config()
 
