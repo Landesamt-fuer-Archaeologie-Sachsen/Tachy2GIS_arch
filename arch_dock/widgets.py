@@ -21,28 +21,106 @@
  *                                                                         *
  ***************************************************************************/
 """
-from os import path as os_path
+import logging
+import os
 
 from qgis.PyQt.QtWidgets import QDockWidget
 from qgis.PyQt import uic
-from qgis.PyQt.QtCore import pyqtSignal
 
-FORM_CLASS, _ = uic.loadUiType(os_path.join(os_path.dirname(__file__), "t2g_arch_dockwidget_base.ui"))
+from .geoEdit.geo_edit import GeoEdit
+from .messen.messen import MeasurementTab
+from .profile.profile import Profile
+from .raster.widgets import RasterGui
+from .tools_allgemein.widgets import ToolsAllgemeinTab
+from .transformation.transformation_gui import TransformationGui
+from ..common.utils import openManual, set_vsi_cached, ArchProjectConfig
+
+LOGGER = logging.getLogger(__name__)
+FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "forms", "t2g_arch_dockwidget.ui"))
 
 
 class T2GArchDockWidget(QDockWidget, FORM_CLASS):
-    closingPlugin = pyqtSignal()
 
     def __init__(self, parent=None):
-        """Constructor."""
-        super(T2GArchDockWidget, self).__init__(parent)
-        # Set up the user interface from Designer.
-        # After setupUI you can access any designer object by doing
-        # self.<objectname>, and you can use autoconnect slots - see
-        # http://qt-project.org/doc/qt-4.8/designer-using-a-ui-file.html
-        # #widgets-and-dialogs-with-auto-connect
-        self.setupUi(self)
+        super().__init__(parent)
+        self.measurementTab = None
+        self.toolsAllgemeinTab = None
+        self.transformationGui = None
+        self.geoEdit = None
+        self.profile = None
+        self.raster = None
 
-    def closeEvent(self, event):
-        self.closingPlugin.emit()
-        event.accept()
+        self.setupUi(self)
+        self.setupModules()
+
+    def setupModules(self):
+        # Messen
+        self.measurementTab = MeasurementTab()
+        self.tab_measurement.layout().addWidget(self.measurementTab)
+
+        # Tools Allgemein
+        self.toolsAllgemeinTab = ToolsAllgemeinTab()
+        self.tab_tools_allgemein.layout().addWidget(self.toolsAllgemeinTab)
+
+        # Transformation
+        self.transformationGui = TransformationGui(self)
+        self.transformationGui.setup()
+
+        # Geometriebearbeitung
+        self.geoEdit = GeoEdit(self)
+        self.geoEdit.setup()
+
+        # Profile
+        self.profile = Profile(self)
+        self.profile.setup()
+
+        # Raster
+        self.raster = RasterGui(self)
+        self.raster.setup()
+
+    def unload(self):
+        if self.geoEdit:
+            self.geoEdit.disconnectSignals()
+
+        # Transformation
+        self.transformationGui = None
+
+        # Geometriebearbeitung
+        self.geoEdit = None
+
+        # Profile
+        self.profile = None
+
+        # Messen
+        if self.measurementTab:
+            self.measurementTab.closeMeasurementTab()
+
+        # Raster
+        self.raster = None
+
+        set_vsi_cached(False)
+
+        ArchProjectConfig.clear()
+
+    def reload(self):
+        if self.geoEdit:
+            self.geoEdit.disconnectSignals()
+
+        # Transformation
+        self.transformationGui = TransformationGui(self)
+        self.transformationGui.setup()
+
+        # Geometriebearbeitung
+        self.geoEdit = GeoEdit(self)
+        self.geoEdit.setup()
+
+        # Profile
+        self.profile = Profile(self)
+        self.profile.setup()
+
+        # Messen
+        self.measurementTab.resetMeasurementTab()
+
+        # Raster
+        self.raster = RasterGui(self)
+        self.raster.setup()

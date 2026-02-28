@@ -6,18 +6,25 @@ import os.path
 import re
 import shutil
 import sqlite3
+import subprocess
+
+import sys
+import uuid
+
 import yaml
 from ctypes import wintypes
 from datetime import datetime
 from pathlib import Path
 
-from qgis.PyQt.QtCore import pyqtSignal, QCoreApplication, QRect, Qt, QUrl
-from qgis.PyQt.QtGui import QColor, QPainter, QIcon, QImage, QPixmap
-from qgis.PyQt.QtSvg import QSvgRenderer
+from qgis.PyQt.QtCore import pyqtSignal, QCoreApplication, QRect, Qt, QUrl, QVariant
+from qgis.PyQt.QtGui import QColor, QPainter, QIcon
+
 from qgis.PyQt.QtWidgets import QDesktopWidget, QGridLayout, QMessageBox, QLabel, QProgressBar, QTextBrowser, QWidget
 from qgis.core import (
+    QgsDefaultValue,
     QgsExpressionContextUtils,
     QgsFeature,
+    QgsFeatureRequest,
     QgsField,
     QgsGeometry,
     Qgis,
@@ -28,10 +35,13 @@ from qgis.core import (
     QgsPoint,
     QgsPointXY,
     QgsProject,
+    QgsVectorLayer,
     QgsWkbTypes,
 )
 from qgis.gui import QgsMapToolEmitPoint, QgsRubberBand, QgsVertexMarker
 from qgis.utils import iface
+
+from ..settings import PLUGIN_NAME
 
 
 def is_network_path(path):
@@ -177,7 +187,7 @@ def enableAndDisableWidgets(enableWidgets, disableWidgets):
         wg.setEnabled(False)
 
 
-def project_backup(iface, subfolder: str, keep_only_last_n_backups: int = None):
+def project_backup(subfolder: str, keep_only_last_n_backups: int = None):
     """
     Creates a backup of a QGIS project and associated GeoPackage layers to a specified subfolder.
     This function ensures that the layers are not in edit mode, copies the project file and GeoPackage
@@ -974,6 +984,7 @@ class ArchProjectConfig(metaclass=SingletonMeta):
                 raise ValueError(f"The key {key} is not present in the configuration file {self.file_path}.")
 
     def get(self, key, default=None):
+        return 1
         if self.config_data is None:
             self.load_config()
 
@@ -1000,3 +1011,45 @@ def merge_icons(source_icon, small_icon):
     painter.drawPixmap(QRect(big - small, big - small, small, small), small_pixmap, small_pixmap.rect())
     painter.end()
     return QIcon(pixmap)
+
+
+def openProjectFolder():
+    # from "Projekt" folder go one up
+    projectPath = QgsProject.instance().readPath("..")
+    if sys.platform == "win32":
+        os.startfile(projectPath.replace('/', '\\'))
+    else:
+        opener = "open" if sys.platform == "darwin" else "xdg-open"
+        subprocess.call([opener, projectPath])
+
+
+def saveProject():
+    project_backup("manuell")
+
+
+def openManual():
+    pdfPath = os.path.join(QgsProject.instance().readPath(".."), "T2G_arch_Bedienungsanleitung.pdf")
+    if os.path.isfile(pdfPath):
+        os.startfile(pdfPath)
+
+
+def repairUuidsInLayers(layers: list[QgsVectorLayer]):
+    QgsMessageLog.logMessage("Überprüfe UUID", PLUGIN_NAME, Qgis.Info)
+    # >uuid erzeugen wenn Feld uuid leer
+    for layer in layers:
+        layer.startEditing()
+        if layer.dataProvider().fieldNameIndex("uuid") == -1:
+            layer.dataProvider().addAttributes([QgsField("uuid", QVariant.String, len=50)])
+            fIndex = layer.dataProvider().fieldNameIndex("obj_uuid")
+            layer.setDefaultValueDefinition(fIndex, QgsDefaultValue("uuid()"))
+            layer.updateFields()
+        it = layer.getFeatures(QgsFeatureRequest().setFilterExpression('"uuid" IS NULL'))
+        QgsMessageLog.logMessage(
+            f"{sum(1 for _ in it)} features ohne UUID in Layer {layer.name()}; Neugenerierung ...",
+            "T2G Archäologie",
+            Qgis.Info,
+        )
+        UUid = layer.dataProvider().fieldNameIndex("obj_uuid")
+        attr_map = {feature.id(): {UUid: "{" + str(uuid.uuid4()) + "}"} for feature in it}
+        layer.dataProvider().changeAttributeValues(attr_map)
+        layer.commitChanges()

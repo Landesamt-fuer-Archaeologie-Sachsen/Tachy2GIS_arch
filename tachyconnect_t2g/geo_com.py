@@ -10,7 +10,7 @@ class GeoCOMRequest:
 
     def __init__(self, command, *args):
         self.command = str(command)
-        self.args = ','.join(map(str, args))
+        self.args = ",".join(map(str, args))
         self.transaction_id = 0
 
     def set_transaction_id(self, slot):
@@ -35,10 +35,10 @@ class GeoCOMReply:
     PREFIX = "%R1P"
 
     def __init__(self, bites):
-        self.msg = bites.decode('ascii')
-        head, tail = self.msg.split(':')
-        head = head.split(',')
-        tail = tail.strip().split(',')
+        self.msg = bites.decode("ascii")
+        head, tail = self.msg.split(":")
+        head = head.split(",")
+        tail = tail.strip().split(",")
         self.com_code = int(head[1])
         self.transaction_id = int(head[2])
         self.ret_code = int(tail.pop(0))
@@ -48,7 +48,6 @@ class GeoCOMReply:
         return self.msg
 
     __repr__ = __str__
-
 
 
 class GeoCOMReplyHandler:
@@ -69,6 +68,7 @@ class GeoCOMCallCenter:
     """This is the skeleton of a prototype that mainly exists to describe
     a design. Use at your own risk.
     """
+
     def __init__(self):
         self.handlers = {}
 
@@ -82,11 +82,48 @@ class GeoCOMCallCenter:
             handler.handle(reply)
 
 
+class GeoCOMMessageQueue:
+    def __init__(self, n_slots=7):
+        self.indices = list(range(1, n_slots + 1))
+        self.slots = {}
+        self.ser = None
+
+    def set_serial(self, serial):
+        self.ser = serial
+
+    def append(self, msg, timeout=2):
+        def first_free_slot():
+            for i in self.indices:
+                if i not in self.slots.keys():
+                    return i
+            return False
+
+        if self.ser is None:
+            return False
+        slot = first_free_slot()
+        if slot and self.ser:
+            self.slots[slot] = {"message": msg, "timeout": time() + timeout}
+            msg.set_transaction_id(slot)
+            self.ser.write(msg.bytes)
+        return slot
+
+    def check_timeouts(self):
+        over_ripes = list(filter(lambda i: i[1]["timeout"] < time(), self.slots.items()))
+        messages = []
+        for index, msg in over_ripes:
+            messages.append((index, self.slots.pop(index)["message"]))
+        return messages
+
+    def handle_reply(self, reply):
+        reply = GeoCOMReply(reply)
+        return reply
+
+
 @pyqtSlot(str)
 def connect_beep(port_name):
     serial = QSerialPort()
     serial.setPortName(port_name)
     serial.open(QSerialPort.WriteOnly)
     message = "%R1Q," + str(gc.BMM_BeepAlarm) + ":" + gc.CRLF
-    serial.writeData(message.encode('ascii'))
+    serial.writeData(message.encode("ascii"))
     serial.close()

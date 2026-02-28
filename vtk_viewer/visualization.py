@@ -2,12 +2,12 @@ import vtk
 from qgis.core import Qgis, QgsGeometry, QgsWkbTypes, QgsMessageLog, QgsVectorDataProvider, QgsVectorLayerUtils
 from qgis.gui import QgsAttributeDialog
 from qgis.utils import iface
-from vtkmodules.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
-from PyQt5.QtCore import QObject, pyqtSignal
-from PyQt5.QtWidgets import qApp
+from qgis.PyQt.QtCore import QObject, pyqtSignal
+from qgis.PyQt.QtWidgets import qApp
 
 from random import random
-from vtk_viewer.AnchorUpdater import VtkAnchorUpdater
+from .AnchorUpdater import VtkAnchorUpdater
+
 
 COLOUR_SPACE = [
     "blanched_almond",
@@ -28,7 +28,6 @@ COLOUR_SPACE = [
 CLOUD_MARKER = "⛅ "
 
 
-# todo: iface.activeLayer().renderer().symbols(QgsRenderContext())[0].color().getHsl()
 class ColourProvider:
     index = 0
     colours = COLOUR_SPACE
@@ -475,101 +474,6 @@ class VtkPointLayer(VtkLayer):
             self.vtkActor.GetProperty().SetColor(vtk.vtkNamedColors().GetColor3d("Yellow"))
         else:
             self.vtkActor.GetProperty().SetColor(vtk.vtkNamedColors().GetColor3d("Orange"))
-
-
-class VtkWidget(QVTKRenderWindowInteractor):
-    layer_type_map = {
-        "Polygon": VtkPolygonLayer,
-        "PolygonM": VtkPolygonMLayer,
-        "PolygonZ": VtkPolygonZLayer,
-        "PolygonZM": VtkPolygonZMLayer,
-        "MultiPolygon": VtkMultiPolygonLayer,
-        "MultiPolygonZ": VtkMultiPolygonZLayer,
-        "MultiPolygonM": VtkMultiPolygonMLayer,
-        "MultiPolygonZM": VtkMultiPolygonZMLayer,
-        "LineString": VtkLineStringLayer,
-        "LineStringM": VtkLineStringMLayer,
-        "LineStringZ": VtkLineStringZLayer,
-        "LineStringZM": VtkLineStringZMLayer,
-        "MultiLineString": VtkMultiLineStringLayer,
-        "MultiLineStringM": VtkMultiLineStringMLayer,
-        "MultiLineStringZ": VtkMultiLineStringZLayer,
-        "MultiLineStringZM": VtkMultiLineStringZMLayer,
-        "Point": VtkPointLayer,
-        "PointM": VtkPointLayer,
-        "PointZ": VtkPointLayer,
-        "PointZM": VtkPointLayer,
-        "MultiPoint": VtkPointLayer,
-        "MultiPointM": VtkPointLayer,
-        "MultiPointZ": VtkPointLayer,
-        "MultiPointZM": VtkPointLayer,
-    }
-
-    def __init__(self, widget):
-        self.renderer = vtk.vtkRenderer()
-        self.axes = vtk.vtkAxesActor()
-        self.axes.PickableOff()
-        self.colour_provider = ColourProvider()
-        super().__init__(widget)
-        self.GetRenderWindow().AddRenderer(self.renderer)
-        self.layers = {}
-
-    def switch_layer(self, qgis_layer):
-        layer_id = qgis_layer.id()
-        type_name = QgsWkbTypes.displayString(qgis_layer.wkbType())
-        if type_name in VtkWidget.layer_type_map.keys():
-            if layer_id not in self.layers.keys():
-                layer_type = VtkWidget.layer_type_map[type_name]
-                created = layer_type(qgs_layer=qgis_layer)
-                # created.update()
-                self.layers[layer_id] = created
-                for actor in created.get_actors(self.colour_provider.next()):
-                    self.renderer.AddActor(actor)
-                # for actor in created.get_actors(qgis_layer.renderer().symbols(QgsRenderContext())[0].color().getRgb()[0:3]):
-                #     self.renderer.AddActor(actor)
-        else:
-            print(f"No class defined for {type_name}")
-        self.refresh_content()
-
-    def refresh_layer(self, layer):
-        vtk_layer = self.layers.pop(layer.id())
-        actors = vtk_layer.vtkActor
-        if type(actors) != tuple:
-            tuple(actors)
-        for actor in actors:
-            self.renderer.RemoveActor(actor)
-
-    def refresh_content(self):
-        # The mapper is responsible for pushing the geometry into the graphics
-        # library. It may also do color mapping, if scalars or other
-        # attributes are defined.
-
-        # Create the graphics structure. The renderer renders into the render
-        # window. The render window interactor captures mouse events and will
-        # perform appropriate camera or actor manipulation depending on the
-        # nature of the events.
-
-        ren = self.renderer
-        renWin = self.GetRenderWindow()
-        # no visible difference
-        # renWin.PointSmoothingOn()  # Point Cloud test
-        # renWin.PolygonSmoothingOn()
-        # renWin.LineSmoothingOn()
-        iren = renWin.GetInteractor()
-        iren.SetRenderWindow(renWin)
-
-        # Add the actors to the renderer, set the background and size
-        ren.SetBackground(vtk.vtkNamedColors().GetColor3d("light_grey"))
-
-        # This allows the interactor to initalize itself. It has to be
-        # called before an event loop.
-        iren.Initialize()
-
-        # We'll zoom in a little by accessing the camera and invoking a "Zoom"
-        # method on it.
-        # ren.ResetCamera()
-        # ren.GetActiveCamera().Zoom(1.5)
-        renWin.Render()
 
 
 # call on right button down, to track last point

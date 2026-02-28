@@ -1,5 +1,5 @@
-from PyQt5.QtCore import QObject, QThread, pyqtSignal, pyqtSlot, QMutex, QAbstractTableModel, Qt
-from qgis.core import *
+from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot, QMutex
+from qgis.core import QgsSpatialIndex, QgsFeature, QgsGeometry, QgsPoint, QgsPointXY, QgsWkbTypes
 from PyQt5.QtWidgets import qApp
 import vtk
 import json
@@ -14,16 +14,7 @@ WKT_STRIP = re.compile(r"^\D+|\D+$")
 #  That this is the measure is purely an assumption, this has to be used carefully.
 WKT_REMOVE_MEASURE = re.compile(r" \d+(?=[,)])")
 ## List of wkt extensions used to indicate the available dimensions
-WKT_EXTENSIONS = [' ', 'Z ', 'ZM ']
-
-
-class VtkGeometry:
-    pass
-    # POINTGEOMETRY = 0
-    # LINEGEOMETRY = 1
-    # POLYGONGEOMETRY = 2
-    # NULLGEOMETRY = 4
-    # NOGEOMETRY = 100
+WKT_EXTENSIONS = [" ", "Z ", "ZM "]
 
 
 class AnchorUpdater(QObject):
@@ -84,7 +75,7 @@ class AnchorUpdater(QObject):
         self.signalAnchorCount.emit(len(wkts))
         for i, wkt in enumerate(wkts):
             # The feature wtk strings are broken into their vertices
-            for vertext in wkt.split(','):
+            for vertext in wkt.split(","):
                 # a regex pulls out the numbers, of which the first three are mapped to float
                 dimensions = WKT_VALUES.findall(vertext)
                 if len(dimensions) >= 3:
@@ -93,9 +84,9 @@ class AnchorUpdater(QObject):
                     if coordinates not in allVertices:
                         allVertices.append(coordinates)
                         # preparing a new wkt string representing the vertex as point
-                        coordText = WKT_STRIP.sub('', vertext)
+                        coordText = WKT_STRIP.sub("", vertext)
                         extension = WKT_EXTENSIONS[len(dimensions) - 2]
-                        anchorWkt = 'Point' + extension + '(' + coordText + ')'
+                        anchorWkt = "Point" + extension + "(" + coordText + ")"
                         self.anchorPoints.append(anchorWkt)
                         # creating and adding a new entry to the index. The id is
                         # synchronized with the point list
@@ -116,14 +107,14 @@ class AnchorUpdater(QObject):
 def unpack_multi_polygons(geometries):
     unpacked = []
     for geo in geometries:
-        if geo.asWkt().startswith('MultiPolygon'):
-            coordinates = json.loads(geo.asJson()).get('coordinates', [[]])
+        if geo.asWkt().startswith("MultiPolygon"):
+            coordinates = json.loads(geo.asJson()).get("coordinates", [[]])
             unpacked += coordinates[0]
             if len(coordinates) > 1:
                 for i in range(1, len(coordinates)):
                     unpacked += coordinates[i]
-        elif geo.asWkt().startswith('MultiLine'):
-            coordinates = json.loads(geo.asJson()).get('coordinates', [[]])
+        elif geo.asWkt().startswith("MultiLine"):
+            coordinates = json.loads(geo.asJson()).get("coordinates", [[]])
             unpacked.append(coordinates[0])
             if len(coordinates) > 1:
                 for i in range(1, len(coordinates)):
@@ -171,8 +162,8 @@ class VtkAnchorUpdater(AnchorUpdater):
         self.features.reset()
         if self.geoType == QgsWkbTypes.PolygonGeometry:
             geometries = list([feature.geometry() for feature in self.layer.getFeatures()])
-            #active_layer_id = self.layer.id()
-            #qApp.processEvents()
+            # active_layer_id = self.layer.id()
+            # qApp.processEvents()
             polies = vtk.vtkCellArray()
             anchors = vtk.vtkPoints()
             anchors.SetDataTypeToDouble()
@@ -193,12 +184,12 @@ class VtkAnchorUpdater(AnchorUpdater):
             self.poly_data = vtk.vtkPolyData()
             self.poly_data.SetPoints(anchors)
             self.poly_data.SetPolys(polies)
-            #self.polies = self.poly_data.GetPolys()
+            # self.polies = self.poly_data.GetPolys()
 
         if self.geoType == QgsWkbTypes.LineGeometry:
             geometries = list([feature.geometry() for feature in self.layer.getFeatures()])
-            #self.signalAnchorCount.emit(len(geometries))
-            #active_layer_id = self.layer.id()
+            # self.signalAnchorCount.emit(len(geometries))
+            # active_layer_id = self.layer.id()
             linePoints = vtk.vtkPoints()
             linePoints.SetDataTypeToDouble()
             cells = vtk.vtkCellArray()
@@ -221,8 +212,8 @@ class VtkAnchorUpdater(AnchorUpdater):
 
         if self.geoType == QgsWkbTypes.PointGeometry:
             geometries = list([feature.geometry() for feature in self.layer.getFeatures()])
-            #self.signalAnchorCount.emit(len(geometries))
-            #active_layer_id = self.layer.id()
+            # self.signalAnchorCount.emit(len(geometries))
+            # active_layer_id = self.layer.id()
             points = vtk.vtkPoints()
             points.SetDataTypeToDouble()
             v_cells = vtk.vtkCellArray()
@@ -237,6 +228,3 @@ class VtkAnchorUpdater(AnchorUpdater):
             self.poly_data = pointData
 
         return self.poly_data
-
-
-
