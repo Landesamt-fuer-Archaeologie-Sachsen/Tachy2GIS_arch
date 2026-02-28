@@ -58,7 +58,7 @@ from qgis.core import (
 )
 from qgis.gui import QgisInterface
 
-from .functions import (
+from common.utils import (
     ArchProjectConfig,
     addPoint3D,
     delLayer,
@@ -73,17 +73,17 @@ from .functions import (
     any2bool,
 )
 from .identifygeometry import IdentifyGeometry
-from .layers import T2gLayers, findLayerInProject
-from .t2g_arch_dockwidget import T2GArchDockWidget
-from ..ExtDialoge.myDlgRasterLayerView import RasterLayerViewDockWidget
+from common.layers import T2gLayers, findLayerInProject
+from arch_dock.widgets import T2GArchDockWidget
+from arch_dock.raster.widgets import RasterLayerViewDockWidget
 from ..ExtDialoge.myDlgSettings import DlgSettings, Configfile
 from ..Icons import ICON_PATHS
-from ..geoEdit.geo_edit import GeoEdit
-from ..messen.autoattributes import clearAutoAttributeProjectVariables
-from ..messen.messen import MeasurementTab
-from ..profile.profile import Profile
-from ..tools_allgemein.widgets import ToolsAllgemeinTab
-from ..transformation.transformation_gui import TransformationGui
+from arch_dock.geoEdit.geo_edit import GeoEdit
+from arch_dock.messen import clearAutoAttributeProjectVariables
+from arch_dock.messen.messen import MeasurementTab
+from arch_dock.profile.profile import Profile
+from arch_dock.tools_allgemein.widgets import ToolsAllgemeinTab
+from arch_dock.transformation.transformation_gui import TransformationGui
 
 
 class T2gArch:

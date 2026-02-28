@@ -16,7 +16,7 @@ from qgis.gui import QgisInterface
 
 from .Icons import ICON_PATHS
 from .Tachy2GIS import classFactory as T2GclassFactory
-from .utils.functions import set_vsi_cached, is_network_path, merge_icons, color_shift_icon, ArchProjectConfig, any2bool
+from common.utils import set_vsi_cached, is_network_path, merge_icons, color_shift_icon, ArchProjectConfig, any2bool
 from .utils.t2g_arch import T2gArch
 from .utils.toolbar_functions import openProjectFolder, saveProject
 
