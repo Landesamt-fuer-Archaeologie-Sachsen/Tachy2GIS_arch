@@ -28,17 +28,17 @@ class RasterGui:
     def __init__(self, dockWidget):
         self.dockwidget = dockWidget
         self._raster_layer_view = None
-        self.dockwidget.pushButton_4.setIcon(QIcon(ICON_PATHS["V_Jpg-Tif"]))
-        self.dockwidget.pushButton_4.clicked.connect(gtiff2jpg)
-        self.dockwidget.pushButton_5.setIcon(QIcon(ICON_PATHS["cut"]))
-        self.dockwidget.pushButton_5.clicked.connect(rasterCut)
-        self.dockwidget.pushButton_6.setIcon(QIcon(ICON_PATHS["cutmask"]))
-        self.dockwidget.pushButton_6.clicked.connect(setCutMask)
-        self.dockwidget.pushButton_7.setIcon(QIcon(ICON_PATHS["cutmaskdel"]))
-        self.dockwidget.pushButton_7.clicked.connect(delCutMask)
-        self.dockwidget.pushButton_11.setIcon(QIcon(ICON_PATHS["Thumbs"]))
-        self.dockwidget.pushButton_11.clicked.connect(self._show_raster_layer_view)
-        self.dockwidget.pushButton_11.setToolTip("Übersicht der Rasterlayer")
+        self.dockwidget.btnGtiff2Jpg.setIcon(QIcon(ICON_PATHS["V_Jpg-Tif"]))
+        self.dockwidget.btnGtiff2Jpg.clicked.connect(gtiff2jpg)
+        self.dockwidget.btnCutRaster.setIcon(QIcon(ICON_PATHS["cut"]))
+        self.dockwidget.btnCutRaster.clicked.connect(rasterCut)
+        self.dockwidget.btnCutMask.setIcon(QIcon(ICON_PATHS["cutmask"]))
+        self.dockwidget.btnCutMask.clicked.connect(setCutMask)
+        self.dockwidget.btnDeleteMask.setIcon(QIcon(ICON_PATHS["cutmaskdel"]))
+        self.dockwidget.btnDeleteMask.clicked.connect(delCutMask)
+        self.dockwidget.btnOpenOverview.setIcon(QIcon(ICON_PATHS["Thumbs"]))
+        self.dockwidget.btnOpenOverview.clicked.connect(self._show_raster_layer_view)
+        self.dockwidget.btnOpenOverview.setToolTip("Übersicht der Rasterlayer")
 
     def _show_raster_layer_view(self):
         if self._raster_layer_view is None:

@@ -125,7 +125,7 @@
          <enum>QTabWidget::East</enum>
         </property>
         <property name="currentIndex">
-         <number>0</number>
+         <number>5</number>
         </property>
         <widget class="QWidget" name="tab_measurement">
          <attribute name="title">
@@ -1148,7 +1148,7 @@
          </attribute>
          <layout class="QVBoxLayout" name="verticalLayout_8">
           <item>
-           <widget class="QPushButton" name="pushButton_4">
+           <widget class="QPushButton" name="btnGtiff2Jpg">
             <property name="text">
              <string> GeoTiff zu JPG</string>
             </property>
@@ -1165,7 +1165,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="pushButton_5">
+           <widget class="QPushButton" name="btnCutRaster">
             <property name="text">
              <string>  Bild beschneiden</string>
             </property>
@@ -1183,7 +1183,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="pushButton_6">
+           <widget class="QPushButton" name="btnCutMask">
             <property name="text">
              <string>  Maske festlegen</string>
             </property>
@@ -1194,7 +1194,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="pushButton_7">
+           <widget class="QPushButton" name="btnDeleteMask">
             <property name="text">
              <string>  Masken löschen</string>
             </property>
@@ -1212,7 +1212,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="pushButton_11">
+           <widget class="QPushButton" name="btnOpenOverview">
             <property name="text">
              <string>  Rasterlayer Übersicht</string>
             </property>
