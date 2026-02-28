@@ -125,6 +125,7 @@ class T2GToolbar(QToolBar):
         self.vtk_viewer.deleteLater()
 
         iface.removeDockWidget(self.arch_dock)
+        self.arch_dock.unload()
         self.arch_dock.deleteLater()
 
         super().deleteLater()
