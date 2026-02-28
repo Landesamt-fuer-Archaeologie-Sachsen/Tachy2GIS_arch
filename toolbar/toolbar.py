@@ -7,7 +7,15 @@ from qgis.PyQt.QtWidgets import QWidget, QToolBar
 from qgis.core import QgsMessageLog, Qgis
 from qgis.utils import iface
 
-from .actions import OpenProjectFolderAction, BackupProjectAction, AutoBackupProjectAction, MenuPointsImportAction, SettingsAction, AboutAction, ManualAction
+from .actions import (
+    OpenProjectFolderAction,
+    BackupProjectAction,
+    AutoBackupProjectAction,
+    MenuPointsImportAction,
+    SettingsAction,
+    AboutAction,
+    ManualAction,
+)
 from ..arch_dock.messen.autoattributes import clearAutoAttributeProjectVariables
 from ..arch_dock.widgets import T2GArchDockWidget
 from ..common.autosave import AutosaveManager
@@ -18,7 +26,7 @@ from ..vtk_viewer.widgets import VtkViewer
 from ..common.project_validator import ProjectValidator
 
 LOGGER = logging.getLogger(__name__)
-ICONS_DIR = os.path.join(os.path.dirname(__file__), '..', 'icons')
+ICONS_DIR = os.path.join(os.path.dirname(__file__), "..", "icons")
 
 
 class T2GToolbar(QToolBar):
@@ -31,14 +39,14 @@ class T2GToolbar(QToolBar):
         self.vtk_viewer = VtkViewer()
         iface.addDockWidget(Qt.BottomDockWidgetArea, self.vtk_viewer)
         self.t2g_action = self.vtk_viewer.toggleViewAction()
-        t2g_icon = QIcon(os.path.join(ICONS_DIR, 'tachymeter.png'))
+        t2g_icon = QIcon(os.path.join(ICONS_DIR, "tachymeter.png"))
         self.t2g_action.setIcon(t2g_icon)
         self.addAction(self.t2g_action)
 
         self.arch_dock = T2GArchDockWidget()
         iface.addDockWidget(Qt.RightDockWidgetArea, self.arch_dock)
         self.arch_dock_action = self.arch_dock.toggleViewAction()
-        arch_icon = QIcon(os.path.join(ICONS_DIR, 'plugin_icon.png'))
+        arch_icon = QIcon(os.path.join(ICONS_DIR, "plugin_icon.png"))
         self.arch_dock_action.setIcon(arch_icon)
         self.addAction(self.arch_dock_action)
 
