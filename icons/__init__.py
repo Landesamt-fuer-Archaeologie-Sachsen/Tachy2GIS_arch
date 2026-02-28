@@ -56,6 +56,7 @@ ICON_PATHS = {
     "Probe": "Probe.gif",
     "einfügen": "einfügen.gif",
     "kopieren": "kopieren.gif",
+    "tachymeter": "tachymeter.png",
 }
 
 icon_dir = dirname(__file__)
