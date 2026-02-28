@@ -8,10 +8,14 @@ from qgis.core import (
     QgsLayerTreeGroup,
     QgsLayerTreeLayer,
     QgsRectangle,
+    QgsWkbTypes,
+    QgsMultiLineString,
+    QgsGeometry,
 )
+from qgis.utils import iface
 
 from .geo_edit_calculations import GeoEditCalculations
-from Icons import ICON_PATHS
+from ...icons import ICON_PATHS
 
 
 ## @brief The class is used to implement functionalities for edit geometies within the dock widget of the Tachy2GIS_arch plugin
@@ -25,10 +29,8 @@ class GeoEdit:
     #
     #  @param dockWidget pointer to the dockwidget
     #  @param iFace pointer to the iface class
-    def __init__(self, t2gArchInstance, iFace):
-        self.t2gArchInstance = t2gArchInstance
-        self.dockwidget = t2gArchInstance.dockwidget
-        self.iface = iFace
+    def __init__(self, arch_dock):
+        self.dockwidget = arch_dock
         # FIDs of the selected features at the moment of starting forward translation
         self.selectedFids = []
         # Selected features at the moment of starting forward translation | used only in "absolute" transformation
@@ -63,7 +65,7 @@ class GeoEdit:
         # Signal connection Infobutton
         self.dockwidget.btnGeometryMoveInfo.clicked.connect(self.openInfoMessageBox)
         # Get signal when active layer in layertree is changed
-        self.iface.layerTreeView().currentLayerChanged.connect(self.activeLayerIsChanged)
+        iface.layerTreeView().currentLayerChanged.connect(self.activeLayerIsChanged)
         # Disable reverse button
         self.setAllowReverse(False)
 
@@ -83,11 +85,11 @@ class GeoEdit:
         # Setup Sonstiges
         self.dockwidget.butLineRes.setIcon(QIcon(ICON_PATHS["LineRe"]))
         self.dockwidget.butLineRes.setToolTip("Linie umdrehen")
-        self.dockwidget.butLineRes.clicked.connect(self.t2gArchInstance.reverseLines)
+        self.dockwidget.butLineRes.clicked.connect(self.reverseLines)
 
     def disconnectSignals(self):
         # muss disconnected werden bei reload des Plugins
-        self.iface.layerTreeView().currentLayerChanged.disconnect(self.activeLayerIsChanged)
+        iface.layerTreeView().currentLayerChanged.disconnect(self.activeLayerIsChanged)
 
     ## @brief Start process to move features forward
     # - Get input values
@@ -131,10 +133,10 @@ class GeoEdit:
                     # Enable reverse translation
                     self.setAllowReverse(True)
             else:
-                self.iface.messageBar().pushMessage("Hinweis", "Keine Features ausgewählt!", level=1, duration=5)
+                iface.messageBar().pushMessage("Hinweis", "Keine Features ausgewählt!", level=1, duration=5)
 
         else:
-            self.iface.messageBar().pushMessage("Error", validationText, level=2, duration=5)
+            iface.messageBar().pushMessage("Error", validationText, level=2, duration=5)
 
     ## @brief Start process to move features reverse
     # - Only when self.allowReverse is True
@@ -175,7 +177,7 @@ class GeoEdit:
         # Selection is lost so the features have to be reselected
         self.reselectFeatures()
 
-        self.iface.messageBar().pushMessage(
+        iface.messageBar().pushMessage(
             "Hinweis",
             "Die relative Verschiebung des Layers " + self.sourceLayer.name() + " ist fertig!",
             level=3,
@@ -203,7 +205,7 @@ class GeoEdit:
         # Selection is lost so the features have to be reselected
         self.reselectFeatures()
 
-        self.iface.messageBar().pushMessage(
+        iface.messageBar().pushMessage(
             "Hinweis",
             "Die absolute Verschiebung des Layers " + self.sourceLayer.name() + " ist fertig!",
             level=3,
@@ -337,13 +339,13 @@ class GeoEdit:
                 generalValid = False
                 validationText = "Sourcelayer ist kein Geopackage"
                 detailedText = ""
-                self.iface.messageBar().pushMessage("Error", "Sourcelayer ist kein Geopackage", level=1, duration=5)
+                iface.messageBar().pushMessage("Error", "Sourcelayer ist kein Geopackage", level=1, duration=5)
 
         else:
             generalValid = False
             validationText = "Sourcelayer ist kein Vektorlayer"
             detailedText = ""
-            self.iface.messageBar().pushMessage("Error", "Sourcelayer ist kein Vektorlayer", level=1, duration=5)
+            iface.messageBar().pushMessage("Error", "Sourcelayer ist kein Vektorlayer", level=1, duration=5)
 
         return generalValid, validationText, detailedText
 
@@ -366,7 +368,7 @@ class GeoEdit:
             if layer.name() == "E_Polygon":
                 self.dockwidget.layerGeometryMove.setLayer(layer)
 
-        currentActiveLayer = self.iface.activeLayer()
+        currentActiveLayer = iface.activeLayer()
         self.activeLayerIsChanged(currentActiveLayer)
 
     ## \brief Get all inputlayers from the folder "Eingabelayer" of the layertree
@@ -448,3 +450,28 @@ class GeoEdit:
         self.infoTranssformMsgBox.setWindowTitle("Hintergrundinformationen")
         self.infoTranssformMsgBox.setStandardButtons((QMessageBox.Ok))
         self.infoTranssformMsgBox.exec_()
+
+    def reverseLines(self):
+        layer = iface.mapCanvas().currentLayer()
+        if layer.geometryType() != QgsWkbTypes.LineGeometry:
+            QMessageBox.information(None, "WICHTIG", "Falscher Geometrietyp!", QMessageBox.Cancel)
+            return
+        if layer.selectedFeatures() == []:
+            QMessageBox.information(None, "WICHTIG", "Keine Geometrie gewählt!", QMessageBox.Cancel)
+            return
+        layer.startEditing()
+        for feature in layer.selectedFeatures():
+            geom = feature.geometry()
+            if geom.isMultipart():
+                mls = QgsMultiLineString()
+                for line in geom.asGeometryCollection():
+                    mls.addGeometry(line.constGet().reversed())
+                newgeom = QgsGeometry(mls)
+                layer.changeGeometry(feature.id(), newgeom)
+            else:
+                newgeom = QgsGeometry(geom.constGet().reversed())
+                layer.changeGeometry(feature.id(), newgeom)
+
+        layer.endEditCommand()
+        layer.commitChanges()
+        iface.mapCanvas().refreshAllLayers()

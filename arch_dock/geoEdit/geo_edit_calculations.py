@@ -7,8 +7,9 @@ from qgis.core import QgsGeometry, QgsApplication, QgsWkbTypes, QgsMapLayer, Qgs
 from qgis.gui import QgsRubberBand
 from qgis.utils import iface
 
-from common.utils import delSelectFeature
-from utils.identifygeometry import IdentifyGeometry
+from ...common.utils import delSelectFeature
+from ...common.maptools import IdentifyGeometry
+from ...settings import PLUGIN_NAME
 
 
 ## @brief The class is used to implement functionalities for translate geometies within the geoEdit Module
