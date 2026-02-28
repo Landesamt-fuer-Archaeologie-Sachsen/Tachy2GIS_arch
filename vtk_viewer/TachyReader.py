@@ -1,5 +1,8 @@
+import logging
 from qgis.PyQt.QtSerialPort import QSerialPortInfo
 from qgis.PyQt.QtCore import QObject, pyqtSignal, QTimer, QThread
+
+LOGGER = logging.getLogger(__name__)
 
 
 GEOCOM_RESPONSE_IDENTIFIER = "%R1P"
@@ -53,6 +56,6 @@ class RefHeightStatus(QObject):
         self.pollingTimer.stop()
 
     def poll(self):
-        print("Ref height poll")
+        LOGGER.info("Ref height poll")
         self.ref_height_get.emit()
         # self.parent.request_ref_height()

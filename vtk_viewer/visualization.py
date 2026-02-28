@@ -1,3 +1,4 @@
+import logging
 import vtk
 from qgis.core import Qgis, QgsGeometry, QgsWkbTypes, QgsMessageLog, QgsVectorDataProvider, QgsVectorLayerUtils
 from qgis.gui import QgsAttributeDialog
@@ -7,6 +8,8 @@ from qgis.PyQt.QtWidgets import qApp
 
 from random import random
 from .AnchorUpdater import VtkAnchorUpdater
+
+LOGGER = logging.getLogger(__name__)
 
 
 COLOUR_SPACE = [
@@ -518,7 +521,7 @@ class VtkMouseInteractorStyle(vtk.vtkInteractorStyleTrackballCamera):
         picker.Pick(clickPos[0], clickPos[1], 0, self.GetCurrentRenderer())
         picked = picker.GetPickPosition()
         picked_actor = picker.GetActor()
-        print("vtkPointPicker picked: ", picked)
+        LOGGER.debug(f"vtkPointPicker picked: {picked}")
         # picked_actor.GetProperty().SetColor(vtk.vtkNamedColors().GetColor3d("Blue"))
 
         # return if picked point already in vertices
@@ -548,14 +551,14 @@ class VtkMouseInteractorStyle(vtk.vtkInteractorStyleTrackballCamera):
             try:
                 feature = features.get_common(points)
             except ValueError as error:
-                print(error)
+                LOGGER.warning(error)
                 return
             feature = SimpleRingBuffer(feature)
             trace = feature.slice(*points)
             trace = deduplicate(trace)
             if not trace[0] == points[0]:
                 trace.reverse()
-            print(f"We have {len(self.vertices)} and replace the last three with {len(trace)} traced ones.")
+            LOGGER.debug(f"We have {len(self.vertices)} and replace the last three with {len(trace)} traced ones.")
             self.vertices = self.vertices[:-3] + trace
             self.draw()
 
@@ -653,12 +656,10 @@ class VtkMouseInteractorStyle(vtk.vtkInteractorStyleTrackballCamera):
         pass
 
     def right_button_press_event(self, obj, event):
-        # print("Right Button pressed")
         self.OnRightButtonDown()
         return
 
     def right_button_release_event(self, obj, event):
-        print("Right Button released")
         self.OnRightButtonUp()
         return
 
@@ -677,7 +678,7 @@ class VtkMouseInteractorStyle(vtk.vtkInteractorStyleTrackballCamera):
         picker.Pick(clickPos[0], clickPos[1], 0, self.GetCurrentRenderer())
         picked = picker.GetActor()
         if picked is not None:
-            print(picked)
+            LOGGER.debug(picked)
         return
 
     def mouse_move_event(self, obj, event):

@@ -1,6 +1,9 @@
+import logging
 from PyQt5.QtCore import pyqtSignal, QObject, QEventLoop
 
 from tachyconnect.ts_control import TachyReply
+
+LOGGER = logging.getLogger(__name__)
 
 
 class ReplyHandler(QObject):
@@ -9,7 +12,7 @@ class ReplyHandler(QObject):
     has_fall_back = False
     slots = {}
 
-    def __init__(self, fall_back = None):
+    def __init__(self, fall_back=None):
         super().__init__()
         if fall_back:
             self.fall_back_signal.connect(fall_back)
@@ -22,10 +25,10 @@ class ReplyHandler(QObject):
         self.slots.pop(command_class.__name__, None)
 
     def handle(self, request, reply):
-        print(request)
-        print(reply)
+        LOGGER.debug(request)
+        LOGGER.debug(reply)
         self.caught_reply.emit(reply)
-        command = request['message']
+        command = request["message"]
         slot = self.slots.get(command)
         if slot:
             slot(*reply.get_result())
@@ -34,6 +37,7 @@ class ReplyHandler(QObject):
             self.fall_back_signal.emit((request, reply))
             return True
         return False
+
 
 class CommandChain:
     def __init__(self, dispatcher, *commands):
@@ -44,7 +48,7 @@ class CommandChain:
         self.commands = commands
 
     def set_commands(self, *args):
-        print('setting commands: ' + args)
+        LOGGER.debug(f"setting commands: {args}")
         self.commands = args
 
     def run_chain(self, *results):
@@ -60,12 +64,11 @@ class CommandChain:
     def reset(self):
         self.index = 0
 
+
 class ChainableCommand:
     def __init__(self, command, *args):
         self.command = command
         self.args = args
-        print(self.command)
-        print(self.args)
-        print('ChainableCommand ctored.')
-
-
+        LOGGER.debug(self.command)
+        LOGGER.debug(self.args)
+        LOGGER.debug("ChainableCommand ctored.")

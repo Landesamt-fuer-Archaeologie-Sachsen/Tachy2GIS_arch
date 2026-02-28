@@ -1,22 +1,22 @@
-from PyQt5.QtWidgets import QDialog
-from PyQt5.QtCore import Qt, pyqtSignal
-from .ui.tachy_joystick import Ui_Dialog as Ui_TachyJoystick
-from tachyconnect.ts_control import Dispatcher
-from tachyconnect.TachyRequest import (MOT_StartController,
-                                       MOT_StopController,
-                                       MOT_SetVelocity,
-                                       AUT_Search,
-                                       AUT_LockIn,
-                                       AUT_PS_SearchNext,
-                                       AUS_SetUserLockState,
-                                       AUS_GetUserLockState,
-                                       EDM_SetEglIntensity,
-                                       AUT_SetATRStatus,
-                                       TMC_GetHeight
-)
-from tachyconnect.ReplyHandler import CommandChain, ChainableCommand
+from qgis.PyQt.QtWidgets import QDialog
+from qgis.PyQt.QtCore import Qt, pyqtSignal
 
-import tachyconnect.gc_constants as gc
+from . import gc_constants
+from .ui.tachy_joystick import Ui_Dialog as Ui_TachyJoystick
+from .TachyRequest import (
+    MOT_StartController,
+    MOT_StopController,
+    MOT_SetVelocity,
+    AUT_Search,
+    AUT_LockIn,
+    AUT_PS_SearchNext,
+    AUS_SetUserLockState,
+    AUS_GetUserLockState,
+    EDM_SetEglIntensity,
+    AUT_SetATRStatus,
+    TMC_GetHeight,
+)
+
 
 class TachyJoystick(QDialog, Ui_TachyJoystick):
     MAX_SPEED = 0.42
@@ -24,12 +24,11 @@ class TachyJoystick(QDialog, Ui_TachyJoystick):
 
     LOCKED = "🔒"
     UNLOCKED = " "
-    LOCK_STATES = {'0': UNLOCKED,
-                   '1': LOCKED}
+    LOCK_STATES = {"0": UNLOCKED, "1": LOCKED}
     ref_z_received = pyqtSignal(str)
 
     def __init__(self, dispatcher, parent=None, flags=Qt.Dialog | Qt.Tool):
-        super().__init__(parent = parent, flags = flags)
+        super().__init__(parent=parent, flags=flags)
         self.reject = self.accept
         self.dispatcher = dispatcher
 
@@ -51,15 +50,15 @@ class TachyJoystick(QDialog, Ui_TachyJoystick):
 
     ## BEGIN search reply handling
     def searched(self, *args):
-        print('searched')
-        self.dispatcher.send(AUT_SetATRStatus(args=[gc.ON_OFF_TYPE.ON.value]).get_geocom_command())
+        self.dispatcher.send(AUT_SetATRStatus(args=[gc_constants.ON_OFF_TYPE.ON.value]).get_geocom_command())
 
     def tracking(self, *args):
-        self.dispatcher.send(AUS_SetUserLockState(args=[gc.ON_OFF_TYPE.ON.value]).get_geocom_command())
+        self.dispatcher.send(AUS_SetUserLockState(args=[gc_constants.ON_OFF_TYPE.ON.value]).get_geocom_command())
 
     def set_lock(self, *args):
         self.dispatcher.send(AUT_LockIn().get_geocom_command())
         self.get_lock_state()
+
     ## END search reply handling
     def get_ref_height(self):
         self.dispatcher.send(TMC_GetHeight().get_geocom_command())
@@ -73,8 +72,7 @@ class TachyJoystick(QDialog, Ui_TachyJoystick):
         self.dispatcher.send(AUS_GetUserLockState().get_geocom_command())
 
     def show_lock_state(self, *args):
-        #print('Lock state: ' + args)
-        if args[0] == '0':
+        if args[0] == "0":
             self.lockState.setText(TachyJoystick.LOCK_STATES[args[-1]])
         else:
             self.lockState.setText(TachyJoystick.LOCK_STATES[0])
@@ -91,18 +89,17 @@ class TachyJoystick(QDialog, Ui_TachyJoystick):
 
     def lock(self):
         self.get_lock_state()
-        self.dispatcher.send(AUT_Search(args=[.1, .3]).get_geocom_command())
+        self.dispatcher.send(AUT_Search(args=[0.1, 0.3]).get_geocom_command())
 
     def lights_off(self):
-        self.dispatcher.send(EDM_SetEglIntensity(args=['0']).get_geocom_command())
+        self.dispatcher.send(EDM_SetEglIntensity(args=["0"]).get_geocom_command())
 
     def show(self):
         super().show()
-        self.dispatcher.send(MOT_StartController(args=['1']).get_geocom_command())
-        self.dispatcher.send(EDM_SetEglIntensity(args=['3']).get_geocom_command())
+        self.dispatcher.send(MOT_StartController(args=["1"]).get_geocom_command())
+        self.dispatcher.send(EDM_SetEglIntensity(args=["3"]).get_geocom_command())
         self.get_lock_state()
         self.get_ref_height()
-
 
     def accept(self):
         self.stop()
