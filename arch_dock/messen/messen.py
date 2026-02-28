@@ -40,6 +40,7 @@ from qgis.core import (
 from qgis.gui import QgsMapTool, QgsSnapIndicator, QgsRubberBand, QgsVertexMarker
 from qgis.utils import iface
 
+from ...settings import PLUGIN_NAME
 from .autoattributes import getComboboxModelFromLayerConfig, clearAutoAttributeProjectVariables
 from ...icons import ICON_PATHS
 from ...common.utils import (
@@ -244,7 +245,7 @@ class MeasurementTab(BASE, WIDGET):
         except Exception as e:
             QgsMessageLog.logMessage(
                 message="MeasurementTab->setDigitizeAction: " + str(e),
-                tag="T2G Archäologie",
+                tag=PLUGIN_NAME,
                 level=Qgis.MessageLevel.Warning,
             )
             return
@@ -314,7 +315,7 @@ class MeasurementTab(BASE, WIDGET):
 
         referenceNumber = self.txtReference.text()
         if referenceNumber == "":
-            iface.messageBar().pushMessage("T2G Archäologie", "Bitte eine Maßnahmennummer angeben")
+            iface.messageBar().pushMessage(PLUGIN_NAME, "Bitte eine Maßnahmennummer angeben")
             self.cbFixTxtReference.setCheckState(0)
             return
 
@@ -339,13 +340,6 @@ class MeasurementTab(BASE, WIDGET):
         enableAndDisableWidgets([self.txtReference], [self.cmbLayerType])
         self.adjustElementsAtStart()
         iface.actionPan().trigger()
-
-    def resetOnTachy2GisClose(self):
-        self.cbFixTxtReference.setCheckState(0)
-        iface.messageBar().pushMessage(
-            "T2G Archäologie", "Tachy2GIS-3DViewer wurde gestoppt, Digitalisierung abgebrochen", Qgis.Warning
-        )
-        self.setReferenceNumberProjectVariable()
 
     def setTachy2GisToGeometry(self, geometryType):
         if geometryType == "polygons":
@@ -408,13 +402,13 @@ class MeasurementTab(BASE, WIDGET):
         self.layerToEdit = self.findLayerToEdit(geometryType)
         if not self.layerToEdit:
             iface.messageBar().pushMessage(
-                "T2G Archäologie", f"Bitte den Layer {layers[geometryType]} ins Projekt laden", Qgis.Warning
+                PLUGIN_NAME, f"Bitte den Layer {layers[geometryType]} ins Projekt laden", Qgis.Warning
             )
             self.cmbLayerType.setCurrentIndex(0)
             return
         if layerHasPendingChanges(self.layerToEdit):
             iface.messageBar().pushMessage(
-                "T2G Archäologie",
+                PLUGIN_NAME,
                 f"Der Layer {layers[geometryType]} ist im Editiermodus. Bitte das Editieren beenden.",
                 Qgis.Warning,
             )
@@ -771,7 +765,7 @@ class MeasurementTab(BASE, WIDGET):
     def createCircleRadiusGeometry(self):
         if self.verticesCount > 2:
             iface.messageBar().pushMessage(
-                "T2G Archäologie", f"Nur zwei Punkte erlaubt (Modus: Kreis mit 2 Punkten (Radius))", Qgis.Warning
+                PLUGIN_NAME, f"Nur zwei Punkte erlaubt (Modus: Kreis mit 2 Punkten (Radius))", Qgis.Warning
             )
             return False
         point1 = QgsPoint(float(self.vertices[0][0]), float(self.vertices[0][1]), float(self.vertices[0][2]))
@@ -783,7 +777,7 @@ class MeasurementTab(BASE, WIDGET):
     def createCircleDiameterGeometry(self):
         if self.verticesCount > 2:
             iface.messageBar().pushMessage(
-                "T2G Archäologie", f"Nur zwei Punkte erlaubt (Modus: Kreis mit 2 Punkten (Durchmesser))", Qgis.Warning
+                PLUGIN_NAME, f"Nur zwei Punkte erlaubt (Modus: Kreis mit 2 Punkten (Durchmesser))", Qgis.Warning
             )
             return False
         point1 = QgsPoint(float(self.vertices[0][0]), float(self.vertices[0][1]), float(self.vertices[0][2]))
@@ -797,9 +791,7 @@ class MeasurementTab(BASE, WIDGET):
 
     def createRectangleGeometry(self):
         if self.verticesCount > 2:
-            iface.messageBar().pushMessage(
-                "T2G Archäologie", f"Nur zwei Punkte erlaubt (Modus: Rechteck))", Qgis.Warning
-            )
+            iface.messageBar().pushMessage(PLUGIN_NAME, f"Nur zwei Punkte erlaubt (Modus: Rechteck))", Qgis.Warning)
             return False
         point1 = QgsPoint(float(self.vertices[0][0]), float(self.vertices[0][1]), float(self.vertices[0][2]))
         point2 = QgsPoint(float(self.vertices[1][0]), float(self.vertices[1][1]), float(self.vertices[1][2]))
@@ -862,7 +854,7 @@ class MeasurementTab(BASE, WIDGET):
 
         if layerHasPendingChanges(self.layerToEdit):
             iface.messageBar().pushMessage(
-                "T2G Archäologie",
+                PLUGIN_NAME,
                 f"Der Layer {layers[self.geometryType]} ist im Editiermodus. Bitte das Editieren beenden.",
                 Qgis.Warning,
             )
@@ -889,7 +881,7 @@ class MeasurementTab(BASE, WIDGET):
                 self.layerToEdit.featureAdded.emit(feature.id())
             else:
                 iface.messageBar().pushMessage(
-                    "T2G Archäologie", f"Die Geometrie ist ungültig. Bitte korrigieren oder löschen", Qgis.Warning
+                    PLUGIN_NAME, f"Die Geometrie ist ungültig. Bitte korrigieren oder löschen", Qgis.Warning
                 )
                 return
         elif self.geometryType == "points":

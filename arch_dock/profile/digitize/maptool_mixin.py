@@ -2,6 +2,7 @@ import uuid
 
 from qgis.core import QgsProject, QgsExpression, QgsExpressionContextUtils, QgsMessageLog, Qgis
 
+from ....settings import PLUGIN_NAME
 from ....common.utils import ArchProjectConfig
 
 
@@ -31,7 +32,7 @@ class MapToolMixin:
         except Exception as e:
             QgsMessageLog.logMessage(
                 message="MapToolMixin->setPlaceholders: no aktcode: " + str(e),
-                tag="T2G Archäologie",
+                tag=PLUGIN_NAME,
                 level=Qgis.MessageLevel.Warning,
             )
 

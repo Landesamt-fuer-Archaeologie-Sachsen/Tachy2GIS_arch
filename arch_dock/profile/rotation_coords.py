@@ -4,6 +4,8 @@ from math import pi, cos, sin
 import numpy as np
 from qgis.core import QgsGeometry, QgsPoint, QgsMessageLog, Qgis, QgsWkbTypes
 
+from ...settings import PLUGIN_NAME
+
 LOGGER = logging.getLogger(__name__)
 
 
@@ -223,7 +225,7 @@ class RotationCoords:
         ):
 
             QgsMessageLog.logMessage(
-                "Achtung, Multi-Geometrien werden zu Single-Geometrien umgewandelt!", "T2G Archäologie", Qgis.Info
+                "Achtung, Multi-Geometrien werden zu Single-Geometrien umgewandelt!", PLUGIN_NAME, Qgis.Info
             )
 
             adjustGeom = QgsGeometry(mls.createEmptyWithSameType())
@@ -285,7 +287,7 @@ class RotationCoords:
         ):
 
             QgsMessageLog.logMessage(
-                "Achtung, Multi-Geometrien werden zu Single-Geometrien umgewandelt!", "T2G Archäologie", Qgis.Info
+                "Achtung, Multi-Geometrien werden zu Single-Geometrien umgewandelt!", PLUGIN_NAME, Qgis.Info
             )
 
             adjustGeom = QgsGeometry(mls.createEmptyWithSameType())
@@ -334,9 +336,7 @@ class RotationCoords:
             targetGeometry = QgsGeometry.fromPolyline(self.punkte_von_profillinie_abheben(pointList))
 
         else:
-            QgsMessageLog.logMessage(
-                "Achtung, die Geometrie ist keine Single-Line Geometrie!", "T2G Archäologie", Qgis.Info
-            )
+            QgsMessageLog.logMessage("Achtung, die Geometrie ist keine Single-Line Geometrie!", PLUGIN_NAME, Qgis.Info)
 
         return targetGeometry
 
@@ -375,9 +375,7 @@ class RotationCoords:
                     pointList.append(zPoint)
 
         else:
-            QgsMessageLog.logMessage(
-                "Achtung, die Geometrie kann nicht verarbeitet werden!", "T2G Archäologie", Qgis.Info
-            )
+            QgsMessageLog.logMessage("Achtung, die Geometrie kann nicht verarbeitet werden!", PLUGIN_NAME, Qgis.Info)
 
         emptyTargetGeometry.addPoints(self.punkte_von_profillinie_abheben(pointList))
 
@@ -577,7 +575,7 @@ class RotationCoords:
             QgsMessageLog.logMessage(
                 f"Achtung, iterative Abhebung der Punkte von der Profillinie ergibt einen Fehler von "
                 f"zuletzt {fehler:.15f}mm!",
-                "T2G Archäologie",
+                PLUGIN_NAME,
                 Qgis.Warning,
             )
 

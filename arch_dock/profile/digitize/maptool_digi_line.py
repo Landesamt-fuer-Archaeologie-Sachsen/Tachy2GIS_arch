@@ -4,6 +4,7 @@ from qgis.PyQt.QtCore import pyqtSignal, pyqtSlot
 from qgis.core import QgsFeature, QgsGeometry, QgsFeatureRequest, QgsMessageLog, Qgis, QgsProject
 from qgis.gui import QgsAttributeDialog, QgsAttributeEditorContext
 
+from ....settings import PLUGIN_NAME
 from .map_tools import MultilineMapTool
 from .maptool_mixin import MapToolMixin
 from ..publisher import Publisher
@@ -191,7 +192,7 @@ class MapToolDigiLine(MultilineMapTool, MapToolMixin):
         try:
             pr.addFeatures(selFeatures)
         except Exception as e:
-            QgsMessageLog.logMessage(str(e), "T2G Archäologie", Qgis.Info)
+            QgsMessageLog.logMessage(str(e), PLUGIN_NAME, Qgis.Info)
 
         self.digiLineLayer.commitChanges()
         self.digiLineLayer.updateExtents()

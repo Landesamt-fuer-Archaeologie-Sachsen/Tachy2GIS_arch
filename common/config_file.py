@@ -3,6 +3,8 @@ from configparser import ConfigParser
 
 from qgis.core import QgsMessageLog, QgsProject, Qgis
 
+from ..settings import PLUGIN_NAME
+
 
 def get_config_ini_path() -> str:
     """Return the absolute path to the project's config.ini file.
@@ -26,7 +28,7 @@ class Configfile:
         if not os.path.exists(self.__inipfad):
             QgsMessageLog.logMessage(
                 "Config-Datei nicht vorhanden! Eine neue Config-Datei mit Standartwerten wird gespeichert.",
-                "T2G Archäologie",
+                PLUGIN_NAME,
                 Qgis.Info,
             )
             self.saveStandarValue()

@@ -4,6 +4,7 @@ from qgis.PyQt.QtCore import pyqtSignal, pyqtSlot
 from qgis.core import QgsFeature, QgsGeometry, QgsFeatureRequest, QgsPoint, QgsProject, QgsMessageLog, Qgis
 from qgis.gui import QgsAttributeDialog, QgsAttributeEditorContext
 
+from ....settings import PLUGIN_NAME
 from .map_tools import PointMapTool
 from .maptool_mixin import MapToolMixin
 from ..publisher import Publisher
@@ -208,7 +209,7 @@ class MapToolDigiPoint(PointMapTool, MapToolMixin):
         try:
             pr.addFeatures(selFeatures)
         except Exception as e:
-            QgsMessageLog.logMessage(str(e), "T2G Archäologie", Qgis.Info)
+            QgsMessageLog.logMessage(str(e), PLUGIN_NAME, Qgis.Info)
 
         self.digiPointLayer.commitChanges()
         self.digiPointLayer.updateExtents()

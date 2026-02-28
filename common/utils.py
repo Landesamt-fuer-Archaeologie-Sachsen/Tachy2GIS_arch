@@ -211,7 +211,7 @@ def project_backup(subfolder: str, keep_only_last_n_backups: int = None):
             duration=(10 if critical else -1),
         )
         QgsMessageLog.logMessage(
-            tag="T2G Archäologie",
+            tag=PLUGIN_NAME,
             message="Backup: " + text,
             level=(Qgis.MessageLevel.Warning if critical else Qgis.MessageLevel.Info),
         )
@@ -632,7 +632,7 @@ def repairUuidsInLayers(layers: list[QgsVectorLayer]):
         it = layer.getFeatures(QgsFeatureRequest().setFilterExpression('"uuid" IS NULL'))
         QgsMessageLog.logMessage(
             f"{sum(1 for _ in it)} features ohne UUID in Layer {layer.name()}; Neugenerierung ...",
-            "T2G Archäologie",
+            PLUGIN_NAME,
             Qgis.Info,
         )
         UUid = layer.dataProvider().fieldNameIndex("obj_uuid")

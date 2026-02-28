@@ -44,6 +44,7 @@ from qgis.core import (
 )
 from qgis.utils import iface, OverrideCursor
 
+from ...settings import PLUGIN_NAME
 from ...common.layers import T2gLayers
 from ...common.utils import delLayer, tableWidgetRemoveRows, isNumber
 
@@ -207,7 +208,7 @@ class GeometryCheckDockWidget(QDockWidget, FORM_CLASS):
                         )
                         self.koordList.append(koord)
                     except Exception as e:
-                        QgsMessageLog.logMessage(str(e), "T2G Archäologie", Qgis.Info)
+                        QgsMessageLog.logMessage(str(e), PLUGIN_NAME, Qgis.Info)
 
             elif self.layer.geometryType() in (QgsWkbTypes.LineGeometry, QgsWkbTypes.PolygonGeometry):
                 for f in self.layer.getFeatures():

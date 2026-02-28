@@ -120,7 +120,6 @@ class RasterLayerViewDockWidget(QDockWidget, FORM_CLASS):
         self.tableWidget.setSortingEnabled(True)
         try:
             for layer in QgsProject.instance().mapLayers().values():
-                # QgsMessageLog.logMessage(str(layer.type()), 'T2G Archäologie', Qgis.Info)
                 if layer.type() == QgsMapLayer.RasterLayer:
                     if "http://" in layer.source() or "https://" in layer.source():
                         continue
