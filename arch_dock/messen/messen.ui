@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>399</width>
+    <width>501</width>
     <height>785</height>
    </rect>
   </property>
@@ -170,8 +170,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>399</width>
-        <height>785</height>
+        <width>480</width>
+        <height>913</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -239,24 +239,15 @@
        <item>
         <widget class="QWidget" name="widget_2" native="true">
          <layout class="QVBoxLayout" name="verticalLayout_3">
-          <property name="leftMargin">
-           <number>11</number>
-          </property>
-          <property name="topMargin">
-           <number>11</number>
-          </property>
-          <property name="rightMargin">
-           <number>11</number>
-          </property>
-          <property name="bottomMargin">
-           <number>11</number>
-          </property>
           <item>
            <widget class="QComboBox" name="cmbPolygonDigitizingMode"/>
           </item>
           <item>
            <widget class="QWidget" name="widgetDigitizingButtons" native="true">
             <layout class="QHBoxLayout" name="horizontalLayout_4">
+             <property name="spacing">
+              <number>5</number>
+             </property>
              <property name="leftMargin">
               <number>0</number>
              </property>
@@ -358,6 +349,52 @@
               </widget>
              </item>
              <item>
+              <widget class="QWidget" name="" native="true">
+               <layout class="QHBoxLayout" name="horizontalLayout_3">
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_2">
+                  <item>
+                   <widget class="QLabel" name="label_7">
+                    <property name="text">
+                     <string>Z-Wert</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QDoubleSpinBox" name="spZValue">
+                    <property name="maximumSize">
+                     <size>
+                      <width>70</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
+                    <property name="minimum">
+                     <double>-10001.000000000000000</double>
+                    </property>
+                    <property name="maximum">
+                     <double>10000.000000000000000</double>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+               </layout>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="cbAttributeFormular">
+               <property name="toolTip">
+                <string>Attributformular automatisch öffnen</string>
+               </property>
+               <property name="text">
+                <string/>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
               <spacer name="horizontalSpacer_5">
                <property name="orientation">
                 <enum>Qt::Horizontal</enum>
@@ -369,114 +406,6 @@
                 </size>
                </property>
               </spacer>
-             </item>
-             <item>
-              <widget class="QPushButton" name="btnSaveProject">
-               <property name="text">
-                <string/>
-               </property>
-               <property name="icon">
-                <iconset>
-                 <normaloff>../Icons/media-floppy.png</normaloff>../Icons/media-floppy.png</iconset>
-               </property>
-               <property name="iconSize">
-                <size>
-                 <width>20</width>
-                 <height>20</height>
-                </size>
-               </property>
-               <property name="checkable">
-                <bool>false</bool>
-               </property>
-               <property name="checked">
-                <bool>false</bool>
-               </property>
-               <property name="autoExclusive">
-                <bool>false</bool>
-               </property>
-               <property name="flat">
-                <bool>false</bool>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-          </item>
-          <item>
-           <widget class="QgsCollapsibleGroupBox" name="qgsGroupBoxSettings">
-            <property name="title">
-             <string>Einstellungen</string>
-            </property>
-            <layout class="QFormLayout" name="formLayout">
-             <item row="0" column="0">
-              <widget class="QLabel" name="label_2">
-               <property name="text">
-                <string>Tachy2GIS ein/ausblenden</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="1">
-              <widget class="QPushButton" name="butT2GShow">
-               <property name="maximumSize">
-                <size>
-                 <width>29</width>
-                 <height>24</height>
-                </size>
-               </property>
-               <property name="toolTip">
-                <string>Tachy2GIS ein/ausblenden</string>
-               </property>
-               <property name="text">
-                <string/>
-               </property>
-               <property name="icon">
-                <iconset>
-                 <normaloff>../Icons/Sichtbar_an.gif</normaloff>../Icons/Sichtbar_an.gif</iconset>
-               </property>
-               <property name="checkable">
-                <bool>false</bool>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="0">
-              <widget class="QLabel" name="label_6">
-               <property name="text">
-                <string>Attributformular öffnen</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="1">
-              <widget class="QCheckBox" name="cbAttributeFormular">
-               <property name="text">
-                <string/>
-               </property>
-               <property name="checked">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="0">
-              <widget class="QLabel" name="label_7">
-               <property name="text">
-                <string>Z-Koordinate</string>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="1">
-              <widget class="QDoubleSpinBox" name="spZValue">
-               <property name="maximumSize">
-                <size>
-                 <width>70</width>
-                 <height>16777215</height>
-                </size>
-               </property>
-               <property name="minimum">
-                <double>-10001.000000000000000</double>
-               </property>
-               <property name="maximum">
-                <double>10000.000000000000000</double>
-               </property>
-              </widget>
              </item>
             </layout>
            </widget>
@@ -641,7 +570,7 @@
             <property name="maximumSize">
              <size>
               <width>16777215</width>
-              <height>22</height>
+              <height>16777215</height>
              </size>
             </property>
             <property name="title">
@@ -654,7 +583,7 @@
              <bool>false</bool>
             </property>
             <property name="collapsed">
-             <bool>true</bool>
+             <bool>false</bool>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_5">
              <item>
@@ -976,11 +905,6 @@
   <tabstop>btnDigitizeTool</tabstop>
   <tabstop>btnCreateFeature</tabstop>
   <tabstop>btnClear</tabstop>
-  <tabstop>btnSaveProject</tabstop>
-  <tabstop>qgsGroupBoxSettings</tabstop>
-  <tabstop>butT2GShow</tabstop>
-  <tabstop>cbAttributeFormular</tabstop>
-  <tabstop>spZValue</tabstop>
   <tabstop>qgsGroupBoxNextValues</tabstop>
   <tabstop>txtNextBef</tabstop>
   <tabstop>txtNextProf</tabstop>

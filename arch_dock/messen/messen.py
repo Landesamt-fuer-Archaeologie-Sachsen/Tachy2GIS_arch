@@ -51,7 +51,6 @@ from ...common.utils import (
     maxValue,
     setCustomProjectVariable,
     showAndHideWidgets,
-    saveProject,
 )
 from ...common.layers import T2gLayers, findLayerInProject, layerHasPendingChanges
 
@@ -96,6 +95,7 @@ class MeasurementTab(BASE, WIDGET):
         self._tachyDock = None
 
         self.setGuiContent()
+        self.cbAttributeFormular.setIcon(QIcon(QgsApplication.iconPath("mActionOpenTableEdited.svg")))
         self.connectSignals()
 
         self.keys = []
@@ -191,7 +191,6 @@ class MeasurementTab(BASE, WIDGET):
         self.pt_nr.editingFinished.connect(self.onLineEditingFinished)
         self.fund_nr.editingFinished.connect(self.onLineEditingFinished)
         self.probe_nr.editingFinished.connect(self.onLineEditingFinished)
-        self.btnSaveProject.clicked.connect(saveProject)
         self.btnHelp.clicked.connect(self.showHelp)
 
     def resetMeasurementTab(self):
@@ -272,7 +271,6 @@ class MeasurementTab(BASE, WIDGET):
         widgetsToHide = [
             self.btnDigitizeTool,
             self.qgsGroupBoxAttributes,
-            self.qgsGroupBoxSettings,
             self.qgsGroupBoxCoordinates,
             self.cmbPolygonDigitizingMode,
             self.widgetDigitizingButtons,
@@ -385,7 +383,6 @@ class MeasurementTab(BASE, WIDGET):
                     self.btnDigitizeTool,
                     self.qgsGroupBoxAttributes,
                     self.cmbPolygonDigitizingMode,
-                    self.qgsGroupBoxSettings,
                     self.widgetDigitizingButtons,
                     self.qgsGroupBoxNextValues,
                     self.qgsGroupBoxCoordinates,
@@ -418,7 +415,6 @@ class MeasurementTab(BASE, WIDGET):
         showAndHideWidgets(
             [
                 self.btnDigitizeTool,
-                self.qgsGroupBoxSettings,
                 self.qgsGroupBoxCoordinates,
                 self.qgsGroupBoxNextValues,
                 self.qgsGroupBoxMeasurementPoints,
