@@ -1,3 +1,4 @@
+import logging
 import math
 import os
 import uuid
@@ -40,8 +41,8 @@ from qgis.gui import QgsMapTool, QgsSnapIndicator, QgsRubberBand, QgsVertexMarke
 from qgis.utils import iface
 
 from .autoattributes import getComboboxModelFromLayerConfig, clearAutoAttributeProjectVariables
-from Icons import ICON_PATHS
-from common.utils import (
+from ...icons import ICON_PATHS
+from ...common.utils import (
     enableAndDisableWidgets,
     getCustomProjectVariable,
     HelpWindow,
@@ -49,9 +50,12 @@ from common.utils import (
     maxValue,
     setCustomProjectVariable,
     showAndHideWidgets,
+    saveProject,
 )
-from common.layers import T2gLayers, findLayerInProject, layerHasPendingChanges
-from utils.toolbar_functions import saveProject
+from ...common.layers import T2gLayers, findLayerInProject, layerHasPendingChanges
+
+
+LOGGER = logging.getLogger(__name__)
 
 layers = {"polygons": T2gLayers.Polygon.value, "lines": T2gLayers.Line.value, "points": T2gLayers.Point.value}
 
@@ -75,11 +79,6 @@ class MeasurementTab(BASE, WIDGET):
         super().__init__(iface.mainWindow())
         self.setupUi(self)
 
-        self.tachy2GisVisible = False
-        self.tachy2GisPlugin = None
-        self.tachyWatchActive = False
-        self.firstTachyStart = True
-
         self.insertAtIndex = -1
         self.coordsTableRowCount = 0
         self.vertices = None
@@ -93,6 +92,8 @@ class MeasurementTab(BASE, WIDGET):
         self.layerToEdit = None
 
         self.nextIdUpdater = None
+        self._tachyDock = None
+
         self.setGuiContent()
         self.connectSignals()
 
@@ -100,6 +101,14 @@ class MeasurementTab(BASE, WIDGET):
         self.createKeys()
 
         self.helpWindow = HelpWindow()
+
+    @property
+    def tachyDock(self):
+        if not self._tachyDock:
+            self._tachyDock = iface.mainWindow().findChild(QWidget, "VtkViewer")
+        if not self._tachyDock:
+            LOGGER.warning("Could not find VtkViewer dock widget in the main window.")
+        return self._tachyDock
 
     def setupUi(self, dialog):
         super().setupUi(dialog)
@@ -159,7 +168,6 @@ class MeasurementTab(BASE, WIDGET):
         iface.mapCanvas().mapToolSet.connect(self.setDigitizeAction)
         connectedSignalsDict["setDigitizeAction"] = self.setDigitizeAction
         self.actionDigitize.triggered.connect(self.activateDigitizeTool)
-        self.butT2GShow.clicked.connect(lambda: self.showHideTachy2GisInstance(True))
         self.btnClear.clicked.connect(self.deleteCurrentDigitizing)
         self.coordsTableWidget.cellChanged.connect(self.setNewCoordinate)
         self.coordsTableWidget.customContextMenuRequested.connect(self.openCoordsTableMenu)
@@ -186,14 +194,12 @@ class MeasurementTab(BASE, WIDGET):
         self.btnHelp.clicked.connect(self.showHelp)
 
     def resetMeasurementTab(self):
-        self.showHideTachy2GisInstance(False)
         self.leaveDigitizingMode()
         self.resetTabToBeginning()
         self.disconnectSignals()
         self.deactivateKeys()
 
     def closeMeasurementTab(self):
-        self.showHideTachy2GisInstance(False)
         self.leaveDigitizingMode()
         self.resetTabToBeginning()
         self.deactivateKeys()
@@ -207,7 +213,6 @@ class MeasurementTab(BASE, WIDGET):
             connectedSignalsDict.pop("setDigitizeAction")
 
     def fillCmbLayerType(self):
-
         cmbLayerTypeDict = {
             "no_layer": {"description": "Keine Auswahl", "icon": QIcon()},
             "polygons": {"description": "Polygone", "icon": QIcon(QgsApplication.iconPath("mActionCapturePolygon"))},
@@ -302,43 +307,33 @@ class MeasurementTab(BASE, WIDGET):
             )
 
     def setReferenceNumberProjectVariable(self):
-
-        if self.cbFixTxtReference.isChecked():
-            referenceNumber = self.txtReference.text()
-            if referenceNumber == "":
-                iface.messageBar().pushMessage("T2G Archäologie", "Bitte eine Maßnahmennummer angeben")
-                self.cbFixTxtReference.setCheckState(0)
-                return
-            if not self.tachy2GisPlugin:
-                self.tachy2GisPlugin = self.getTachy2GisInstance()
-                if not self.tachy2GisPlugin:
-                    iface.messageBar().pushMessage(
-                        "T2G Archäologie", "Bitte Tachy2GIS-3DViewer installieren und aktivieren", Qgis.Warning
-                    )
-                    self.cbFixTxtReference.setCheckState(0)
-                    return
-                self.tachy2GisPlugin.dlg.closingPlugin.connect(self.resetOnTachy2GisClose)
-
-            self.startTachy2GisInstance()
-            self.createObjectsForTachy2GisWatch()
-
-            setCustomProjectVariable("aktcode", referenceNumber)
-            enableAndDisableWidgets([self.cmbLayerType], [self.txtReference])
-            self.activateKeys()
-            self.nextIdUpdater = NextIdUpdater(
-                layers=T2gLayers.getEditLayers(),
-                widgets={
-                    "bef_nr": self.txtNextBef,
-                    "prof_nr": self.txtNextProf,
-                    "fund_nr": self.txtNextFund,
-                    "probe_nr": self.txtNextProb,
-                },
-                parent=self,
-            )
-            self.nextIdUpdater.start()
-        else:
+        if not self.cbFixTxtReference.isChecked():
             self.resetTabToBeginning()
             self.deactivateKeys()
+            return
+
+        referenceNumber = self.txtReference.text()
+        if referenceNumber == "":
+            iface.messageBar().pushMessage("T2G Archäologie", "Bitte eine Maßnahmennummer angeben")
+            self.cbFixTxtReference.setCheckState(0)
+            return
+
+        self.createObjectsForTachy2GisWatch()
+
+        setCustomProjectVariable("aktcode", referenceNumber)
+        enableAndDisableWidgets([self.cmbLayerType], [self.txtReference])
+        self.activateKeys()
+        self.nextIdUpdater = NextIdUpdater(
+            layers=T2gLayers.getEditLayers(),
+            widgets={
+                "bef_nr": self.txtNextBef,
+                "prof_nr": self.txtNextProf,
+                "fund_nr": self.txtNextFund,
+                "probe_nr": self.txtNextProb,
+            },
+            parent=self,
+        )
+        self.nextIdUpdater.start()
 
     def resetTabToBeginning(self):
         enableAndDisableWidgets([self.txtReference], [self.cmbLayerType])
@@ -351,47 +346,18 @@ class MeasurementTab(BASE, WIDGET):
             "T2G Archäologie", "Tachy2GIS-3DViewer wurde gestoppt, Digitalisierung abgebrochen", Qgis.Warning
         )
         self.setReferenceNumberProjectVariable()
-        self.tachy2GisVisible = False
-
-    def setTachy2GisInstance(self, t2g_instance):
-        self.tachy2GisPlugin = t2g_instance
-
-    def getTachy2GisInstance(self):
-        return self.tachy2GisPlugin
-
-    def startTachy2GisInstance(self):
-        if self.firstTachyStart:
-            self.tachy2GisPlugin.run()
-            self.tachy2GisVisible = True
-            self.firstTachyStart = False
-        else:
-            self.showHideTachy2GisInstance()
 
     def setTachy2GisToGeometry(self, geometryType):
         if geometryType == "polygons":
-            self.tachy2GisPlugin.dlg.targetLayerComboBox.setCurrentText("E_Polygon")
-            self.tachy2GisPlugin.dlg.sourceLayerComboBox.setCurrentText("E_Polygon")
+            self.tachyDock.targetLayerComboBox.setCurrentText("E_Polygon")
+            self.tachyDock.sourceLayerComboBox.setCurrentText("E_Polygon")
         elif geometryType == "lines":
-            self.tachy2GisPlugin.dlg.targetLayerComboBox.setCurrentText("E_Line")
-            self.tachy2GisPlugin.dlg.sourceLayerComboBox.setCurrentText("E_Line")
+            self.tachyDock.targetLayerComboBox.setCurrentText("E_Line")
+            self.tachyDock.sourceLayerComboBox.setCurrentText("E_Line")
         elif geometryType == "points":
-            self.tachy2GisPlugin.dlg.targetLayerComboBox.setCurrentText("E_Point")
-            self.tachy2GisPlugin.dlg.sourceLayerComboBox.setCurrentText("E_Point")
-        self.tachy2GisPlugin.setPickable()
-
-    def showHideTachy2GisInstance(self, open=True):
-        if self.tachy2GisVisible:
-            if self.tachy2GisPlugin.dlg.isVisible():
-                iface.removeDockWidget(self.tachy2GisPlugin.dlg)
-
-            self.tachy2GisVisible = False
-            self.butT2GShow.setIcon(QIcon(ICON_PATHS["Sichtbar_aus"]))
-        else:
-            if open:
-                if not self.tachy2GisPlugin.dlg.isVisible():
-                    iface.addDockWidget(Qt.BottomDockWidgetArea, self.tachy2GisPlugin.dlg)
-                self.tachy2GisVisible = True
-                self.butT2GShow.setIcon(QIcon(ICON_PATHS["Sichtbar_an"]))
+            self.tachyDock.targetLayerComboBox.setCurrentText("E_Point")
+            self.tachyDock.sourceLayerComboBox.setCurrentText("E_Point")
+        self.tachyDock.setPickable()
 
     def activateDigitizeTool(self):
         if self.actionDigitize.isChecked():
@@ -674,7 +640,7 @@ class MeasurementTab(BASE, WIDGET):
         return MarkersAndRubberBand(geom)
 
     def createObjectsForTachy2GisWatch(self):
-        self.vertices = self.tachy2GisPlugin.vtk_mouse_interactor_style.vertices
+        self.vertices = self.tachyDock.vtk_mouse_interactor_style.vertices
         self.watch = QTimer(self)
         self.verticesCount = 0
         self.watch.timeout.connect(self.watchevent)
@@ -682,9 +648,8 @@ class MeasurementTab(BASE, WIDGET):
     def resetObjectsForTachy2GisWatch(self):
         if self.vertices:
             self.vertices.clear()
-        if self.tachy2GisPlugin:
-            self.stopTachyWatch()
-            self.tachy2GisPlugin.vtk_mouse_interactor_style.draw()
+        self.stopTachyWatch()
+        self.tachyDock.vtk_mouse_interactor_style.draw()
         self.verticesCount = 0
 
     def deleteCurrentDigitizing(self):
@@ -692,23 +657,10 @@ class MeasurementTab(BASE, WIDGET):
         self.resetDigitizing()
 
     def startTachyWatch(self):
-        if self.tachyWatchActive:
-            return
-        iface.messageBar().pushMessage(
-            "Tachy2GisArch",
-            f"Verbindung zu Tachy2Gis aufgebaut. Punkte für {layers[self.geometryType]} können erfasst werden.",
-            duration=10,
-        )
-        QgsMessageLog.logMessage("Tachy2Gis watch started", "T2G Archäologie", Qgis.Info)
         self.watch.start(150)
-        self.tachyWatchActive = True
 
     def stopTachyWatch(self):
-        if not self.tachyWatchActive:
-            return
-        QgsMessageLog.logMessage("Tachy2Gis watch stopped", "T2G Archäologie", Qgis.Info)
         self.watch.stop()
-        self.tachyWatchActive = False
 
     def watchevent(self):
         # Check for new points in 3D viewer
@@ -747,7 +699,7 @@ class MeasurementTab(BASE, WIDGET):
                 elif column == 2:
                     z = newCoordinate
                 self.vertices[row] = (x, y, z)
-                self.tachy2GisPlugin.vtk_mouse_interactor_style.draw()
+                self.tachyDock.vtk_mouse_interactor_style.draw()
                 self.markersAndRubberBand.updateVertex(x, y, row, False)
                 self.markersAndRubberBand.setHightlightMarkers([(x, y)])
         except:
@@ -770,7 +722,7 @@ class MeasurementTab(BASE, WIDGET):
         self.updatePointCount()
 
         self.vertices.pop(vertexIndex)
-        self.tachy2GisPlugin.vtk_mouse_interactor_style.draw()
+        self.tachyDock.vtk_mouse_interactor_style.draw()
 
     def deleteLastVertexFromCoordsTable(self):
         if self.verticesCount >= 1:
@@ -781,7 +733,7 @@ class MeasurementTab(BASE, WIDGET):
             self.updatePointCount()
 
             self.vertices.pop(self.verticesCount)
-            self.tachy2GisPlugin.vtk_mouse_interactor_style.draw()
+            self.tachyDock.vtk_mouse_interactor_style.draw()
 
     def setInsertAtIndex(self):
         self.insertAtIndex = self.coordsTableWidget.currentRow() + 1
@@ -951,7 +903,7 @@ class MeasurementTab(BASE, WIDGET):
             self.deleteCurrentDigitizing()
             self.startTachyWatch()
             iface.mapCanvas().refreshAllLayers()
-            self.tachy2GisPlugin.vtk_mouse_interactor_style.draw()
+            self.tachyDock.vtk_mouse_interactor_style.draw()
             self.openAttributeForm(features)
             self.beepSound()
 
@@ -1072,9 +1024,6 @@ class NextIdUpdater(QObject):
             widget.clear()
 
     def setMaxValues(self):
-        import time
-
-        t1 = time.time()
         for attributeName, widget in self.widgets.items():
             maxId = 0
             for layer in self._connected_layers:
@@ -1275,7 +1224,7 @@ class DigitizeTool(QgsMapTool):
         toolName = f"digitize{geometryName}_tachy2gis"
         self.setToolName(toolName)
 
-        self.tachy2GisPlugin = measurementGui.tachy2GisPlugin
+        self.tachy2GisPlugin = measurementGui.tachyDock
         self.vertices = self.tachy2GisPlugin.vtk_mouse_interactor_style.vertices
 
         self.measurementGui = measurementGui
