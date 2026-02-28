@@ -715,7 +715,6 @@ class VtkWidget(QVTKRenderWindowInteractor):
         self.layers = {}
 
     def switch_layer(self, qgis_layer):
-        LOGGER.debug(f"switch_layer called with layer: {qgis_layer.name()}")
         layer_id = qgis_layer.id()
         type_name = QgsWkbTypes.displayString(qgis_layer.wkbType())
         if type_name in VtkWidget.layer_type_map.keys():

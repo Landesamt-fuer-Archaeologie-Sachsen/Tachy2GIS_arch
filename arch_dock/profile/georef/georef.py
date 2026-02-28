@@ -81,7 +81,7 @@ class Georef:
             self.preselectedLineLayer.editingStopped.connect(self.onLineLayerEdited)
 
         else:
-            LOGGER.warning("preselectedLineLayer is kein QgsVectorLayer")
+            LOGGER.debug("preselectedLineLayer is kein QgsVectorLayer")
 
     def startGeoreferencingBtn_clicked(self):
         # reset old dialogues, windows and ref data:
