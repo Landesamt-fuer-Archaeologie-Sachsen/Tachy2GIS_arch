@@ -33,7 +33,7 @@ from .profile.profile import Profile
 from .raster.widgets import RasterGui
 from .tools_allgemein.widgets import ToolsAllgemeinTab
 from .transformation.transformation_gui import TransformationGui
-from ..common.utils import openManual, set_vsi_cached, ArchProjectConfig
+from ..common.utils import set_vsi_cached, ArchProjectConfig
 
 LOGGER = logging.getLogger(__name__)
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "forms", "t2g_arch_dockwidget.ui"))
@@ -52,6 +52,7 @@ class T2GArchDockWidget(QDockWidget, FORM_CLASS):
 
         self.setupUi(self)
         self.setupModules()
+        self.tabWidget.setCurrentIndex(0)
 
     def setupModules(self):
         # Messen

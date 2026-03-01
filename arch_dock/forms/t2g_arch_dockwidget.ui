@@ -50,7 +50,7 @@
        <enum>QLayout::SetMaximumSize</enum>
       </property>
       <item>
-       <widget class="QTabWidget" name="tabWidget_2">
+       <widget class="QTabWidget" name="tabWidget">
         <property name="palette">
          <palette>
           <active>
@@ -125,7 +125,7 @@
          <enum>QTabWidget::East</enum>
         </property>
         <property name="currentIndex">
-         <number>5</number>
+         <number>0</number>
         </property>
         <widget class="QWidget" name="tab_measurement">
          <attribute name="title">
