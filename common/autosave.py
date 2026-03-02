@@ -1,11 +1,20 @@
+import logging
+
 from qgis.PyQt.QtCore import QTimer
 from qgis.PyQt.QtWidgets import QMessageBox, QApplication
 from qgis.core import Qgis, QgsMessageLog, QgsProject
 
+from ..settings import PLUGIN_NAME
 from .config_file import Configfile, get_config_ini_path
-from .utils import ArchProjectConfig, any2bool, project_backup
+from .utils import any2bool, project_backup
 
-LOGGER_TAG = "T2G Archäologie"
+
+LOGGER = logging.getLogger(__name__)
+
+_AUTOSAVE_SECTION = "AutoSave"
+_DEFAULT_ENABLED = "off"
+_DEFAULT_INTERVAL_MIN = "15"
+_DEFAULT_KEEP_LAST_N = "10"
 
 
 class AutosaveManager:
@@ -26,7 +35,9 @@ class AutosaveManager:
         self.autosaveTimer = QTimer()
         self.autosaveTimer.timeout.connect(self._on_timer)
 
-        enabled = any2bool(ArchProjectConfig().get("AutoSave_enabled"))
+        config = self._config()
+        enabled = any2bool(config.getValue(_AUTOSAVE_SECTION, "enabled", _DEFAULT_ENABLED))
+        LOGGER.debug(f"Auto Backup enabled in config: {enabled}")
         self.enable(enabled)
 
     def enable(self, state: bool):
@@ -34,14 +45,14 @@ class AutosaveManager:
         if self.autosaveTimer is None:
             return
         if state:
-            interval_min = int(ArchProjectConfig().get("AutoSave_interval_in_min"))
+            interval_min = int(self._config().getValue(_AUTOSAVE_SECTION, "interval_in_min", _DEFAULT_INTERVAL_MIN))
             self.autosaveTimer.start(interval_min * 60000)
-            QgsMessageLog.logMessage(f"Auto Backup: An, Takt {interval_min} min", LOGGER_TAG, Qgis.Info)
+            QgsMessageLog.logMessage(f"Auto Backup: An, Takt {interval_min} min", PLUGIN_NAME, Qgis.Info)
             # run one backup immediately
             self._on_timer()
         else:
             self.autosaveTimer.stop()
-            QgsMessageLog.logMessage("Auto Backup: Aus", LOGGER_TAG, Qgis.Info)
+            QgsMessageLog.logMessage("Auto Backup: Aus", PLUGIN_NAME, Qgis.Info)
 
     def teardown(self):
         if self.autosaveTimer is None:
@@ -51,7 +62,9 @@ class AutosaveManager:
         self.autosaveTimer = None
 
     def _on_timer(self):
-        keep_last_n_backups = int(ArchProjectConfig().get("AutoSave_keep_last_n_backups", 10))
+        keep_last_n_backups = int(
+            self._config().getValue(_AUTOSAVE_SECTION, "keep_last_n_backups", _DEFAULT_KEEP_LAST_N)
+        )
         success = project_backup("automatisch", keep_last_n_backups)
         if success:
             self.number_of_unsuccessful_auto_backups = 0
@@ -60,7 +73,7 @@ class AutosaveManager:
         self.number_of_unsuccessful_auto_backups += 1
 
         if self.number_of_unsuccessful_auto_backups > 1:
-            interval_min = int(ArchProjectConfig().get("AutoSave_interval_in_min"))
+            interval_min = int(self._config().getValue(_AUTOSAVE_SECTION, "interval_in_min", _DEFAULT_INTERVAL_MIN))
             zeit = self.number_of_unsuccessful_auto_backups * interval_min
             result = QMessageBox.question(
                 None,

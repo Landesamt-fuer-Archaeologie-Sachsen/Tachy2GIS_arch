@@ -5,15 +5,37 @@ import os
 from qgis.PyQt.QtGui import QIcon, QColor
 from qgis.PyQt.QtWidgets import QAction, QMenu, QToolButton, QMessageBox, QFileDialog, QInputDialog
 from qgis.PyQt.QtCore import QCoreApplication, QVariant
-from qgis._core import QgsProject, QgsMessageLog, QgsPoint, Qgis, QgsFeatureRequest, QgsExpression, QgsVectorLayer, \
-    QgsField, QgsFeature, QgsGeometry, QgsLayerTreeLayer, QgsWkbTypes
+from qgis._core import (
+    QgsProject,
+    QgsMessageLog,
+    QgsPoint,
+    Qgis,
+    QgsFeatureRequest,
+    QgsExpression,
+    QgsVectorLayer,
+    QgsField,
+    QgsFeature,
+    QgsGeometry,
+    QgsLayerTreeLayer,
+    QgsWkbTypes,
+)
 from qgis.core import QgsApplication
 from qgis.utils import iface
 
 from ..common.config_file import Configfile, get_config_ini_path
 from ..common.layers import T2gLayers, findLayerInProject
-from ..common.utils import openProjectFolder, saveProject, merge_icons, color_shift_icon, openManual, \
-    ArchProjectConfig, ProgressBar, fileLineCount, addPoint3D, delSelectFeature, delLayer
+from ..common.utils import (
+    openProjectFolder,
+    saveProject,
+    merge_icons,
+    color_shift_icon,
+    openManual,
+    ProgressBar,
+    fileLineCount,
+    addPoint3D,
+    delSelectFeature,
+    delLayer,
+)
 from ..icons import ICON_PATHS
 from ..settings import PLUGIN_NAME
 
@@ -75,6 +97,7 @@ class SettingsAction(QAction):
 
     def _open(self):
         from .widgets import DlgSettings  # local import to avoid circular dependency
+
         config = Configfile(get_config_ini_path())
         self._dialog = DlgSettings(config, self._autosave_manager)
         self._dialog.setup()
@@ -89,6 +112,7 @@ class AboutAction(QAction):
 
     def _open(self):
         from .widgets import AboutDialog  # local import to avoid circular dependency
+
         self._dialog = AboutDialog(self.parent())
         self._dialog.exec()
 
@@ -144,7 +168,7 @@ class MenuPointsImportAction(QToolButton):
 
 
 def importPoints():
-    importPath = ArchProjectConfig().get("default_importordner", "./../Jobs")
+    importPath = Configfile(get_config_ini_path()).getValue("Punkte Import", "pfad Importordner", "./../Jobs")
     pointsLayer = T2gLayers.getPointLayer()
     if not pointsLayer:
         return
@@ -254,16 +278,13 @@ def importPoints():
                         pointNumber += 1
 
             if objCount > 0:
-                iface.messageBar().pushMessage(
-                    PLUGIN_NAME, f"{objCount} Punkte eingetragen.", level=Qgis.Info
-                )
+                iface.messageBar().pushMessage(PLUGIN_NAME, f"{objCount} Punkte eingetragen.", level=Qgis.Info)
             else:
-                iface.messageBar().pushMessage(
-                    PLUGIN_NAME, "Keine Punkte eingetragen.", level=Qgis.Critical
-                )
+                iface.messageBar().pushMessage(PLUGIN_NAME, "Keine Punkte eingetragen.", level=Qgis.Critical)
+
 
 def exportPoints():
-    exportPath = ArchProjectConfig().get("default_exportordner", "./../Jobs")
+    exportPath = Configfile(get_config_ini_path()).getValue("Punkte Export", "pfad Exportordner", "./../Jobs")
     # Should be: layer "Messpunkte" or layer 'E_Point'
     layer = iface.activeLayer()
 
@@ -512,9 +533,7 @@ def exportProfilePoints():
                 it = item.split(",")
                 point = QgsPoint(float(it[1]), float(it[2]), float(it[3]))
                 feat.setGeometry(QgsGeometry(point))
-                feat.setAttributes(
-                    [str(it[0]), point.x(), point.y(), point.z(), int(it[4]), str(it[5]), int(it[6])]
-                )
+                feat.setAttributes([str(it[0]), point.x(), point.y(), point.z(), int(it[4]), str(it[5]), int(it[6])])
                 pr.addFeatures([feat])
                 # QgsMessageLog.logMessage(str(it[1]), 'T2G Archäologie', Qgis.Info)
             # add memorylayer to canvas

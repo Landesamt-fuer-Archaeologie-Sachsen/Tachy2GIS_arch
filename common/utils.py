@@ -549,11 +549,6 @@ class ArchProjectConfig(metaclass=SingletonMeta):
             self.load_config()
 
         mandatory_keys = [
-            "AutoSave_enabled",
-            "AutoSave_interval_in_min",
-            "AutoSave_keep_last_n_backups",
-            "default_exportordner",
-            "default_importordner",
             "Digitize_Befund_ObjTyp",
             "Digitize_display_points",
             "Digitize_Profil_ObjTyp",
