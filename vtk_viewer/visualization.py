@@ -7,6 +7,8 @@ from qgis.PyQt.QtCore import QObject, pyqtSignal
 from qgis.PyQt.QtWidgets import qApp
 
 from random import random
+
+from settings import PLUGIN_NAME
 from .AnchorUpdater import VtkAnchorUpdater
 
 LOGGER = logging.getLogger(__name__)
@@ -127,7 +129,7 @@ class VtkLayer:
     def add_feature(self, vertices):
         capabilities = self.source_layer.dataProvider().capabilities()
         if not capabilities & QgsVectorDataProvider.AddFeatures:
-            QgsMessageLog.logMessage("data provider incapable")
+            QgsMessageLog.logMessage("data provider incapable", PLUGIN_NAME, Qgis.Critical)
             return -1
         if "Poly" in self.wkbTypeName and len(vertices) < 3:
             iface.messageBar().pushMessage("Fehler: ", "Polygone müssen mindestens 3 Punkte haben!", Qgis.Warning, 5)
@@ -164,12 +166,13 @@ class VtkLayer:
             if QgsAttributeDialog(self.source_layer, feat, False).exec_():
                 self.source_layer.dataProvider().addFeatures([feat])
                 self.source_layer.featureAdded.emit(nextFeatId)
-                QgsMessageLog.logMessage("Feature added")
+                QgsMessageLog.logMessage(f"Feature added to layer {self.source_layer.name()}", PLUGIN_NAME, Qgis.Info)
                 self.source_layer.commitChanges()
                 nextFeatId += 1  # next id for multiple points
             else:
-                QgsMessageLog.logMessage("layer rolled back")
+                QgsMessageLog.logMessage(f"Layer {self.source_layer.name()} rolled back", PLUGIN_NAME, Qgis.Info)
                 self.source_layer.rollBack()
+        return None
 
 
 class MixinSingle:

@@ -87,7 +87,7 @@ class Configfile:
             with open(self.__inipfad, "w") as conf:
                 self.__config_object.write(conf)
         except PermissionError:
-            QgsMessageLog.logMessage("Config-Datei nicht vorhanden!", "T2G Archäologie", Qgis.Critical)
+            QgsMessageLog.logMessage("Config-Datei nicht vorhanden!", PLUGIN_NAME, Qgis.Critical)
 
     def getValue(self, section, option, default=None):
         if not self.__config_object.has_section(section):
@@ -105,4 +105,4 @@ class Configfile:
             # self.saveFile()
         except Exception as e:
             # QgsMessageLog.logMessage('Schlüssel ['+ section + '] ['+ option +'] ist nicht in config.ini vorhanden!', 'T2G Archäologie', Qgis.Critical)
-            QgsMessageLog.logMessage(str(e), "config", Qgis.Info)
+            QgsMessageLog.logMessage(str(e), PLUGIN_NAME, Qgis.Info)
