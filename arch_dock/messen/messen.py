@@ -896,7 +896,7 @@ class MeasurementTab(BASE, WIDGET):
             self.beepSound()
 
     def addMeasurementPoints(self):
-        measurementPointsLayer = findLayerInProject("Messpunkte")
+        measurementPointsLayer = T2gLayers.getMesspunkteLayer()
         if not measurementPointsLayer:
             return
         measurementPointsLayer.startEditing()

@@ -4,6 +4,7 @@ from qgis.PyQt.QtCore import pyqtSignal, pyqtSlot
 from qgis.core import QgsFeature, QgsGeometry, QgsFeatureRequest, QgsPoint, QgsProject, QgsMessageLog, Qgis
 from qgis.gui import QgsAttributeDialog, QgsAttributeEditorContext
 
+from ....common.layers import T2gLayers
 from ....settings import PLUGIN_NAME
 from .map_tools import PointMapTool
 from .maptool_mixin import MapToolMixin
@@ -73,7 +74,7 @@ class MapToolDigiPoint(PointMapTool, MapToolMixin):
 
     def showdialog(self):
         self.createFeature()
-        proj_layer = QgsProject.instance().mapLayersByName("E_Point")[0]
+        proj_layer = T2gLayers.getPointLayer()
 
         self.feat.setFields(self.digiPointLayer.fields())
 
@@ -236,7 +237,7 @@ class MapToolDigiPoint(PointMapTool, MapToolMixin):
     # in den Eingabelayer schreiben
     def reverseRotation2Eingabelayer(self, layer_id, aar_direction):
         pr = self.refData["pointLayer"].dataProvider()
-        proj_layer = QgsProject.instance().mapLayersByName("E_Point")[0]
+        proj_layer = T2gLayers.getPointLayer()
 
         features_to_write = self.digiPointLayer.getFeatures()
 

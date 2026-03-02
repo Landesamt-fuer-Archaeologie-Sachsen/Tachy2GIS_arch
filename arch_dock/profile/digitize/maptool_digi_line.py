@@ -4,6 +4,7 @@ from qgis.PyQt.QtCore import pyqtSignal, pyqtSlot
 from qgis.core import QgsFeature, QgsGeometry, QgsFeatureRequest, QgsMessageLog, Qgis, QgsProject
 from qgis.gui import QgsAttributeDialog, QgsAttributeEditorContext
 
+from ....common.layers import T2gLayers
 from ....settings import PLUGIN_NAME
 from .map_tools import MultilineMapTool
 from .maptool_mixin import MapToolMixin
@@ -73,7 +74,7 @@ class MapToolDigiLine(MultilineMapTool, MapToolMixin):
 
     def showdialog(self):
         self.createFeature()
-        proj_layer = QgsProject.instance().mapLayersByName("E_Line")[0]
+        proj_layer = T2gLayers.getLineLayer()
 
         self.feat.setFields(self.digiLineLayer.fields())
 
@@ -220,7 +221,7 @@ class MapToolDigiLine(MultilineMapTool, MapToolMixin):
     def reverseRotation2Eingabelayer(self, layer_id, aar_direction):
 
         pr = self.refData["lineLayer"].dataProvider()
-        proj_layer = QgsProject.instance().mapLayersByName("E_Line")[0]
+        proj_layer = T2gLayers.getLineLayer()
 
         features_to_write = self.digiLineLayer.getFeatures()
 

@@ -347,8 +347,8 @@ def exportProfilePoints():
         return
 
     # Linien-Layer für Profillinie aussuchen
-    profLayer = findLayerInProject("E_Line")
-    profPointLayer = findLayerInProject("E_Point")
+    profLayer = T2gLayers.getLineLayer()
+    profPointLayer = T2gLayers.getPointLayer()
     if not profLayer or not profPointLayer:
         return
 
