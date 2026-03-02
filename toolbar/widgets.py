@@ -4,6 +4,7 @@ import os.path
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtWidgets import QDialog
 from qgis.PyQt import uic
+from qgis.core import Qgis
 from qgis.utils import iface
 
 from ..common.utils import any2bool
@@ -21,7 +22,7 @@ class AboutDialog(QDialog):
         if metadata:
             self.label_version.setText(
                 f"{metadata['description']}\n"
-                f"{metadata['name']} V{metadata['version_installed']} für QGIS 3.40\n"
+                f"{metadata['name']} V{metadata['version_installed']} für QGIS {Qgis.QGIS_VERSION}\n"
                 f"{metadata['author_email']}"
             )
         else:
