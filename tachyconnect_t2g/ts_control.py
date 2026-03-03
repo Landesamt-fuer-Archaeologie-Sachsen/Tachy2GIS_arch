@@ -2,7 +2,6 @@ from enum import Enum
 
 from PyQt5.QtSerialPort import QSerialPort, QSerialPortInfo
 from PyQt5.QtCore import QEventLoop, QObject, QTimer, QThread, pyqtSignal
-from PyQt5.QtWidgets import QInputDialog
 
 from . import gc_constants, GSI_Parser
 
@@ -235,23 +234,17 @@ class Dispatcher(QThread):
 
         moin()
 
-    def manual_hook_up(self):
-        """Let the user manually select a COM port from available ports."""
-        self.log.emit("Manual connection attempt")
+    def manual_hook_up(self, port_name: str):
+        """Connect directly to the given COM port without a selection dialog."""
+        self.log.emit(f"Manual connection attempt on {port_name}")
         if self.serial.isOpen():
-            port_name = self.serial.portName()
+            current_port = self.serial.portName()
             self.serial.close()
-            self.serial_disconnected.emit(self.NO_SERIAL_AVAILABLE, port_name)
+            self.serial_disconnected.emit(self.NO_SERIAL_AVAILABLE, current_port)
             self.loop.quit()
             return
-        all_port_names = [port.portName() for port in QSerialPortInfo.availablePorts()]
-        if not all_port_names:
-            self.log.emit("No COM ports available.")
-            return
-        selected_port, ok = QInputDialog.getItem(None, "Verbinden...", "COM-Port auswählen:", all_port_names, 0, False)
-        if ok and selected_port:
-            self._send_beep_alarm(selected_port)
-            self.set_serial_port(selected_port)
+        self._send_beep_alarm(port_name)
+        self.set_serial_port(port_name)
 
     def _send_beep_alarm(self, port_name):
         """Open port briefly to send BMM_BeepAlarm, then close again so set_serial_port can re-open it cleanly."""

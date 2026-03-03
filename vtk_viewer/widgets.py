@@ -27,6 +27,7 @@ import vtk
 from qgis.PyQt import uic
 from qgis.PyQt.QtWidgets import QDockWidget, QFrame, QVBoxLayout, QLineEdit, QLabel, QFileDialog, QProgressDialog, QMenu
 from qgis.PyQt.QtCore import Qt, QThread, pyqtSignal
+from qgis.PyQt.QtSerialPort import QSerialPortInfo
 from qgis.core import (
     Qgis,
     QgsWkbTypes,
@@ -213,7 +214,7 @@ class VtkViewer(QDockWidget, FORM_CLASS):
         self.tachy_connect_button.clicked.connect(self.dispatcher.hook_up)
         tachy_menu = QMenu(self.tachy_connect_button)
         tachy_menu.addAction(self.tr("Tachy verbinden"), self.dispatcher.hook_up)
-        tachy_menu.addAction(self.tr("Port manuell wählen..."), self.dispatcher.manual_hook_up)
+        tachy_menu.aboutToShow.connect(lambda: self._rebuild_port_menu(tachy_menu))
         self.tachy_connect_button.setMenu(tachy_menu)
         self.tachyJoystick.clicked.connect(self.show_joystick)
 
@@ -515,6 +516,18 @@ class VtkViewer(QDockWidget, FORM_CLASS):
     def tachy_available(self, text):
         self.tachy_connect_button.setText(text)
         self.tachy_connect_button.setToolTip(self.tr("Tachy verbinden"))
+
+    def _rebuild_port_menu(self, menu: QMenu):
+        """Rebuild the COM-port submenu entries to reflect currently available ports."""
+        # Remove all port-specific actions (keep the first "Tachy verbinden" entry)
+        for action in menu.actions()[1:]:
+            menu.removeAction(action)
+        available_ports = [port.portName() for port in QSerialPortInfo.availablePorts()]
+        for port_name in available_ports:
+            menu.addAction(
+                self.tr(f"Mit {port_name} verbinden"),
+                lambda checked=False, p=port_name: self.dispatcher.manual_hook_up(p),
+            )
 
     def vertex_received(self, line):
         if line.startswith(CommunicationConstants.GEOCOM_REPLY_PREFIX):
