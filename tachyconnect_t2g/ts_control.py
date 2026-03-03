@@ -93,7 +93,7 @@ class GeoCOMCommand(TachyCommand):
 class TachyReply:
     def __init__(self, bites: bytes):
         self.bites = bites
-        self.ascii = bites.data().decode("ascii")
+        self.ascii = bites.data().decode("latin-1")
 
     def __str__(self):
         return self.ascii
@@ -250,7 +250,18 @@ class Dispatcher(QThread):
             return
         selected_port, ok = QInputDialog.getItem(None, "Verbinden...", "COM-Port auswählen:", all_port_names, 0, False)
         if ok and selected_port:
+            self._send_beep_alarm(selected_port)
             self.set_serial_port(selected_port)
+
+    def _send_beep_alarm(self, port_name):
+        """Open port briefly to send BMM_BeepAlarm, then close again so set_serial_port can re-open it cleanly."""
+        beep_serial = QSerialPort()
+        beep_serial.setPortName(port_name)
+        if beep_serial.open(QSerialPort.ReadWrite):
+            message = f"{GeoCOMCommand.MESSAGE_PREFIX},{str(gc_constants.BMM_BeepNormal)},1:{gc_constants.CRLF}"
+            beep_serial.writeData(message.encode("ascii"))
+            beep_serial.flush()
+            beep_serial.close()
 
     def start(self):
         self.pollingTimer.start(self.pollingInterval)
@@ -317,7 +328,7 @@ class Ping(QThread):
         self.is_open = self.serial.open(QSerialPort.ReadWrite)
         if not self.is_open:
             return
-        message = f"{GeoCOMCommand.MESSAGE_PREFIX},{str(gc_constants.BMM_BeepAlarm)},1:{gc_constants.CRLF}"
+        message = f"{GeoCOMCommand.MESSAGE_PREFIX},{str(gc_constants.BMM_BeepNormal)},1:{gc_constants.CRLF}"
         self.serial.writeData(message.encode("ascii"))
         self.timer = QTimer(self)
         self.timer.setSingleShot(True)
@@ -332,7 +343,7 @@ class Ping(QThread):
     def read(self):
         self.pinging.emit(f"Pinging {self.serial.portName()}")
         if self.serial.canReadLine():
-            reply = bytes(self.serial.readLine()).decode("ascii")
+            reply = bytes(self.serial.readLine()).decode("latin-1")
             self.serial.close()
             if reply.startswith(GeoCOMReply.PREFIX):
                 self.found_tachy.emit(self.serial.portName())
