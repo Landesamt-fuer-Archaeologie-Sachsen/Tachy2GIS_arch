@@ -8,7 +8,7 @@ from qgis.PyQt.QtWidgets import qApp
 
 from random import random
 
-from settings import PLUGIN_NAME
+from ..settings import PLUGIN_NAME
 from .AnchorUpdater import VtkAnchorUpdater
 
 LOGGER = logging.getLogger(__name__)
