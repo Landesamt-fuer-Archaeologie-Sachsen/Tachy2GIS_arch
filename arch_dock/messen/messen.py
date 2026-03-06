@@ -953,7 +953,7 @@ class MeasurementTab(BASE, WIDGET):
         if self.geometryType == "no_layer":
             return
         widget = self.sender()
-        setCustomProjectVariable(f"{widget.objectName()}", widget.text())
+        setCustomProjectVariable(f"{widget.objectName()}", widget.text() or None)
 
     def openCloseCoordinatesGroupBox(self):
         collapsed = self.qgsGroupBoxCoordinates.isCollapsed()

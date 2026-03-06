@@ -89,7 +89,6 @@ class Georef:
         self.draw_polygon_window_list = []
         self.polygon_list = []
         self.ref_data_pair = []
-        self.ref_data_pair.append(self.getSelectedValues())
 
         if not (
             self.dockwidget.check_transform_original.isChecked()
@@ -104,6 +103,30 @@ class Georef:
             )
             return
 
+        imageFilePath = self.dockwidget.profileFotosComboGeoref.filePath()
+        if not imageFilePath:
+            QMessageBox.critical(
+                self.dockwidget,
+                "Invalide Einstellung",
+                "Bitte ein Profilfoto auswählen!",
+                QMessageBox.Abort,
+            )
+            return
+
+        imageFolder = pathlib.Path(imageFilePath).parent
+        try:
+            testFile = imageFolder / ".write_test"
+            testFile.touch()
+            testFile.unlink()
+        except OSError:
+            QMessageBox.critical(
+                self.dockwidget,
+                "Invalide Einstellung",
+                f"Der Ordner '{imageFolder}' ist nicht beschreibbar!",
+                QMessageBox.Abort,
+            )
+            return
+
         transform_methods = []
         if self.dockwidget.check_transform_original.isChecked():
             transform_methods.append("original")
@@ -112,7 +135,18 @@ class Georef:
         if self.dockwidget.check_transform_absolut.isChecked():
             transform_methods.append("absolute height")
 
+        self.ref_data_pair.append(self.getSelectedValues())
         self.ref_data_pair[0]["transform_methods"] = transform_methods
+
+        if len(self.ref_data_pair[0]["targetGCP"]["points"]) < 4:
+            # Die projective Transformation hat 8 Freiheitsgrade und braucht mindestens 4
+            QMessageBox.critical(
+                self.dockwidget,
+                "Invalide Einstellung",
+                f"Mindestens 4 Entzerrpunkte für Profil {self.ref_data_pair[0]['profileNumber']} erforderlich!",
+                QMessageBox.Abort,
+            )
+            return
 
         # case no kreuzprofil:
         if not self.dockwidget.checkboxKreuzprofil.isChecked():
@@ -132,6 +166,30 @@ class Georef:
             )
             return
 
+        imageFilePath2 = self.dockwidget.profileFotosComboGeoref_2.filePath()
+        if not imageFilePath2:
+            QMessageBox.critical(
+                self.dockwidget,
+                "Invalide Einstellung",
+                "Bitte ein Profilfoto für das zweite Profil auswählen!",
+                QMessageBox.Abort,
+            )
+            return
+
+        imageFolder2 = pathlib.Path(imageFilePath2).parent
+        try:
+            testFile2 = imageFolder2 / ".write_test"
+            testFile2.touch()
+            testFile2.unlink()
+        except OSError:
+            QMessageBox.critical(
+                self.dockwidget,
+                "Invalide Einstellung",
+                f"Der Ordner '{imageFolder2}' ist nicht beschreibbar!",
+                QMessageBox.Abort,
+            )
+            return
+
         self.ref_data_pair.append(self.getSelectedValues(second_set=True))
         self.ref_data_pair[1]["transform_methods"] = transform_methods
 
@@ -144,6 +202,17 @@ class Georef:
                 QMessageBox.Abort,
             )
             return
+
+        if len(self.ref_data_pair[1]["targetGCP"]["points"]) < 4:
+            # Die projective Transformation hat 8 Freiheitsgrade und braucht mindestens 4
+            QMessageBox.critical(
+                self.dockwidget,
+                "Invalide Einstellung",
+                f"Mindestens 4 Entzerrpunkte für Profil {self.ref_data_pair[1]['profileNumber']} erforderlich!",
+                QMessageBox.Abort,
+            )
+            return
+
         self.startGeoreferencingDialog(self.ref_data_pair[0], True)
         self.startGeoreferencingDialog(self.ref_data_pair[1], True)
 
