@@ -18,3 +18,6 @@ venv.bak/
 # VS Code
 .vscode/*
 *.code-workspace
+
+# pb-tool build files
+zip_build/
