@@ -104,7 +104,7 @@ class VertexCoordinate:
     vertexId: QgsVertexId
 
 
-FORM_CLASS, _ = uic.loadUiType(os_path.join(os_path.dirname(__file__), "geometry_check_dockwidget.ui"))
+FORM_CLASS, _ = uic.loadUiType(os_path.join(os_path.dirname(__file__), "forms", "geometry_check_dockwidget.ui"))
 
 
 class GeometryCheckDockWidget(QDockWidget, FORM_CLASS):

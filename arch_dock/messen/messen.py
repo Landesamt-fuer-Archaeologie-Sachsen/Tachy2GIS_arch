@@ -61,7 +61,7 @@ layers = {"polygons": T2gLayers.Polygon.value, "lines": T2gLayers.Line.value, "p
 
 connectedSignalsDict = {}
 
-WIDGET, BASE = uic.loadUiType(os.path.join(os.path.dirname(__file__), "messen.ui"))
+WIDGET, BASE = uic.loadUiType(os.path.join(os.path.dirname(__file__), "forms", "messen.ui"))
 
 
 class MeasurementTab(BASE, WIDGET):

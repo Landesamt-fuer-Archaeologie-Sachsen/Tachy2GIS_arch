@@ -12,7 +12,7 @@ from ...common.layers import T2gLayers
 from ...icons import ICON_PATHS
 
 
-WIDGET, BASE = uic.loadUiType(os.path.join(os.path.dirname(__file__), "tools_allgemein.ui"))
+WIDGET, BASE = uic.loadUiType(os.path.join(os.path.dirname(__file__), "forms", "tools_allgemein.ui"))
 
 
 class ToolsAllgemeinTab(BASE, WIDGET):
