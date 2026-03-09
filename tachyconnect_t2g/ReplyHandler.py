@@ -1,7 +1,7 @@
 import logging
 from PyQt5.QtCore import pyqtSignal, QObject, QEventLoop
 
-from tachyconnect.ts_control import TachyReply
+from .ts_control import TachyReply
 
 LOGGER = logging.getLogger(__name__)
 
