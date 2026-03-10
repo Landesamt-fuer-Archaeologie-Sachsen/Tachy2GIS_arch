@@ -54,7 +54,6 @@ qgisMaximumVersion=3.99
 ; Both "MyOtherPlugin" and "YetAnotherPlugin" names come from their own metadata's
 ; name field
 ; plugin_dependencies=MyOtherPlugin==1.12,YetAnotherPlugin
-plugin_dependencies=Tachy2GIS-3DViewer==1.2.2
 
 ; experimental flag (applies to the single version)
 experimental=True
