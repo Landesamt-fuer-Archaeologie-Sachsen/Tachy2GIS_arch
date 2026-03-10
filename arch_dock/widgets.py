@@ -80,13 +80,14 @@ class T2GArchDockWidget(QDockWidget, FORM_CLASS):
         self.raster.setup()
 
     def unload(self):
-        if self.geoEdit:
-            self.geoEdit.disconnectSignals()
-
         # Transformation
+        if self.transformationGui:
+            self.transformationGui.disconnectSignals()
         self.transformationGui = None
 
         # Geometriebearbeitung
+        if self.geoEdit:
+            self.geoEdit.disconnectSignals()
         self.geoEdit = None
 
         # Profile

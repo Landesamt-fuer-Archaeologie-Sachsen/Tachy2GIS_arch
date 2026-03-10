@@ -85,6 +85,17 @@ class TransformationGui:
         self.dockwidget.transformValidityBtn.clicked.connect(self.openValidityMessageBox)
         self.dockwidget.transformInfoBtn.clicked.connect(self.openInfoMessageBox)
 
+    def disconnectSignals(self):
+        try:
+            self.dockwidget.btnOpenTransformDlg.clicked.disconnect(self.transformationDialogShow)
+            self.dockwidget.transformResetBtn.clicked.disconnect(self.resetTransformationMessageBox)
+            self.dockwidget.btnTransformInputLayers.clicked.disconnect(self.startTransformation)
+            self.dockwidget.transformValidityBtn.clicked.disconnect(self.openValidityMessageBox)
+            self.dockwidget.transformInfoBtn.clicked.disconnect(self.openInfoMessageBox)
+        except TypeError:
+            # Signals were not connected, ignore
+            pass
+
     ## \brief Save the current QGIS-Project
     #
 
