@@ -96,6 +96,7 @@ class MeasurementTab(BASE, WIDGET):
 
         self.setGuiContent()
         self.cbAttributeFormular.setIcon(QIcon(QgsApplication.iconPath("mActionOpenTableEdited.svg")))
+        self.cbSound.setIcon(QIcon(ICON_PATHS["Sound"]))
         self.connectSignals()
 
         self.keys = []

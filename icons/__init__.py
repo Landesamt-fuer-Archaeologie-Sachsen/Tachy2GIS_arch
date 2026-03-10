@@ -43,6 +43,7 @@ ICON_PATHS = {
     "Ok_grau": "Ok_grau.png",
     "Sichtbar_an": "Sichtbar_an.gif",
     "Sichtbar_aus": "Sichtbar_aus.gif",
+    "Sound": "Sound.gif",
     "transp": "transp.png",
     "mActionSaveGCPpointsAs": "mActionSaveGCPpointsAs.png",
     "mActionLoadGCPpoints": "mActionLoadGCPpoints.png",
