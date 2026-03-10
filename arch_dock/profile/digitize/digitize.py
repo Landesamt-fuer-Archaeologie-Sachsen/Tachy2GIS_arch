@@ -68,9 +68,7 @@ class Digitize:
                 if self.digitizeDialog and self.digitizeDialog.isVisible():
                     self.digitizeDialog.close()
 
-                self.digitizeDialog = DigitizeDialog(
-                    self.dataStoreDigitize, self.rotationCoords, iface, self.aar_direction
-                )
+                self.digitizeDialog = DigitizeDialog(self.dataStoreDigitize, self.rotationCoords, self.aar_direction)
                 self.dataStoreDigitize.triggerAarTransformationParams(self.aar_direction)
                 self.digitizeDialog.showDigitizeDialog(refData, self.dataStoreDigitize.getProfileNumber())
 
