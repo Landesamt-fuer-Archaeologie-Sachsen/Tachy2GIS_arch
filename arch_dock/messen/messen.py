@@ -196,15 +196,20 @@ class MeasurementTab(BASE, WIDGET):
     def resetMeasurementTab(self):
         self.leaveDigitizingMode()
         self.resetTabToBeginning()
-        self.disconnectSignals()
-        self.deactivateKeys()
+        self.fillTxtReference()
+        self.reconnectSignals()
 
     def closeMeasurementTab(self):
         self.leaveDigitizingMode()
         self.resetTabToBeginning()
+        self.disconnectSignals()
         self.deactivateKeys()
         if self.nextIdUpdater:
             self.nextIdUpdater.stop()
+
+    def reconnectSignals(self):
+        iface.mapCanvas().mapToolSet.connect(self.setDigitizeAction)
+        connectedSignalsDict["setDigitizeAction"] = self.setDigitizeAction
 
     def disconnectSignals(self):
         signal = connectedSignalsDict.get("setDigitizeAction")
