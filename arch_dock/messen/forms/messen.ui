@@ -171,7 +171,7 @@
         <x>0</x>
         <y>0</y>
         <width>480</width>
-        <height>913</height>
+        <height>933</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -349,7 +349,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QWidget" name="" native="true">
+              <widget class="QWidget" name="widget" native="true">
                <layout class="QHBoxLayout" name="horizontalLayout_3">
                 <item>
                  <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -391,6 +391,19 @@
                </property>
                <property name="checked">
                 <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="cbStartEditing">
+               <property name="toolTip">
+                <string>Editiermodus automatisch starten</string>
+               </property>
+               <property name="text">
+                <string/>
+               </property>
+               <property name="checked">
+                <bool>false</bool>
                </property>
               </widget>
              </item>

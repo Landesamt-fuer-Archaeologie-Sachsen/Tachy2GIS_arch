@@ -96,6 +96,7 @@ class MeasurementTab(BASE, WIDGET):
 
         self.setGuiContent()
         self.cbAttributeFormular.setIcon(QIcon(QgsApplication.iconPath("mActionOpenTableEdited.svg")))
+        self.cbStartEditing.setIcon(QIcon(QgsApplication.iconPath("mActionToggleEditing.svg")))
         self.cbSound.setIcon(QIcon(ICON_PATHS["Sound"]))
         self.connectSignals()
 
@@ -843,7 +844,6 @@ class MeasurementTab(BASE, WIDGET):
         if not features:
             return
         feature = features[0]
-        self.layerToEdit.startEditing()
         if len(features) == 1:
             iface.openFeatureForm(self.layerToEdit, feature)
         else:
@@ -898,6 +898,8 @@ class MeasurementTab(BASE, WIDGET):
             self.startTachyWatch()
             iface.mapCanvas().refreshAllLayers()
             self.tachyDock.vtk_mouse_interactor_style.draw()
+            if self.cbStartEditing.isChecked():
+                self.layerToEdit.startEditing()
             self.openAttributeForm(features)
             self.beepSound()
 
