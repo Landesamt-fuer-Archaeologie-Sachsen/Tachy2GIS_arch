@@ -465,9 +465,7 @@ class MeasurementTab(BASE, WIDGET):
 
         self.cmbObjectType_3.setEnabled(self.geometryType == "polygons")
 
-        objTypeGeometry = getCustomProjectVariable(f"obj_typ_{self.geometryType}")
-        if objTypeGeometry:
-            self.cmbObjectType_1.setCurrentIndex(self.cmbObjectType_1.findData(objTypeGeometry))
+        self.resetAutoAttributeValues()
 
     def comboObjectTypeChanged(self):
         self.fillComboObjectArt()
