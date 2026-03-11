@@ -473,11 +473,13 @@ class HelpWindow(QWidget):
         self.setLayout(QGridLayout())
         self.layout().setContentsMargins(0, 0, 0, 0)
         self.meldung = QTextBrowser()
+        self.title = None
         self.text = None
         self.pfad = None
         self.layout().addWidget(self.meldung)  # ,0,0,1,2)
 
-    def run(self, pfad, text, width, height):
+    def run(self, pfad, title, text, width, height):
+        self.setWindowTitle(title)
         if pfad == None:
             self.meldung.setHtml(text)
         elif text == None:
