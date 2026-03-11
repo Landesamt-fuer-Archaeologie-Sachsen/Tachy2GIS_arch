@@ -769,7 +769,7 @@
                 <item row="5" column="0">
                  <widget class="QLabel" name="label_14">
                   <property name="text">
-                   <string>ZBS</string>
+                   <string>Befund/ZBS</string>
                   </property>
                  </widget>
                 </item>
