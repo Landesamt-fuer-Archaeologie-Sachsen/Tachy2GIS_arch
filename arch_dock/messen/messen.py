@@ -947,7 +947,7 @@ class MeasurementTab(BASE, WIDGET):
 
     def showHelp(self):
         helpHtmPath = os.path.join(os.path.dirname(__file__), "Tips.htm")
-        self.helpWindow.run(helpHtmPath, None, 280, 300)
+        self.helpWindow.run(helpHtmPath, None, 400, 300)
 
     def updatePointCount(self):
         if self.verticesCount == 1:
