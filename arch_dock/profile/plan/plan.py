@@ -341,7 +341,9 @@ class Plan:
             "input_z",
             "aar_x",
             "aar_z",
-            "aar_z_org",
+            "original_x",
+            "original_y",
+            "original_z",
             "aar_distance",
             "aar_direction",
         ]
@@ -369,19 +371,19 @@ class Plan:
 
         # Rename fields
         for field in gcpLayer.fields():
-            if field.name() == "aar_x":
+            if field.name() == "original_x":
                 gcpLayer.startEditing()
                 idx = gcpLayer.fields().indexFromName(field.name())
                 gcpLayer.renameAttribute(idx, "x_orig")
                 gcpLayer.commitChanges()
 
-            if field.name() == "aar_z":
+            if field.name() == "original_y":
                 gcpLayer.startEditing()
                 idx = gcpLayer.fields().indexFromName(field.name())
                 gcpLayer.renameAttribute(idx, "y_orig")
                 gcpLayer.commitChanges()
 
-            if field.name() == "aar_z_org":
+            if field.name() == "original_z":
                 gcpLayer.startEditing()
                 idx = gcpLayer.fields().indexFromName(field.name())
                 gcpLayer.renameAttribute(idx, "z_orig")

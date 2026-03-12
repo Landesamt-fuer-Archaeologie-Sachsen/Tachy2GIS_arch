@@ -177,9 +177,17 @@ class ProfileAAR(object):
                 if profileCheck is False and fieldCheck is False and inputCheck is False:
                     # Calculating the profile and add it to the list
 
+                    # Save original X/Y before transformation() potentially modifies coord_proc in-place
+                    orig_xy = [(item[0], item[1]) for item in coord_proc]
+
                     transform_return = magicbox.transformation(coord_proc, method, direction)
 
                     coord_height_list = transform_return["coord_trans"]
+
+                    # Append original X/Y to each point (indices [9] and [10])
+                    for i, point in enumerate(coord_height_list):
+                        point.append(orig_xy[i][0])  # [9] original X
+                        point.append(orig_xy[i][1])  # [10] original Y
 
                     coord_trans.append(coord_height_list)
 

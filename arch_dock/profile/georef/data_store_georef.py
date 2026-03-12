@@ -82,6 +82,8 @@ class DataStoreGeoref:
                         "y": pointObj[1],
                         "z": pointObj[2],
                         "z_org": pointObj[4],
+                        "x_org": pointObj[9],
+                        "y_org": pointObj[10],
                         "distance": pointObj[5],
                         "usage": pointObj[6],
                     }
@@ -114,6 +116,8 @@ class DataStoreGeoref:
                         "y": pointObj[1],
                         "z": pointObj[2],
                         "z_org": pointObj[4],
+                        "x_org": pointObj[9],
+                        "y_org": pointObj[10],
                         "distance": pointObj[5],
                         "usage": pointObj[6],
                     }
@@ -146,6 +150,8 @@ class DataStoreGeoref:
                         "y": pointObj[1],
                         "z": pointObj[2],
                         "z_org": pointObj[4],
+                        "x_org": pointObj[9],
+                        "y_org": pointObj[10],
                         "distance": pointObj[5],
                         "usage": pointObj[6],
                     }
@@ -211,6 +217,9 @@ class DataStoreGeoref:
                                 "aar_y": aarObj["y"],
                                 "aar_z": aarObj["z"],
                                 "aar_z_org": aarObj["z_org"],
+                                "original_x": aarObj["x_org"],
+                                "original_y": aarObj["y_org"],
+                                "original_z": aarObj["z_org"],
                                 "aar_distance": aarObj["distance"],
                                 "aar_direction": aarDirection,
                             }
