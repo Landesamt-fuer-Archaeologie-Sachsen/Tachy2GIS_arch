@@ -21,6 +21,3 @@ venv.bak/
 
 # pb-tool build files
 zip_build/
-
-# Coding Instructions
-DEV_Notes.md
