@@ -83,6 +83,23 @@ class AutosaveManager:
                 QMessageBox.No,
             )
             if result == QMessageBox.Yes:
-                QgsProject.instance().write()
+                project = QgsProject.instance()
+                uncommitted = []
+                for layer in project.mapLayers().values():
+                    if layer.type() == layer.VectorLayer and layer.isEditable():
+                        if not layer.commitChanges():
+                            uncommitted.append(layer.name())
+
+                if uncommitted:
+                    QMessageBox.warning(
+                        None,
+                        "Backup nicht möglich",
+                        "Folgende Layer konnten nicht gespeichert werden:\n"
+                        + "\n".join(uncommitted)
+                        + "\n\nBitte beenden Sie den Bearbeitungsmodus manuell.",
+                    )
+                    return
+
+                project.write()
                 QApplication.processEvents()
                 self._on_timer()
