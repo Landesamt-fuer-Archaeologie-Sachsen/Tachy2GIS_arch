@@ -540,5 +540,7 @@ def exportProfilePoints():
             QgsProject.instance().addMapLayer(vl, False)
             root = QgsProject.instance().layerTreeRoot()
             g = root.findGroup("Vermessung")
+            if g is None:
+                g = root.addGroup("Vermessung")
             g.insertChildNode(0, QgsLayerTreeLayer(vl))
         delSelectFeature()
