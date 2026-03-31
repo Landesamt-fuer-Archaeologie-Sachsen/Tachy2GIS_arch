@@ -117,9 +117,7 @@ class GeoreferencingDialog(QMainWindow):
         AND do not restrict input via a Range editor widget.
         """
         from ....common.layers import T2gLayers
-        for layer in [T2gLayers.getPointLayer(), T2gLayers.getLineLayer(), T2gLayers.getPolygonLayer()]:
-            if layer is None:
-                continue
+        for layer in T2gLayers.getEditLayers():
             idx = layer.fields().indexFromName("prof_nr")
             if idx == -1:
                 continue
