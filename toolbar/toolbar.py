@@ -93,7 +93,6 @@ class T2GToolbar(QToolBar):
         self.settingsAction.setEnabled(enabled)
         self.pointImportMenu.setEnabled(enabled)
         self.openProjectFolderAction.setEnabled(enabled)
-        self.manualAction.setEnabled(enabled)
 
     def _on_project_became_valid(self):
         LOGGER.debug("Valid T2G project – enabling arch dock")
