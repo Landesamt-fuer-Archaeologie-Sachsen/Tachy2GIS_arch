@@ -119,8 +119,7 @@ class AboutAction(QAction):
 
 class ManualAction(QAction):
     def __init__(self, parent=None):
-        super().__init__(QIcon(ICON_PATHS["Formular"]), "Benutzerhandbuch", parent)
-        self.setEnabled(False)
+        super().__init__(QIcon(ICON_PATHS["Formular"]), "Dokumentation", parent)
         self.triggered.connect(openManual)
 
 

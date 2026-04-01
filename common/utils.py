@@ -5,6 +5,7 @@ import os
 import os.path
 import re
 import shutil
+import webbrowser
 import sqlite3
 import subprocess
 
@@ -611,9 +612,7 @@ def saveProject():
 
 
 def openManual():
-    pdfPath = os.path.join(QgsProject.instance().readPath(".."), "T2G_arch_Bedienungsanleitung.pdf")
-    if os.path.isfile(pdfPath):
-        os.startfile(pdfPath)
+    webbrowser.open("https://tachygis.github.io/")
 
 
 def repairUuidsInLayers(layers: list[QgsVectorLayer]):
