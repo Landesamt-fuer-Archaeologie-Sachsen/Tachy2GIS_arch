@@ -181,10 +181,10 @@ class GeometryCheckDockWidget(QDockWidget, FORM_CLASS):
 
         QgsProject.instance().addMapLayer(templayer, False)
         root = QgsProject.instance().layerTreeRoot()
-        g = root.findGroup("Vermessung")
-        if g is None:
-            g = root.addGroup("Vermessung")
-        g.insertChildNode(0, QgsLayerTreeLayer(templayer))
+        group = root.findGroup("Vermessung")
+        if group is None:
+            group = root.addGroup("Vermessung")
+        group.insertChildNode(0, QgsLayerTreeLayer(templayer))
 
         sym = QgsMarkerSymbol.createSimple({"name": "circle", "color": "red", "size": "3", "outline_width": "1"})
         templayer.renderer().setSymbol(sym)
