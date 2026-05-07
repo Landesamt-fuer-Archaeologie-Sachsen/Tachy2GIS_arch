@@ -17,7 +17,7 @@ from ctypes import wintypes
 from datetime import datetime
 from pathlib import Path
 
-from qgis.PyQt.QtCore import QCoreApplication, QRect, Qt, QUrl, QVariant
+from qgis.PyQt.QtCore import QCoreApplication, QRect, Qt, QUrl
 from qgis.PyQt.QtGui import QPainter, QIcon
 
 from qgis.PyQt.QtWidgets import QDesktopWidget, QGridLayout, QLabel, QProgressBar, QTextBrowser, QWidget
@@ -26,7 +26,6 @@ from qgis.core import (
     QgsExpressionContextUtils,
     QgsFeature,
     QgsFeatureRequest,
-    QgsField,
     QgsGeometry,
     Qgis,
     QgsMapLayer,
@@ -617,21 +616,20 @@ def openManual():
 
 def repairUuidsInLayers(layers: list[QgsVectorLayer]):
     QgsMessageLog.logMessage("Überprüfe UUID", PLUGIN_NAME, Qgis.Info)
-    # >uuid erzeugen wenn Feld uuid leer
+    # obj_uuid erzeugen wenn Feld leer
     for layer in layers:
         layer.startEditing()
-        if layer.dataProvider().fieldNameIndex("uuid") == -1:
-            layer.dataProvider().addAttributes([QgsField("uuid", QVariant.String, len=50)])
-            fIndex = layer.dataProvider().fieldNameIndex("obj_uuid")
-            layer.setDefaultValueDefinition(fIndex, QgsDefaultValue("uuid()"))
-            layer.updateFields()
-        it = layer.getFeatures(QgsFeatureRequest().setFilterExpression('"uuid" IS NULL'))
+        fIndex = layer.dataProvider().fieldNameIndex("obj_uuid")
+        layer.setDefaultValueDefinition(fIndex, QgsDefaultValue("uuid()"))
+        layer.updateFields()
+        features_ohne_uuid = list(
+            layer.getFeatures(QgsFeatureRequest().setFilterExpression('"obj_uuid" IS NULL'))
+        )
         QgsMessageLog.logMessage(
-            f"{sum(1 for _ in it)} features ohne UUID in Layer {layer.name()}; Neugenerierung ...",
+            f"{len(features_ohne_uuid)} features ohne UUID in Layer {layer.name()}; Neugenerierung ...",
             PLUGIN_NAME,
             Qgis.Info,
         )
-        UUid = layer.dataProvider().fieldNameIndex("obj_uuid")
-        attr_map = {feature.id(): {UUid: "{" + str(uuid.uuid4()) + "}"} for feature in it}
+        attr_map = {f.id(): {fIndex: "{" + str(uuid.uuid4()) + "}"} for f in features_ohne_uuid}
         layer.dataProvider().changeAttributeValues(attr_map)
         layer.commitChanges()
