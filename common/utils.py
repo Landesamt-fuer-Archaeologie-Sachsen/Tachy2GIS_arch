@@ -633,3 +633,13 @@ def repairUuidsInLayers(layers: list[QgsVectorLayer]):
         attr_map = {f.id(): {fIndex: "{" + str(uuid.uuid4()) + "}"} for f in features_ohne_uuid}
         layer.dataProvider().changeAttributeValues(attr_map)
         layer.commitChanges()
+
+        # Duplikatprüfung obj_uuid
+        alle_uuids = [f["obj_uuid"] for f in layer.getFeatures()]
+        if len(alle_uuids) != len(set(alle_uuids)):
+            anzahl_duplikate = len(alle_uuids) - len(set(alle_uuids))
+            QgsMessageLog.logMessage(
+                f"WARNUNG: {anzahl_duplikate} doppelte obj_uuid in Layer {layer.name()}",
+                PLUGIN_NAME,
+                Qgis.Warning,
+            )
