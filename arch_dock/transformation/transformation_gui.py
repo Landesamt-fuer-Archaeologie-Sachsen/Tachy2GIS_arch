@@ -568,7 +568,7 @@ class TransformationGui:
                         zVal = 0
                     gcpSource.append(
                         {
-                            "uuid": feature.attribute("uuid"),
+                            "uuid": feature.attribute("obj_uuid"),
                             "fid": feature.attribute("fid"),
                             "pt_nr": feature.attribute("pt_nr"),
                             "geometry": feature.geometry(),
@@ -589,7 +589,7 @@ class TransformationGui:
                         zVal = 0
                     gcpSource.append(
                         {
-                            "uuid": feature.attribute("uuid"),
+                            "uuid": feature.attribute("obj_uuid"),
                             "fid": feature.attribute("fid"),
                             "pt_nr": feature.attribute("pt_nr"),
                             "geometry": feature.geometry(),
