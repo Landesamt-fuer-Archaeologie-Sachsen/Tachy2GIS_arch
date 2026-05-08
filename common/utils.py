@@ -618,8 +618,10 @@ def repairUuidsInLayers(layers: list[QgsVectorLayer]):
     QgsMessageLog.logMessage("Überprüfe UUID", PLUGIN_NAME, Qgis.Info)
     # obj_uuid erzeugen wenn Feld leer
     for layer in layers:
-        layer.startEditing()
         fIndex = layer.dataProvider().fieldNameIndex("obj_uuid")
+        if fIndex == -1:
+            continue
+        layer.startEditing()
         layer.setDefaultValueDefinition(fIndex, QgsDefaultValue("uuid()"))
         layer.updateFields()
         features_ohne_uuid = list(
