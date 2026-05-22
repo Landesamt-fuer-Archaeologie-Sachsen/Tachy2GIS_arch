@@ -44,6 +44,10 @@ class DlgSettings(QDialog):
         # Alle Tabs Sichtbarkeit aus
         for index in range(self.ui.tabWidget.count()):
             self.ui.tabWidget.setTabVisible(index, False)
+        # Hide menu entries that are not yet implemented
+        self.ui.treeWidget.topLevelItem(3).setHidden(True)  # Grabungsfotos
+        self.ui.treeWidget.topLevelItem(4).setHidden(True)  # Projekt
+        self.ui.treeWidget.topLevelItem(6).setHidden(True)  # Listenausgabe
         # QgsMessageLog.logMessage("setup", "T2G Archäologie", Qgis.Info)
         # Config lesen
         val = self.__config.getValue("AutoSave", "interval_in_min", "15")
