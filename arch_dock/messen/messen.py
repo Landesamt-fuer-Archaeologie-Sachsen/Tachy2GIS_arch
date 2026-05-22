@@ -529,6 +529,33 @@ class MeasurementTab(BASE, WIDGET):
 
         clearAutoAttributeProjectVariables()
 
+    def _incrementValue(self, text):
+        for sep in ('_', '.'):
+            if sep in text:
+                prefix, suffix = text.rsplit(sep, 1)
+                try:
+                    return prefix + sep + str(int(suffix) + 1)
+                except ValueError:
+                    continue
+        try:
+            return str(int(text) + 1)
+        except ValueError:
+            return text
+
+    def incrementAutoAttributes(self):
+        fields = [
+            (self.cbIncrementBef, self.bef_nr),
+            (self.cbIncrementProf, self.prof_nr),
+            (self.cbIncrementPt, self.pt_nr),
+            (self.cbIncrementFund, self.fund_nr),
+            (self.cbIncrementProbe, self.probe_nr),
+        ]
+        for checkbox, lineEdit in fields:
+            if checkbox.isChecked() and lineEdit.text():
+                newValue = self._incrementValue(lineEdit.text())
+                lineEdit.setText(newValue)
+                setCustomProjectVariable(lineEdit.objectName(), newValue)
+
     @contextmanager
     def blockSignalsObjTypes(self):
         self.cmbObjectType_1.blockSignals(True)
@@ -899,6 +926,7 @@ class MeasurementTab(BASE, WIDGET):
             if self.cbStartEditing.isChecked():
                 self.layerToEdit.startEditing()
             self.openAttributeForm(features)
+            self.incrementAutoAttributes()
             self.beepSound()
 
     def addMeasurementPoints(self):
