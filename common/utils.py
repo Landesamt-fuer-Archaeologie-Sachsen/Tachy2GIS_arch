@@ -35,7 +35,7 @@ from qgis.core import (
 )
 from qgis.utils import iface
 
-from ..settings import PLUGIN_NAME
+from ..settings import PLUGIN_NAME, LANDINGPAGE
 
 LOGGER = logging.getLogger(__name__)
 
@@ -611,7 +611,7 @@ def saveProject():
 
 
 def openManual():
-    webbrowser.open("https://tachygis.github.io/")
+    webbrowser.open(LANDINGPAGE)
 
 
 def repairUuidsInLayers(layers: list[QgsVectorLayer]):

@@ -111,6 +111,22 @@ class GeoreferencingDialog(QMainWindow):
             self.startGeorefBtn.setEnabled(True)
             self.startGeorefBtn.setStyleSheet(self.style_button_enabled)
 
+    def _all_e_layers_support_string_prof_nr(self) -> bool:
+        """
+        Returns True if all E_ layers with a prof_nr field define it as string type
+        AND do not restrict input via a Range editor widget.
+        """
+        from ....common.layers import T2gLayers
+        for layer in T2gLayers.getEditLayers():
+            idx = layer.fields().indexFromName("prof_nr")
+            if idx == -1:
+                continue
+            if not layer.fields().at(idx).typeName().lower().startswith("string"):
+                return False
+            if layer.editorWidgetSetup(idx).type() == "Range":
+                return False
+        return True
+
     ## \brief Create different menus
     #
     #
@@ -526,7 +542,10 @@ class GeoreferencingDialog(QMainWindow):
                     # but they have to be 0 because half of them are not valid in kreuzprofil
                     item["input_x"] = 0.0
                     item["input_z"] = 0.0
-                meta_0["profilnummer"] += "_" + meta_1["profilnummer"]
+                if not self._all_e_layers_support_string_prof_nr():
+                    meta_0["profilnummer"] = ''.join(c for c in meta_0["profilnummer"] if c.isdigit())
+                else:
+                    meta_0["profilnummer"] += "_" + meta_1["profilnummer"]
                 out_path = f"{save_path_0_original.joinpath(f'{profileTargetName}.meta')}"
                 with open(out_path, "w") as outfile:
                     json.dump(meta_0, outfile)

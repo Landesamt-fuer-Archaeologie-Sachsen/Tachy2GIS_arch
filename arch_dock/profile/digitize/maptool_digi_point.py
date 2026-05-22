@@ -167,7 +167,7 @@ class MapToolDigiPoint(PointMapTool, MapToolMixin):
         selFeatures = []
         for feature in featsSel:
             if no_buffer_profile_nr:
-                if feature["prof_nr"] != no_buffer_profile_nr:
+                if str(feature["prof_nr"]) != str(no_buffer_profile_nr):
                     continue
             elif not feature.geometry().within(bufferGeometry):
                 continue
