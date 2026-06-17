@@ -73,17 +73,9 @@ class GeoEdit:
         self.setAllowReverse(False)
 
         # Setup "Verschneiden"
-        self.dockwidget.butContactClip.setToolTip("Berührend")
+        self.dockwidget.butContactClip.setToolTip("Polygon zuschneiden")
         self.dockwidget.butContactClip.setIcon(QIcon(ICON_PATHS["butContactClip"]))
         self.dockwidget.butContactClip.clicked.connect(self.geoCalc.contactClip)
-
-        self.dockwidget.butOutsideClip.setToolTip("Außenliegend")
-        self.dockwidget.butOutsideClip.setIcon(QIcon(ICON_PATHS["butOutsideClip"]))
-        self.dockwidget.butOutsideClip.clicked.connect(self.geoCalc.outsideClip)
-
-        self.dockwidget.butInsideClip.setToolTip("Innenliegend")
-        self.dockwidget.butInsideClip.setIcon(QIcon(ICON_PATHS["butInsideClip"]))
-        self.dockwidget.butInsideClip.clicked.connect(self.geoCalc.insideClip)
 
         # Setup Sonstiges
         self.dockwidget.butLineRes.setIcon(QIcon(ICON_PATHS["LineRe"]))

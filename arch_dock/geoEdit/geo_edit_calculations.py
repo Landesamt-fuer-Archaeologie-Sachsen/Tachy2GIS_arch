@@ -237,62 +237,6 @@ class GeoEditCalculations:
         self.mapToolSel = IdentifyGeometry(iface.mapCanvas())
         self.mapToolSel.geomIdentified.connect(self.featureSelect2)
 
-    def insideClip(self):  # inside
-        layer = iface.mapCanvas().currentLayer()
-        if layer.type() == QgsMapLayer.VectorLayer:
-            if layer.geometryType() == QgsWkbTypes.PolygonGeometry:
-                selection = layer.selectedFeatures()
-                if len(selection) != 0:
-                    fsel = selection[0]
-                    # set layer editable
-                    layer.startEditing()
-                    for g in layer.getFeatures():
-                        if g.id() != fsel.id():
-                            if g.geometry().intersects(fsel.geometry()):
-                                # clipping non selected intersecting features
-                                attributes = g.attributes()
-                                diff = QgsFeature()
-                                diff.setGeometry(g.geometry().difference(fsel.geometry()))
-                                # copy attributes from original feature
-                                diff.setAttributes(attributes)
-                                # add modified feature to layer
-                                layer.addFeature(diff)
-                                # remove old feature
-                                layer.deleteFeature(fsel.id())
-
-                        # refresh the view and clear selection
-                    iface.mapCanvas().refresh()
-                    iface.mapCanvas().currentLayer().selectAll()
-                    iface.mapCanvas().currentLayer().invertSelection()
-
-    def outsideClip(self):  # outside
-        layer = iface.mapCanvas().currentLayer()
-        if layer.type() == QgsMapLayer.VectorLayer:
-            if layer.geometryType() == QgsWkbTypes.PolygonGeometry:
-                selection = layer.selectedFeatures()
-                if len(selection) != 0:
-                    fsel = selection[0]
-                    # set layer editable
-                    layer.startEditing()
-                    for g in layer.getFeatures():
-                        if g.id() != fsel.id():
-                            if g.geometry().intersects(fsel.geometry()):
-                                # clipping non selected intersecting features
-                                attributes = g.attributes()
-                                diff = QgsFeature()
-                                diff.setGeometry(fsel.geometry().difference(g.geometry()))
-                                # copy attributes from original feature
-                                diff.setAttributes(attributes)
-                                # add modified feature to layer
-                                layer.addFeature(diff)
-                                # remove old feature
-                                layer.deleteFeature(fsel.id())
-
-                        # refresh the view and clear selection
-                    iface.mapCanvas().refresh()
-                    iface.mapCanvas().currentLayer().selectAll()
-                    iface.mapCanvas().currentLayer().invertSelection()
-
     def contactClip(self):
         iface.mapCanvas().setMapTool(self.mapToolSel)
         self.mapToolSel.geomIdentified.connect(self.featureSelect2)
