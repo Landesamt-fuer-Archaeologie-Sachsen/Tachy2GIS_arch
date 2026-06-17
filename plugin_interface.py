@@ -47,7 +47,7 @@ class PluginInterface:
             if not fullname(widget).startswith(folder_name):
                 continue
 
-            LOGGER.debug("NEEDS CLEANUP", not sip.isdeleted(widget), fullname(widget))
+            LOGGER.debug(f"NEEDS CLEANUP {not sip.isdeleted(widget)} {fullname(widget)}")
 
             # detect if C++ object from Qt is already deleted
             # so only pyqt still holds a reference which will be deleted
