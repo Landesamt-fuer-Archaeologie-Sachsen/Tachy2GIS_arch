@@ -25,12 +25,12 @@ class PluginInterface:
 
     def unload(self):
         LOGGER.debug("Plugin unloaded")
-        teardown_logger()
         self.iface.mainWindow().removeToolBar(self.toolbar)
         self.toolbar.deleteLater()
         self.toolbar = None
 
         self.check_and_cleanup()
+        teardown_logger()
 
     def check_and_cleanup(self):
         """Check for instantiated QWidgets originating from classes in our code."""
