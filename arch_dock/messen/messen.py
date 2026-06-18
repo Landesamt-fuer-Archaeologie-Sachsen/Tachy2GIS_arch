@@ -912,8 +912,12 @@ class MeasurementTab(BASE, WIDGET):
                 )
                 return
         elif self.geometryType == "points":
-            features = self.createFeaturesFromPoints(geom)
-            _, features = self.layerToEdit.dataProvider().addFeatures(features)
+            features = []
+            for i, point in enumerate(geom):
+                _, added = self.layerToEdit.dataProvider().addFeatures(self.createFeaturesFromPoints([point]))
+                features.extend(added)
+                if i < len(geom) - 1:
+                    self.incrementAutoAttributes()
             self.layerToEdit.featureAdded.emit(features[0].id())
 
         if features:
