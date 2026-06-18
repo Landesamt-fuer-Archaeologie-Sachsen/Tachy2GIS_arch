@@ -871,6 +871,8 @@ class MeasurementTab(BASE, WIDGET):
         feature = features[0]
         if len(features) == 1:
             iface.openFeatureForm(self.layerToEdit, feature)
+            if self.cbStartEditing.isChecked() and self.layerToEdit.isEditable():
+                self.layerToEdit.commitChanges()
         else:
             query = "fid >= " + str(feature.id())
             iface.showAttributeTable(self.layerToEdit, query)
