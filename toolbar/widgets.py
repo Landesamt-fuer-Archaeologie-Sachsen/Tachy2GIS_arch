@@ -2,31 +2,65 @@ import logging
 import os.path
 
 from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtGui import QDesktopServices
 from qgis.PyQt.QtWidgets import QDialog
 from qgis.PyQt import uic
 from qgis.core import Qgis
 from qgis.utils import iface
 
 from ..common.utils import any2bool
-from ..settings import PLUGIN_PACKAGE
+from ..settings import LANDINGPAGE, PLUGIN_PACKAGE
 
 LOGGER = logging.getLogger(__name__)
 FORMS_DIR = os.path.join(os.path.dirname(__file__), "forms")
+
+
+def _about_html(version_line, landingpage):
+    return (
+        f"{version_line}"
+        "<p>Tachy2GIS_arch ist eine auf dem Plugin Tachy2GIS aufbauende Fachschale f&uuml;r die "
+        "tachymetrische Dokumentation auf arch&auml;ologischen Ausgrabungen. "
+        "Es integriert <a href=\"https://github.com/chris-jan-trapp/Tachy2GIS\">Tachy2GIS</a> "
+        "sowie die Funktionalit&auml;t des Plugins "
+        "<a href=\"https://github.com/ISAAKiel/profileAAR\">ProfileAAR</a>.</p>"
+        "<p>Das Plugin setzt Mindestanforderungen an die verwendete Datenstruktur der Vektorlayer "
+        "sowie die Verwendung von Wertelisten voraus. Details dazu finden sich in der "
+        "Dokumentation unter: (Link wird noch eingef&uuml;gt).</p>"
+        f"<p>Weitere Informationen und Links finden sich unter: "
+        f"<a href=\"{landingpage}\">{landingpage}</a></p>"
+        "<hr>"
+        "<p><b>Lizenzhinweis:</b> Dieses Plugin wird unter der GNU General Public License "
+        "Version 3 (GPL-3.0) ver&ouml;ffentlicht. Sie d&uuml;rfen die Software gem&auml;&szlig; "
+        "den Bedingungen dieser Lizenz verwenden, ver&auml;ndern und weitergeben. "
+        "Eine Kopie der Lizenz ist unter "
+        "<a href=\"https://www.gnu.org/licenses/gpl-3.0.de.html\">"
+        "https://www.gnu.org/licenses/gpl-3.0.de.html</a> verf&uuml;gbar.</p>"
+        "<p><b>Haftungsausschluss:</b> Diese Software wird ohne jegliche Garantie bereitgestellt "
+        "(&quot;as is&quot;), einschlie&szlig;lich, aber nicht beschr&auml;nkt auf die implizite "
+        "Garantie der Marktreife, Eignung f&uuml;r einen bestimmten Zweck oder Nichtverletzung "
+        "von Rechten Dritter. Jegliche Nutzung erfolgt auf eigenes Risiko. Die Autoren "
+        "&uuml;bernehmen keine Haftung f&uuml;r Sch&auml;den oder Datenverluste, die direkt "
+        "oder indirekt aus der Verwendung dieses Plugins entstehen. "
+        "This Software is provided &quot;as is&quot;, without warranty of any kind.</p>"
+    )
 
 
 class AboutDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         uic.loadUi(os.path.join(FORMS_DIR, "about.ui"), self)
+        version_line = ""
         metadata = iface.pluginManagerInterface().pluginMetadata(PLUGIN_PACKAGE)
         if metadata:
-            self.label_version.setText(
-                f"{metadata['description']}\n"
-                f"{metadata['name']} V{metadata['version_installed']} für QGIS {Qgis.QGIS_VERSION}\n"
-                f"{metadata['author_email']}"
+            qgis_version = ".".join(Qgis.QGIS_VERSION.split(".")[:2])
+            version_line = (
+                f"<p><b>{metadata['name']}</b> "
+                f"V{metadata['version_installed']} f&uuml;r QGIS {qgis_version}</p>"
             )
-        else:
-            self.label_version.setText("Error: QGIS didn't load plugin metadata!!!")
+        self.textBrowser.setHtml(_about_html(version_line, LANDINGPAGE))
+        self.textBrowser.setOpenLinks(False)
+        self.textBrowser.anchorClicked.connect(QDesktopServices.openUrl)
+        self.buttonClose.clicked.connect(self.accept)
 
 
 class DlgSettings(QDialog):
