@@ -17,10 +17,10 @@ from ctypes import wintypes
 from datetime import datetime
 from pathlib import Path
 
-from qgis.PyQt.QtCore import QCoreApplication, QRect, Qt, QUrl
+from qgis.PyQt.QtCore import QCoreApplication, QLocale, QRect, Qt, QUrl
 from qgis.PyQt.QtGui import QPainter, QIcon
 
-from qgis.PyQt.QtWidgets import QDesktopWidget, QGridLayout, QLabel, QProgressBar, QTextBrowser, QWidget
+from qgis.PyQt.QtWidgets import QDesktopWidget, QDoubleSpinBox, QGridLayout, QLabel, QProgressBar, QTextBrowser, QWidget
 from qgis.core import (
     QgsDefaultValue,
     QgsExpressionContextUtils,
@@ -492,6 +492,20 @@ class HelpWindow(QWidget):
 
     def setPfad(self, pfad):
         self.pfad = pfad
+
+
+class LocaleDoubleSpinBox(QDoubleSpinBox):
+    """QDoubleSpinBox that accepts both comma and period as decimal separator."""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setLocale(QLocale.c())
+
+    def validate(self, text, pos):
+        return super().validate(text.replace(',', '.'), pos)
+
+    def valueFromText(self, text):
+        return super().valueFromText(text.replace(',', '.'))
 
 
 # Define a metaclass SingletonMeta

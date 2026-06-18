@@ -377,7 +377,7 @@
                      </widget>
                     </item>
                     <item>
-                     <widget class="QDoubleSpinBox" name="spZValue">
+                     <widget class="LocaleDoubleSpinBox" name="spZValue">
                       <property name="maximumSize">
                        <size>
                         <width>70</width>
@@ -977,6 +977,11 @@
    <extends>QGroupBox</extends>
    <header>qgscollapsiblegroupbox.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>LocaleDoubleSpinBox</class>
+   <extends>QDoubleSpinBox</extends>
+   <header>Tachy2GIS_arch.common.utils</header>
   </customwidget>
  </customwidgets>
  <tabstops>

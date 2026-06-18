@@ -710,7 +710,7 @@ class MeasurementTab(BASE, WIDGET):
             return
         oldCoordinate = self.vertices[row][column]
         try:
-            newCoordinate = float(self.coordsTableWidget.item(row, column).text())
+            newCoordinate = float(self.coordsTableWidget.item(row, column).text().replace(',', '.'))
             if oldCoordinate != newCoordinate:
                 self.markersAndRubberBand.removeHighlightMarkers()
                 x, y, z = self.vertices[row]
