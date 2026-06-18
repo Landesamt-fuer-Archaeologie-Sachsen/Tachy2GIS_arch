@@ -1,3 +1,25 @@
+import math
+import operator
+import os
+
+from qgis.PyQt.QtWidgets import QMessageBox, QFileDialog, QInputDialog
+from qgis.PyQt.QtCore import QCoreApplication, QVariant
+from qgis.core import (
+    Qgis,
+    QgsExpression,
+    QgsFeature,
+    QgsFeatureRequest,
+    QgsField,
+    QgsGeometry,
+    QgsLayerTreeLayer,
+    QgsMessageLog,
+    QgsPoint,
+    QgsProject,
+    QgsVectorLayer,
+    QgsWkbTypes,
+)
+from qgis.utils import iface
+
 from .config_file import Configfile, get_config_ini_path
 from .layers import T2gLayers
 from .utils import ProgressBar, fileLineCount, addPoint3D, delLayer, delSelectFeature
@@ -27,6 +49,7 @@ def importPoints():
         if inputFile[0] != "":
             progress = ProgressBar("Fortschritt")
             QCoreApplication.processEvents()
+            ptNrIndex = pointsLayer.fields().indexFromName("pt_nr")
 
             if dateiFormat == ".csv":
                 QgsMessageLog.logMessage("Point import- read data from .csv", PLUGIN_NAME, Qgis.Info)
@@ -45,7 +68,7 @@ def importPoints():
                             c = lineList[2].strip()
                             d = lineList[3].strip()
                             pt = QgsPoint(float(b), float(c), float(d))
-                            attL = {"pt_nr": a}
+                            attL = {ptNrIndex: a}
                             addPoint3D(pointsLayer, pt, attL)
                             objCount += 1
                         except:
@@ -80,7 +103,7 @@ def importPoints():
                                     c = str(line).split(sep)[2].lstrip()
                                     d = str(line).split(sep)[3].lstrip()
                                     pt = QgsPoint(float(b), float(c), float(d))
-                                    attL = {"pt_nr": a}
+                                    attL = {ptNrIndex: a}
                                     addPoint3D(pointsLayer, pt, attL)
                                     objCount += 1
                                 except:
@@ -102,7 +125,7 @@ def importPoints():
                                 c = str(line)[33:44].lstrip()
                                 d = str(line)[45:53].lstrip()
                                 pt = QgsPoint(float(b), float(c), float(d))
-                                attL = {"pt_nr": a}
+                                attL = {ptNrIndex: a}
                                 addPoint3D(pointsLayer, pt, attL)
                                 objCount += 1
                             except:
