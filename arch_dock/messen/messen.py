@@ -44,6 +44,7 @@ from ...settings import PLUGIN_NAME
 from .autoattributes import getComboboxModelFromLayerConfig, clearAutoAttributeProjectVariables
 from ...icons import ICON_PATHS
 from ...common.utils import (
+    ArchProjectConfig,
     enableAndDisableWidgets,
     getCustomProjectVariable,
     HelpWindow,
@@ -340,6 +341,13 @@ class MeasurementTab(BASE, WIDGET):
         )
         self.nextIdUpdater.start()
 
+    def _applyNextNrVisibility(self):
+        config = ArchProjectConfig()
+        if not config.get("Messen_next_fund_nr_visible", True):
+            showAndHideWidgets([], [self.label_10, self.txtNextFund])
+        if not config.get("Messen_next_probe_nr_visible", True):
+            showAndHideWidgets([], [self.label_11, self.txtNextProb])
+
     def resetTabToBeginning(self):
         enableAndDisableWidgets([self.txtReference], [self.cmbLayerType])
         self.adjustElementsAtStart()
@@ -428,6 +436,7 @@ class MeasurementTab(BASE, WIDGET):
             ],
             [],
         )
+        self._applyNextNrVisibility()
 
         self.markersAndRubberBand = self.createMarkersAndRubberBand(geometryType)
 
@@ -525,6 +534,12 @@ class MeasurementTab(BASE, WIDGET):
         self.cmbMaterial2.setCurrentIndex(0)
         self.cmbZeit.setCurrentIndex(0)
         self.cmbZeit2.setCurrentIndex(0)
+
+        self.cbIncrementBef.setChecked(False)
+        self.cbIncrementProf.setChecked(False)
+        self.cbIncrementPt.setChecked(False)
+        self.cbIncrementFund.setChecked(False)
+        self.cbIncrementProbe.setChecked(False)
 
         clearAutoAttributeProjectVariables()
 
