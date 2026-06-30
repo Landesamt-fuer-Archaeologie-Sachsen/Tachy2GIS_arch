@@ -908,8 +908,15 @@ class MeasurementTab(BASE, WIDGET):
             if self.layerToEdit.isEditable():
                 self.layerToEdit.commitChanges()
         else:
+            self.layerToEdit.startEditing()
             query = "fid >= " + str(feature.id())
-            iface.showAttributeTable(self.layerToEdit, query)
+            dialog = iface.showAttributeTable(self.layerToEdit, query)
+            if dialog:
+                dialog.installEventFilter(self)
+
+    def _commitLayerEditing(self):
+        if self.layerToEdit and self.layerToEdit.isEditable():
+            self.layerToEdit.commitChanges()
 
     def saveGeometry(self):
         if not self.layerToEdit:
@@ -1051,6 +1058,8 @@ class MeasurementTab(BASE, WIDGET):
         if isinstance(obj, QComboBox) and event.type() == QEvent.Wheel:
             event.ignore()
             return True
+        if event.type() == QEvent.Close:
+            self._commitLayerEditing()
         return False
 
 
