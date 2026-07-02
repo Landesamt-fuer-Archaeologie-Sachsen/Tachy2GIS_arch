@@ -40,7 +40,7 @@ from qgis.core import (
 from qgis.gui import QgsMapTool, QgsSnapIndicator, QgsRubberBand, QgsVertexMarker
 from qgis.utils import iface
 
-from ...settings import PLUGIN_NAME
+from ...settings import PLUGIN_NAME, DEBUG
 from .autoattributes import getComboboxModelFromLayerConfig, clearAutoAttributeProjectVariables
 from ...icons import ICON_PATHS
 from ...common.utils import (
@@ -452,6 +452,16 @@ class MeasurementTab(BASE, WIDGET):
             [],
         )
         self._applyNextNrVisibility()
+
+        if DEBUG:
+            # Replacement-Check: alter MapTool/RubberBand müssen sterben, sonst
+            # akkumulieren sie am Canvas (siehe common/debug_checks.py)
+            from ...common.debug_checks import check_for_surviving_instances
+            check_for_surviving_instances(
+                getattr(self, "markersAndRubberBand", None),
+                getattr(self, "digitizeTool", None),
+                context="MeasurementTab Digitalisierung aktivieren",
+            )
 
         self.markersAndRubberBand = self.createMarkersAndRubberBand(geometryType)
 
