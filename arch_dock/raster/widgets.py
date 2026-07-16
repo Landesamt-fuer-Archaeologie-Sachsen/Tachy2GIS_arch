@@ -18,7 +18,6 @@ from qgis.PyQt import uic
 from qgis.core import QgsProject, QgsMapLayer, QgsMessageLog, Qgis
 from qgis.utils import iface
 
-from .operations import gtiff2jpg, rasterCut, setCutMask, delCutMask
 from ...settings import PLUGIN_NAME
 from ...common.utils import FileFunctions, ProgressBar
 from ...icons import ICON_PATHS
@@ -28,14 +27,6 @@ class RasterGui:
     def __init__(self, dockWidget):
         self.dockwidget = dockWidget
         self._raster_layer_view = None
-        self.dockwidget.btnGtiff2Jpg.setIcon(QIcon(ICON_PATHS["V_Jpg-Tif"]))
-        self.dockwidget.btnGtiff2Jpg.clicked.connect(gtiff2jpg)
-        self.dockwidget.btnCutRaster.setIcon(QIcon(ICON_PATHS["cut"]))
-        self.dockwidget.btnCutRaster.clicked.connect(rasterCut)
-        self.dockwidget.btnCutMask.setIcon(QIcon(ICON_PATHS["cutmask"]))
-        self.dockwidget.btnCutMask.clicked.connect(setCutMask)
-        self.dockwidget.btnDeleteMask.setIcon(QIcon(ICON_PATHS["cutmaskdel"]))
-        self.dockwidget.btnDeleteMask.clicked.connect(delCutMask)
         self.dockwidget.btnOpenOverview.setIcon(QIcon(ICON_PATHS["Thumbs"]))
         self.dockwidget.btnOpenOverview.clicked.connect(self._show_raster_layer_view)
         self.dockwidget.btnOpenOverview.setToolTip("Übersicht der Rasterlayer")
