@@ -64,6 +64,7 @@ from .visualization import (
     VtkPointCloudLayer,
 )
 from ..common.layers import isLayerVisible
+from ..common.utils import write_measurement_log
 from ..tachyconnect_t2g import gc_constants
 from ..tachyconnect_t2g.GSI_Parser import make_vertex
 from ..tachyconnect_t2g.ReplyHandler import ReplyHandler
@@ -102,6 +103,9 @@ class VtkViewer(QDockWidget, FORM_CLASS):
         self.setupUi(self)
 
         self.setObjectName("VtkViewer")
+
+        # log file is now written automatically, manual selection is no longer needed
+        self.select_log_file.hide()
 
         self.render_container_layout = QVBoxLayout()
         self.vtk_widget = VtkWidget(self.vtk_frame)
@@ -176,7 +180,6 @@ class VtkViewer(QDockWidget, FORM_CLASS):
         self.reply_handler.register_command(TMC_DoMeasure, self.request_coordinates)
         self.reply_handler.register_command(TMC_GetHeight, self.dlg_set_ref_height)
 
-        self.select_log_file.clicked.connect(self.set_log)
         # stop polling on LineEdit focus
         self.refHeightLineEdit.got_focus.connect(self.ref_height_stop_poll)
         self.refHeightStatus.ref_height_get.connect(self.request_ref_height)
@@ -233,10 +236,7 @@ class VtkViewer(QDockWidget, FORM_CLASS):
         self.vtk_widget.Start()
 
     def coordinates_received(self, *args):
-        log_file_name = self.select_log_file.toolTip()
-        if log_file_name and not log_file_name.startswith("Log-Datei"):
-            with open(log_file_name, "a") as log_file:
-                log_file.write(f"{str(args)}\n")
+        write_measurement_log(f"{str(args)}\n")
         retcode = int(args[0])
 
         if retcode == gc_constants.GRC_OK:
@@ -285,12 +285,6 @@ class VtkViewer(QDockWidget, FORM_CLASS):
             iface.messageBar().pushMessage(
                 self.tr("Warnung: "), self.tr(f"Tachy Fehler: {gc_constants.MESSAGES[retcode]}"), Qgis.Warning, 10
             )
-
-    def set_log(self):
-        logFileName = QFileDialog.getSaveFileName(
-            None, self.tr("Log-Datei speichern..."), QgsProject.instance().homePath(), "Text (*.txt)", "*.txt"
-        )[0]
-        self.select_log_file.setToolTip(logFileName)
 
     def ref_height_stop_poll(self):
         self.refHeightStatus.stop()
@@ -532,10 +526,7 @@ class VtkViewer(QDockWidget, FORM_CLASS):
     def vertex_received(self, line):
         if line.startswith(CommunicationConstants.GEOCOM_REPLY_PREFIX):
             return
-        log_file_name = self.select_log_file.toolTip()
-        if log_file_name and not log_file_name.startswith("Log-Datei"):
-            with open(log_file_name, "a") as log_file:
-                log_file.write(line)
+        write_measurement_log(line)
         new_vtx = make_vertex(line)
         self.vtk_mouse_interactor_style.add_vertex(new_vtx)
         self.coords.setText(f"{new_vtx}")
@@ -671,7 +662,6 @@ class VtkViewer(QDockWidget, FORM_CLASS):
         # self.closingPlugin.disconnect(self.onCloseCleanup)
         # disconnect setupControls
         self.tachy_connect_button.clicked.disconnect()
-        self.select_log_file.clicked.disconnect()
         self.dumpButton.clicked.disconnect()
         self.traceButton.clicked.disconnect()
         self.deleteVertexButton.clicked.disconnect()

@@ -588,6 +588,22 @@ class ArchProjectConfig(metaclass=SingletonMeta):
         return self.config_data.get(key, default)
 
 
+def write_measurement_log(text):
+    # a broken log path must never interrupt an ongoing measurement, so failures are only logged
+    try:
+        log_dir = QgsProject.instance().readPath(ArchProjectConfig().get("Log_directory", "."))
+        os.makedirs(log_dir, exist_ok=True)
+
+        aktcode = re.sub(r'[\\/:*?"<>|]', "_", getCustomProjectVariable("aktcode"))
+        date_str = datetime.now().strftime("%Y%m%d")
+        file_name = f"{aktcode}_{date_str}.txt" if aktcode else f"_{date_str}.txt"
+
+        with open(os.path.join(log_dir, file_name), "a") as log_file:
+            log_file.write(text)
+    except Exception as e:
+        LOGGER.warning(f"Could not write measurement log: {e}")
+
+
 def color_shift_icon(source_icon, color):
     pixmap = source_icon.pixmap(64, 64)
     painter = QPainter(pixmap)
