@@ -128,6 +128,7 @@ class T2GToolbar(QToolBar):
         self.project_validator.teardown()
         self.project_validator = None
 
+        self.vtk_viewer.onCloseCleanup()
         iface.removeDockWidget(self.vtk_viewer)
         self.vtk_viewer.deleteLater()
 

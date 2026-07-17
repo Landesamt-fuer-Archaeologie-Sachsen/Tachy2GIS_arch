@@ -26,7 +26,7 @@ import os
 import vtk
 from qgis.PyQt import uic
 from qgis.PyQt.QtWidgets import QDockWidget, QFrame, QVBoxLayout, QLineEdit, QLabel, QFileDialog, QProgressDialog, QMenu
-from qgis.PyQt.QtCore import Qt, QThread, pyqtSignal
+from qgis.PyQt.QtCore import Qt, pyqtSignal
 from qgis.PyQt.QtSerialPort import QSerialPortInfo
 from qgis.core import (
     Qgis,
@@ -160,8 +160,6 @@ class VtkViewer(QDockWidget, FORM_CLASS):
         )
 
         self.refHeightStatus = RefHeightStatus()
-        self.refHeightPollingThread = QThread()
-        self.refHeightStatus.moveToThread(self.refHeightPollingThread)
 
         self.setupControls()
         self.availability_watchdog.start()
@@ -674,10 +672,20 @@ class VtkViewer(QDockWidget, FORM_CLASS):
         self.targetLayerComboBox.layerChanged.disconnect()
         self.zoomModeComboBox.activated.disconnect(self.autozoom)
         QgsProject.instance().layerTreeRoot().visibilityChanged.disconnect(self.update_renderer)
-        QgsProject.instance().legendLayersAdded.disconnect(self.rerenderVtkLayer)
         QgsProject.instance().legendLayersAdded.disconnect(self.connectAddedMapLayers)
         QgsProject.instance().layersRemoved.disconnect(self.rerenderVtkLayer)
-        self.disconnectMapLayers()
+
+        self.vtk_mouse_interactor_style.shut_down()
+        self.dispatcher.stop()
+        self.dispatcher.deleteLater()
+        for queue in self.dispatcher.queues.values():
+            queue.deleteLater()
+        self.reply_handler.deleteLater()
+        self.availability_watchdog.shutDown()
+        self.availability_watchdog.deleteLater()
+        self.refHeightStatus.stop()
+        self.refHeightStatus.deleteLater()
+        self.vtk_widget.layers.clear()
 
 
 class VtkWidget(QVTKRenderWindowInteractor):

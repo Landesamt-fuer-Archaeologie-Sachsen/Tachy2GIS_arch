@@ -265,6 +265,9 @@ class Dispatcher(QThread):
 
     def stop(self):
         self.pollingTimer.stop()
+        if self.serial.isOpen():
+            self.serial.close()
+        self.loop.quit()
 
     def send_log(self, *args):
         self.log.emit(str(args))

@@ -40,7 +40,7 @@ from qgis.core import (
 from qgis.gui import QgsMapTool, QgsSnapIndicator, QgsRubberBand, QgsVertexMarker
 from qgis.utils import iface
 
-from ...settings import PLUGIN_NAME
+from ...settings import PLUGIN_NAME, DEBUG
 from .autoattributes import getComboboxModelFromLayerConfig, clearAutoAttributeProjectVariables
 from ...icons import ICON_PATHS
 from ...common.utils import (
@@ -208,6 +208,14 @@ class MeasurementTab(BASE, WIDGET):
         self.reconnectSignals()
 
     def closeMeasurementTab(self):
+        if self.markersAndRubberBand:
+            self.markersAndRubberBand.removeMarkersAndRubberBand()
+            self.markersAndRubberBand.deleteLater()
+        if self.digitizeTool:
+            iface.mapCanvas().unsetMapTool(self.digitizeTool)
+            self.digitizeTool.deleteLater()
+        self.helpWindow.close()
+
         self.leaveDigitizingMode()
         self.resetTabToBeginning()
         self.disconnectSignals()
@@ -453,9 +461,23 @@ class MeasurementTab(BASE, WIDGET):
         )
         self._applyNextNrVisibility()
 
+        if DEBUG:
+            from ...common.debug_checks import check_for_surviving_instances
+            check_for_surviving_instances(
+                getattr(self, "markersAndRubberBand", None),
+                getattr(self, "digitizeTool", None),
+                context="MeasurementTab Digitalisierung aktivieren",
+            )
+
+        if self.markersAndRubberBand:
+            self.markersAndRubberBand.removeMarkersAndRubberBand()
+            self.markersAndRubberBand.deleteLater()
         self.markersAndRubberBand = self.createMarkersAndRubberBand(geometryType)
 
         self.actionDigitize.setIcon(self.cmbLayerType.itemIcon(self.cmbLayerType.currentIndex()))
+        if self.digitizeTool:
+            iface.mapCanvas().unsetMapTool(self.digitizeTool)
+            self.digitizeTool.deleteLater()
         self.digitizeTool = DigitizeTool(geometryType, self)
         self.btnDigitizeTool.setDefaultAction(self.actionDigitize)
 

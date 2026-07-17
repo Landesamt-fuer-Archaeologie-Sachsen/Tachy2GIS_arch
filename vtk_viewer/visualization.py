@@ -509,6 +509,10 @@ class VtkMouseInteractorStyle(vtk.vtkInteractorStyleTrackballCamera):
         self.actors = [self.vertices_actor, self.selected_vertex_actor, self.poly_line_actor]
         self.last_source = None
 
+    def shut_down(self):
+        self.RemoveAllObservers()
+        self.point_added.deleteLater()
+
     def initialize_geometry_info(self):
         self.vtk_points = vtk.vtkPoints()
         self.vtk_points.SetDataTypeToDouble()

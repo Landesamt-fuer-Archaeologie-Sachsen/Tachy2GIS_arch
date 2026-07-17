@@ -34,6 +34,7 @@ from .raster.widgets import RasterGui
 from .tools_allgemein.widgets import ToolsAllgemeinTab
 from .transformation.transformation_gui import TransformationGui
 from ..common.utils import set_vsi_cached, ArchProjectConfig
+from ..settings import DEBUG
 
 LOGGER = logging.getLogger(__name__)
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "forms", "t2g_arch_dockwidget.ui"))
@@ -80,6 +81,16 @@ class T2GArchDockWidget(QDockWidget, FORM_CLASS):
         self.raster.setup()
 
     def unload(self):
+        if DEBUG:
+            from ..common.debug_checks import check_for_surviving_instances
+            check_for_surviving_instances(
+                self.transformationGui,
+                self.geoEdit,
+                self.profile,
+                self.raster,
+                context="T2GArchDockWidget.unload()",
+            )
+
         # Transformation
         if self.transformationGui:
             self.transformationGui.disconnectSignals()
@@ -104,9 +115,27 @@ class T2GArchDockWidget(QDockWidget, FORM_CLASS):
 
         ArchProjectConfig.clear()
 
+    def deleteLater(self):
+        # measurementTab itself is a Qt child (added via layout) and is cascade-deleted
+        # with this widget. helpWindow has no parent (see debug_checks fix), so it needs
+        # an explicit, one-time deleteLater() here instead of in unload()/closeMeasurementTab(),
+        # which can run repeatedly while the plugin is still active (e.g. on project switch).
+        self.measurementTab.helpWindow.deleteLater()
+        super().deleteLater()
+
     def reload(self):
         if self.geoEdit:
             self.geoEdit.disconnectSignals()
+
+        if DEBUG:
+            from ..common.debug_checks import check_for_surviving_instances
+            check_for_surviving_instances(
+                self.transformationGui,
+                self.geoEdit,
+                self.profile,
+                self.raster,
+                context="T2GArchDockWidget.reload()",
+            )
 
         # Transformation
         self.transformationGui = TransformationGui(self)
