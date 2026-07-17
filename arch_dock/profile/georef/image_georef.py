@@ -147,6 +147,11 @@ class ImageGeoref:
         with Image.open(image_in) as img:
             img.load()
 
+        # RGBA or palette images (e.g. PNGs) cannot be saved as JPEG and
+        # give wrong fillcolor results, so convert to RGB first
+        if img.mode != "RGB":
+            img = img.convert("RGB")
+
         img.transform(
             size=(int(widthDst), int(heightDst)),
             method=Image.PERSPECTIVE,

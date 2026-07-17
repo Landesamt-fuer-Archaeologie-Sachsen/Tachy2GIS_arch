@@ -562,9 +562,10 @@ class GeoreferencingDialog(QMainWindow):
             QMessageBox.critical(
                 self,
                 "Fehler bei der Profilentzerrung!",
-                "Profil konnte nicht entzerrt werden. Vorgang wurde abgebrochen!",
+                "Profil konnte nicht entzerrt werden. Bitte Punkte pruefen und erneut versuchen.",
                 QMessageBox.Abort,
             )
+            return
 
         self.destroyDialog()
 
