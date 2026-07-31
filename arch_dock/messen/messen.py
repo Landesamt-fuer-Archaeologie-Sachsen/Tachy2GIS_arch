@@ -210,7 +210,7 @@ class MeasurementTab(BASE, WIDGET):
     def closeMeasurementTab(self):
         if self.markersAndRubberBand:
             self.markersAndRubberBand.removeMarkersAndRubberBand()
-            self.markersAndRubberBand.deleteLater()
+            iface.mapCanvas().scene().removeItem(self.markersAndRubberBand)
         if self.digitizeTool:
             iface.mapCanvas().unsetMapTool(self.digitizeTool)
             self.digitizeTool.deleteLater()
@@ -471,7 +471,7 @@ class MeasurementTab(BASE, WIDGET):
 
         if self.markersAndRubberBand:
             self.markersAndRubberBand.removeMarkersAndRubberBand()
-            self.markersAndRubberBand.deleteLater()
+            iface.mapCanvas().scene().removeItem(self.markersAndRubberBand)
         self.markersAndRubberBand = self.createMarkersAndRubberBand(geometryType)
 
         self.actionDigitize.setIcon(self.cmbLayerType.itemIcon(self.cmbLayerType.currentIndex()))
