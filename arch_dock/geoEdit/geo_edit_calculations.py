@@ -260,7 +260,7 @@ class GeoEditCalculations:
                                 raise NameError
                             QApplication.processEvents()
 
-                        if self.selectedLayer.name() == "E_Polygon":
+                        if self.selectedLayer.geometryType() == QgsWkbTypes.PolygonGeometry:
                             fsel = self.selectedFeature
                             r = QgsRubberBand(iface.mapCanvas())
                             r.setToGeometry(fsel.geometry(), None)
@@ -282,9 +282,10 @@ class GeoEditCalculations:
 
                                 raise NameError
                             QApplication.processEvents()
-                        if self.selectedLayer.name() == "E_Polygon":
+                        if self.selectedLayer.geometryType() == QgsWkbTypes.PolygonGeometry:
                             feature_list.append(self.selectedFeature)
                             selection = self.selectedFeature
+                            schnittLayer = self.selectedLayer
 
                 for g in feature_list:
                     if g.id() != feature_list[0].id():
@@ -316,14 +317,14 @@ class GeoEditCalculations:
                             box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
                             ret = box.exec()
                             if ret == QMessageBox.Yes:
-                                layer.startEditing()
-                                layer.addFeature(diff)
-                                layer.deleteFeature(g.id())
-                                layer.commitChanges()
-                                layer.endEditCommand()
+                                schnittLayer.startEditing()
+                                schnittLayer.addFeature(diff)
+                                schnittLayer.deleteFeature(g.id())
+                                schnittLayer.commitChanges()
+                                schnittLayer.endEditCommand()
 
                             elif ret == QMessageBox.No:
-                                layer.deleteFeature(diff.id())
+                                schnittLayer.deleteFeature(diff.id())
                                 # layer.commitChanges()
                                 # layer.endEditCommand()
         except NameError:
