@@ -5,6 +5,7 @@ import processing
 from qgis.PyQt.QtGui import QFont
 from qgis.core import (
     QgsRasterLayer,
+    QgsRectangle,
     QgsMarkerSymbol,
     QgsPalLayerSettings,
     QgsTextFormat,
@@ -44,7 +45,7 @@ class DigitizeCanvas(QgsMapCanvas):
 
         self.dialogInstance = dialogInstance
 
-        self.imageLayer = None
+        self.imageLayers = []
 
         self.digiPointLayer = None
         self.digiLineLayer = None
@@ -682,10 +683,14 @@ class DigitizeCanvas(QgsMapCanvas):
     def createMapToolZoomOut(self):
         self.toolZoomOut = QgsMapToolZoom(self, True)
 
-    ## \brief Set extent of the map by extent of the source layer
+    ## \brief Set extent of the map by combined extent of the source layers
     #
     def setExtentByImageLayer(self):
-        self.setExtent(self.imageLayer.extent())
+        combinedExtent = QgsRectangle(self.imageLayers[0].extent())
+        for layer in self.imageLayers[1:]:
+            combinedExtent.combineExtentWith(layer.extent())
+
+        self.setExtent(combinedExtent)
         self.refresh()
 
     ## \brief Edit Attributes of a feature
@@ -806,21 +811,24 @@ class DigitizeCanvas(QgsMapCanvas):
     def update(self, refData):
         # canvas leeren
 
-        imageLayerPath = refData["profilePath"]
+        imageLayerPaths = refData.get("profilePaths") or [refData["profilePath"]]
 
         self.clearCache()
         self.refresh()
 
-        self.imageLayer = QgsRasterLayer(imageLayerPath, "Profile image")
-        if not self.imageLayer.isValid():
-            LOGGER.warning("Layer failed to load!")
+        self.imageLayers = []
+        for index, imageLayerPath in enumerate(imageLayerPaths, start=1):
+            imageLayer = QgsRasterLayer(imageLayerPath, f"Profile image {index}")
+            if not imageLayer.isValid():
+                LOGGER.warning("Layer failed to load!")
+            self.imageLayers.append(imageLayer)
 
-        sourceCrs = self.imageLayer.crs()
+        sourceCrs = self.imageLayers[0].crs()
 
         # Sets canvas CRS
         self.setDestinationCrs(sourceCrs)
 
-        # set extent to the extent of Layer E_Point
+        # set extent to the combined extent of the image layers
         self.setExtentByImageLayer()
         listLayers = []
 
@@ -840,7 +848,7 @@ class DigitizeCanvas(QgsMapCanvas):
         listLayers.append(self.digiLineLayer)
         listLayers.append(self.digiPolygonLayer)
 
-        listLayers.append(self.imageLayer)
+        listLayers.extend(self.imageLayers)
 
         self.setLayers(listLayers)
 

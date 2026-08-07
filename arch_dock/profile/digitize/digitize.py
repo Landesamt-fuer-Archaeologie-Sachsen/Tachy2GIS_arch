@@ -3,6 +3,7 @@ import json
 import os
 
 from qgis.core import QgsProject, QgsVectorLayer, QgsLayerTreeGroup, QgsLayerTreeLayer
+from qgis.gui import QgsFileWidget
 from qgis.utils import iface
 
 from .data_store_digitize import DataStoreDigitize
@@ -36,6 +37,11 @@ class Digitize:
 
         # set datatype filter to profileFotosComboGeoref
         self.__dockwidget.profileDigitize.setFilter("Images (*.jpg)")
+        # allow selecting several images of the same profile (e.g. Strg+click)
+        self.__dockwidget.profileDigitize.setStorageMode(QgsFileWidget.StorageMode.GetMultipleFiles)
+        self.__dockwidget.profileDigitize.setToolTip(
+            "Mehrere Bilder desselben Profils können mit Strg+Klick gemeinsam ausgewählt werden."
+        )
         # Preselection of Inputlayers (only Layer below "Eingabelayer" are available)
         self.__preselectionPointLayer()
         self.__preselectionLineLayer()
@@ -142,14 +148,15 @@ class Digitize:
         errorArray = self.__validateInputLayers(layerArray)
 
         if len(errorArray) == 0:
-            # Foto
-            profilePath = self.__dockwidget.profileDigitize.filePath()
+            # Foto(s), several images of the same profile are possible
+            profilePaths = QgsFileWidget.splitFilePaths(self.__dockwidget.profileDigitize.filePath())
 
             refData = {
                 "pointLayer": pointLayer,
                 "lineLayer": lineLayer,
                 "polygonLayer": polygonLayer,
-                "profilePath": profilePath,
+                "profilePath": profilePaths[0] if profilePaths else "",
+                "profilePaths": profilePaths,
             }
 
             return refData
