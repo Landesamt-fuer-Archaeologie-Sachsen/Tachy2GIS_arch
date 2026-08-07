@@ -732,6 +732,7 @@ class MeasurementTab(BASE, WIDGET):
     def deleteCurrentDigitizing(self):
         self.resetObjectsForTachy2GisWatch()
         self.resetDigitizing()
+        self.startTachyWatch()
 
     def startTachyWatch(self):
         self.watch.start(150)
@@ -989,7 +990,6 @@ class MeasurementTab(BASE, WIDGET):
             self.addMeasurementPoints()
             self.addLastMeasurementsToTable(features)
             self.deleteCurrentDigitizing()
-            self.startTachyWatch()
             iface.mapCanvas().refreshAllLayers()
             self.tachyDock.vtk_mouse_interactor_style.draw()
             self.openAttributeForm(features)
