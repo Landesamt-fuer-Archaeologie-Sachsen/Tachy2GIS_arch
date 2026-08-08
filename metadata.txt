@@ -22,7 +22,7 @@ about=PlugIn zur T2G (Archäologie)
 about[de]=PlugIn zur T2G (Archäologie)
 about[en_us]=PlugIn zur T2G (Archäologie)
 qgisMinimumVersion=3.34.6
-version=2.0.0
+version=2.1.0
 tracker=
 repository=
 
