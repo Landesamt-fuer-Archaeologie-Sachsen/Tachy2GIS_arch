@@ -64,6 +64,7 @@ from .visualization import (
     VtkPointCloudLayer,
 )
 from ..common.layers import isLayerVisible
+from ..common.signal_tracker import SignalTracker
 from ..common.utils import write_measurement_log
 from ..tachyconnect_t2g import gc_constants
 from ..tachyconnect_t2g.GSI_Parser import make_vertex
@@ -103,6 +104,9 @@ class VtkViewer(QDockWidget, FORM_CLASS):
         self.setupUi(self)
 
         self.setObjectName("VtkViewer")
+
+        self._signal_tracker = SignalTracker(disconnect_on_destroyed=self)
+        self._port_menu_tracker = SignalTracker(disconnect_on_destroyed=self)
 
         # log file is now written automatically, manual selection is no longer needed
         self.select_log_file.hide()
@@ -215,7 +219,9 @@ class VtkViewer(QDockWidget, FORM_CLASS):
         self.tachy_connect_button.clicked.connect(self.dispatcher.hook_up)
         tachy_menu = QMenu(self.tachy_connect_button)
         tachy_menu.addAction(self.tr("Tachy verbinden"), self.dispatcher.hook_up)
-        tachy_menu.aboutToShow.connect(lambda: self._rebuild_port_menu(tachy_menu))
+        self._signal_tracker.track_connect(
+            tachy_menu.aboutToShow, lambda: self._rebuild_port_menu(tachy_menu)
+        )
         self.tachy_connect_button.setMenu(tachy_menu)
         self.tachyJoystick.clicked.connect(self.show_joystick)
 
@@ -511,13 +517,15 @@ class VtkViewer(QDockWidget, FORM_CLASS):
 
     def _rebuild_port_menu(self, menu: QMenu):
         """Rebuild the COM-port submenu entries to reflect currently available ports."""
+        self._port_menu_tracker.disconnect_all()
         # Remove all port-specific actions (keep the first "Tachy verbinden" entry)
         for action in menu.actions()[1:]:
             menu.removeAction(action)
         available_ports = [port.portName() for port in QSerialPortInfo.availablePorts()]
         for port_name in available_ports:
-            menu.addAction(
-                self.tr(f"Mit {port_name} verbinden"),
+            action = menu.addAction(self.tr(f"Mit {port_name} verbinden"))
+            self._port_menu_tracker.track_connect(
+                action.triggered,
                 lambda checked=False, p=port_name: self.dispatcher.manual_hook_up(p),
             )
 
