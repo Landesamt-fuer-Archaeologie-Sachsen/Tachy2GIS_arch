@@ -693,6 +693,12 @@ class VtkViewer(QDockWidget, FORM_CLASS):
         self.availability_watchdog.deleteLater()
         self.refHeightStatus.stop()
         self.refHeightStatus.deleteLater()
+        for layer in self.vtk_widget.layers.values():
+            if type(layer.vtkActor) == tuple:
+                for actor in layer.vtkActor:
+                    self.vtk_widget.renderer.RemoveActor(actor)
+            else:
+                self.vtk_widget.renderer.RemoveActor(layer.vtkActor)
         self.vtk_widget.layers.clear()
 
 
