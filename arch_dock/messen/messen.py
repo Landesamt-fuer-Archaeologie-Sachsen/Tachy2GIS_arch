@@ -427,8 +427,12 @@ class MeasurementTab(BASE, WIDGET):
                 ],
             )
             if self.digitizeTool:
+                iface.mapCanvas().unsetMapTool(self.digitizeTool)
+                self.digitizeTool.deleteLater()
                 self.digitizeTool = None
             if self.markersAndRubberBand:
+                self.markersAndRubberBand.removeMarkersAndRubberBand()
+                iface.mapCanvas().scene().removeItem(self.markersAndRubberBand)
                 self.markersAndRubberBand = None
             self.geometryType = None
             return
