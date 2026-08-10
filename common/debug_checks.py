@@ -296,8 +296,10 @@ def check_for_leaked_objects():
         """
         candidates = []
         for obj in gc.get_objects():
-            if isinstance(obj, (QObject, type)):
-                continue  # QObjects are covered by phase 1; classes are not instances
+            if isinstance(obj, (QObject, type, enum.Enum)):
+                continue  # QObjects: phase 1; classes: not instances; enum members
+                # live as long as their module (like the check in
+                # _collect_plugin_instances below), not a leak, just noise
             if not type(obj).__module__.startswith(_NAMESPACE_PREFIX):
                 continue
             try:
