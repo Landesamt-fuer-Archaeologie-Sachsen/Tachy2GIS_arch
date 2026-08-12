@@ -7,13 +7,19 @@ releasing a reference) is decided by the respective code: the checks only
 report WHEN something survives, and give a hint about WHO is holding it.
 
 Output goes through print() instead of logging: deliberately kept separate
-from the regular log (also because the phase 2 report only runs after the
-plugin logger has already been torn down).
+from the regular log (also because the phase 2 and 3 reports only run
+after the plugin logger has already been torn down).
 
-Called on plugin unload (plugin_interface.py, unload()):
+Wiring (plugin_interface.py):
 
   from .settings import DEBUG
 
+  # in __init__, as the first statement of the plugin's lifetime:
+  if DEBUG:
+      from .common.debug_checks import install_origin_tracker
+      install_origin_tracker()
+
+  # in unload():
   if DEBUG:
       from .common.debug_checks import check_for_leaked_objects
       check_for_leaked_objects()
@@ -30,7 +36,7 @@ Every PyQt object consists of two halves with SEPARATE lifetimes:
    Simply releasing the reference is only enough if Python is the sole
    owner (created by Python AND without a parent).
 
-This results in two separate kinds of leaks, matching the two phases of
+This results in three kinds of leaks, matching the three phases of
 check_for_leaked_objects():
 
  - Phase 1 (immediately on call): QObject instances from the plugin
@@ -43,8 +49,15 @@ check_for_leaked_objects():
    that survived the full unload. By this point everything module bound
    (constants, enum members, singletons) is dead; whatever is still alive
    is held from OUTSIDE the plugin: a real leak. The report collapses
-   holder chains and groups instances of the same kind together ("also
-   keeps N further plugin instances alive").
+   holder chains and groups instances of the same kind together.
+ - Phase 3 (deferred like phase 2, but for deleteLater() cascades, not
+   module teardown): instances of FOREIGN classes (QShortcut, QAction,
+   QgsSnappingUtils, ...) that OUR code parented to something long lived.
+   Phases 1 and 2 filter by plugin namespace and are structurally blind
+   to these. The _OriginTracker records every such parenting live
+   (application wide ChildAdded filter plus a look at the Python stack)
+   together with the CREATION SITE, so the report can name the exact
+   plugin line. Requires install_origin_tracker() at plugin load.
 
 Reacting to messages:
 
@@ -68,6 +81,21 @@ Reacting to messages:
     environment alive (instance -> class -> method globals -> module ->
     imports). Fix the phase 1 roots first, then re-evaluate phase 2.
 
+"DEBUG [P3-Origin] !!! <class> — erzeugt in <file:line> — hängt an ..." (phase 3):
+    Our code created this foreign-class object at the given line and
+    parented it to something that outlives the plugin (typically
+    iface.mapCanvas() or mainWindow()). deleteLater() it in the owning
+    class's cleanup, or parent it to a plugin object so the cascade takes
+    it.
+    "kollabiert: N Objekte hängen unter <plugin class>": those die with
+    that phase 1 leak, fix the phase 1 root first, then re-run.
+    KNOWN NOISE: lines whose creation site merely TRIGGERED QGIS-side
+    construction (message log panel building itself during a logMessage
+    call, QWindow instances from addDockWidget, legend nodes from layer
+    refreshes) describe objects owned by QGIS: the Python stack cannot
+    see the C++ frames in between, so plugin code gets the blame. Judge
+    by whether the named line actually CONSTRUCTS the reported class.
+
 These tools make no claim to completeness: they are tuned for a low
 false positive rate, not for exhaustive detection. An empty report means
 no obvious leaks were found.
@@ -75,6 +103,9 @@ no obvious leaks were found.
 
 import enum
 import gc
+import os
+import sys
+import traceback
 import types
 import weakref
 
@@ -85,6 +116,17 @@ from qgis.PyQt.QtWidgets import QApplication
 # Module prefix of the plugin (folder name = package name), e.g. "Tachy2GIS_arch."
 # same lookup as in logger.py
 _NAMESPACE_PREFIX = __name__.split(".")[0] + "."
+
+# Plugin root directory (this file lives in common/), used to recognise our own
+# stack frames in phase 3. Deliberately NOT realpath(): with a symlinked plugin
+# install, frame co_filename entries contain the symlink path (as imported),
+# and resolving it here would make the prefix match fail silently.
+# normcase(): co_filename entries from QGIS's import machinery contain MIXED
+# path separators (e.g. "C:\\Users/micha/..."), and a naive startswith would
+# fail on the first "/". normcase also folds character case, which Windows
+# paths require anyway.
+_PLUGIN_DIR = os.path.normcase(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+_THIS_FILE = os.path.normcase(os.path.basename(__file__))
 
 # Builtin containers that traversal descends into: pure pass-through
 # containers (gc.get_referents() yields attribute values directly)
@@ -264,13 +306,295 @@ def _schedule_survivor_report(candidates, headline, all_clear_message=None):
     QTimer.singleShot(0, guarded_report_survivors)
 
 
+def _plugin_origin():
+    """Innermost stack frame from plugin code, or None if the caller is not ours.
+
+    Uses sys._getframe() rather than traceback.extract_stack(): this runs on
+    every ChildAdded in the whole application, so walking frames lazily and
+    stopping at the first hit is much cheaper than formatting a full stack.
+    """
+    frame = sys._getframe(1)
+    while frame is not None:
+        filename = os.path.normcase(frame.f_code.co_filename)
+        if filename.startswith(_PLUGIN_DIR) and os.path.basename(filename) != _THIS_FILE:
+            # relpath against the original (non-normcased) name would work too,
+            # but ntpath.relpath normcases internally, so this stays readable
+            return f"{os.path.relpath(frame.f_code.co_filename, _PLUGIN_DIR)}:{frame.f_lineno} in {frame.f_code.co_name}"
+        frame = frame.f_back
+    return None
+
+
+class _OriginTracker(QObject):
+    """Phase 3 groundwork: records WHERE plugin code parented a QObject.
+
+    Phases 1 and 2 only look at classes from the plugin namespace, so a leaked
+    QShortcut/QAction/QgsMapTool (foreign class, but OUR instance) stays
+    invisible to them. This tracker closes that gap without requiring
+    developers to mark anything: Qt sends ChildAdded to the parent whenever any
+    QObject gets one, these events pass through QCoreApplication::notify, and an
+    event filter on QApplication therefore sees every parenting in the process.
+    The Python stack at that moment says whether our code caused it.
+
+    Only primitive data is stored per record: C++ addresses as ints and the
+    creation site as a string. The wrapper handed out by event.child() must NOT
+    be kept: at ChildAdded time the C++ pointer is not yet in sip's
+    address->wrapper table (the derived constructor has not run yet), so sip
+    builds a throwaway QObject wrapper. The correctly typed wrapper is fetched
+    at report time via parent.children().
+
+    Parent liveness comes EXCLUSIVELY from Qt's destroyed() signal (fires in
+    every ~QObject). sip.isdeleted() on a wrapper captured at ChildAdded time
+    is not trustworthy: for objects with a second, owning wrapper (e.g.
+    layer.clone() results) the C++ side can die without our wrapper being
+    marked, isdeleted() then returns False for freed memory and the next method
+    call hard crashes QGIS with an access violation.
+
+    ChildRemoved (Qt sends it on destruction too) drops child records again,
+    which keeps the map small and prevents false positives from address reuse.
+    """
+
+    def __init__(self):
+        super().__init__()
+        self.records = {}  # child C++ address -> (parent C++ address, creation site)
+        self.parents = {}  # parent C++ address -> wrapper (weakref for own classes, strong otherwise)
+        self.dead_parents = set()  # parent addresses whose destroyed() has fired
+
+    def _mark_parent_dead(self, parent=None):
+        try:
+            if parent is not None:
+                self.dead_parents.add(sip.unwrapinstance(parent))
+        except Exception:
+            pass  # bookkeeping must never crash the destructor that called us
+
+    def eventFilter(self, watched, event):
+        # an unhandled exception in an event filter makes PyQt call qFatal,
+        # which hard crashes QGIS: never let one escape
+        try:
+            event_type = event.type()
+            if event_type == QEvent.ChildAdded:
+                origin = _plugin_origin()
+                if origin is not None:
+                    parent_address = sip.unwrapinstance(watched)
+                    if parent_address in self.dead_parents:
+                        # address reused by a new object: the old parent and all
+                        # its recorded children are gone for good
+                        self.dead_parents.discard(parent_address)
+                        self.parents.pop(parent_address, None)
+                        self.records = {
+                            addr: rec for addr, rec in self.records.items() if rec[0] != parent_address
+                        }
+                    if parent_address not in self.parents:
+                        if _fullname(watched).startswith(_NAMESPACE_PREFIX):
+                            # own classes: PyQt pins these wrappers while the C++
+                            # object lives, so a weakref suffices. A strong ref
+                            # would show up as a false holder in phase 2.
+                            try:
+                                handle = weakref.ref(watched)
+                            except TypeError:
+                                handle = None  # not weakref capable: cannot verify later
+                        else:
+                            # foreign classes (mapCanvas, mainWindow, QMenu, ...):
+                            # their wrappers are NOT pinned, a weakref dies as soon
+                            # as no Python code holds the wrapper anymore. Keep the
+                            # wrapper itself: this owns only the tiny Python
+                            # wrapper, never the C++ object, and phase 2 ignores
+                            # foreign classes.
+                            handle = watched
+                        if handle is not None:
+                            self.parents[parent_address] = handle
+                            # authoritative liveness source, see class docstring
+                            watched.destroyed.connect(self._mark_parent_dead)
+                    if parent_address in self.parents:
+                        self.records[sip.unwrapinstance(event.child())] = (parent_address, origin)
+            elif event_type == QEvent.ChildRemoved:
+                self.records.pop(sip.unwrapinstance(event.child()), None)
+        except Exception:
+            traceback.print_exc()
+        return False  # never consume the event
+
+
+_origin_tracker = None
+
+
+def install_origin_tracker():
+    """Starts phase 3 recording. Call once on plugin load (see plugin_interface.py).
+
+    Cost: the filter is invoked for EVERY event in the application and every
+    ChildAdded walks the Python stack. Hence DEBUG only.
+    """
+    global _origin_tracker
+    if _origin_tracker is not None:
+        return
+    _origin_tracker = _OriginTracker()
+    QApplication.instance().installEventFilter(_origin_tracker)
+
+
+def _shutdown_origin_tracker():
+    """Stops recording and hands the tracker over to the phase 3 report.
+
+    The event FILTER must not survive unload: it sits on QApplication and would
+    keep calling into a torn down module namespace on every event in QGIS. The
+    tracker OBJECT however stays alive until the deferred report has run: its
+    destroyed() connections keep marking parents that die between now and the
+    report (deleteLater cascades, module teardown), which is exactly what makes
+    the liveness data trustworthy at report time. The report deletes it
+    afterwards; if that ever fails, phase 1 of the NEXT unload reports
+    _OriginTracker: the tool checks itself here.
+    """
+    global _origin_tracker
+    if _origin_tracker is None:
+        return None
+    QApplication.instance().removeEventFilter(_origin_tracker)
+    tracker = _origin_tracker
+    _origin_tracker = None
+    return tracker
+
+
+def _schedule_tracked_qobject_report(tracker):
+    """Phase 3 report: objects our code parented to something that is still alive.
+
+    Deferred like phase 2, but for a different reason: not to wait for the
+    module teardown (irrelevant here, liveness comes from destroyed()
+    bookkeeping), but so pending deleteLater() cascades are through. A single
+    sendPostedEvents() pass misses deletions that are only scheduled while it
+    runs.
+
+    Survivors whose ancestor chain contains another survivor or a live plugin
+    namespace QObject (a phase 1 leak root such as a forgotten dialog) die with
+    that root's fix and are only counted, not listed: without this, ONE leaked
+    dialog floods the report with dozens of lines for its menus and buttons.
+    """
+    if tracker is None:
+        return
+
+    def report():
+        gc.collect()
+
+        # pass 1: which recorded children are still alive under their recorded
+        # parent? Parents are only touched if destroyed() has NOT fired.
+        survivors = {}  # child C++ address -> (child wrapper, parent wrapper, origin)
+        children_cache = {}
+        for child_address, (parent_address, origin) in tracker.records.items():
+            if parent_address in tracker.dead_parents:
+                continue  # parent destroyed (authoritative): child died with it
+            handle = tracker.parents.get(parent_address)
+            parent = handle() if isinstance(handle, weakref.ref) else handle
+            if parent is None or sip.isdeleted(parent):
+                continue
+            key = id(parent)
+            if key not in children_cache:
+                # correctly typed wrappers, unlike the ones seen at ChildAdded time
+                children_cache[key] = {
+                    sip.unwrapinstance(child): child
+                    for child in parent.children()
+                    if not sip.isdeleted(child)
+                }
+            child = children_cache[key].get(child_address)
+            if child is None:
+                continue  # no longer a child of that parent: cleaned up properly
+            survivors[child_address] = (child, parent, origin)
+
+        if not survivors:
+            print("DEBUG [P3-Origin] all clear — keine von uns erzeugten Fremd-QObjects überlebt.")
+            return
+
+        # pass 2: collapse like phase 1. Walking the ancestor chain of a LIVE
+        # child is safe: Qt destroys children before their parent, so every
+        # ancestor of a living object is alive.
+        def collapse_target(child):
+            """(kind, key) of the TOPMOST reportable ancestor, or None for a root.
+
+            Taking the topmost hit (like phase 1's leaked_root_id) makes the
+            resolution transitive without chain bookkeeping: everything below a
+            leaked dialog lands directly in that dialog's bucket.
+            """
+
+            target = None
+            # QObject.parent(x) instead of x.parent(): some classes shadow the
+            # no-arg QObject method with their own overload (e.g.
+            # QAbstractItemModel.parent(child: QModelIndex)) which then raises
+            # TypeError when called without arguments
+            parent = QObject.parent(child)
+            while parent is not None and not sip.isdeleted(parent):
+                try:
+                    parent_address = sip.unwrapinstance(parent)
+                    parent_name = _fullname(parent)
+                except Exception:
+                    break  # exotic wrapper: stop climbing, keep what we have
+                if parent_address in survivors:
+                    target = ("record", parent_address)
+                elif parent_name.startswith(_NAMESPACE_PREFIX):
+                    target = ("plugin", (parent_name, parent_address))
+                parent = QObject.parent(parent)
+            return target
+
+        descendants = {}   # root address -> collapsed records below it
+        plugin_roots = {}  # (plugin fullname, address) -> collapsed records below it
+        roots = []
+        for child_address, (child, parent, origin) in survivors.items():
+            target = collapse_target(child)
+            if target is None:
+                roots.append(child_address)
+            elif target[0] == "record":
+                descendants[target[1]] = descendants.get(target[1], 0) + 1
+            else:
+                plugin_roots[target[1]] = plugin_roots.get(target[1], 0) + 1
+
+        grouped = {}  # (child class, parent class, creation site) -> [instances, held]
+        for child_address in roots:
+            child, parent, origin = survivors[child_address]
+            try:
+                grouped_key = (_fullname(child), _fullname(parent), origin)
+            except Exception:
+                continue  # exotic wrapper raising on probing: nothing useful to report
+            entry = grouped.setdefault(grouped_key, [0, 0])
+            entry[0] += 1
+            entry[1] += descendants.get(child_address, 0)
+
+        for (child_name, parent_name, origin), (count, held) in sorted(grouped.items()):
+            line = f"DEBUG [P3-Origin] !!! {child_name}"
+            if count > 1:
+                line += f" ({count} Instanzen)"
+            line += f" — erzeugt in {origin} — hängt an {parent_name}"
+            if held:
+                line += f" — darunter {held} weitere erfasste Objekte"
+            print(line)
+
+        # one summary line per phase 1 leak root instead of listing its children
+        plugin_grouped = {}  # fullname -> [root instances, collapsed records]
+        for (fullname, _address), held in plugin_roots.items():
+            entry = plugin_grouped.setdefault(fullname, [0, 0])
+            entry[0] += 1
+            entry[1] += held
+        for fullname, (instances, held) in sorted(plugin_grouped.items()):
+            line = f"DEBUG [P3-Origin] kollabiert: {held} erfasste Objekte hängen unter {fullname}"
+            if instances > 1:
+                line += f" ({instances} Instanzen)"
+            line += " — Phase-1-Leak, sie sterben mit dessen Fix"
+            print(line)
+
+    def guarded_report():
+        try:
+            report()
+        except Exception:
+            traceback.print_exc()
+        finally:
+            # only now: the destroyed() bookkeeping had to stay live until here
+            tracker.deleteLater()
+
+    QTimer.singleShot(0, guarded_report)
+
+
 def check_for_leaked_objects():
-    """Two phase leak detector: call on plugin unload (see module docstring).
+    """Three phase leak detector: call on plugin unload (see module docstring).
 
     Phase 1 (immediate, this call): QObjects from the plugin namespace
     (_NAMESPACE_PREFIX) whose C++ object is still alive.
     Phase 2 (deferred, see _schedule_python_leak_report): pure Python
     instances that survive the module teardown.
+    Phase 3 (deferred, see _schedule_tracked_qobject_report): foreign class
+    QObjects created by plugin code, reported with their creation site;
+    fed by the _OriginTracker installed at plugin load.
 
     Project specific experience, phase 1 leaks typically originate here:
      - QObjects (re)created in _on_project_became_valid()
@@ -297,9 +621,9 @@ def check_for_leaked_objects():
         candidates = []
         for obj in gc.get_objects():
             if isinstance(obj, (QObject, type, enum.Enum)):
-                continue  # QObjects: phase 1; classes: not instances; enum members
-                # live as long as their module (like the check in
-                # _collect_plugin_instances below), not a leak, just noise
+                # QObjects: phase 1; classes: not instances; enum members live
+                # as long as their module (see _collect_plugin_instances), noise
+                continue
             if not type(obj).__module__.startswith(_NAMESPACE_PREFIX):
                 continue
             try:
@@ -317,21 +641,34 @@ def check_for_leaked_objects():
     def leaked_root_id(q_obj):
         """id of the topmost leaked ancestor, or None if q_obj is itself a root."""
         root_id = None
-        parent = q_obj.parent()
+        # QObject.parent(x) instead of x.parent(): avoids the overload-shadowing
+        # TypeError (e.g. QAbstractItemModel), see collapse_target in phase 3
+        parent = QObject.parent(q_obj)
         while parent is not None:
             if id(parent) in leaked:
                 root_id = id(parent)  # keep climbing; last hit wins
-            parent = parent.parent()
+            parent = QObject.parent(parent)
         return root_id
 
     # process pending deleteLater() events first, so widgets just scheduled for deletion
-    # (e.g. the toolbar from unload() above) are actually gone and not reported as leaks
+    # (e.g. the toolbar from unload() above) are actually gone and not reported as leaks.
+    # The origin tracker is still installed here ON PURPOSE: the destructor cascade
+    # sends ChildRemoved for every dying child, which cleans its records and thereby
+    # prevents stale addresses (freed and later reused) from becoming false positives.
     QApplication.sendPostedEvents(None, QEvent.DeferredDelete)
     gc.collect()
+
+    # stop phase 3 recording: the filter sits on QApplication and must not
+    # survive this call (see _shutdown_origin_tracker)
+    origin_tracker = _shutdown_origin_tracker()
 
     # schedule phase 2: collect candidates as weakrefs now,
     # report only after the module teardown (next event loop iteration)
     _schedule_python_leak_report()
+
+    # schedule phase 3: foreign classes (QShortcut, QAction, ...) that our code
+    # parented to something long lived
+    _schedule_tracked_qobject_report(origin_tracker)
 
     # info: gc.get_objects() lists every live python object
     # collect all leaked instances of our classes, keyed by id() (no reliance on __hash__/__eq__)
@@ -355,6 +692,11 @@ def check_for_leaked_objects():
             # so only pyqt still holds a reference which will be deleted on next garbage collection
             continue
 
+        if obj is origin_tracker:
+            # intentionally still alive: its destroyed() bookkeeping must survive
+            # until the deferred phase 3 report, which deleteLater()s it afterwards
+            continue
+
         leaked[id(obj)] = obj
 
     # if some ancestor is itself one of our leaks
@@ -376,7 +718,7 @@ def check_for_leaked_objects():
 
     # report only the top level of registered ancestors
     for obj, count in roots_of_leaked.values():
-        parent = obj.parent()
+        parent = QObject.parent(obj)
         if parent is None:
             note = "no parent"
         else:

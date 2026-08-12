@@ -90,6 +90,7 @@ Usage examples:
 
 import types
 import weakref
+from typing import Optional
 
 from qgis.PyQt.QtCore import QObject
 
@@ -106,7 +107,7 @@ class SignalTracker:
             checks in common/debug_checks.py.
     """
 
-    def __init__(self, disconnect_on_destroyed: QObject | None = None):
+    def __init__(self, disconnect_on_destroyed: Optional[QObject] = None):
         self._connections = []
         if disconnect_on_destroyed is not None:
             # PyQt holds the bound method weakly: this connection keeps

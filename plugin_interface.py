@@ -11,6 +11,13 @@ LOGGER = logging.getLogger(__name__)
 
 class PluginInterface:
     def __init__(self, iface: QgisInterface):
+        if DEBUG:
+            # first statement in the plugin's lifetime, so everything created
+            # afterwards is recorded. Safe to run before setup_logger():
+            # debug_checks deliberately reports via print(), not via LOGGER.
+            from .common.debug_checks import install_origin_tracker
+            install_origin_tracker()
+
         setup_logger()
         LOGGER.debug("Plugin initiated")
         self.iface = iface
