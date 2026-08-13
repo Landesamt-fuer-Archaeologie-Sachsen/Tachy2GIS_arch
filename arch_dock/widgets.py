@@ -121,6 +121,8 @@ class T2GArchDockWidget(QDockWidget, FORM_CLASS):
         # an explicit, one-time deleteLater() here instead of in unload()/closeMeasurementTab(),
         # which can run repeatedly while the plugin is still active (e.g. on project switch).
         self.measurementTab.helpWindow.deleteLater()
+        # same one-time situation for the shortcuts parented to iface.mapCanvas()
+        self.measurementTab.removeKeys()
         super().deleteLater()
 
     def reload(self):

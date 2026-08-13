@@ -160,6 +160,13 @@ class MeasurementTab(BASE, WIDGET):
         for key in self.keys:
             key.setEnabled(False)
 
+    def removeKeys(self):
+        # half of the shortcuts are parented to iface.mapCanvas(), which outlives
+        # the plugin - the parent cascade never collects them there
+        for key in self.keys:
+            key.deleteLater()
+        self.keys.clear()
+
     def setGuiContent(self):
         self.adjustElementsAtStart()
         self.fillTxtReference()
@@ -1334,7 +1341,9 @@ class DigitizeTool(QgsMapTool):
 
     def setSnapping(self):
         self.snapConfig = QgsProject.instance().snappingConfig()
-        self.snapUtils = QgsSnappingUtils(iface.mapCanvas())
+        # parent = the tool, not the canvas: the canvas outlives every
+        # DigitizeTool, so the utils would pile up there
+        self.snapUtils = QgsSnappingUtils(self)
         self.snapUtils.setConfig(self.snapConfig)
         self.snapUtils.setMapSettings(iface.mapCanvas().mapSettings())
         self.snapIndicator = QgsSnapIndicator(iface.mapCanvas())
