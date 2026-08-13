@@ -83,6 +83,7 @@ class Digitize:
         # its attributes otherwise keep DataStoreDigitize, RotationCoords and
         # the maptools alive as well
         if self.digitizeDialog:
+            self.digitizeDialog.cleanUp()
             self.digitizeDialog.close()
             self.digitizeDialog.deleteLater()
             self.digitizeDialog = None

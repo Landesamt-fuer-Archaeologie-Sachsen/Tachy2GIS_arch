@@ -808,8 +808,32 @@ class DigitizeCanvas(QgsMapCanvas):
     #
     # \param imageLayerPath
 
+    def cleanUpSessionLayers(self):
+        # the digi/hover memory layers and the profile image layers are never
+        # registered in QgsProject, and releasing the Python references does
+        # not delete the C++ side - they must be deleted explicitly
+        layers = [
+            self.digiPointLayer,
+            self.digiLineLayer,
+            self.digiPolygonLayer,
+            self.digiPointHoverLayer,
+            self.digiLineHoverLayer,
+            self.digiPolygonHoverLayer,
+        ] + getattr(self, "imageLayers", [])
+        for layer in layers:
+            if layer is not None:
+                layer.deleteLater()
+        self.digiPointLayer = None
+        self.digiLineLayer = None
+        self.digiPolygonLayer = None
+        self.digiPointHoverLayer = None
+        self.digiLineHoverLayer = None
+        self.digiPolygonHoverLayer = None
+        self.imageLayers = []
+
     def update(self, refData):
         # canvas leeren
+        self.cleanUpSessionLayers()
 
         imageLayerPaths = refData.get("profilePaths") or [refData["profilePath"]]
 

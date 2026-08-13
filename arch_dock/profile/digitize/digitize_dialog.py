@@ -30,6 +30,7 @@ class DigitizeDialog(QMainWindow):
         super(DigitizeDialog, self).__init__()
 
         self.aar_direction = aar_direction
+        self.refData = None
 
         self.dataStoreDigitize = dataStoreDigitize
         self.rotationCoords = rotationCoords
@@ -173,6 +174,7 @@ class DigitizeDialog(QMainWindow):
         verticalLayout.addWidget(self.tableDigitize)
 
     def restore(self, refData):
+        self.refData = refData
         self.canvasDigitize.update(refData)
         self.parambar.update(refData)
         self.toolDigiPoint.update(refData)
@@ -182,6 +184,19 @@ class DigitizeDialog(QMainWindow):
         self.adjustSize()
         self.show()
         self.resize(1000, 700)
+
+    def cleanUp(self):
+        """Deletes the session layers this dialog works on: the canvas' digi/
+        hover/image layers and the input layer clones carried in refData.
+        Called by Digitize.closeDigitizeDialog() before the dialog itself dies.
+        """
+        self.canvasDigitize.cleanUpSessionLayers()
+        if self.refData:
+            for key in ("pointLayer", "lineLayer", "polygonLayer"):
+                layer = self.refData.get(key)
+                if layer is not None:
+                    layer.deleteLater()
+            self.refData = None
 
     ## \brief Open up the digitize dialog
     #
