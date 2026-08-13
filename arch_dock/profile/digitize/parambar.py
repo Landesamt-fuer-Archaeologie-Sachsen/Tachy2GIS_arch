@@ -583,8 +583,9 @@ class Parambar(QWidget):
         return vSplit
 
     def __openInfoMessageBox(self, infoText, titleText):
-        self.__infoTranssformMsgBox = QMessageBox()
-        self.__infoTranssformMsgBox.setText(infoText)
-        self.__infoTranssformMsgBox.setWindowTitle(titleText)
-        self.__infoTranssformMsgBox.setStandardButtons((QMessageBox.Ok))
-        self.__infoTranssformMsgBox.exec_()
+        infoMsgBox = QMessageBox(self)
+        infoMsgBox.setText(infoText)
+        infoMsgBox.setWindowTitle(titleText)
+        infoMsgBox.setStandardButtons((QMessageBox.Ok))
+        infoMsgBox.exec_()
+        infoMsgBox.deleteLater()  # modal is done, no reason to keep it as a child

@@ -1,6 +1,6 @@
 import logging
 
-from qgis.PyQt.QtCore import pyqtSignal, pyqtSlot
+from qgis.PyQt.QtCore import Qt, pyqtSignal, pyqtSlot
 from qgis.core import QgsFeature, QgsGeometry, QgsFeatureRequest, QgsPoint, QgsProject, QgsMessageLog, Qgis
 from qgis.gui import QgsAttributeDialog, QgsAttributeEditorContext
 
@@ -98,6 +98,9 @@ class MapToolDigiPoint(PointMapTool, MapToolMixin):
 
         self.dialogAttributes = QgsAttributeDialog(self.refData["pointLayer"], self.feat, False, None)
         self.dialogAttributes.setMode(QgsAttributeEditorContext.FixAttributeMode)
+        # parentless + show(): without this flag every digitized feature leaks
+        # one complete attribute form (25 widgets each, found by P3-Origin)
+        self.dialogAttributes.setAttribute(Qt.WA_DeleteOnClose)
         self.dialogAttributes.rejected.connect(self.closeAttributeDialog)
         self.dialogAttributes.accepted.connect(self.acceptedAttributeDialog)
         self.dialogAttributes.show()
