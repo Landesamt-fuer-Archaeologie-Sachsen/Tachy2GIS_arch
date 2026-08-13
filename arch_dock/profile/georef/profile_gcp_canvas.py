@@ -166,7 +166,15 @@ class ProfileGcpCanvas(QgsMapCanvas):
 
         self.gcpLayer.triggerRepaint()
 
+    def cleanUpSessionLayer(self):
+        # the gcp memory layer is not in QgsProject and not a Qt child of the
+        # canvas - rebinding or dropping the reference does not delete it
+        if self.gcpLayer is not None:
+            self.gcpLayer.deleteLater()
+            self.gcpLayer = None
+
     def setupGcpLayer(self, refData):
+        self.cleanUpSessionLayer()
         refData["pointLayer"].selectAll()
         self.gcpLayer = processing.run(
             "native:saveselectedfeatures", {"INPUT": refData["pointLayer"], "OUTPUT": "memory:"}

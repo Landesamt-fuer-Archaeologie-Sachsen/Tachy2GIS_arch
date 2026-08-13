@@ -498,70 +498,71 @@ class Georef:
 
         # lineLayer
         lineLayer = self.dockwidget.layerProfileGeoref.currentLayer().clone()
-        profil_column_name = ArchProjectConfig().get("GeoRef_Profil_ColName")
-        lineLayer.setSubsetString(f"{profil_column_name} = '{profile_number}'")
+        try:
+            profil_column_name = ArchProjectConfig().get("GeoRef_Profil_ColName")
+            lineLayer.setSubsetString(f"{profil_column_name} = '{profile_number}'")
 
-        if lineLayer.geometryType() != QgsWkbTypes.LineGeometry:
-            return
-
-        view = None
-        for feat in lineLayer.getFeatures():
-
-            # print("feat", feat)
-
-            geom = feat.geometry()
-            if QgsWkbTypes.isSingleType(geom.wkbType()):
-                # Singlepart
-                line = geom.asPolyline()
-            else:
-                # Multipart
-                line = geom.asMultiPolyline()[0]
-
-            # print("line", line)
-
-            if not len(line):
-                LOGGER.warning("Kein Profil gefunden!")
+            if lineLayer.geometryType() != QgsWkbTypes.LineGeometry:
                 return
 
-            pointA = line[0]
-            pointB = line[-1]
+            view = None
+            for feat in lineLayer.getFeatures():
 
-            pointAx = pointA.x()
-            pointAy = pointA.y()
-            pointBx = pointB.x()
-            pointBy = pointB.y()
+                geom = feat.geometry()
+                if QgsWkbTypes.isSingleType(geom.wkbType()):
+                    # Singlepart
+                    line = geom.asPolyline()
+                else:
+                    # Multipart
+                    line = geom.asMultiPolyline()[0]
 
-            dx = pointBx - pointAx
-            dy = pointBy - pointAy
-            vp = [dx, dy]
-            v0 = [-1, 1]
+                if not len(line):
+                    LOGGER.warning("Kein Profil gefunden!")
+                    return
 
-            # Lösung von hier:
-            # https://stackoverflow.com/
-            # questions/14066933/direct-way-of-computing-clockwise-angle-between-2-vectors/16544330#16544330
-            # angepasst auf Berechnung ohne numpy
-            dot = v0[0] * vp[0] + v0[1] * vp[1]  # dot product: x1*x2 + y1*y2
-            det = v0[0] * vp[1] - vp[0] * v0[1]  # determinant: x1*y2 - y1*x2
+                pointA = line[0]
+                pointB = line[-1]
 
-            radians = math.atan2(det, dot)
-            angle = math.degrees(radians)
+                pointAx = pointA.x()
+                pointAy = pointA.y()
+                pointBx = pointB.x()
+                pointBy = pointB.y()
 
-            # negative Winkelwerte
-            # (3. und 4. Quadrant, Laufrichtung entgegen Uhrzeigersinn)
-            # in fortlaufenden Wert (181 bis 360) umrechnen
-            if angle < 0:
-                angle *= -1
-                angle = 180 - angle + 180
+                dx = pointBx - pointAx
+                dy = pointBy - pointAy
+                vp = [dx, dy]
+                v0 = [-1, 1]
 
-            if angle <= 90:
-                view = "Nord"
-            elif angle <= 180:
-                view = "West"
-            elif angle <= 270:
-                view = "Süd"
-            elif angle > 270:
-                view = "Ost"
-        return view
+                # Lösung von hier:
+                # https://stackoverflow.com/
+                # questions/14066933/direct-way-of-computing-clockwise-angle-between-2-vectors/16544330#16544330
+                # angepasst auf Berechnung ohne numpy
+                dot = v0[0] * vp[0] + v0[1] * vp[1]  # dot product: x1*x2 + y1*y2
+                det = v0[0] * vp[1] - vp[0] * v0[1]  # determinant: x1*y2 - y1*x2
+
+                radians = math.atan2(det, dot)
+                angle = math.degrees(radians)
+
+                # negative Winkelwerte
+                # (3. und 4. Quadrant, Laufrichtung entgegen Uhrzeigersinn)
+                # in fortlaufenden Wert (181 bis 360) umrechnen
+                if angle < 0:
+                    angle *= -1
+                    angle = 180 - angle + 180
+
+                if angle <= 90:
+                    view = "Nord"
+                elif angle <= 180:
+                    view = "West"
+                elif angle <= 270:
+                    view = "Süd"
+                elif angle > 270:
+                    view = "Ost"
+            return view
+        finally:
+            # the clone is a read-only working copy; releasing the reference
+            # does not delete the C++ layer, it must be deleted explicitly
+            lineLayer.deleteLater()
 
     ## \brief Preselection of preselectViewDirection
     #

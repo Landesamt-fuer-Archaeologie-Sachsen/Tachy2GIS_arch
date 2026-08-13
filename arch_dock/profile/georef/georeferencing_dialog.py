@@ -355,12 +355,20 @@ class GeoreferencingDialog(QMainWindow):
 
         return metaFileOut
 
-    ## \brief Open up the transformation dialog
-    #
-    # calls the funcion restore()
-    #
-    # \param refData
+    def _deleteRefDataLayers(self):
+        # the line/point layers in refData are clone()s from getSelectedValues;
+        # releasing the references does not delete the C++ layers. Keys are set
+        # to None so a second call (destroyDialog runs via close() and directly)
+        # stays harmless, and the kreuzprofil partner dict keeps its flags/paths.
+        if self.refData:
+            for key in ("lineLayer", "pointLayer"):
+                layer = self.refData.get(key)
+                if layer is not None:
+                    layer.deleteLater()
+                    self.refData[key] = None
+
     def showGeoreferencingDialog(self, refData):
+        self._deleteRefDataLayers()  # clones of the previous session
         self.refData = refData
         LOGGER.debug(f"showGeoreferencingDialog refData: {self.refData}")
 
@@ -581,6 +589,9 @@ class GeoreferencingDialog(QMainWindow):
             for item in glob(pattern):
                 if os.path.isdir(item):
                     rmtree(item, ignore_errors=True)
+
+        self._deleteRefDataLayers()
+        self.canvasGcp.cleanUpSessionLayer()
 
         # mark that it was closed already:
         self.ref_data_pair = None

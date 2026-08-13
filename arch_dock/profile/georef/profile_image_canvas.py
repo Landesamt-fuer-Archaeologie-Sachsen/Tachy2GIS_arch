@@ -60,10 +60,16 @@ class ProfileImageCanvas(QgsMapCanvas):
         self.createConnects()
 
     def __delete_marker(self, obj_uuid):
+        remaining = []
         for mark in self.markerPoints:
             if obj_uuid == mark["obj_uuid"]:
+                # removeItem() only detaches from the scene; dropping the list
+                # entry as well releases the last reference so the items die
                 self.scene().removeItem(mark["marker"])
                 self.scene().removeItem(mark["annotation"])
+            else:
+                remaining.append(mark)
+        self.markerPoints = remaining
         self.refresh()
 
     def __createMarker(self, pointData):
@@ -74,9 +80,11 @@ class ProfileImageCanvas(QgsMapCanvas):
             ptnr = str(self.activePoint["ptnr"])
 
         # Annotation
-        txt = QTextDocument()
-        txt.setHtml('<span style="font-family: Arial; font-size: 10px">' + ptnr + "</span>")
         lbl = QgsTextAnnotation(self)
+        # parent = the annotation: setDocument() does not take ownership, and a
+        # parentless document leaks once per marker click (found by P3-Origin)
+        txt = QTextDocument(lbl)
+        txt.setHtml('<span style="font-family: Arial; font-size: 10px">' + ptnr + "</span>")
         lbl.setDocument(txt)
         lbl.setMapPosition(pnt)
         lbl.setFrameOffsetFromReferencePointMm(QPointF(0, -10))
