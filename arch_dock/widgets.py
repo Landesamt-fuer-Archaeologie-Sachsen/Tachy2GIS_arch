@@ -128,6 +128,8 @@ class T2GArchDockWidget(QDockWidget, FORM_CLASS):
     def reload(self):
         if self.geoEdit:
             self.geoEdit.disconnectSignals()
+        if self.transformationGui:
+            self.transformationGui.disconnectSignals()
 
         if DEBUG:
             from ..common.debug_checks import check_for_surviving_instances

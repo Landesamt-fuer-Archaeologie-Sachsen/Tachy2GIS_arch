@@ -96,6 +96,14 @@ class TransformationGui:
             # Signals were not connected, ignore
             pass
 
+        # the dialog has no Qt parent (it is a free-floating window), so without
+        # this it survives every reload - and its back-references keep the old
+        # TransformationGui/TransformationCalculations alive as well
+        if self.transformationDialog:
+            self.transformationDialog.close()
+            self.transformationDialog.deleteLater()
+            self.transformationDialog = None
+
     ## \brief Save the current QGIS-Project
     #
 
