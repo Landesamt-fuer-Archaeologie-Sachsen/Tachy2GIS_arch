@@ -276,7 +276,6 @@ class TransformationGui:
     # - and validate this file (validateGCPFile())
     # - starts validation of the sourceLayer (validateSourceLayer())
     # - finally opens transformation dialog (TransformationDialog.showTransformationDialog())
-
     def transformationDialogShow(self):
 
         inputLayers = self.getInputlayers(True)
@@ -288,6 +287,7 @@ class TransformationGui:
         self.targetCrs = self.dockwidget.projectionSelectionTransform.crs().authid()
         targetGCPFile = self.dockwidget.fileWidgetTargetCoordinates.filePath()
 
+        handed_over = False
         isValidGCPFile = self.validateGCPFile(targetGCPFile)
         if isValidGCPFile == True and isValidSourceLayer == True:
             gcpSource = self.getLocalGCPs(sourceLayer)
@@ -296,8 +296,16 @@ class TransformationGui:
                 self.transformationDialog.showTransformationDialog(
                     sourceLayer, inputLayers, QgsCoordinateReferenceSystem(self.targetCrs), gcpSource, targetGCP
                 )
+                handed_over = True
         else:
             LOGGER.warning("Validation failed: isValidGCPFile or isValidSourceLayer is False")
+
+        if not handed_over:
+            # the clones were never handed to the dialog (which owns them as
+            # session layers from there on) - delete them here
+            sourceLayer.deleteLater()
+            for layer in inputLayers:
+                layer.deleteLater()
 
     ## \brief Open messagebox before reverse calculation of the transformation starts
     #
