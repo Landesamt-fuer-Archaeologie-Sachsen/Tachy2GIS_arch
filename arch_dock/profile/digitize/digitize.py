@@ -71,12 +71,21 @@ class Digitize:
 
             if metaChecker == True:
 
-                if self.digitizeDialog and self.digitizeDialog.isVisible():
-                    self.digitizeDialog.close()
+                self.closeDigitizeDialog()
 
                 self.digitizeDialog = DigitizeDialog(self.dataStoreDigitize, self.rotationCoords, self.aar_direction)
                 self.dataStoreDigitize.triggerAarTransformationParams(self.aar_direction)
                 self.digitizeDialog.showDigitizeDialog(refData, self.dataStoreDigitize.getProfileNumber())
+
+    def closeDigitizeDialog(self):
+        # the dialog is a parentless QMainWindow: close() only hides it, so it
+        # must be deleted explicitly whenever it is replaced or discarded -
+        # its attributes otherwise keep DataStoreDigitize, RotationCoords and
+        # the maptools alive as well
+        if self.digitizeDialog:
+            self.digitizeDialog.close()
+            self.digitizeDialog.deleteLater()
+            self.digitizeDialog = None
 
     ## \brief get meta data to profile
     #

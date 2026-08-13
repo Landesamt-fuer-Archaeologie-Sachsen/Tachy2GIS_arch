@@ -31,3 +31,6 @@ class Profile:
         self.georef.setup()
         self.digitize.setup()
         self.plan.setup()
+
+    def teardown(self):
+        self.digitize.closeDigitizeDialog()

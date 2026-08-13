@@ -80,7 +80,16 @@ class T2GArchDockWidget(QDockWidget, FORM_CLASS):
         self.raster = RasterGui(self)
         self.raster.setup()
 
-    def unload(self):
+    def _teardownModules(self, context):
+        """Reverse of setupModules() for everything bound to the CURRENT project.
+
+        Shared by unload() and reload(): every module teardown lives here
+        exactly once, so the two paths cannot drift apart again (a missing
+        teardown in only one of them caused the TransformationDialog leak).
+        measurementTab/toolsAllgemeinTab are persistent Qt children of this
+        dock - they are not replaced, only their project-bound state is
+        cleared.
+        """
         if DEBUG:
             from ..common.debug_checks import check_for_surviving_instances
             check_for_surviving_instances(
@@ -88,7 +97,7 @@ class T2GArchDockWidget(QDockWidget, FORM_CLASS):
                 self.geoEdit,
                 self.profile,
                 self.raster,
-                context="T2GArchDockWidget.unload()",
+                context=context,
             )
 
         # Transformation
@@ -102,6 +111,8 @@ class T2GArchDockWidget(QDockWidget, FORM_CLASS):
         self.geoEdit = None
 
         # Profile
+        if self.profile:
+            self.profile.teardown()
         self.profile = None
 
         # Messen
@@ -114,6 +125,9 @@ class T2GArchDockWidget(QDockWidget, FORM_CLASS):
 
         # Raster
         self.raster = None
+
+    def unload(self):
+        self._teardownModules(context="T2GArchDockWidget.unload()")
 
         set_vsi_cached(False)
 
@@ -130,20 +144,7 @@ class T2GArchDockWidget(QDockWidget, FORM_CLASS):
         super().deleteLater()
 
     def reload(self):
-        if self.geoEdit:
-            self.geoEdit.disconnectSignals()
-        if self.transformationGui:
-            self.transformationGui.disconnectSignals()
-
-        if DEBUG:
-            from ..common.debug_checks import check_for_surviving_instances
-            check_for_surviving_instances(
-                self.transformationGui,
-                self.geoEdit,
-                self.profile,
-                self.raster,
-                context="T2GArchDockWidget.reload()",
-            )
+        self._teardownModules(context="T2GArchDockWidget.reload()")
 
         # Transformation
         self.transformationGui = TransformationGui(self)
