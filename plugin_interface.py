@@ -41,6 +41,14 @@ class PluginInterface:
         self.toolbar.deleteLater()
         self.toolbar = None
 
+        # process the deleteLater() cascade NOW: a reload creates the new
+        # widgets in the same event-processing burst, and tools like the
+        # Plugin Reloader flag the still-pending old ones as duplicates
+        # (with DEBUG=True, check_for_leaked_objects happened to do this)
+        from qgis.PyQt.QtCore import QEvent
+        from qgis.PyQt.QtWidgets import QApplication
+        QApplication.sendPostedEvents(None, QEvent.DeferredDelete)
+
         if DEBUG:
             from .common.debug_checks import check_for_leaked_objects
             check_for_leaked_objects()

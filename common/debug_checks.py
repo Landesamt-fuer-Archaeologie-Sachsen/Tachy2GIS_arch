@@ -232,7 +232,13 @@ def _schedule_survivor_report(candidates, headline, all_clear_message=None):
         return "; ".join(hints) if hints else "kein direkter Referrer gefunden (evtl. C-Ebene, z.B. sip/Qt)"
 
     def report_survivors():
+        # a deleteLater() scheduled from a nested event loop (e.g. the modal
+        # plugin manager dialog) may not have been processed yet when this
+        # deferred report fires - force it, otherwise wrappers whose C++ death
+        # is still pending show up as false survivors
+        QApplication.sendPostedEvents(None, QEvent.DeferredDelete)
         gc.collect()  # clear reference cycles before counting survivors
+
         # id -> weakref. Deliberately NO strong refs: our own bookkeeping would
         # otherwise show up as a holder in every _referrer_hint(). Survivors are
         # by definition held externally: the weakrefs stay resolvable.
@@ -468,6 +474,9 @@ def _schedule_tracked_qobject_report(tracker):
         return
 
     def report():
+        # same rationale as in report_survivors(): flush pending deferred
+        # deletions before judging liveness
+        QApplication.sendPostedEvents(None, QEvent.DeferredDelete)
         gc.collect()
 
         # pass 1: which recorded children are still alive under their recorded
