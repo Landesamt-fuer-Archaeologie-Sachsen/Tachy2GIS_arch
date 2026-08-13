@@ -14,7 +14,7 @@ from qgis.PyQt.QtWidgets import (
     QInputDialog,
     QDialog,
 )
-from qgis.PyQt import uic
+from qgis.PyQt import sip, uic
 from qgis.core import QgsProject, QgsMapLayer, QgsMessageLog, Qgis
 from qgis.utils import iface
 
@@ -40,6 +40,15 @@ class RasterGui:
 
     def setup(self):
         pass
+
+    def teardown(self):
+        # addDockWidget() reparented the view to the main window, so it
+        # survives this RasterGui instance unless deleted explicitly - the
+        # orphan then even pops up again visible after a plugin reload
+        if self._raster_layer_view is not None and not sip.isdeleted(self._raster_layer_view):
+            iface.removeDockWidget(self._raster_layer_view)
+            self._raster_layer_view.deleteLater()
+        self._raster_layer_view = None
 
 
 FORM_CLASS, _ = uic.loadUiType(os_path.join(os_path.dirname(__file__), "forms", "dlgRasterLayerView.ui"))

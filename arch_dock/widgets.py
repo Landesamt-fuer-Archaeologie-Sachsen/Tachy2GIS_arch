@@ -124,6 +124,8 @@ class T2GArchDockWidget(QDockWidget, FORM_CLASS):
             self.toolsAllgemeinTab.closeFeatureCheck()
 
         # Raster
+        if self.raster:
+            self.raster.teardown()
         self.raster = None
 
     def unload(self):
