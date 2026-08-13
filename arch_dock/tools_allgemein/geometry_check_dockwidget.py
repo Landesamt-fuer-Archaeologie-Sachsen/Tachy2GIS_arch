@@ -135,7 +135,9 @@ class GeometryCheckDockWidget(QDockWidget, FORM_CLASS):
         self.tableWidget.itemChanged.connect(self.vertexEdit)
         self.tableWidget.selectionModel().currentRowChanged.connect(self._onCurrentRowChanged)
         self.cboLayerName.currentIndexChanged.connect(self.setCheckLayer)
-        self.tableWidget.setItemDelegate(NumericDelegate())
+        # setItemDelegate() does not take ownership - without a parent the
+        # delegate outlives the widget
+        self.tableWidget.setItemDelegate(NumericDelegate(self.tableWidget))
 
         self.setup()
 
@@ -303,3 +305,8 @@ class GeometryCheckDockWidget(QDockWidget, FORM_CLASS):
         delLayer(self.tempLayerName)
         self.templayer = None
         iface.mapCanvas().refreshAllLayers()
+        # addDockWidget() reparented this dock to the main window, which
+        # outlives the plugin - close() alone only hides it, and every hidden
+        # instance keeps its full table content alive
+        iface.removeDockWidget(self)
+        self.deleteLater()

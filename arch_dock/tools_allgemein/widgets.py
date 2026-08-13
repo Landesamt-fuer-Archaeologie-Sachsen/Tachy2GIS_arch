@@ -1,6 +1,6 @@
 import os
 
-from qgis.PyQt import uic
+from qgis.PyQt import sip, uic
 from qgis.PyQt.QtWidgets import QLineEdit, QWidget, QPushButton, QComboBox, QMessageBox
 from qgis.PyQt.QtGui import QIcon
 from qgis.utils import iface
@@ -77,7 +77,12 @@ class ToolsAllgemeinTab(BASE, WIDGET):
             iface.mapCanvas().refresh()
 
     def dlgFeatureCheckShow(self):
-        if self.dlgFeatureCheck:
-            self.dlgFeatureCheck.close()
-            self.dlgFeatureCheck = None
+        self.closeFeatureCheck()
         self.dlgFeatureCheck = GeometryCheckDockWidget(iface.mapCanvas())
+
+    def closeFeatureCheck(self):
+        # the widget destroys itself on close (see dwgClose), so this wrapper
+        # may already point to a dead C++ object - guard before touching it
+        if self.dlgFeatureCheck and not sip.isdeleted(self.dlgFeatureCheck):
+            self.dlgFeatureCheck.close()
+        self.dlgFeatureCheck = None

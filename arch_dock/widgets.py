@@ -108,6 +108,10 @@ class T2GArchDockWidget(QDockWidget, FORM_CLASS):
         if self.measurementTab:
             self.measurementTab.closeMeasurementTab()
 
+        # Tools Allgemein
+        if self.toolsAllgemeinTab:
+            self.toolsAllgemeinTab.closeFeatureCheck()
+
         # Raster
         self.raster = None
 
