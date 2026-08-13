@@ -100,6 +100,7 @@ class TransformationGui:
         # this it survives every reload - and its back-references keep the old
         # TransformationGui/TransformationCalculations alive as well
         if self.transformationDialog:
+            self.transformationDialog.cleanUpSessionLayers()
             self.transformationDialog.close()
             self.transformationDialog.deleteLater()
             self.transformationDialog = None
@@ -392,6 +393,11 @@ class TransformationGui:
                 generalValid = False
 
             detailedText += validationFeatureText
+
+        # the clones were only needed for validation; releasing the references
+        # does not delete the C++ layers
+        for layer in inputLayers:
+            layer.deleteLater()
 
         return generalValid, validationText, detailedText
 

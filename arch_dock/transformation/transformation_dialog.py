@@ -488,7 +488,17 @@ class TransformationDialog(QMainWindow):
     # \param gcpSource
     # \param gcpTarget
 
+    def cleanUpSessionLayers(self):
+        # sourceLayer/inputLayers are clone()s handed in per show (see
+        # TransformationGui.transformationDialogShow); releasing the
+        # references does not delete the C++ layers
+        for layer in getattr(self, "_sessionLayers", []):
+            layer.deleteLater()
+        self._sessionLayers = []
+
     def restore(self, sourceLayer, inputLayers, targetCrs, gcpSource, gcpTarget):
+        self.cleanUpSessionLayers()
+        self._sessionLayers = [sourceLayer] + list(inputLayers)
 
         self.gcpTable.cleanGcpTable()
         self.targetCrs = targetCrs

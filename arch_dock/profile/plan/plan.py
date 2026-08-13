@@ -96,9 +96,15 @@ class Plan:
         if metaChecker == True:
             self.dataStorePlan.triggerAarTransformationParams(self.aar_direction)
 
-            refData = self.__getInputlayers(True)
+            refData = self.__getInputlayers()
 
-            self.__exportPlanLayers(refData, baseFilePath)
+            try:
+                self.__exportPlanLayers(refData, baseFilePath)
+            finally:
+                # the clones are only needed for this export; releasing the
+                # references does not delete the C++ layers
+                for layer in refData.values():
+                    layer.deleteLater()
 
             iface.messageBar().pushMessage(
                 "Hinweis",
@@ -157,37 +163,24 @@ class Plan:
     #
     # Inputlayers must be of type vector
     #
-    # \param isClone - should the return a copy of the layers or just a pointer to the layers
-    # @returns Array of inputlayers
-    def __getInputlayers(self, isClone):
+    # @returns dict with clones of the E_Point/E_Line/E_Polygon input layers;
+    # the caller is responsible for deleting them after use
+    def __getInputlayers(self):
 
-        inputLayers = []
+        refData = {}
         root = QgsProject.instance().layerTreeRoot()
 
         for group in root.children():
             if isinstance(group, QgsLayerTreeGroup) and group.name() == "Eingabelayer":
                 for child in group.children():
-                    if isinstance(child, QgsLayerTreeLayer):
-                        if isClone == True:
-
-                            if isinstance(child.layer(), QgsVectorLayer):
-                                inputLayers.append(child.layer().clone())
-                        else:
-                            if isinstance(child.layer(), QgsVectorLayer):
-                                inputLayers.append(child.layer())
-
-        refData = {}
-
-        for layer in inputLayers:
-
-            if layer.name() == "E_Point":
-                refData["pointLayer"] = layer.clone()
-
-            if layer.name() == "E_Line":
-                refData["lineLayer"] = layer.clone()
-
-            if layer.name() == "E_Polygon":
-                refData["polygonLayer"] = layer.clone()
+                    if isinstance(child, QgsLayerTreeLayer) and isinstance(child.layer(), QgsVectorLayer):
+                        layer = child.layer()
+                        if layer.name() == "E_Point":
+                            refData["pointLayer"] = layer.clone()
+                        if layer.name() == "E_Line":
+                            refData["lineLayer"] = layer.clone()
+                        if layer.name() == "E_Polygon":
+                            refData["polygonLayer"] = layer.clone()
 
         return refData
 
@@ -477,6 +470,7 @@ class Plan:
             tmp_data_feature_list = self.layer_from_gpkg_to_feature_list(layer_name, tmp_data_path)
             if not isinstance(tmp_data_feature_list, list):
                 LOGGER.error("ERROR restoring tmp data")
+                temporary_layer.deleteLater()
                 return
             # if inputLayer.name() == "gcp_points":
             #     print("### DEBUG: tmp_data_feature_list")
@@ -510,7 +504,9 @@ class Plan:
                 "lösche auch Referenzen in gpkg_*-Tabellen!"
             )
 
-        QgsProject.instance().removeMapLayer(temporary_layer.id())
+        # the memory layer was never registered in the project, so the previous
+        # removeMapLayer() call here was a no-op - delete it directly instead
+        temporary_layer.deleteLater()
 
         if was_vsi_cached:
             set_vsi_cached(True)
