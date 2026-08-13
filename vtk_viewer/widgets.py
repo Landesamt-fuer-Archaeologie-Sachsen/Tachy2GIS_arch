@@ -688,6 +688,9 @@ class VtkViewer(QDockWidget, FORM_CLASS):
         self.dispatcher.deleteLater()
         for queue in self.dispatcher.queues.values():
             queue.deleteLater()
+        # deleteLater() only kills the C++ side; the registry dict with its
+        # bound-method references to self must be emptied explicitly
+        self.reply_handler.slots.clear()
         self.reply_handler.deleteLater()
         self.availability_watchdog.shutDown()
         self.availability_watchdog.deleteLater()

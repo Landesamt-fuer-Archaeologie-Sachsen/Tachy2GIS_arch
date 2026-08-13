@@ -10,10 +10,14 @@ class ReplyHandler(QObject):
     caught_reply = pyqtSignal(TachyReply)
     fall_back_signal = pyqtSignal(tuple)
     has_fall_back = False
-    slots = {}
 
     def __init__(self, fall_back=None):
         super().__init__()
+        # per instance, NOT a class attribute: a class-level dict lives as long
+        # as the class object itself and keeps every registered bound method -
+        # and therefore its receiver (e.g. the whole VtkViewer) - alive far
+        # beyond the instance's lifetime
+        self.slots = {}
         if fall_back:
             self.fall_back_signal.connect(fall_back)
             self.has_fall_back = True
