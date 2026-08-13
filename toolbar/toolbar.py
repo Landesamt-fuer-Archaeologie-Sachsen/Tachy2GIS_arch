@@ -38,6 +38,12 @@ class T2GToolbar(QToolBar):
 
         self.vtk_viewer = VtkViewer()
         iface.addDockWidget(Qt.BottomDockWidgetArea, self.vtk_viewer)
+        # addDockWidget() force-shows the dock. Start hidden instead: on a
+        # regular QGIS start the saved window layout is applied AFTER plugin
+        # loading and decides the final visibility anyway; on a manual plugin
+        # reload there is no such restore and the dock would pop up regardless
+        # of how the user left it.
+        self.vtk_viewer.hide()
         self.t2g_action = self.vtk_viewer.toggleViewAction()
         t2g_icon = QIcon(os.path.join(ICONS_DIR, "tachymeter.png"))
         self.t2g_action.setIcon(t2g_icon)
