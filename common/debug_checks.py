@@ -36,7 +36,7 @@ Every PyQt object consists of two halves with SEPARATE lifetimes:
    Simply releasing the reference is only enough if Python is the sole
    owner (created by Python AND without a parent).
 
-This results in three kinds of leaks, matching the three phases of
+This results in four kinds of leaks, matching the four phases of
 check_for_leaked_objects():
 
  - Phase 1 (immediately on call): QObject instances from the plugin
@@ -44,6 +44,14 @@ check_for_leaked_objects():
    plugin object tree and no deleteLater(). Root leaks are reported;
    objects hanging below a reported root are only counted (they die with
    it).
+ - Phase 1b (immediately after phase 1): Qt-side sweep of the long-lived
+   anchors (main window, map canvas + its scene, project instance, layer
+   tree view, top-level widgets). Finds orphans whose Python wrapper died
+   and leftovers of EARLIER sessions, both invisible to phases 1/3.
+   Caveat learned from the RasterLayerView case: a C++-side reparenting
+   alone does not make a leak - if sip ownership stayed with Python, the
+   C++ object dies with its wrapper, and only an external reference (a
+   console variable, a debugger traceback) turns it into one.
  - Phase 2 (deferred to the next event loop iteration, i.e. AFTER QGIS
    has torn down the modules): pure PYTHON instances from the plugin code
    that survived the full unload. By this point everything module bound
@@ -66,6 +74,14 @@ Reacting to messages:
     the OWNING class, or set a parent from the plugin object tree at
     creation time. Careful with QThreads: stop them first (quit()/wait()),
     then tear down.
+
+"DEBUG [P1b-Anchor] !!! <class> hängt noch an <anchor>" (phase 1b):
+    An orphan phase 1 cannot see: the Python wrapper is gone or the object
+    stems from an earlier session, but the C++ side still hangs on a QGIS
+    anchor. Same fix as phase 1, in the owning class's cleanup. If it only
+    shows up while a console variable or debugger pins a reference, check
+    sip ownership first: a Python-owned widget dies with its wrapper and
+    is then a fragility, not a leak.
 
 "DEBUG [P2-Python] !!!: <class>, held by: ..." (phase 2):
     The hint names the holder. Typical causes:
@@ -110,7 +126,7 @@ import types
 import weakref
 
 from qgis.PyQt import sip
-from qgis.PyQt.QtCore import QEvent, QObject, QTimer
+from qgis.PyQt.QtCore import QChildEvent, QEvent, QObject, QTimer
 from qgis.PyQt.QtWidgets import QApplication
 
 # Module prefix of the plugin (folder name = package name), e.g. "Tachy2GIS_arch."
@@ -411,9 +427,15 @@ class _OriginTracker(QObject):
                             # authoritative liveness source, see class docstring
                             watched.destroyed.connect(self._mark_parent_dead)
                     if parent_address in self.parents:
-                        self.records[sip.unwrapinstance(event.child())] = (parent_address, origin)
+                        # sip.cast: under heavy event traffic sip can hand out a
+                        # STALE wrapper cached for a previous event at the same
+                        # address (e.g. typed QCloseEvent) which lacks .child();
+                        # casting by address gets the correctly typed view
+                        child = sip.cast(event, QChildEvent).child()
+                        self.records[sip.unwrapinstance(child)] = (parent_address, origin)
             elif event_type == QEvent.ChildRemoved:
-                self.records.pop(sip.unwrapinstance(event.child()), None)
+                child = sip.cast(event, QChildEvent).child()
+                self.records.pop(sip.unwrapinstance(child), None)
         except Exception:
             traceback.print_exc()
         return False  # never consume the event
@@ -594,11 +616,72 @@ def _schedule_tracked_qobject_report(tracker):
     QTimer.singleShot(0, guarded_report)
 
 
+def _check_qgis_anchors(known_ids):
+    """Phase 1b: Qt-side sweep of the long-lived anchors.
+
+    Phase 1 only sees objects whose Python wrapper is still in
+    gc.get_objects(), and phase 3 only knows records of the CURRENT session -
+    an orphan from an earlier plugin generation escapes both. This sweep asks
+    Qt directly, regardless of Python references or creation time:
+
+     - findChildren() on the anchors plugin code demonstrably parents QObjects
+       to (main window: docks/toolbars, map canvas: shortcuts/map tools) plus
+       the cheap future-proofing anchors (project instance, layer tree view)
+     - the canvas SCENE separately: markers/rubber bands are QGraphicsItems,
+       not QObjects, so findChildren() cannot see them
+     - the top-level widget list for parentless windows (help window, dialogs)
+
+    Limitations: foreign-class orphans (QShortcut, ...) carry no namespace
+    marker and stay invisible here (phase 3 covers them within their session);
+    stale signal connections have no child relationship at all (phase 2 /
+    SignalTracker territory). known_ids suppresses phase 1 duplicates.
+    """
+    from qgis.core import QgsProject
+    from qgis.utils import iface
+
+    candidates = []
+    anchors = (
+        iface.mainWindow(),
+        iface.mapCanvas(),
+        QgsProject.instance(),
+        iface.layerTreeView(),
+    )
+    for anchor in anchors:
+        anchor_label = _fullname(anchor)
+        for child in anchor.findChildren(QObject):
+            candidates.append((child, anchor_label))
+    for item in iface.mapCanvas().scene().items():
+        candidates.append((item, "mapCanvas().scene() (QGraphicsItem)"))
+    for widget in QApplication.topLevelWidgets():
+        candidates.append((widget, "top-level (kein Parent)"))
+
+    found = False
+    for obj, anchor_label in candidates:
+        if id(obj) in known_ids:
+            continue  # phase 1 reports this one already
+        try:
+            name = _fullname(obj)
+        except Exception:
+            continue
+        if not name.startswith(_NAMESPACE_PREFIX) or sip.isdeleted(obj):
+            continue
+        found = True
+        print(
+            f"DEBUG [P1b-Anchor] !!! {name} hängt noch an {anchor_label} — "
+            f"für Phase 1 unsichtbarer Waise (evtl. aus früherer Session), "
+            f"deleteLater()/removeItem() beim Besitzer ergänzen."
+        )
+    if not found:
+        print("DEBUG [P1b-Anchor] all clear — keine verwaisten Plugin-Objekte an den QGIS-Ankern.")
+
+
 def check_for_leaked_objects():
-    """Three phase leak detector: call on plugin unload (see module docstring).
+    """Four phase leak detector: call on plugin unload (see module docstring).
 
     Phase 1 (immediate, this call): QObjects from the plugin namespace
     (_NAMESPACE_PREFIX) whose C++ object is still alive.
+    Phase 1b (immediate, after the phase 1 report, see _check_qgis_anchors):
+    Qt-side anchor sweep for orphans phase 1 cannot see.
     Phase 2 (deferred, see _schedule_python_leak_report): pure Python
     instances that survive the module teardown.
     Phase 3 (deferred, see _schedule_tracked_qobject_report): foreign class
@@ -723,6 +806,7 @@ def check_for_leaked_objects():
 
     if not roots_of_leaked:
         print("DEBUG [P1-QObject] all clear — no leaked QObjects, all plugin instances were properly cleaned up.")
+        _check_qgis_anchors(known_ids=set(leaked))
         return
 
     # report only the top level of registered ancestors
@@ -739,6 +823,8 @@ def check_for_leaked_objects():
             f"Call deleteLater() or set a parent! "
             f"It has {count} leaked descendants."
         )
+
+        _check_qgis_anchors(known_ids=set(leaked))
 
 
 def check_for_surviving_instances(*instances, context: str = ""):
