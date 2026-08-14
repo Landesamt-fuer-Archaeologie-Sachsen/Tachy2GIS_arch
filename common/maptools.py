@@ -1,7 +1,11 @@
+import logging
+
 from qgis.PyQt.QtCore import pyqtSignal, Qt
 from qgis.PyQt.QtGui import QCursor
 from qgis.core import QgsVectorLayer, QgsFeature
 from qgis.gui import QgsMapToolIdentify
+
+LOGGER = logging.getLogger(__name__)
 
 
 class IdentifyGeometry(QgsMapToolIdentify):
@@ -17,8 +21,8 @@ class IdentifyGeometry(QgsMapToolIdentify):
         try:
             results = self.identify(mouseEvent.x(), mouseEvent.y(), self.LayerSelection, self.layerType)
         except Exception as e:
-            print("PICKLAYER EXCEPTION: ", e)
+            LOGGER.error("IdentifyGeometry: identify failed: %s", e)
             results = []
         if len(results) > 0:
-            print(results[0].mFeature.attributes())
+            LOGGER.debug("IdentifyGeometry picked: %s", results[0].mFeature.attributes())
             self.geomIdentified.emit(results[0].mLayer, QgsFeature(results[0].mFeature))
