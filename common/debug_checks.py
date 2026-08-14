@@ -105,12 +105,22 @@ Reacting to messages:
     it.
     "kollabiert: N Objekte hängen unter <plugin class>": those die with
     that phase 1 leak, fix the phase 1 root first, then re-run.
-    KNOWN NOISE: lines whose creation site merely TRIGGERED QGIS-side
-    construction (message log panel building itself during a logMessage
-    call, QWindow instances from addDockWidget, legend nodes from layer
-    refreshes) describe objects owned by QGIS: the Python stack cannot
-    see the C++ frames in between, so plugin code gets the blame. Judge
-    by whether the named line actually CONSTRUCTS the reported class.
+
+    IMPORTANT - check against QGIS internals BEFORE fixing anything:
+    phase 3 blames the plugin line that was on the Python stack when the
+    object appeared. The stack cannot see C++ frames, so objects QGIS
+    builds FOR ITSELF during a plugin call carry a plugin line too
+    (message log panel constructing itself during a logMessage call,
+    QWindow handles from addDockWidget, legend nodes from layer
+    refreshes, gesture manager entries). Three questions separate a
+    finding from noise:
+     1. Does the named line CONSTRUCT the reported class (finding), or
+        does it only call QGIS API (noise)?
+     2. Does the count grow with repeated use across reload cycles?
+        Leaks accumulate; noise stays constant or vanishes.
+     3. Is the parent a QGIS-owned structure (layer tree model, log
+        panel, window tree, gesture manager)?
+    Only "constructs it" or "grows" justifies a fix.
 
 These tools make no claim to completeness: they are tuned for a low
 false positive rate, not for exhaustive detection. An empty report means
@@ -582,6 +592,13 @@ def _schedule_tracked_qobject_report(tracker):
             entry[0] += 1
             entry[1] += descendants.get(child_address, 0)
 
+        if grouped:
+            print(
+                "DEBUG [P3-Origin] HINWEIS: Zeilen erst gegen QGIS-Interna prüfen, bevor sie als Leck "
+                "gelten — konstruiert die genannte Zeile die Klasse selbst, oder hat nur ein QGIS-Aufruf "
+                "sie ausgelöst? Wächst die Zahl über mehrere Zyklen? Prüffragen: Docstring in "
+                "common/debug_checks.py."
+            )
         for (child_name, parent_name, origin), (count, held) in sorted(grouped.items()):
             line = f"DEBUG [P3-Origin] !!! {child_name}"
             if count > 1:
