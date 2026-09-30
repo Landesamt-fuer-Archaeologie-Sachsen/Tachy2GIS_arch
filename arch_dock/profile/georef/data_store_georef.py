@@ -8,6 +8,7 @@
 # @date 2020-11-09
 
 from ..publisher import Publisher
+from ....common.utils import null_to_text
 
 
 class DataStoreGeoref:
@@ -77,7 +78,7 @@ class DataStoreGeoref:
                 aarArray.append(
                     {
                         "obj_uuid": pointObj[8],
-                        "ptnr": str(pointObj[7]),
+                        "ptnr": null_to_text(pointObj[7]),
                         "x": pointObj[0],
                         "y": pointObj[1],
                         "z": pointObj[2],
@@ -111,7 +112,7 @@ class DataStoreGeoref:
                 aarArray.append(
                     {
                         "obj_uuid": pointObj[8],
-                        "ptnr": str(pointObj[7]),
+                        "ptnr": null_to_text(pointObj[7]),
                         "x": pointObj[0],
                         "y": pointObj[1],
                         "z": pointObj[2],
@@ -145,7 +146,7 @@ class DataStoreGeoref:
                 aarArray.append(
                     {
                         "obj_uuid": pointObj[8],
-                        "ptnr": str(pointObj[7]),
+                        "ptnr": null_to_text(pointObj[7]),
                         "x": pointObj[0],
                         "y": pointObj[1],
                         "z": pointObj[2],

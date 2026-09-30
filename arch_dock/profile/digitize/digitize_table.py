@@ -9,6 +9,7 @@ from qgis.core import QgsApplication
 
 from ..publisher import Publisher
 from ....icons import ICON_PATHS
+from ....common.utils import null_to_text
 
 LOGGER = logging.getLogger(__name__)
 
@@ -105,7 +106,7 @@ class DigitizeTable(QTableWidget):
 
         # ID
         if "fid" in dataObj:
-            idItem = QTableWidgetItem(str(dataObj["fid"]))
+            idItem = QTableWidgetItem(null_to_text(dataObj["fid"]))
         else:
             idItem = QTableWidgetItem("NULL")
 
@@ -113,7 +114,7 @@ class DigitizeTable(QTableWidget):
         self.setItem(rowPosition, 1, idItem)
         # Objekttyp
         if "obj_typ" in dataObj:
-            typeItem = QTableWidgetItem(str(dataObj["obj_typ"]))
+            typeItem = QTableWidgetItem(null_to_text(dataObj["obj_typ"]))
         else:
             typeItem = QTableWidgetItem("NULL")
 
@@ -122,7 +123,7 @@ class DigitizeTable(QTableWidget):
         tableHeader.setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
         # Objektart
         if "obj_art" in dataObj:
-            artItem = QTableWidgetItem(str(dataObj["obj_art"]))
+            artItem = QTableWidgetItem(null_to_text(dataObj["obj_art"]))
         else:
             artItem = QTableWidgetItem("NULL")
 
@@ -131,7 +132,7 @@ class DigitizeTable(QTableWidget):
         tableHeader.setSectionResizeMode(3, QHeaderView.ResizeMode.Stretch)
         # Befundnr.
         if "bef_nr" in dataObj:
-            befItem = QTableWidgetItem(str(dataObj["bef_nr"]))
+            befItem = QTableWidgetItem(null_to_text(dataObj["bef_nr"]))
         else:
             befItem = QTableWidgetItem("NULL")
 
@@ -140,7 +141,7 @@ class DigitizeTable(QTableWidget):
         tableHeader.setSectionResizeMode(4, QHeaderView.ResizeMode.Stretch)
         # Probennr.
         if "probe_nr" in dataObj:
-            probItem = QTableWidgetItem(str(dataObj["probe_nr"]))
+            probItem = QTableWidgetItem(null_to_text(dataObj["probe_nr"]))
         else:
             probItem = QTableWidgetItem("NULL")
 
@@ -149,7 +150,7 @@ class DigitizeTable(QTableWidget):
         tableHeader.setSectionResizeMode(5, QHeaderView.ResizeMode.Stretch)
         # Fundnr..
         if "fund_nr" in dataObj:
-            fundItem = QTableWidgetItem(str(dataObj["fund_nr"]))
+            fundItem = QTableWidgetItem(null_to_text(dataObj["fund_nr"]))
         else:
             fundItem = QTableWidgetItem("NULL")
 
@@ -158,7 +159,7 @@ class DigitizeTable(QTableWidget):
         tableHeader.setSectionResizeMode(6, QHeaderView.ResizeMode.Stretch)
         # Bemerkung
         if "bemerkung" in dataObj:
-            bemerkungItem = QTableWidgetItem(str(dataObj["bemerkung"]))
+            bemerkungItem = QTableWidgetItem(null_to_text(dataObj["bemerkung"]))
         else:
             bemerkungItem = QTableWidgetItem("NULL")
 
@@ -168,7 +169,7 @@ class DigitizeTable(QTableWidget):
 
         # Layer
         if "layer" in dataObj:
-            layerItem = QTableWidgetItem(str(dataObj["layer"]))
+            layerItem = QTableWidgetItem(null_to_text(dataObj["layer"]))
         else:
             layerItem = QTableWidgetItem("NULL")
 
@@ -229,24 +230,24 @@ class DigitizeTable(QTableWidget):
 
                     if head == "ID" and "fid" in dataObj:
                         LOGGER.debug(f"dataObj: {dataObj}")
-                        self.item(i, j).setText(str(dataObj["fid"]))
+                        self.item(i, j).setText(null_to_text(dataObj["fid"]))
 
                     if head == "Objekttyp" and "obj_typ" in dataObj:
-                        self.item(i, j).setText(str(dataObj["obj_typ"]))
+                        self.item(i, j).setText(null_to_text(dataObj["obj_typ"]))
 
                     if head == "Objektart" and "obj_art" in dataObj:
-                        self.item(i, j).setText(str(dataObj["obj_art"]))
+                        self.item(i, j).setText(null_to_text(dataObj["obj_art"]))
 
                     if head == "Befundnr." and "bef_nr" in dataObj:
-                        self.item(i, j).setText(str(dataObj["bef_nr"]))
+                        self.item(i, j).setText(null_to_text(dataObj["bef_nr"]))
 
                     if head == "Probennr." and "probe_nr" in dataObj:
-                        self.item(i, j).setText(str(dataObj["probe_nr"]))
+                        self.item(i, j).setText(null_to_text(dataObj["probe_nr"]))
 
                     if head == "Fundnr." and "fund_nr" in dataObj:
-                        self.item(i, j).setText(str(dataObj["fund_nr"]))
+                        self.item(i, j).setText(null_to_text(dataObj["fund_nr"]))
 
                     if head == "Bemerkung" and "bemerkung" in dataObj:
-                        self.item(i, j).setText(str(dataObj["bemerkung"]))
+                        self.item(i, j).setText(null_to_text(dataObj["bemerkung"]))
 
         self.show()

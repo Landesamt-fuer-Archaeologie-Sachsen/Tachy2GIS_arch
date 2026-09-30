@@ -9,10 +9,11 @@ from ....common.utils import ArchProjectConfig
 class MapToolMixin:
     def getCustomProjectVariable(self, variableName):
         project = QgsProject.instance()
-        if str(QgsExpressionContextUtils.projectScope(project).variable(variableName)) == "NULL":
-            return str("")
-        else:
-            return QgsExpressionContextUtils.projectScope(project).variable(variableName)
+        variable = QgsExpressionContextUtils.projectScope(project).variable(variableName)
+        # NULL is a falsy QVariant on PyQt5 and None on PyQt6; str() would differ ("NULL" vs "None")
+        if not variable:
+            return ""
+        return variable
 
     def setPlaceholders(self, feature, prof_nr):
         # uuid to identify feature

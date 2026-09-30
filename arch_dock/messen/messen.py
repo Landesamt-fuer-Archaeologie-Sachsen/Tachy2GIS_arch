@@ -35,7 +35,9 @@ from qgis.core import (
     QgsVectorLayer,
     QgsVectorLayerUtils,
     QgsWkbTypes,
-    QgsApplication, NULL)
+    QgsApplication,
+    NULL,
+)
 from qgis.gui import QgsMapTool, QgsSnapIndicator, QgsRubberBand, QgsVertexMarker
 from qgis.utils import iface
 
@@ -288,7 +290,7 @@ class MeasurementTab(BASE, WIDGET):
         return None
 
     def adjustElementsAtStart(self):
-        self.cbFixTxtReference.setCheckState(0)
+        self.cbFixTxtReference.setCheckState(Qt.CheckState.Unchecked)
 
         self.cmbLayerType.setCurrentIndex(0)
 
@@ -342,7 +344,7 @@ class MeasurementTab(BASE, WIDGET):
         referenceNumber = self.txtReference.text()
         if referenceNumber == "":
             iface.messageBar().pushMessage(PLUGIN_NAME, "Bitte eine Maßnahmennummer angeben")
-            self.cbFixTxtReference.setCheckState(0)
+            self.cbFixTxtReference.setCheckState(Qt.CheckState.Unchecked)
             return
 
         self.createObjectsForTachy2GisWatch()

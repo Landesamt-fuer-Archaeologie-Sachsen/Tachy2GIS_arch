@@ -2,7 +2,6 @@ import logging
 import re
 
 from qgis.core import QgsFeatureRequest, QgsVectorLayer, NULL
-from qgis.PyQt.QtCore import QVariant
 
 from ...common.utils import setCustomProjectVariable
 from ...common.layers import findLayerInProject

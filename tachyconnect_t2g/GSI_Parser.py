@@ -298,7 +298,7 @@ class GSIPing(QThread):
     def __init__(self, port_name, timeout=2000):
         self.ser = QSerialPort()
         self.ser.setPortName(port_name)
-        self.ser.open(QSerialPort.ReadWrite)
+        self.ser.open(QSerialPort.OpenModeFlag.ReadWrite)
         self.ser.write(BEEP)
         self.timer = QTimer()
         self.timer.setInterval(timeout)

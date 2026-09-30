@@ -22,6 +22,7 @@ from qgis.PyQt.QtGui import QPainter, QIcon
 
 from qgis.PyQt.QtWidgets import QApplication, QDoubleSpinBox, QGridLayout, QLabel, QProgressBar, QTextBrowser, QWidget
 from qgis.core import (
+    NULL,
     QgsDefaultValue,
     QgsExpressionContextUtils,
     QgsFeature,
@@ -382,6 +383,18 @@ def any2bool(v):
         elif v.lower() in ("no", "n", "nein", "false", "f", "falsch", "off", "aus", "0"):
             return False
     raise ValueError(f"invalid truth value: {v} (type {type(v)})")
+
+
+def null_to_text(value, null_text="NULL"):
+    """str(value) with NULL rendered as null_text on PyQt5 and PyQt6 alike.
+
+    str() of a NULL attribute gives "NULL" on PyQt5 (null QVariant) but "None"
+    on PyQt6, where qgis.core.NULL is None. Use this wherever a value that may
+    be NULL is turned into display text.
+    """
+    if value is None or value == NULL:
+        return null_text
+    return str(value)
 
 
 def maxValue(layer, fieldname):

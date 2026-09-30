@@ -15,6 +15,16 @@ LOGGER = logging.getLogger(__name__)
 FORMS_DIR = os.path.join(os.path.dirname(__file__), "forms")
 
 
+def _check_state_text(checkbox) -> str:
+    """Checkbox state as stored in config.ini: "2" checked, "0" unchecked.
+
+    These are the integer values of Qt.CheckState that str(checkState()) produced
+    on PyQt5 and that all existing project configurations contain. PyQt6 would
+    render the enum name instead, so the values are written explicitly.
+    """
+    return "2" if checkbox.isChecked() else "0"
+
+
 def _about_html(version_line, landingpage):
     return (
         f"{version_line}"
@@ -152,20 +162,20 @@ class DlgSettings(QDialog):
         self.__config.updateValue("Profilentzerrung", "feldNFEP", self.ui.txtFeldNFEP.text())
         self.__config.updateValue("Profilentzerrung", "attFEP", self.ui.txtAttFEP.text())
         # mouseInfo
-        self.__config.updateValue("MouseInfo", "anzeigen", str(self.ui.chbMInfo_1.checkState()))
-        self.__config.updateValue("MouseInfo", "beiBeginn", str(self.ui.chbMInfo_2.checkState()))
-        self.__config.updateValue("MouseInfo", "immer", str(self.ui.chbMInfo_3.checkState()))
-        self.__config.updateValue("MouseInfo", "geometrieart", str(self.ui.chbMInfo_4.checkState()))
-        self.__config.updateValue("MouseInfo", "objekttyp", str(self.ui.chbMInfo_5.checkState()))
-        self.__config.updateValue("MouseInfo", "objektart", str(self.ui.chbMInfo_6.checkState()))
-        self.__config.updateValue("MouseInfo", "schnitt", str(self.ui.chbMInfo_7.checkState()))
-        self.__config.updateValue("MouseInfo", "planum", str(self.ui.chbMInfo_8.checkState()))
-        self.__config.updateValue("MouseInfo", "befund", str(self.ui.chbMInfo_9.checkState()))
-        self.__config.updateValue("MouseInfo", "fund", str(self.ui.chbMInfo_10.checkState()))
-        self.__config.updateValue("MouseInfo", "profil", str(self.ui.chbMInfo_11.checkState()))
-        self.__config.updateValue("MouseInfo", "probe", str(self.ui.chbMInfo_12.checkState()))
-        self.__config.updateValue("MouseInfo", "punktNr", str(self.ui.chbMInfo_13.checkState()))
-        self.__config.updateValue("MouseInfo", "koordinaten", str(self.ui.chbMInfo_14.checkState()))
+        self.__config.updateValue("MouseInfo", "anzeigen", _check_state_text(self.ui.chbMInfo_1))
+        self.__config.updateValue("MouseInfo", "beiBeginn", _check_state_text(self.ui.chbMInfo_2))
+        self.__config.updateValue("MouseInfo", "immer", _check_state_text(self.ui.chbMInfo_3))
+        self.__config.updateValue("MouseInfo", "geometrieart", _check_state_text(self.ui.chbMInfo_4))
+        self.__config.updateValue("MouseInfo", "objekttyp", _check_state_text(self.ui.chbMInfo_5))
+        self.__config.updateValue("MouseInfo", "objektart", _check_state_text(self.ui.chbMInfo_6))
+        self.__config.updateValue("MouseInfo", "schnitt", _check_state_text(self.ui.chbMInfo_7))
+        self.__config.updateValue("MouseInfo", "planum", _check_state_text(self.ui.chbMInfo_8))
+        self.__config.updateValue("MouseInfo", "befund", _check_state_text(self.ui.chbMInfo_9))
+        self.__config.updateValue("MouseInfo", "fund", _check_state_text(self.ui.chbMInfo_10))
+        self.__config.updateValue("MouseInfo", "profil", _check_state_text(self.ui.chbMInfo_11))
+        self.__config.updateValue("MouseInfo", "probe", _check_state_text(self.ui.chbMInfo_12))
+        self.__config.updateValue("MouseInfo", "punktNr", _check_state_text(self.ui.chbMInfo_13))
+        self.__config.updateValue("MouseInfo", "koordinaten", _check_state_text(self.ui.chbMInfo_14))
 
         self.ui.close()
         self.__config.saveFile()

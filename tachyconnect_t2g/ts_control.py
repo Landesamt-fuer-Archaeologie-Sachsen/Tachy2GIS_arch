@@ -250,7 +250,7 @@ class Dispatcher(QThread):
         """Open port briefly to send BMM_BeepAlarm, then close again so set_serial_port can re-open it cleanly."""
         beep_serial = QSerialPort()
         beep_serial.setPortName(port_name)
-        if beep_serial.open(QSerialPort.ReadWrite):
+        if beep_serial.open(QSerialPort.OpenModeFlag.ReadWrite):
             message = f"{GeoCOMCommand.MESSAGE_PREFIX},{str(gc_constants.BMM_BeepNormal)},1:{gc_constants.CRLF}"
             beep_serial.writeData(message.encode("ascii"))
             beep_serial.flush()
@@ -276,14 +276,14 @@ class Dispatcher(QThread):
         if self.serial.isOpen():
             self.serial.close()
         self.serial.setPortName(port_name)
-        self.serial.open(QSerialPort.ReadWrite)
+        self.serial.open(QSerialPort.OpenModeFlag.ReadWrite)
         for queue in self.queues.values():
             self.log.emit(f"Connecting {str(queue)} to {self.serial.portName()}")
             queue.set_serial(self.serial)
         self.start()
 
     def poll(self):
-        if self.serial.error() == QSerialPort.ResourceError:  # device is unexpectedly removed from the system
+        if self.serial.error() == QSerialPort.SerialPortError.ResourceError:  # device is unexpectedly removed from the system
             self.serial.close()
             self.serial_disconnected.emit(f"Connection {self.serial.portName} failed", self.serial.portName())
         while self.serial.canReadLine():
@@ -321,7 +321,7 @@ class Ping(QThread):
         self.timeout = timeout
         self.serial = QSerialPort()
         self.serial.setPortName(port_name)
-        self.is_open = self.serial.open(QSerialPort.ReadWrite)
+        self.is_open = self.serial.open(QSerialPort.OpenModeFlag.ReadWrite)
         if not self.is_open:
             return
         message = f"{GeoCOMCommand.MESSAGE_PREFIX},{str(gc_constants.BMM_BeepNormal)},1:{gc_constants.CRLF}"

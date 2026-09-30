@@ -123,7 +123,7 @@ class GeoCOMMessageQueue:
 def connect_beep(port_name):
     serial = QSerialPort()
     serial.setPortName(port_name)
-    serial.open(QSerialPort.WriteOnly)
+    serial.open(QSerialPort.OpenModeFlag.WriteOnly)
     message = "%R1Q," + str(gc.BMM_BeepAlarm) + ":" + gc.CRLF
     serial.writeData(message.encode("ascii"))
     serial.close()
