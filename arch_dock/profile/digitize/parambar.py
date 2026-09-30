@@ -120,7 +120,7 @@ class Parambar(QWidget):
         self.coordLineEdit.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.coordLineEdit.setReadOnly(True)
         self.coordLineEditFm = self.coordLineEdit.fontMetrics()
-        width_text = self.coordLineEditFm.width("xxxxxx.xxx,xxxxxxx.xxx,xxxx.xxx")
+        width_text = self.coordLineEditFm.horizontalAdvance("xxxxxx.xxx,xxxxxxx.xxx,xxxx.xxx")
         self.coordLineEdit.setMinimumWidth(width_text + 30)
         self.toolbarCoord.addWidget(self.coordLineEdit)
 
