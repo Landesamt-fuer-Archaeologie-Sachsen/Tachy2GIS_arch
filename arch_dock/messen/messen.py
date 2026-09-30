@@ -35,8 +35,7 @@ from qgis.core import (
     QgsVectorLayer,
     QgsVectorLayerUtils,
     QgsWkbTypes,
-    QgsApplication,
-)
+    QgsApplication, NULL)
 from qgis.gui import QgsMapTool, QgsSnapIndicator, QgsRubberBand, QgsVertexMarker
 from qgis.utils import iface
 
@@ -123,10 +122,10 @@ class MeasurementTab(BASE, WIDGET):
 
     def createKeys(self):
 
-        self.createKey(QKeySequence(Qt.Key_Return), iface.mapCanvas(), self.saveGeometry)
-        self.createKey(QKeySequence(Qt.Key_Return), self, self.saveGeometry)
-        self.createKey(QKeySequence(Qt.Key_Enter), iface.mapCanvas(), self.saveGeometry)
-        self.createKey(QKeySequence(Qt.Key_Enter), self, self.saveGeometry)
+        self.createKey(QKeySequence(Qt.Key.Key_Return), iface.mapCanvas(), self.saveGeometry)
+        self.createKey(QKeySequence(Qt.Key.Key_Return), self, self.saveGeometry)
+        self.createKey(QKeySequence(Qt.Key.Key_Enter), iface.mapCanvas(), self.saveGeometry)
+        self.createKey(QKeySequence(Qt.Key.Key_Enter), self, self.saveGeometry)
 
         self.createKey(QKeySequence("Shift+L"), iface.mapCanvas(), self.deleteCurrentDigitizing)
         self.createKey(QKeySequence("Shift+L"), self, self.deleteCurrentDigitizing)
@@ -253,14 +252,14 @@ class MeasurementTab(BASE, WIDGET):
             self.cmbLayerType.addItem(editingTypeInfo["icon"], editingTypeInfo["description"], editingTypeValue)
 
     def createCoordsTable(self):
-        self.coordsTableWidget.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.coordsTableWidget.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.coordsTableWidget.horizontalHeader().setStretchLastSection(True)
-        self.coordsTableWidget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.coordsTableWidget.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
 
     def createMeasurementPointsTable(self):
-        self.measurementsTableWidget.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.measurementsTableWidget.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.measurementsTableWidget.horizontalHeader().setStretchLastSection(True)
-        self.measurementsTableWidget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.measurementsTableWidget.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
 
     def setDigitizeAction(self, e):
         try:
@@ -311,7 +310,7 @@ class MeasurementTab(BASE, WIDGET):
 
     def fillTxtReference(self):
         referenceNumber = getCustomProjectVariable("aktcode")
-        if referenceNumber != QVariant():
+        if referenceNumber != NULL:
             self.txtReference.setText(referenceNumber)
 
     def fillCmbPolygonDigitizingMode(self):
@@ -803,7 +802,7 @@ class MeasurementTab(BASE, WIDGET):
         delVertex.triggered.connect(self.deleteVertexFromCoordsTable)
         addVertex = coordsTableMenu.addAction(QIcon(ICON_PATHS["add_vertex"]), " Vertex hinzufügen")
         addVertex.triggered.connect(self.setInsertAtIndex)
-        coordsTableMenu.exec_(QCursor.pos())
+        coordsTableMenu.exec(QCursor.pos())
 
     def deleteVertexFromCoordsTable(self):
         self.verticesCount -= 1
@@ -969,11 +968,11 @@ class MeasurementTab(BASE, WIDGET):
         for point in self.vertices:
             if point[2] == 0:
                 msgBox = QMessageBox()
-                msgBox.setIcon(QMessageBox.Information)
+                msgBox.setIcon(QMessageBox.Icon.Information)
                 msgBox.setText("Geometrie enthält Nullhöhen. Fortfahren?")
-                msgBox.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+                msgBox.setStandardButtons(QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel)
                 returnValue = msgBox.exec()
-                if returnValue != QMessageBox.Ok:
+                if returnValue != QMessageBox.StandardButton.Ok:
                     return
                 break
 
@@ -1091,10 +1090,10 @@ class MeasurementTab(BASE, WIDGET):
             QApplication.beep()
 
     def eventFilter(self, obj, event) -> bool:
-        if isinstance(obj, QComboBox) and event.type() == QEvent.Wheel:
+        if isinstance(obj, QComboBox) and event.type() == QEvent.Type.Wheel:
             event.ignore()
             return True
-        if event.type() == QEvent.Close:
+        if event.type() == QEvent.Type.Close:
             self._commitLayerEditing()
         return False
 
@@ -1238,7 +1237,7 @@ class MarkersAndRubberBand(QgsRubberBand):
         self.setWidth(PENWIDTH)
         self.setColor(COLOR)
         self.setFillColor(RUBBERBANDCOLOR)
-        self.setLineStyle(Qt.DashLine)
+        self.setLineStyle(Qt.PenStyle.DashLine)
         self.points = []
 
         self.markerList = []

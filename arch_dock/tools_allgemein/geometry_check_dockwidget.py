@@ -60,8 +60,8 @@ class NumericTableWidgetItem(QTableWidgetItem):
 class FixupDoubleValidator(QDoubleValidator):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setLocale(QLocale(QLocale.C))
-        self.setNotation(QDoubleValidator.StandardNotation)
+        self.setLocale(QLocale(QLocale.Language.C))
+        self.setNotation(QDoubleValidator.Notation.StandardNotation)
 
     def validate(self, inputStr, pos):
         state, text, pos = super().validate(inputStr.replace(",", "."), pos)
@@ -75,7 +75,7 @@ class NumericDelegate(QStyledItemDelegate):
         return editor
 
     def setEditorData(self, editor, index):
-        value = index.data(Qt.EditRole)
+        value = index.data(Qt.ItemDataRole.EditRole)
         if value is not None:
             editor.setText(str(value))
 
@@ -83,9 +83,9 @@ class NumericDelegate(QStyledItemDelegate):
         text = editor.text().replace(",", ".")
         try:
             value = float(text)
-            model.setData(index, value, Qt.EditRole)
+            model.setData(index, value, Qt.ItemDataRole.EditRole)
         except ValueError:
-            previousValue = index.data(Qt.EditRole)
+            previousValue = index.data(Qt.ItemDataRole.EditRole)
             editor.setText(str(previousValue))
 
     def displayText(self, value, locale):
@@ -121,7 +121,7 @@ class GeometryCheckDockWidget(QDockWidget, FORM_CLASS):
         super().__init__(parent)
         self.setupUi(self)
         self.setAutoFillBackground(True)
-        iface.addDockWidget(Qt.TopDockWidgetArea, self)
+        iface.addDockWidget(Qt.DockWidgetArea.TopDockWidgetArea, self)
 
         self.layer = None
         self.templayer = None
@@ -195,7 +195,7 @@ class GeometryCheckDockWidget(QDockWidget, FORM_CLASS):
         return templayer
 
     def refresh(self):
-        with OverrideCursor(Qt.WaitCursor):
+        with OverrideCursor(Qt.CursorShape.WaitCursor):
             delLayer(self.tempLayerName)
             self.templayer = self.addNewTempLayer(self.layer.crs())
             self.koordList = []
@@ -227,7 +227,7 @@ class GeometryCheckDockWidget(QDockWidget, FORM_CLASS):
                 self.tableWidget.setItem(i, self.columnY, NumericTableWidgetItem(str(vertexCoordinate.y)))
                 self.tableWidget.setItem(i, self.columnZ, NumericTableWidgetItem(str(vertexCoordinate.z)))
                 itemId = NumericTableWidgetItem(str(i))
-                itemId.setFlags(itemId.flags() & ~Qt.ItemIsEditable)
+                itemId.setFlags(itemId.flags() & ~Qt.ItemFlag.ItemIsEditable)
                 self.tableWidget.setItem(i, self.columnTempId, itemId)
 
                 feature = QgsFeature()
@@ -243,7 +243,7 @@ class GeometryCheckDockWidget(QDockWidget, FORM_CLASS):
             self.templayer.updateExtents()
 
     def vertexEdit(self, item):
-        newValue = item.data(Qt.EditRole)
+        newValue = item.data(Qt.ItemDataRole.EditRole)
         if not isNumber(newValue):
             return
 
@@ -262,13 +262,13 @@ class GeometryCheckDockWidget(QDockWidget, FORM_CLASS):
         self.tableWidget.blockSignals(True)
 
         if col == self.columnX:
-            self.koordList[koordId].x = item.data(Qt.EditRole)
+            self.koordList[koordId].x = item.data(Qt.ItemDataRole.EditRole)
             self._markCellAsChanged(item, koordId)
         elif col == self.columnY:
-            self.koordList[koordId].y = item.data(Qt.EditRole)
+            self.koordList[koordId].y = item.data(Qt.ItemDataRole.EditRole)
             self._markCellAsChanged(item, koordId)
         elif col == self.columnZ:
-            self.koordList[koordId].z = item.data(Qt.EditRole)
+            self.koordList[koordId].z = item.data(Qt.ItemDataRole.EditRole)
             self._markCellAsChanged(item, koordId)
 
         self.tableWidget.blockSignals(False)

@@ -99,7 +99,7 @@ class Georef:
                 self.dockwidget,
                 "Invalide Einstellung",
                 "Mindestens eine Transformationsmethode muss ausgewählt sein!",
-                QMessageBox.Abort,
+                QMessageBox.StandardButton.Abort,
             )
             return
 
@@ -109,7 +109,7 @@ class Georef:
                 self.dockwidget,
                 "Invalide Einstellung",
                 "Bitte ein Profilfoto auswählen!",
-                QMessageBox.Abort,
+                QMessageBox.StandardButton.Abort,
             )
             return
 
@@ -123,7 +123,7 @@ class Georef:
                 self.dockwidget,
                 "Invalide Einstellung",
                 f"Der Ordner '{imageFolder}' ist nicht beschreibbar!",
-                QMessageBox.Abort,
+                QMessageBox.StandardButton.Abort,
             )
             return
 
@@ -144,7 +144,7 @@ class Georef:
                 self.dockwidget,
                 "Invalide Einstellung",
                 f"Mindestens 4 Entzerrpunkte für Profil {self.ref_data_pair[0]['profileNumber']} erforderlich!",
-                QMessageBox.Abort,
+                QMessageBox.StandardButton.Abort,
             )
             return
 
@@ -162,7 +162,7 @@ class Georef:
                 self.dockwidget,
                 "Invalide Einstellung",
                 "Die eingestellten Profilnummern müssen verschieden sein!",
-                QMessageBox.Abort,
+                QMessageBox.StandardButton.Abort,
             )
             return
 
@@ -172,7 +172,7 @@ class Georef:
                 self.dockwidget,
                 "Invalide Einstellung",
                 "Bitte ein Profilfoto für das zweite Profil auswählen!",
-                QMessageBox.Abort,
+                QMessageBox.StandardButton.Abort,
             )
             return
 
@@ -186,7 +186,7 @@ class Georef:
                 self.dockwidget,
                 "Invalide Einstellung",
                 f"Der Ordner '{imageFolder2}' ist nicht beschreibbar!",
-                QMessageBox.Abort,
+                QMessageBox.StandardButton.Abort,
             )
             return
 
@@ -199,7 +199,7 @@ class Georef:
                 self.dockwidget,
                 "Invalide Einstellung",
                 "Die eingestellten Profile müssen in entgegengesetzten Blickrichtungen aufgenommen worden sein!",
-                QMessageBox.Abort,
+                QMessageBox.StandardButton.Abort,
             )
             return
 
@@ -209,7 +209,7 @@ class Georef:
                 self.dockwidget,
                 "Invalide Einstellung",
                 f"Mindestens 4 Entzerrpunkte für Profil {self.ref_data_pair[1]['profileNumber']} erforderlich!",
-                QMessageBox.Abort,
+                QMessageBox.StandardButton.Abort,
             )
             return
 
@@ -265,7 +265,7 @@ class Georef:
     #
     #
     def handleKreuzprofil(self, state):
-        if state == Qt.Checked:
+        if state == Qt.CheckState.Checked:
             self.show_kreuzprofil_selection(True)
         else:
             self.show_kreuzprofil_selection(False)
@@ -694,5 +694,5 @@ class Georef:
         self.infoTranssformMsgBox.setText(infoText)
 
         self.infoTranssformMsgBox.setWindowTitle("Hintergrundinformationen")
-        self.infoTranssformMsgBox.setStandardButtons(QMessageBox.Ok)
-        self.infoTranssformMsgBox.exec_()
+        self.infoTranssformMsgBox.setStandardButtons(QMessageBox.StandardButton.Ok)
+        self.infoTranssformMsgBox.exec()

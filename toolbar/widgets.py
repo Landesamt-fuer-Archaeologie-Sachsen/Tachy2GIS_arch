@@ -140,7 +140,7 @@ class DlgSettings(QDialog):
     def ok(self):
         """Werte in Configparser eintragen"""
         self.__config.updateValue(
-            "AutoSave", "enabled", "True" if self.ui.chbautoSave.checkState() == Qt.Checked else "False"
+            "AutoSave", "enabled", "True" if self.ui.chbautoSave.checkState() == Qt.CheckState.Checked else "False"
         )
         self.__config.updateValue("AutoSave", "interval_in_min", str(self.ui.spb_autoSaveTime.value()))
         self.__config.updateValue("AutoSave", "keep_last_n_backups", str(self.ui.spb_keep_last_n_backups.value()))

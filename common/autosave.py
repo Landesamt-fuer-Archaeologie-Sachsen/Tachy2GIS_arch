@@ -79,10 +79,10 @@ class AutosaveManager:
                 None,
                 "Jetzt speichern und Backup erstellen?",
                 f"Das letzte Backup ist schon {zeit} Minuten her.\nJetzt speichern und Backup erstellen?",
-                QMessageBox.Yes | QMessageBox.No,
-                QMessageBox.No,
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.No,
             )
-            if result == QMessageBox.Yes:
+            if result == QMessageBox.StandardButton.Yes:
                 project = QgsProject.instance()
                 uncommitted = []
                 for layer in project.mapLayers().values():

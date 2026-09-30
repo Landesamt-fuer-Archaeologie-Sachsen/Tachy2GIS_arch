@@ -449,7 +449,7 @@ class ProgressBar(QWidget):
         self.close = False
         self.label = QLabel(self)
         self.label.setGeometry(0, 25, 300, 25)
-        self.label.setAlignment(Qt.AlignCenter)
+        self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.show()
 
     def setValue(self, value):
@@ -469,7 +469,7 @@ class ProgressBar(QWidget):
 class HelpWindow(QWidget):
 
     def __init__(self, parent=None):
-        super(HelpWindow, self).__init__(parent, Qt.WindowStaysOnTopHint)
+        super(HelpWindow, self).__init__(parent, Qt.WindowType.WindowStaysOnTopHint)
         self.setLayout(QGridLayout())
         self.layout().setContentsMargins(0, 0, 0, 0)
         self.meldung = QTextBrowser()
@@ -607,7 +607,7 @@ def write_measurement_log(text):
 def color_shift_icon(source_icon, color):
     pixmap = source_icon.pixmap(64, 64)
     painter = QPainter(pixmap)
-    painter.setCompositionMode(QPainter.CompositionMode_SourceAtop)
+    painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceAtop)
     painter.fillRect(pixmap.rect(), color)
     painter.end()
     return QIcon(pixmap)
@@ -620,7 +620,7 @@ def merge_icons(source_icon, small_icon):
     small_pixmap = small_icon.pixmap(small, small)
 
     painter = QPainter(pixmap)
-    painter.setCompositionMode(QPainter.CompositionMode_SourceOver)
+    painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceOver)
     painter.drawPixmap(QRect(big - small, big - small, small, small), small_pixmap, small_pixmap.rect())
     painter.end()
     return QIcon(pixmap)

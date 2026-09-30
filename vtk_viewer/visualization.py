@@ -163,7 +163,7 @@ class VtkLayer:
         for feat in features:
             feat.setId(nextFeatId)
             self.source_layer.startEditing()
-            if QgsAttributeDialog(self.source_layer, feat, False).exec_():
+            if QgsAttributeDialog(self.source_layer, feat, False).exec():
                 self.source_layer.dataProvider().addFeatures([feat])
                 self.source_layer.featureAdded.emit(nextFeatId)
                 QgsMessageLog.logMessage(f"Feature added to layer {self.source_layer.name()}", PLUGIN_NAME, Qgis.Info)

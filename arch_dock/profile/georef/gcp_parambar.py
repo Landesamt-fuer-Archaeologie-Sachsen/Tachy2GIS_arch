@@ -45,8 +45,8 @@ class GcpParambar(QWidget):
         self.toolbarCoord = QToolBar("Coordinates", self)
 
         self.coordLineEdit = QLineEdit()
-        self.coordLineEdit.setAlignment(Qt.AlignCenter)
-        self.coordLineEdit.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
+        self.coordLineEdit.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.coordLineEdit.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
         self.coordLineEdit.setReadOnly(True)
         self.coordLineEditFm = self.coordLineEdit.fontMetrics()
         width_text = self.coordLineEditFm.width("xxxxxx.xxx,xxxxxxx.xxx,xxxx.xxx")
@@ -59,13 +59,13 @@ class GcpParambar(QWidget):
     def createLayout(self):
         self.paramsBarLayout = QHBoxLayout()
         self.setLayout(self.paramsBarLayout)
-        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         self.paramsBarLayout.setContentsMargins(0, 0, 0, 0)
         self.paramsBarLayout.setSpacing(0)
         self.paramsBarLayout.addWidget(self.gcpToolbar)
 
         spacer = QWidget()
-        spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        spacer.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
         self.paramsBarLayout.addWidget(spacer)
 
         self.paramsBarLayout.addWidget(self.toolbarCoord)
@@ -135,7 +135,7 @@ class GcpParambar(QWidget):
     #
     def createSplitter(self):
         vSplit = QFrame()
-        vSplit.setFrameShape(QFrame.VLine | QFrame.Sunken)
+        vSplit.setFrameShape(QFrame.Shape.VLine | QFrame.Shadow.Sunken)
 
         return vSplit
 

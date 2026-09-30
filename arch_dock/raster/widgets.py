@@ -34,7 +34,7 @@ class RasterGui:
     def _show_raster_layer_view(self):
         if self._raster_layer_view is None:
             self._raster_layer_view = RasterLayerViewDockWidget()
-            iface.addDockWidget(Qt.TopDockWidgetArea, self._raster_layer_view)
+            iface.addDockWidget(Qt.DockWidgetArea.TopDockWidgetArea, self._raster_layer_view)
         self._raster_layer_view.show()
         self._raster_layer_view.raise_()
 
@@ -76,7 +76,7 @@ class RasterLayerViewDockWidget(QDockWidget, FORM_CLASS):
         self.tableWidget.itemSelectionChanged.connect(self.status)
         self.tableWidget.cellClicked.connect(self.on_cellClicked)
         self.tableWidget.cellChanged.connect(self.on_cellChanged)
-        self.tableWidget.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.tableWidget.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.tableWidget.customContextMenuRequested.connect(self.on_customContextMenu)
         self.butSave.clicked.connect(self.saveBitmap)
         self.butSave.setIcon(QIcon(ICON_PATHS["media-floppy"]))
@@ -114,7 +114,7 @@ class RasterLayerViewDockWidget(QDockWidget, FORM_CLASS):
     def setup(self):
         self.tableWidget.setRowCount(0)
         header = self.tableWidget.horizontalHeader()
-        header.setSectionResizeMode(QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
         # header.setSectionResizeMode(0, QHeaderView.Stretch)
         i = 0
         self.tableWidget.setSortingEnabled(True)
@@ -130,9 +130,9 @@ class RasterLayerViewDockWidget(QDockWidget, FORM_CLASS):
                     chkItem = QTableWidgetItem()
                     chkItem.setText(str(layer.name()))
                     if QgsProject.instance().layerTreeRoot().findLayer(layer.id()).itemVisibilityChecked():
-                        chkItem.setCheckState(Qt.Checked)
+                        chkItem.setCheckState(Qt.CheckState.Checked)
                     else:
-                        chkItem.setCheckState(Qt.Unchecked)
+                        chkItem.setCheckState(Qt.CheckState.Unchecked)
                     self.tableWidget.setItem(i, 0, chkItem)
                     erw = os_path.splitext(str(layer.source()))[1]
                     self.tableWidget.setItem(i, 1, QTableWidgetItem(str(erw)))
@@ -162,7 +162,7 @@ class RasterLayerViewDockWidget(QDockWidget, FORM_CLASS):
             for row in range(self.tableWidget.rowCount()):
                 item = self.tableWidget.item(row, 0)
                 picturelist.append(self.tableWidget.item(row, 2).text())
-                if item.checkState() == Qt.Checked:
+                if item.checkState() == Qt.CheckState.Checked:
                     view = view + 1
             picturelist = sorted(set(picturelist), key=picturelist.index)
             selectCount = len(self.tableWidget.selectedIndexes())
@@ -191,7 +191,7 @@ class RasterLayerViewDockWidget(QDockWidget, FORM_CLASS):
         # rasterMerge = contextMenu.addAction(
         #    QtGui.QIcon(ICON_PATHS["Edit"]), " Bearbeiten")
         # rasterMerge.triggered.connect(self.rasterMerge)
-        contextMenu.exec_(QCursor.pos())
+        contextMenu.exec(QCursor.pos())
 
     def on_cellClicked(self, row, column):
         self.row = row
@@ -222,7 +222,7 @@ class RasterLayerViewDockWidget(QDockWidget, FORM_CLASS):
             item2 = self.tableWidget.item(item.row(), 4)
             id = item2.text()
             QgsProject.instance().layerTreeRoot().findLayer(id).setItemVisibilityChecked(True)
-            item1.setCheckState(Qt.Checked)
+            item1.setCheckState(Qt.CheckState.Checked)
             self.tableWidget.clearSelection()
 
     def layerVisibilityOff(self):
@@ -231,7 +231,7 @@ class RasterLayerViewDockWidget(QDockWidget, FORM_CLASS):
             item2 = self.tableWidget.item(item.row(), 4)
             id = item2.text()
             QgsProject.instance().layerTreeRoot().findLayer(id).setItemVisibilityChecked(False)
-            item1.setCheckState(Qt.Unchecked)
+            item1.setCheckState(Qt.CheckState.Unchecked)
             self.tableWidget.clearSelection()
 
     def on_checked(self):
@@ -290,7 +290,7 @@ class RasterLayerViewDockWidget(QDockWidget, FORM_CLASS):
         try:
             if item.column() == 0 or self.singleView == True:
                 id = self.tableWidget.item(item.row(), 4).text()
-                if item.checkState() == Qt.Checked:
+                if item.checkState() == Qt.CheckState.Checked:
                     QgsProject.instance().layerTreeRoot().findLayer(id).setItemVisibilityChecked(True)
                 else:
                     QgsProject.instance().layerTreeRoot().findLayer(id).setItemVisibilityChecked(False)
@@ -306,7 +306,7 @@ class RasterLayerViewDockWidget(QDockWidget, FORM_CLASS):
 
             if self.singleView == True:
                 item1 = self.tableWidget.item(item.row(), 0)
-                item1.setCheckState(Qt.Checked)
+                item1.setCheckState(Qt.CheckState.Checked)
 
         except Exception as e:
             QgsMessageLog.logMessage(str(e), PLUGIN_NAME, Qgis.Info)
@@ -319,12 +319,12 @@ class RasterLayerViewDockWidget(QDockWidget, FORM_CLASS):
                 id = self.tableWidget.item(previous.row(), 4).text()
                 QgsProject.instance().layerTreeRoot().findLayer(id).setItemVisibilityChecked(False)
                 item = self.tableWidget.item(previous.row(), 0)
-                item.setCheckState(Qt.Unchecked)
+                item.setCheckState(Qt.CheckState.Unchecked)
 
                 id = self.tableWidget.item(current.row(), 4).text()
                 QgsProject.instance().layerTreeRoot().findLayer(id).setItemVisibilityChecked(True)
                 item = self.tableWidget.item(current.row(), 0)
-                item.setCheckState(Qt.Checked)
+                item.setCheckState(Qt.CheckState.Checked)
         except Exception as e:
             QgsMessageLog.logMessage(str(e), PLUGIN_NAME, Qgis.Info)
 
@@ -425,12 +425,12 @@ class RasterLayerViewDockWidget(QDockWidget, FORM_CLASS):
             id = item2.text()
 
             if suchstr in text:
-                item.setCheckState(Qt.Checked)
+                item.setCheckState(Qt.CheckState.Checked)
                 QgsProject.instance().layerTreeRoot().findLayer(id).setItemVisibilityChecked(True)
                 self.tableWidget.showRow(row)
                 find = True
             else:
-                item.setCheckState(Qt.Unchecked)
+                item.setCheckState(Qt.CheckState.Unchecked)
                 QgsProject.instance().layerTreeRoot().findLayer(id).setItemVisibilityChecked(False)
                 self.tableWidget.hideRow(row)
 

@@ -36,7 +36,7 @@ class TransformationDialogCanvas(QgsMapCanvas):
         self.inputLayers = None
         self.sourceLayer = None
 
-        self.setCanvasColor(Qt.white)
+        self.setCanvasColor(Qt.GlobalColor.white)
 
         self.createActionPan()
         self.createActionZoomIn()
@@ -223,8 +223,8 @@ class TransformationDialogCanvas(QgsMapCanvas):
                 self.flashFeatureIds(
                     self.sourceLayer,
                     [feature.id()],
-                    startColor=QColor(Qt.green),
-                    endColor=QColor(Qt.green),
+                    startColor=QColor(Qt.GlobalColor.green),
+                    endColor=QColor(Qt.GlobalColor.green),
                     flashes=5,
                     duration=500,
                 )

@@ -23,7 +23,7 @@ class TransformationDialogParambar(QWidget):
 
         self.paramsBarLayout = QHBoxLayout()
         self.setLayout(self.paramsBarLayout)
-        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
 
         self.paramLabel1 = QLabel()
         self.paramLabel1.setStyleSheet("color:  blue;")
@@ -85,6 +85,6 @@ class TransformationDialogParambar(QWidget):
     #
     def createSplitter(self):
         vSplit = QFrame()
-        vSplit.setFrameShape(QFrame.VLine | QFrame.Sunken)
+        vSplit.setFrameShape(QFrame.Shape.VLine | QFrame.Shadow.Sunken)
 
         return vSplit

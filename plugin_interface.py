@@ -47,7 +47,7 @@ class PluginInterface:
         # (with DEBUG=True, check_for_leaked_objects happened to do this)
         from qgis.PyQt.QtCore import QEvent
         from qgis.PyQt.QtWidgets import QApplication
-        QApplication.sendPostedEvents(None, QEvent.DeferredDelete)
+        QApplication.sendPostedEvents(None, QEvent.Type.DeferredDelete)
 
         if DEBUG:
             from .common.debug_checks import check_for_leaked_objects

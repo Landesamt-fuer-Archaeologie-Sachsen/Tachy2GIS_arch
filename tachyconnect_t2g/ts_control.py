@@ -261,7 +261,7 @@ class Dispatcher(QThread):
         self.serial_connected.emit(self.SERIAL_CONNECTED, self.serial.portName())
         self.log.emit("Started listening.")
         self.loop = QEventLoop()
-        self.loop.exec_()
+        self.loop.exec()
 
     def stop(self):
         self.pollingTimer.stop()
@@ -334,7 +334,7 @@ class Ping(QThread):
         if self.is_open:
             self.timer.start(self.timeout)
             self.ping_loop = QEventLoop()
-            self.ping_loop.exec_()
+            self.ping_loop.exec()
 
     def read(self):
         self.pinging.emit(f"Pinging {self.serial.portName()}")

@@ -312,14 +312,14 @@ class TransformationGui:
 
     def resetTransformationMessageBox(self):
         self.transformMsgBox = QMessageBox()
-        self.transformMsgBox.setIcon(QMessageBox.Warning)
+        self.transformMsgBox.setIcon(QMessageBox.Icon.Warning)
         self.transformMsgBox.setWindowTitle("Transformation zurücksetzen")
         self.transformMsgBox.setText(
             "Es werden alle Eingabelayer mit ihrem aktuellen Inhalt entsprechend der Transformationsparameter zurücktransformiert."
         )
-        self.transformMsgBox.setStandardButtons((QMessageBox.Ok | QMessageBox.Cancel))
+        self.transformMsgBox.setStandardButtons((QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel))
         self.transformMsgBox.buttonClicked.connect(self.resetTransformation)
-        self.transformMsgBox.exec_()
+        self.transformMsgBox.exec()
 
     ## \brief Open messagebox with respect to the validation of the Eingabelayer (inputlayers)
     #
@@ -334,10 +334,10 @@ class TransformationGui:
         self.validityMsgBox.setDetailedText(detailedText)
         # self.validityMsgBox.setWidget(scroll)
         # self.validityMsgBox.setStyleSheet("QScrollArea{min-width:300 px; min-height: 400px}")
-        self.validityMsgBox.setIcon(QMessageBox.Warning)
+        self.validityMsgBox.setIcon(QMessageBox.Icon.Warning)
         self.validityMsgBox.setWindowTitle("Gültigkeitsprüfung der Eingabelayer")
-        self.validityMsgBox.setStandardButtons((QMessageBox.Cancel))
-        self.validityMsgBox.exec_()
+        self.validityMsgBox.setStandardButtons((QMessageBox.StandardButton.Cancel))
+        self.validityMsgBox.exec()
 
     ## \brief Opens a message box with background informations
     #
@@ -351,8 +351,8 @@ class TransformationGui:
         # self.validityMsgBox.setWidget(scroll)
         # self.validityMsgBox.setStyleSheet("QScrollArea{min-width:300 px; min-height: 400px}")
         self.infoTranssformMsgBox.setWindowTitle("Hintergrundinformationen")
-        self.infoTranssformMsgBox.setStandardButtons((QMessageBox.Ok))
-        self.infoTranssformMsgBox.exec_()
+        self.infoTranssformMsgBox.setStandardButtons((QMessageBox.StandardButton.Ok))
+        self.infoTranssformMsgBox.exec()
 
     ## \brief Check the validity of the inputlayers and open validity message box
     #

@@ -25,7 +25,7 @@ class PolygonMapTool(QgsMapTool):
         self.lastMapCoord = None
         self.isFinished = False
         self.isSelecting = False
-        self.setCursor(Qt.CrossCursor)
+        self.setCursor(Qt.CursorShape.CrossCursor)
         self.isSnapping = False
 
         self.symbol = QgsSymbol.defaultSymbol(QgsWkbTypes.PolygonGeometry)
@@ -117,10 +117,10 @@ class PolygonMapTool(QgsMapTool):
             self.canvas.scene().removeItem(marker)
         self.markers = []
 
-        self.symbol.setColor(Qt.red)
+        self.symbol.setColor(Qt.GlobalColor.red)
         self.isFinished = False
         self.isSelecting = False
-        self.setCursor(Qt.CrossCursor)
+        self.setCursor(Qt.CursorShape.CrossCursor)
 
         self.finished_geometry.emit(QgsGeometry())
 
@@ -134,8 +134,8 @@ class PolygonMapTool(QgsMapTool):
             self.rubberBand.addPoint(point)
             vertexMarker = QgsVertexMarker(self.canvas)
             vertexMarker.setCenter(point)
-            vertexMarker.setColor(Qt.black)
-            vertexMarker.setFillColor(Qt.red)
+            vertexMarker.setColor(Qt.GlobalColor.black)
+            vertexMarker.setFillColor(Qt.GlobalColor.red)
             vertexMarker.setIconSize(7)
             vertexMarker.setIconType(QgsVertexMarker.IconType.ICON_CIRCLE)
             vertexMarker.setPenWidth(1)
@@ -147,7 +147,7 @@ class PolygonMapTool(QgsMapTool):
             return
 
         self.isFinished = True
-        self.symbol.setColor(Qt.darkGreen)
+        self.symbol.setColor(Qt.GlobalColor.darkGreen)
         self.rubberBand.closePoints()
 
         self.resetClosingRubber()
@@ -171,7 +171,7 @@ class PolygonMapTool(QgsMapTool):
         if self.isFinished:
             # remove closing point:
             self.rubberBand.removeLastPoint()
-            self.symbol.setColor(Qt.red)
+            self.symbol.setColor(Qt.GlobalColor.red)
             self.isFinished = False
             self.finished_geometry.emit(QgsGeometry())
 
@@ -189,10 +189,10 @@ class PolygonMapTool(QgsMapTool):
             return
 
         self.finish_geometry(not_really_finished=True)
-        self.symbol.setColor(Qt.red)
+        self.symbol.setColor(Qt.GlobalColor.red)
         self.rubberBand.updateCanvas()
         self.isSelecting = True
-        self.setCursor(Qt.OpenHandCursor)
+        self.setCursor(Qt.CursorShape.OpenHandCursor)
 
     def recover_to_normal_mode(self):
         if self.snappingMarker:
@@ -201,32 +201,32 @@ class PolygonMapTool(QgsMapTool):
             self.canvas.scene().removeItem(self.selectingMarker)
 
         self.isSelecting = False
-        self.setCursor(Qt.CrossCursor)
+        self.setCursor(Qt.CursorShape.CrossCursor)
         self.isFinished = False
         self.finish_geometry()
 
     def keyPressEvent(self, e):
-        if e.key() == Qt.Key_Z:
+        if e.key() == Qt.Key.Key_Z:
             self.undo_last_point()
 
-        if e.key() == Qt.Key_R:
+        if e.key() == Qt.Key.Key_R:
             self.reverse_points()
 
-        if e.key() == Qt.Key_Control:
+        if e.key() == Qt.Key.Key_Control:
             self.isSnapping = True
             self.handleMove()
 
     def keyReleaseEvent(self, e):
-        if e.key() == Qt.Key_Control:
+        if e.key() == Qt.Key.Key_Control:
             self.isSnapping = False
             self.handleMove()
 
     def canvasReleaseEvent(self, e):
         if self.isSelecting:
-            if e.button() == Qt.RightButton:
+            if e.button() == Qt.MouseButton.RightButton:
                 self.recover_to_normal_mode()
                 return
-            elif e.button() != Qt.LeftButton:
+            elif e.button() != Qt.MouseButton.LeftButton:
                 return
 
             if not self.selectingMarker:
@@ -245,7 +245,7 @@ class PolygonMapTool(QgsMapTool):
                 self.rubberBand.addPoint(marker.center())
             self.isFinished = False
             self.isSelecting = False
-            self.setCursor(Qt.CrossCursor)
+            self.setCursor(Qt.CursorShape.CrossCursor)
 
             # remove last point and vertex with undo function:
             self.undo_last_point()
@@ -259,10 +259,10 @@ class PolygonMapTool(QgsMapTool):
         if self.isFinished:
             return
 
-        if e.button() == Qt.RightButton:
+        if e.button() == Qt.MouseButton.RightButton:
             self.finish_geometry()
             return
-        elif e.button() != Qt.LeftButton:
+        elif e.button() != Qt.MouseButton.LeftButton:
             return
 
         # use correct clicking point for adding:
@@ -275,8 +275,8 @@ class PolygonMapTool(QgsMapTool):
         self.rubberBand.addPoint(click_point)
         vertexMarker = QgsVertexMarker(self.canvas)
         vertexMarker.setCenter(click_point)
-        vertexMarker.setColor(Qt.black)
-        vertexMarker.setFillColor(Qt.red)
+        vertexMarker.setColor(Qt.GlobalColor.black)
+        vertexMarker.setFillColor(Qt.GlobalColor.red)
         vertexMarker.setIconSize(7)
         vertexMarker.setIconType(QgsVertexMarker.IconType.ICON_CIRCLE)
         vertexMarker.setPenWidth(1)
@@ -303,8 +303,8 @@ class PolygonMapTool(QgsMapTool):
                 self.selectingMarker = QgsVertexMarker(self.canvas)
                 self.selectingMarker.setIconType(QgsVertexMarker.IconType.ICON_CIRCLE)
                 self.selectingMarker.setCenter(snappingPoint)
-                self.selectingMarker.setColor(Qt.blue)
-                self.selectingMarker.setFillColor(Qt.red)
+                self.selectingMarker.setColor(Qt.GlobalColor.blue)
+                self.selectingMarker.setFillColor(Qt.GlobalColor.red)
                 self.selectingMarker.setIconSize(9)
                 self.selectingMarker.setPenWidth(3)
             return
@@ -316,8 +316,8 @@ class PolygonMapTool(QgsMapTool):
                 self.snappingMarker = QgsVertexMarker(self.canvas)
                 self.snappingMarker.setIconType(QgsVertexMarker.IconType.ICON_CIRCLE)
                 self.snappingMarker.setCenter(snappingPoint)
-                self.snappingMarker.setColor(Qt.yellow)
-                self.snappingMarker.setFillColor(Qt.red)
+                self.snappingMarker.setColor(Qt.GlobalColor.yellow)
+                self.snappingMarker.setFillColor(Qt.GlobalColor.red)
                 self.snappingMarker.setIconSize(9)
                 self.snappingMarker.setPenWidth(3)
 
@@ -364,8 +364,8 @@ class PolygonMapTool(QgsMapTool):
 
     def resetClosingRubber(self):
         self.closingRubberBand.reset(QgsWkbTypes.LineGeometry)
-        self.closingRubberBand.setLineStyle(Qt.DashLine)
-        self.closingRubberBand.setStrokeColor(Qt.black)
+        self.closingRubberBand.setLineStyle(Qt.PenStyle.DashLine)
+        self.closingRubberBand.setStrokeColor(Qt.GlobalColor.black)
         self.closingRubberBand.setSecondaryStrokeColor(QColor(255, 0, 0, 100))
         self.closingRubberBand.setWidth(1)
 
@@ -386,7 +386,7 @@ class MultilineMapTool(QgsMapTool):
         self.lastMapCoord = None
         self.isFinished = False
         self.isSelecting = False
-        self.setCursor(Qt.CrossCursor)
+        self.setCursor(Qt.CursorShape.CrossCursor)
         self.isSnapping = False
         self.isSplit = False
 
@@ -478,10 +478,10 @@ class MultilineMapTool(QgsMapTool):
             self.canvas.scene().removeItem(marker)
         self.markers2 = []
 
-        self.symbol.setColor(Qt.red)
+        self.symbol.setColor(Qt.GlobalColor.red)
         self.isFinished = False
         self.isSelecting = False
-        self.setCursor(Qt.CrossCursor)
+        self.setCursor(Qt.CursorShape.CrossCursor)
 
         self.finished_geometry.emit(QgsGeometry())
 
@@ -495,8 +495,8 @@ class MultilineMapTool(QgsMapTool):
             self.rubberBand.addPoint(point)
             vertexMarker = QgsVertexMarker(self.canvas)
             vertexMarker.setCenter(point)
-            vertexMarker.setColor(Qt.black)
-            vertexMarker.setFillColor(Qt.red)
+            vertexMarker.setColor(Qt.GlobalColor.black)
+            vertexMarker.setFillColor(Qt.GlobalColor.red)
             vertexMarker.setIconSize(7)
             vertexMarker.setIconType(QgsVertexMarker.IconType.ICON_CIRCLE)
             vertexMarker.setPenWidth(1)
@@ -508,7 +508,7 @@ class MultilineMapTool(QgsMapTool):
             return
 
         self.isFinished = True
-        self.symbol.setColor(Qt.darkGreen)
+        self.symbol.setColor(Qt.GlobalColor.darkGreen)
         self.rubberBand.updateCanvas()
 
         if self.isSplit:
@@ -533,7 +533,7 @@ class MultilineMapTool(QgsMapTool):
             self.recover_to_normal_mode()
 
         if self.isFinished:
-            self.symbol.setColor(Qt.red)
+            self.symbol.setColor(Qt.GlobalColor.red)
             self.isFinished = False
             self.finished_geometry.emit(QgsGeometry())
 
@@ -565,10 +565,10 @@ class MultilineMapTool(QgsMapTool):
             return
 
         self.finish_geometry(not_really_finished=True)
-        self.symbol.setColor(Qt.red)
+        self.symbol.setColor(Qt.GlobalColor.red)
         self.rubberBand.updateCanvas()
         self.isSelecting = True
-        self.setCursor(Qt.OpenHandCursor)
+        self.setCursor(Qt.CursorShape.OpenHandCursor)
 
     def recover_to_normal_mode(self):
         if self.snappingMarker:
@@ -577,32 +577,32 @@ class MultilineMapTool(QgsMapTool):
             self.canvas.scene().removeItem(self.selectingMarker)
 
         self.isSelecting = False
-        self.setCursor(Qt.CrossCursor)
+        self.setCursor(Qt.CursorShape.CrossCursor)
         self.isFinished = False
         self.finish_geometry()
 
     def keyPressEvent(self, e):
-        if e.key() == Qt.Key_Z:
+        if e.key() == Qt.Key.Key_Z:
             self.undo_last_point()
 
-        if e.key() == Qt.Key_R:
+        if e.key() == Qt.Key.Key_R:
             self.reverse_points()
 
-        if e.key() == Qt.Key_Control:
+        if e.key() == Qt.Key.Key_Control:
             self.isSnapping = True
             self.handleMove()
 
     def keyReleaseEvent(self, e):
-        if e.key() == Qt.Key_Control:
+        if e.key() == Qt.Key.Key_Control:
             self.isSnapping = False
             self.handleMove()
 
     def canvasReleaseEvent(self, e):
         if self.isSelecting:
-            if e.button() == Qt.RightButton:
+            if e.button() == Qt.MouseButton.RightButton:
                 self.recover_to_normal_mode()
                 return
-            elif e.button() != Qt.LeftButton:
+            elif e.button() != Qt.MouseButton.LeftButton:
                 return
 
             if not self.selectingMarker or len(self.markers) < 1:
@@ -626,7 +626,7 @@ class MultilineMapTool(QgsMapTool):
 
             self.isFinished = False
             self.isSelecting = False
-            self.setCursor(Qt.CrossCursor)
+            self.setCursor(Qt.CursorShape.CrossCursor)
 
             # remove last point and vertex with undo function:
             self.undo_last_point()
@@ -655,10 +655,10 @@ class MultilineMapTool(QgsMapTool):
         if self.isFinished:
             return
 
-        if e.button() == Qt.RightButton:
+        if e.button() == Qt.MouseButton.RightButton:
             self.finish_geometry()
             return
-        elif e.button() != Qt.LeftButton:
+        elif e.button() != Qt.MouseButton.LeftButton:
             return
 
         # use correct clicking point for adding:
@@ -671,8 +671,8 @@ class MultilineMapTool(QgsMapTool):
         self.rubberBand.addPoint(click_point)
         vertexMarker = QgsVertexMarker(self.canvas)
         vertexMarker.setCenter(click_point)
-        vertexMarker.setColor(Qt.black)
-        vertexMarker.setFillColor(Qt.red)
+        vertexMarker.setColor(Qt.GlobalColor.black)
+        vertexMarker.setFillColor(Qt.GlobalColor.red)
         vertexMarker.setIconSize(7)
         vertexMarker.setIconType(QgsVertexMarker.IconType.ICON_CIRCLE)
         vertexMarker.setPenWidth(1)
@@ -704,8 +704,8 @@ class MultilineMapTool(QgsMapTool):
                 self.selectingMarker = QgsVertexMarker(self.canvas)
                 self.selectingMarker.setIconType(QgsVertexMarker.IconType.ICON_CIRCLE)
                 self.selectingMarker.setCenter(snappingPoint)
-                self.selectingMarker.setColor(Qt.blue)
-                self.selectingMarker.setFillColor(Qt.red)
+                self.selectingMarker.setColor(Qt.GlobalColor.blue)
+                self.selectingMarker.setFillColor(Qt.GlobalColor.red)
                 self.selectingMarker.setIconSize(9)
                 self.selectingMarker.setPenWidth(3)
             return
@@ -719,8 +719,8 @@ class MultilineMapTool(QgsMapTool):
                 self.snappingMarker = QgsVertexMarker(self.canvas)
                 self.snappingMarker.setIconType(QgsVertexMarker.IconType.ICON_CIRCLE)
                 self.snappingMarker.setCenter(snappingPoint)
-                self.snappingMarker.setColor(Qt.yellow)
-                self.snappingMarker.setFillColor(Qt.red)
+                self.snappingMarker.setColor(Qt.GlobalColor.yellow)
+                self.snappingMarker.setFillColor(Qt.GlobalColor.red)
                 self.snappingMarker.setIconSize(9)
                 self.snappingMarker.setPenWidth(3)
 
@@ -770,8 +770,8 @@ class MultilineMapTool(QgsMapTool):
 
     def resetClosingRubber(self):
         self.closingRubberBand.reset(QgsWkbTypes.LineGeometry)
-        self.closingRubberBand.setLineStyle(Qt.DashLine)
-        self.closingRubberBand.setStrokeColor(Qt.black)
+        self.closingRubberBand.setLineStyle(Qt.PenStyle.DashLine)
+        self.closingRubberBand.setStrokeColor(Qt.GlobalColor.black)
         self.closingRubberBand.setSecondaryStrokeColor(QColor(255, 0, 0, 100))
         self.closingRubberBand.setWidth(1)
 
@@ -791,7 +791,7 @@ class PointMapTool(QgsMapTool):
         self.lastMapCoord = None
         self.isFinished = False
         self.isSelecting = False
-        self.setCursor(Qt.CrossCursor)
+        self.setCursor(Qt.CursorShape.CrossCursor)
         self.isSnapping = False
 
         self.reset_geometry()
@@ -804,7 +804,7 @@ class PointMapTool(QgsMapTool):
 
         self.isFinished = False
         self.isSelecting = False
-        self.setCursor(Qt.CrossCursor)
+        self.setCursor(Qt.CursorShape.CrossCursor)
 
         self.finished_geometry.emit(QgsGeometry())
 
@@ -817,8 +817,8 @@ class PointMapTool(QgsMapTool):
             point = QgsPointXY(vertex.x(), vertex.y())
             vertexMarker = QgsVertexMarker(self.canvas)
             vertexMarker.setCenter(point)
-            vertexMarker.setColor(Qt.black)
-            vertexMarker.setFillColor(Qt.red)
+            vertexMarker.setColor(Qt.GlobalColor.black)
+            vertexMarker.setFillColor(Qt.GlobalColor.red)
             vertexMarker.setIconSize(7)
             vertexMarker.setIconType(QgsVertexMarker.IconType.ICON_CIRCLE)
             vertexMarker.setPenWidth(1)
@@ -854,7 +854,7 @@ class PointMapTool(QgsMapTool):
 
         self.finish_geometry(not_really_finished=True)
         self.isSelecting = True
-        self.setCursor(Qt.OpenHandCursor)
+        self.setCursor(Qt.CursorShape.OpenHandCursor)
 
     def recover_to_normal_mode(self):
         if self.snappingMarker:
@@ -863,29 +863,29 @@ class PointMapTool(QgsMapTool):
             self.canvas.scene().removeItem(self.selectingMarker)
 
         self.isSelecting = False
-        self.setCursor(Qt.CrossCursor)
+        self.setCursor(Qt.CursorShape.CrossCursor)
         self.isFinished = False
         self.finish_geometry()
 
     def keyPressEvent(self, e):
-        if e.key() == Qt.Key_Z:
+        if e.key() == Qt.Key.Key_Z:
             self.undo_last_point()
 
-        if e.key() == Qt.Key_Control:
+        if e.key() == Qt.Key.Key_Control:
             self.isSnapping = True
             self.handleMove()
 
     def keyReleaseEvent(self, e):
-        if e.key() == Qt.Key_Control:
+        if e.key() == Qt.Key.Key_Control:
             self.isSnapping = False
             self.handleMove()
 
     def canvasReleaseEvent(self, e):
         if self.isSelecting:
-            if e.button() == Qt.RightButton:
+            if e.button() == Qt.MouseButton.RightButton:
                 self.recover_to_normal_mode()
                 return
-            elif e.button() != Qt.LeftButton:
+            elif e.button() != Qt.MouseButton.LeftButton:
                 return
 
             if not self.selectingMarker:
@@ -897,7 +897,7 @@ class PointMapTool(QgsMapTool):
                 return
             self.isFinished = False
             self.isSelecting = False
-            self.setCursor(Qt.CrossCursor)
+            self.setCursor(Qt.CursorShape.CrossCursor)
 
             # remove last point and vertex with undo function:
             self.undo_last_point()
@@ -909,10 +909,10 @@ class PointMapTool(QgsMapTool):
         if self.isFinished:
             return
 
-        if e.button() == Qt.RightButton:
+        if e.button() == Qt.MouseButton.RightButton:
             self.finish_geometry()
             return
-        elif e.button() != Qt.LeftButton:
+        elif e.button() != Qt.MouseButton.LeftButton:
             return
 
         # use correct clicking point for adding:
@@ -925,8 +925,8 @@ class PointMapTool(QgsMapTool):
         self.reset_geometry()
         vertexMarker = QgsVertexMarker(self.canvas)
         vertexMarker.setCenter(click_point)
-        vertexMarker.setColor(Qt.black)
-        vertexMarker.setFillColor(Qt.red)
+        vertexMarker.setColor(Qt.GlobalColor.black)
+        vertexMarker.setFillColor(Qt.GlobalColor.red)
         vertexMarker.setIconSize(7)
         vertexMarker.setIconType(QgsVertexMarker.IconType.ICON_CIRCLE)
         vertexMarker.setPenWidth(1)
@@ -949,8 +949,8 @@ class PointMapTool(QgsMapTool):
                 self.selectingMarker = QgsVertexMarker(self.canvas)
                 self.selectingMarker.setIconType(QgsVertexMarker.IconType.ICON_CIRCLE)
                 self.selectingMarker.setCenter(snappingPoint)
-                self.selectingMarker.setColor(Qt.blue)
-                self.selectingMarker.setFillColor(Qt.red)
+                self.selectingMarker.setColor(Qt.GlobalColor.blue)
+                self.selectingMarker.setFillColor(Qt.GlobalColor.red)
                 self.selectingMarker.setIconSize(9)
                 self.selectingMarker.setPenWidth(3)
             return
@@ -962,8 +962,8 @@ class PointMapTool(QgsMapTool):
                 self.snappingMarker = QgsVertexMarker(self.canvas)
                 self.snappingMarker.setIconType(QgsVertexMarker.IconType.ICON_CIRCLE)
                 self.snappingMarker.setCenter(snappingPoint)
-                self.snappingMarker.setColor(Qt.yellow)
-                self.snappingMarker.setFillColor(Qt.red)
+                self.snappingMarker.setColor(Qt.GlobalColor.yellow)
+                self.snappingMarker.setFillColor(Qt.GlobalColor.red)
                 self.snappingMarker.setIconSize(9)
                 self.snappingMarker.setPenWidth(3)
 

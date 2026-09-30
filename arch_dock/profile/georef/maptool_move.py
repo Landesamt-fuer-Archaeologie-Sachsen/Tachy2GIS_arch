@@ -11,7 +11,7 @@ class MapToolMove(QgsMapTool):
         QgsMapTool.__init__(self, canvas)
         self.canvas = canvas
         self.active = False
-        self.setCursor(Qt.CrossCursor)
+        self.setCursor(Qt.CursorShape.CrossCursor)
 
     def canvasPressEvent(self, event):
 
@@ -44,7 +44,7 @@ class MapToolMove(QgsMapTool):
             self.active = False
 
     def activate(self):
-        self.setCursor(Qt.CrossCursor)
+        self.setCursor(Qt.CursorShape.CrossCursor)
 
     def deactivate(self):
         QgsMapTool.deactivate(self)

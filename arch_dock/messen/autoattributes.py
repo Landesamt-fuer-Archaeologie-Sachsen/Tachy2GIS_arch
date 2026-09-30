@@ -1,7 +1,7 @@
 import logging
 import re
 
-from qgis.core import QgsFeatureRequest, QgsVectorLayer
+from qgis.core import QgsFeatureRequest, QgsVectorLayer, NULL
 from qgis.PyQt.QtCore import QVariant
 
 from ...common.utils import setCustomProjectVariable
@@ -90,6 +90,6 @@ def getLookupDict(layer, keyColumn, valueColumn, filterExpression=""):
     if filterExpression:
         request.setFilterExpression(filterExpression)
     for feature in layer.getFeatures(request):
-        if feature.attribute(valueColumn) != QVariant():
+        if feature.attribute(valueColumn) != NULL:
             lookupDict[feature.attribute(keyColumn)] = feature.attribute(valueColumn)
     return lookupDict

@@ -35,9 +35,9 @@ def importPoints():
         None,
         "WICHTIG",
         "Dateiformat:\nptnr  x  y  z\n\nMöchten Sie fortfahren?",
-        QMessageBox.Ok | QMessageBox.Cancel,
+        QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel,
     )
-    if result == QMessageBox.Ok:
+    if result == QMessageBox.StandardButton.Ok:
         inputFile = QFileDialog.getOpenFileName(
             None,
             "Quellpfad",
@@ -153,7 +153,7 @@ def exportPoints():
             None,
             "Meldung",
             "Es sind keine Punkte selektiert oder es ist kein Punktlayer ausgewählt!",
-            QMessageBox.Abort,
+            QMessageBox.StandardButton.Abort,
         )
     else:
         outputFile = QFileDialog.getSaveFileName(
@@ -174,15 +174,15 @@ def exportPoints():
                     feats.append(msgout)
 
                 box = QMessageBox()
-                box.setIcon(QMessageBox.Question)
+                box.setIcon(QMessageBox.Icon.Question)
                 box.setWindowTitle("Frage")
                 box.setText("Wie soll sortiert werden?")
-                box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-                buttonY = box.button(QMessageBox.Yes)
+                box.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+                buttonY = box.button(QMessageBox.StandardButton.Yes)
                 buttonY.setText("Punkt Nr")
-                buttonN = box.button(QMessageBox.No)
+                buttonN = box.button(QMessageBox.StandardButton.No)
                 buttonN.setText("Datum")
-                box.exec_()
+                box.exec()
 
                 if box.clickedButton() == buttonY:
                     s_feats = sorted(feats, key=operator.itemgetter(0))
@@ -323,15 +323,15 @@ def exportProfilePoints():
     box = QMessageBox()
     # ToDo: change following in: if not ok:
     if ok == False:
-        box.setIcon(QMessageBox.Question)
+        box.setIcon(QMessageBox.Icon.Question)
         box.setWindowTitle("Frage")
         box.setText("Manche Punkte sind keine Profilentzerrpunkte!")
-        box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-        buttonY = box.button(QMessageBox.Yes)
+        box.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        buttonY = box.button(QMessageBox.StandardButton.Yes)
         buttonY.setText("OK")
-        buttonN = box.button(QMessageBox.No)
+        buttonN = box.button(QMessageBox.StandardButton.No)
         buttonN.setText("Abbruch")
-        box.exec_()
+        box.exec()
         if box.clickedButton() == buttonY:
             ok = True
         elif box.clickedButton() == buttonN:
@@ -339,21 +339,21 @@ def exportProfilePoints():
 
     else:
         box = QMessageBox()
-        box.setIcon(QMessageBox.Question)
+        box.setIcon(QMessageBox.Icon.Question)
         box.setWindowTitle("Frage")
         box.setText("Export als ...?")
-        box.setStandardButtons(QMessageBox.Yes | QMessageBox.No | QMessageBox.Abort)
-        buttonY = box.button(QMessageBox.Yes)
+        box.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No | QMessageBox.StandardButton.Abort)
+        buttonY = box.button(QMessageBox.StandardButton.Yes)
         buttonY.setText("Templayer")
         buttonY.setToolTip("Erzeugt einen temporären Layer.")
-        buttonN = box.button(QMessageBox.No)
+        buttonN = box.button(QMessageBox.StandardButton.No)
         buttonN.setText("CSV-Datei")
         buttonN.setToolTip("Erzeugt eine CSV Datei.")
-        buttonA = box.button(QMessageBox.Abort)
+        buttonA = box.button(QMessageBox.StandardButton.Abort)
         buttonA.setText("Beides")
         buttonA.setToolTip("Erzeugt einen temporären Layer und eine CSV-Datei.")
         buttonY.setFocus()
-        box.exec_()
+        box.exec()
 
         if box.clickedButton() == buttonN or box.clickedButton() == buttonA:
             # csv-Datei

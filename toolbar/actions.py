@@ -83,8 +83,8 @@ class AutoBackupProjectAction(QAction):
         )
         icon_save_off = color_shift_icon(icon_save_on, QColor(128, 128, 128, 170))
         icon_auto_backup = QIcon()
-        icon_auto_backup.addPixmap(icon_save_on.pixmap(64, 64), QIcon.Normal, QIcon.On)
-        icon_auto_backup.addPixmap(icon_save_off.pixmap(64, 64), QIcon.Normal, QIcon.Off)
+        icon_auto_backup.addPixmap(icon_save_on.pixmap(64, 64), QIcon.Mode.Normal, QIcon.State.On)
+        icon_auto_backup.addPixmap(icon_save_off.pixmap(64, 64), QIcon.Mode.Normal, QIcon.State.Off)
         return icon_auto_backup
 
 
@@ -157,7 +157,7 @@ class MenuPointsImportAction(QToolButton):
 
         self.setMenu(menu)
         self.setDefaultAction(self.action_import)
-        self.setPopupMode(QToolButton.MenuButtonPopup)
+        self.setPopupMode(QToolButton.ToolButtonPopupMode.MenuButtonPopup)
         self.setEnabled(False)
 
     def setEnabled(self, enabled: bool):

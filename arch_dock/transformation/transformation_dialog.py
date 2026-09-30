@@ -167,7 +167,7 @@ class TransformationDialog(QMainWindow):
         self.toolbarExchange.addAction(self.actionExport)
         self.toolbarExchange.addAction(self.actionImport)
         spacer = QWidget()
-        spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        spacer.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.toolbarExchange.addWidget(spacer)
         self.takeParametersBtn = QPushButton("Transformationsparameter übernehmen", self)
         self.toolbarExchange.addWidget(self.takeParametersBtn)
@@ -178,10 +178,10 @@ class TransformationDialog(QMainWindow):
 
         self.coordLabel = QLabel("Koordinate ")
         self.coordLineEdit = QLineEdit()
-        self.coordLineEdit.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
+        self.coordLineEdit.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
         self.coordLineEdit.setReadOnly(True)
         self.coordLineEdit.setMinimumWidth(150)
-        self.coordLineEdit.setAlignment(Qt.AlignCenter)
+        self.coordLineEdit.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.statusBar().addPermanentWidget(self.coordLabel)
         self.statusBar().addPermanentWidget(self.coordLineEdit)
 

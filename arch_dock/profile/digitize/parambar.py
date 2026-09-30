@@ -35,7 +35,7 @@ from ....common.utils import layers_not_in_edit_mode
 def color_shift_icon(source_icon, color):
     pixmap = source_icon.pixmap(64, 64)
     painter = QPainter(pixmap)
-    painter.setCompositionMode(QPainter.CompositionMode_SourceAtop)
+    painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceAtop)
     painter.fillRect(pixmap.rect(), color)
     painter.end()
     return QIcon(pixmap)
@@ -47,7 +47,7 @@ def merge_icons(source_icon, small_icon):
     pixmap = source_icon.pixmap(big, big)
     small_pixmap = small_icon.pixmap(small, small)
     painter = QPainter(pixmap)
-    painter.setCompositionMode(QPainter.CompositionMode_SourceOver)
+    painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceOver)
     painter.drawPixmap(QRect(big - small, big - small, small, small), small_pixmap, small_pixmap.rect())
     painter.end()
     return QIcon(pixmap)
@@ -115,9 +115,9 @@ class Parambar(QWidget):
         # Koordinatenanzeige
         self.toolbarCoord = QToolBar("Coordinates", self)
         self.coordLineEdit = QLineEdit()
-        self.coordLineEdit.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
+        self.coordLineEdit.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
 
-        self.coordLineEdit.setAlignment(Qt.AlignCenter)
+        self.coordLineEdit.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.coordLineEdit.setReadOnly(True)
         self.coordLineEditFm = self.coordLineEdit.fontMetrics()
         width_text = self.coordLineEditFm.width("xxxxxx.xxx,xxxxxxx.xxx,xxxx.xxx")
@@ -135,7 +135,7 @@ class Parambar(QWidget):
         # self.paramsBarLayout.addWidget(self.toolbarLayer)
 
         spacer = QWidget()
-        spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        spacer.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
         self.paramsBarLayout.addWidget(spacer)
 
         self.paramsBarLayout.addWidget(self.toolbarCoord)
@@ -332,7 +332,7 @@ class Parambar(QWidget):
         # Layerauswahl
         self.canvasToolbar.addSeparator()
         self.labelActiveLayerCombo = QLabel("aktiver\nLayer:")
-        self.labelActiveLayerCombo.setAlignment(Qt.AlignVCenter)
+        self.labelActiveLayerCombo.setAlignment(Qt.AlignmentFlag.AlignVCenter)
         self.labelActiveLayerCombo.setStyleSheet("padding-right: 4px; padding-left: 4px")
 
         self.activeLayerCombo = QComboBox()
@@ -578,7 +578,7 @@ class Parambar(QWidget):
 
     def createSplitter(self):
         vSplit = QFrame()
-        vSplit.setFrameShape(QFrame.VLine | QFrame.Sunken)
+        vSplit.setFrameShape(QFrame.Shape.VLine | QFrame.Shadow.Sunken)
 
         return vSplit
 
@@ -586,6 +586,6 @@ class Parambar(QWidget):
         infoMsgBox = QMessageBox(self)
         infoMsgBox.setText(infoText)
         infoMsgBox.setWindowTitle(titleText)
-        infoMsgBox.setStandardButtons((QMessageBox.Ok))
-        infoMsgBox.exec_()
+        infoMsgBox.setStandardButtons((QMessageBox.StandardButton.Ok))
+        infoMsgBox.exec()
         infoMsgBox.deleteLater()  # modal is done, no reason to keep it as a child

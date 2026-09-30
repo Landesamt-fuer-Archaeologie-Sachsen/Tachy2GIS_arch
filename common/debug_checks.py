@@ -262,7 +262,7 @@ def _schedule_survivor_report(candidates, headline, all_clear_message=None):
         # plugin manager dialog) may not have been processed yet when this
         # deferred report fires - force it, otherwise wrappers whose C++ death
         # is still pending show up as false survivors
-        QApplication.sendPostedEvents(None, QEvent.DeferredDelete)
+        QApplication.sendPostedEvents(None, QEvent.Type.DeferredDelete)
         gc.collect()  # clear reference cycles before counting survivors
 
         # id -> weakref. Deliberately NO strong refs: our own bookkeeping would
@@ -403,7 +403,7 @@ class _OriginTracker(QObject):
         # which hard crashes QGIS: never let one escape
         try:
             event_type = event.type()
-            if event_type == QEvent.ChildAdded:
+            if event_type == QEvent.Type.ChildAdded:
                 origin = _plugin_origin()
                 if origin is not None:
                     parent_address = sip.unwrapinstance(watched)
@@ -443,7 +443,7 @@ class _OriginTracker(QObject):
                         # casting by address gets the correctly typed view
                         child = sip.cast(event, QChildEvent).child()
                         self.records[sip.unwrapinstance(child)] = (parent_address, origin)
-            elif event_type == QEvent.ChildRemoved:
+            elif event_type == QEvent.Type.ChildRemoved:
                 child = sip.cast(event, QChildEvent).child()
                 self.records.pop(sip.unwrapinstance(child), None)
         except Exception:
@@ -508,7 +508,7 @@ def _schedule_tracked_qobject_report(tracker):
     def report():
         # same rationale as in report_survivors(): flush pending deferred
         # deletions before judging liveness
-        QApplication.sendPostedEvents(None, QEvent.DeferredDelete)
+        QApplication.sendPostedEvents(None, QEvent.Type.DeferredDelete)
         gc.collect()
 
         # pass 1: which recorded children are still alive under their recorded
@@ -764,7 +764,7 @@ def check_for_leaked_objects():
     # The origin tracker is still installed here ON PURPOSE: the destructor cascade
     # sends ChildRemoved for every dying child, which cleans its records and thereby
     # prevents stale addresses (freed and later reused) from becoming false positives.
-    QApplication.sendPostedEvents(None, QEvent.DeferredDelete)
+    QApplication.sendPostedEvents(None, QEvent.Type.DeferredDelete)
     gc.collect()
 
     # stop phase 3 recording: the filter sits on QApplication and must not

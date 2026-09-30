@@ -62,14 +62,14 @@ class Plan:
         self.__dockwidget.startPlanBtn.clicked.connect(self.__startPlanCreation)
 
         self.__dockwidget.check_profile_buffer.stateChanged.connect(self.handle_check_profile_buffer)
-        self.handle_check_profile_buffer(Qt.Unchecked)
+        self.handle_check_profile_buffer(Qt.CheckState.Unchecked)
 
     def createConnects(self):
 
         self.dataStorePlan.pup.register("pushTransformationParams", self.rotationCoords.setAarTransformationParams)
 
     def handle_check_profile_buffer(self, state):
-        visible_bool = state == Qt.Checked
+        visible_bool = state == Qt.CheckState.Checked
         self.__dockwidget.profileBufferSpinBox.setVisible(visible_bool)
         self.__dockwidget.label_profileBuffer.setVisible(visible_bool)
 

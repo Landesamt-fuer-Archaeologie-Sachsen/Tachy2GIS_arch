@@ -75,8 +75,8 @@ class ImageParambar(QWidget):
         # create component coordinates:
         self.toolbarCoord = QToolBar("Coordinates", self)
         self.coordLineEdit = QLineEdit()
-        self.coordLineEdit.setAlignment(Qt.AlignCenter)
-        self.coordLineEdit.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
+        self.coordLineEdit.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.coordLineEdit.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
         self.coordLineEdit.setReadOnly(True)
         self.coordLineEditFm = self.coordLineEdit.fontMetrics()
         width_text = self.coordLineEditFm.width("xxxxxx.xx,xxxxxx.xx")
@@ -90,7 +90,7 @@ class ImageParambar(QWidget):
         self.setLayout(self.paramsBarLayout)
         self.paramsBarLayout.addWidget(self.imageToolbar)
         spacer = QWidget()
-        spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        spacer.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
         self.paramsBarLayout.addWidget(spacer)
         self.paramsBarLayout.addWidget(self.toolbarCoord)
 
@@ -102,7 +102,7 @@ class ImageParambar(QWidget):
         def color_shift_icon(source_icon, color):
             pixmap = source_icon.pixmap(64, 64)
             painter = QPainter(pixmap)
-            painter.setCompositionMode(QPainter.CompositionMode_SourceAtop)
+            painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceAtop)
             painter.fillRect(pixmap.rect(), color)
             painter.end()
             return QIcon(pixmap)
@@ -113,7 +113,7 @@ class ImageParambar(QWidget):
             pixmap = source_icon.pixmap(big, big)
             small_pixmap = small_icon.pixmap(small, small)
             painter = QPainter(pixmap)
-            painter.setCompositionMode(QPainter.CompositionMode_DestinationOver)
+            painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_DestinationOver)
             painter.drawPixmap(QRect(big - small, big - small, small, small), small_pixmap, small_pixmap.rect())
             painter.end()
             return QIcon(pixmap)

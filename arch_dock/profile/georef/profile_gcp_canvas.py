@@ -39,7 +39,7 @@ class ProfileGcpCanvas(QgsMapCanvas):
 
         self.rotationCoords = rotationCoords
 
-        self.setCanvasColor(Qt.white)
+        self.setCanvasColor(Qt.GlobalColor.white)
 
         self.createMapToolPan()
         self.createMapToolZoomIn()
@@ -129,8 +129,8 @@ class ProfileGcpCanvas(QgsMapCanvas):
                 self.flashFeatureIds(
                     self.gcpLayer,
                     [feature.id()],
-                    startColor=QColor(Qt.green),
-                    endColor=QColor(Qt.green),
+                    startColor=QColor(Qt.GlobalColor.green),
+                    endColor=QColor(Qt.GlobalColor.green),
                     flashes=5,
                     duration=500,
                 )

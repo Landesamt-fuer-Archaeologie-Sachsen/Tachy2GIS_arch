@@ -15,7 +15,7 @@ class IdentifyGeometry(QgsMapToolIdentify):
         self.layerType = getattr(QgsMapToolIdentify, layerType)
         self.canvas = canvas
         QgsMapToolIdentify.__init__(self, canvas)
-        self.setCursor(QCursor(Qt.WhatsThisCursor))
+        self.setCursor(QCursor(Qt.CursorShape.WhatsThisCursor))
 
     def canvasReleaseEvent(self, mouseEvent):
         try:

@@ -225,7 +225,7 @@ class GeoEditCalculations:
                 self.geoEditInstance,
                 "Invalider Layer",
                 f"Kann Geometrietyp {layerType} nicht verarbeiten!",
-                QMessageBox.Abort,
+                QMessageBox.StandardButton.Abort,
             )
             LOGGER.warning(f"Kann Geometrietyp nicht verarbeiten: {layerType}")
 
@@ -311,19 +311,19 @@ class GeoEditCalculations:
                             delSelectFeature()
 
                             box = QMessageBox()
-                            box.setIcon(QMessageBox.Question)
+                            box.setIcon(QMessageBox.Icon.Question)
                             box.setWindowTitle("Frage")
                             box.setText("Wollen Sie das Ergebnis übernehmen?")
-                            box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+                            box.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
                             ret = box.exec()
-                            if ret == QMessageBox.Yes:
+                            if ret == QMessageBox.StandardButton.Yes:
                                 schnittLayer.startEditing()
                                 schnittLayer.addFeature(diff)
                                 schnittLayer.deleteFeature(g.id())
                                 schnittLayer.commitChanges()
                                 schnittLayer.endEditCommand()
 
-                            elif ret == QMessageBox.No:
+                            elif ret == QMessageBox.StandardButton.No:
                                 schnittLayer.deleteFeature(diff.id())
                                 # layer.commitChanges()
                                 # layer.endEditCommand()

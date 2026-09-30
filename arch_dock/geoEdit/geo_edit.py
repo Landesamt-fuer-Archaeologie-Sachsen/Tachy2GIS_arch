@@ -442,16 +442,16 @@ class GeoEdit:
         self.infoTranssformMsgBox = QMessageBox()
         self.infoTranssformMsgBox.setText(infoText)
         self.infoTranssformMsgBox.setWindowTitle("Hintergrundinformationen")
-        self.infoTranssformMsgBox.setStandardButtons((QMessageBox.Ok))
-        self.infoTranssformMsgBox.exec_()
+        self.infoTranssformMsgBox.setStandardButtons((QMessageBox.StandardButton.Ok))
+        self.infoTranssformMsgBox.exec()
 
     def reverseLines(self):
         layer = iface.mapCanvas().currentLayer()
         if layer.geometryType() != QgsWkbTypes.LineGeometry:
-            QMessageBox.information(None, "WICHTIG", "Falscher Geometrietyp!", QMessageBox.Cancel)
+            QMessageBox.information(None, "WICHTIG", "Falscher Geometrietyp!", QMessageBox.StandardButton.Cancel)
             return
         if layer.selectedFeatures() == []:
-            QMessageBox.information(None, "WICHTIG", "Keine Geometrie gewählt!", QMessageBox.Cancel)
+            QMessageBox.information(None, "WICHTIG", "Keine Geometrie gewählt!", QMessageBox.StandardButton.Cancel)
             return
         layer.startEditing()
         for feature in layer.selectedFeatures():

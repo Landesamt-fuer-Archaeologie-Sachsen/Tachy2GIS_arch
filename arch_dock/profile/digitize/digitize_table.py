@@ -49,11 +49,11 @@ class DigitizeTable(QTableWidget):
         self.setHorizontalHeaderLabels(self.colHeaders)
 
         palette = self.palette()
-        hightlight_brush = palette.brush(QPalette.Highlight)
+        hightlight_brush = palette.brush(QPalette.ColorRole.Highlight)
         hightlight_brush.setColor(QColor("white"))
-        palette.setBrush(QPalette.Highlight, hightlight_brush)
+        palette.setBrush(QPalette.ColorRole.Highlight, hightlight_brush)
 
-        palette.setColor(QPalette.HighlightedText, (QColor("black")))
+        palette.setColor(QPalette.ColorRole.HighlightedText, (QColor("black")))
         self.setPalette(palette)
 
         self.featForm = None
@@ -69,13 +69,13 @@ class DigitizeTable(QTableWidget):
             row = self.indexAt(button.pos()).row()
 
             msgBox = QMessageBox()
-            msgBox.setIcon(QMessageBox.Information)
+            msgBox.setIcon(QMessageBox.Icon.Information)
             msgBox.setText("Wollen Sie das Objekt wirklich löschen? Es wird ebenfalls aus dem Eingabelayer entfernt!")
             msgBox.setWindowTitle("Löschen")
-            msgBox.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+            msgBox.setStandardButtons(QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel)
 
             returnValue = msgBox.exec()
-            if returnValue == QMessageBox.Ok:
+            if returnValue == QMessageBox.StandardButton.Ok:
                 self.removeRow(row)
                 self.pup.publish("removeFeatureByUuid", button.obj_uuid)
 
@@ -109,7 +109,7 @@ class DigitizeTable(QTableWidget):
         else:
             idItem = QTableWidgetItem("NULL")
 
-        idItem.setFlags(Qt.ItemIsEnabled)
+        idItem.setFlags(Qt.ItemFlag.ItemIsEnabled)
         self.setItem(rowPosition, 1, idItem)
         # Objekttyp
         if "obj_typ" in dataObj:
@@ -117,54 +117,54 @@ class DigitizeTable(QTableWidget):
         else:
             typeItem = QTableWidgetItem("NULL")
 
-        typeItem.setFlags(Qt.ItemIsEnabled)
+        typeItem.setFlags(Qt.ItemFlag.ItemIsEnabled)
         self.setItem(rowPosition, 2, typeItem)
-        tableHeader.setSectionResizeMode(2, QHeaderView.Stretch)
+        tableHeader.setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
         # Objektart
         if "obj_art" in dataObj:
             artItem = QTableWidgetItem(str(dataObj["obj_art"]))
         else:
             artItem = QTableWidgetItem("NULL")
 
-        artItem.setFlags(Qt.ItemIsEnabled)
+        artItem.setFlags(Qt.ItemFlag.ItemIsEnabled)
         self.setItem(rowPosition, 3, artItem)
-        tableHeader.setSectionResizeMode(3, QHeaderView.Stretch)
+        tableHeader.setSectionResizeMode(3, QHeaderView.ResizeMode.Stretch)
         # Befundnr.
         if "bef_nr" in dataObj:
             befItem = QTableWidgetItem(str(dataObj["bef_nr"]))
         else:
             befItem = QTableWidgetItem("NULL")
 
-        befItem.setFlags(Qt.ItemIsEnabled)
+        befItem.setFlags(Qt.ItemFlag.ItemIsEnabled)
         self.setItem(rowPosition, 4, befItem)
-        tableHeader.setSectionResizeMode(4, QHeaderView.Stretch)
+        tableHeader.setSectionResizeMode(4, QHeaderView.ResizeMode.Stretch)
         # Probennr.
         if "probe_nr" in dataObj:
             probItem = QTableWidgetItem(str(dataObj["probe_nr"]))
         else:
             probItem = QTableWidgetItem("NULL")
 
-        probItem.setFlags(Qt.ItemIsEnabled)
+        probItem.setFlags(Qt.ItemFlag.ItemIsEnabled)
         self.setItem(rowPosition, 5, probItem)
-        tableHeader.setSectionResizeMode(5, QHeaderView.Stretch)
+        tableHeader.setSectionResizeMode(5, QHeaderView.ResizeMode.Stretch)
         # Fundnr..
         if "fund_nr" in dataObj:
             fundItem = QTableWidgetItem(str(dataObj["fund_nr"]))
         else:
             fundItem = QTableWidgetItem("NULL")
 
-        fundItem.setFlags(Qt.ItemIsEnabled)
+        fundItem.setFlags(Qt.ItemFlag.ItemIsEnabled)
         self.setItem(rowPosition, 6, fundItem)
-        tableHeader.setSectionResizeMode(6, QHeaderView.Stretch)
+        tableHeader.setSectionResizeMode(6, QHeaderView.ResizeMode.Stretch)
         # Bemerkung
         if "bemerkung" in dataObj:
             bemerkungItem = QTableWidgetItem(str(dataObj["bemerkung"]))
         else:
             bemerkungItem = QTableWidgetItem("NULL")
 
-        bemerkungItem.setFlags(Qt.ItemIsEnabled)
+        bemerkungItem.setFlags(Qt.ItemFlag.ItemIsEnabled)
         self.setItem(rowPosition, 7, bemerkungItem)
-        tableHeader.setSectionResizeMode(7, QHeaderView.Stretch)
+        tableHeader.setSectionResizeMode(7, QHeaderView.ResizeMode.Stretch)
 
         # Layer
         if "layer" in dataObj:
@@ -172,9 +172,9 @@ class DigitizeTable(QTableWidget):
         else:
             layerItem = QTableWidgetItem("NULL")
 
-        layerItem.setFlags(Qt.ItemIsEnabled)
+        layerItem.setFlags(Qt.ItemFlag.ItemIsEnabled)
         self.setItem(rowPosition, 8, layerItem)
-        tableHeader.setSectionResizeMode(8, QHeaderView.Stretch)
+        tableHeader.setSectionResizeMode(8, QHeaderView.ResizeMode.Stretch)
 
         # Bearbeiten
         iconEdit = QIcon(QgsApplication.iconPath("mActionToggleEditing"))
@@ -185,7 +185,7 @@ class DigitizeTable(QTableWidget):
         editBtn.setStyleSheet("margin-left:50%; margin-right:50%; bsckground-color:transparent; border:none;")
         self.setCellWidget(rowPosition, 9, editBtn)
         editBtn.clicked.connect(self.editDialog)
-        tableHeader.setSectionResizeMode(9, QHeaderView.ResizeToContents)
+        tableHeader.setSectionResizeMode(9, QHeaderView.ResizeMode.ResizeToContents)
 
         # Löschen
         iconDel = QIcon(ICON_PATHS["trash_icon"])
@@ -196,7 +196,7 @@ class DigitizeTable(QTableWidget):
         deleteBtn.setStyleSheet("margin-left:50%; margin-right:50%; bsckground-color:transparent; border:none;")
         self.setCellWidget(rowPosition, 10, deleteBtn)
         deleteBtn.clicked.connect(self.showDialog)
-        tableHeader.setSectionResizeMode(10, QHeaderView.ResizeToContents)
+        tableHeader.setSectionResizeMode(10, QHeaderView.ResizeMode.ResizeToContents)
 
     ## \brief Update feature attributes in table
     #

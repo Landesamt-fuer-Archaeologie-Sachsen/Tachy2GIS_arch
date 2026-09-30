@@ -51,7 +51,7 @@ class ProfileImageCanvas(QgsMapCanvas):
 
         self.markerPoints = []
 
-        self.setCanvasColor(Qt.white)
+        self.setCanvasColor(Qt.GlobalColor.white)
 
         self.createMapToolPan()
         self.createMapToolZoomIn()

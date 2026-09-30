@@ -133,7 +133,7 @@ class VtkViewer(QDockWidget, FORM_CLASS):
         self.dispatcher = Dispatcher(MessageQueue(1), MessageQueue(7), self.reply_handler)
 
         # tachyJoystick
-        self.tachy_joystick_dlg = TachyJoystick(self.dispatcher, self, Qt.Dialog | Qt.Tool)
+        self.tachy_joystick_dlg = TachyJoystick(self.dispatcher, self, Qt.WindowType.Dialog | Qt.WindowType.Tool)
         # custom QLineEdit
         self.refHeightLineEdit = SignalizingLineEdit()
         self.refHeightLineEdit.hide()
@@ -144,7 +144,7 @@ class VtkViewer(QDockWidget, FORM_CLASS):
         # label for Refheight status
         self.refHeightStatusLabel = QLabel()
         self.refHeightStatusLabel.hide()
-        self.refHeightStatusLabel.setAlignment(Qt.AlignCenter)
+        self.refHeightStatusLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.refHeightStatusLabel.setMinimumSize(26, 26)
         self.refHeightStatusLabel.setMaximumSize(26, 26)
         self.refHeightStatusLabel.setText(self.REF_HEIGHT_DISCONNECTED)

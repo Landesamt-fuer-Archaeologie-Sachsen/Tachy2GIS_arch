@@ -204,29 +204,29 @@ class TransformationDialogTable(QTableWidget):
             self.setItem(rowPosition, 0, QTableWidgetItem(pointObj["uuid"]))
             # PTNR
             ptnrItem = QTableWidgetItem(str(pointObj["pt_nr"]))
-            ptnrItem.setFlags(Qt.ItemIsEnabled)
+            ptnrItem.setFlags(Qt.ItemFlag.ItemIsEnabled)
             self.setItem(rowPosition, 1, ptnrItem)
-            gcpTableHeader.setSectionResizeMode(1, QHeaderView.ResizeToContents)
+            gcpTableHeader.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
             # ID
             idItem = QTableWidgetItem(str(pointObj["fid"]))
-            idItem.setFlags(Qt.ItemIsEnabled)
+            idItem.setFlags(Qt.ItemFlag.ItemIsEnabled)
             self.setItem(rowPosition, 2, idItem)
-            gcpTableHeader.setSectionResizeMode(2, QHeaderView.ResizeToContents)
+            gcpTableHeader.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
             # Quelle X
             qxItem = QTableWidgetItem(str(round(pointObj["x"], 3)))
-            qxItem.setFlags(Qt.ItemIsEnabled)
+            qxItem.setFlags(Qt.ItemFlag.ItemIsEnabled)
             self.setItem(rowPosition, 3, qxItem)
-            gcpTableHeader.setSectionResizeMode(3, QHeaderView.ResizeToContents)
+            gcpTableHeader.setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
             # Quelle Y
             qyItem = QTableWidgetItem(str(round(pointObj["y"], 3)))
-            qyItem.setFlags(Qt.ItemIsEnabled)
+            qyItem.setFlags(Qt.ItemFlag.ItemIsEnabled)
             self.setItem(rowPosition, 4, qyItem)
-            gcpTableHeader.setSectionResizeMode(4, QHeaderView.ResizeToContents)
+            gcpTableHeader.setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents)
             # Quelle Z
             qzItem = QTableWidgetItem(str(round(pointObj["z"], 3)))
-            qzItem.setFlags(Qt.ItemIsEnabled)
+            qzItem.setFlags(Qt.ItemFlag.ItemIsEnabled)
             self.setItem(rowPosition, 5, qzItem)
-            gcpTableHeader.setSectionResizeMode(5, QHeaderView.ResizeToContents)
+            gcpTableHeader.setSectionResizeMode(5, QHeaderView.ResizeMode.ResizeToContents)
 
             # Ziel X
             targetComboX = QComboBox()
@@ -240,7 +240,7 @@ class TransformationDialogTable(QTableWidget):
             targetComboX.wheelEvent = lambda event: None
             targetComboX.currentTextChanged.connect(self.onComboboxChanged)
             self.setCellWidget(rowPosition, 6, targetComboX)
-            gcpTableHeader.setSectionResizeMode(6, QHeaderView.Stretch)
+            gcpTableHeader.setSectionResizeMode(6, QHeaderView.ResizeMode.Stretch)
 
             # Ziel Y
             targetComboY = QComboBox()
@@ -254,7 +254,7 @@ class TransformationDialogTable(QTableWidget):
             targetComboY.wheelEvent = lambda event: None
             targetComboY.currentTextChanged.connect(self.onComboboxChanged)
             self.setCellWidget(rowPosition, 7, targetComboY)
-            gcpTableHeader.setSectionResizeMode(7, QHeaderView.Stretch)
+            gcpTableHeader.setSectionResizeMode(7, QHeaderView.ResizeMode.Stretch)
 
             # Ziel Z
             targetComboZ = QComboBox()
@@ -268,18 +268,18 @@ class TransformationDialogTable(QTableWidget):
             targetComboZ.wheelEvent = lambda event: None
             targetComboZ.currentTextChanged.connect(self.onComboboxChanged)
             self.setCellWidget(rowPosition, 8, targetComboZ)
-            gcpTableHeader.setSectionResizeMode(8, QHeaderView.Stretch)
+            gcpTableHeader.setSectionResizeMode(8, QHeaderView.ResizeMode.Stretch)
 
             # Error XY
             errorXyItem = QTableWidgetItem(str(-99999))
-            errorXyItem.setFlags(Qt.ItemIsEnabled)
+            errorXyItem.setFlags(Qt.ItemFlag.ItemIsEnabled)
             self.setItem(rowPosition, 9, errorXyItem)
-            gcpTableHeader.setSectionResizeMode(9, QHeaderView.ResizeToContents)
+            gcpTableHeader.setSectionResizeMode(9, QHeaderView.ResizeMode.ResizeToContents)
             # Error Z
             errorZItem = QTableWidgetItem(str(-99999))
-            errorZItem.setFlags(Qt.ItemIsEnabled)
+            errorZItem.setFlags(Qt.ItemFlag.ItemIsEnabled)
             self.setItem(rowPosition, 10, errorZItem)
-            gcpTableHeader.setSectionResizeMode(10, QHeaderView.ResizeToContents)
+            gcpTableHeader.setSectionResizeMode(10, QHeaderView.ResizeMode.ResizeToContents)
 
             # Punkt verwenden
             usageCombo = QComboBox()
@@ -296,7 +296,7 @@ class TransformationDialogTable(QTableWidget):
             usageCombo.wheelEvent = lambda event: None
             usageCombo.currentTextChanged.connect(self.onComboboxChanged)
             self.setCellWidget(rowPosition, 11, usageCombo)
-            gcpTableHeader.setSectionResizeMode(11, QHeaderView.Stretch)
+            gcpTableHeader.setSectionResizeMode(11, QHeaderView.ResizeMode.Stretch)
 
         # hide column with ugly uuid
         self.setColumnHidden(0, True)
@@ -332,29 +332,29 @@ class TransformationDialogTable(QTableWidget):
 
             # PTNR
             ptnrItem = QTableWidgetItem(str(pointObj["pt_nr"]))
-            ptnrItem.setFlags(Qt.ItemIsEnabled)
+            ptnrItem.setFlags(Qt.ItemFlag.ItemIsEnabled)
             self.setItem(rowPosition, 1, ptnrItem)
-            gcpTableHeader.setSectionResizeMode(1, QHeaderView.ResizeToContents)
+            gcpTableHeader.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
             # ID
             idItem = QTableWidgetItem(str(pointObj["fid"]))
-            idItem.setFlags(Qt.ItemIsEnabled)
+            idItem.setFlags(Qt.ItemFlag.ItemIsEnabled)
             self.setItem(rowPosition, 2, idItem)
-            gcpTableHeader.setSectionResizeMode(2, QHeaderView.ResizeToContents)
+            gcpTableHeader.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
             # Quelle X
             qxItem = QTableWidgetItem(str(round(pointObj["sourcePoints"][0], 3)))
-            qxItem.setFlags(Qt.ItemIsEnabled)
+            qxItem.setFlags(Qt.ItemFlag.ItemIsEnabled)
             self.setItem(rowPosition, 3, qxItem)
-            gcpTableHeader.setSectionResizeMode(3, QHeaderView.ResizeToContents)
+            gcpTableHeader.setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
             # Quelle Y
             qyItem = QTableWidgetItem(str(round(pointObj["sourcePoints"][1], 3)))
-            qyItem.setFlags(Qt.ItemIsEnabled)
+            qyItem.setFlags(Qt.ItemFlag.ItemIsEnabled)
             self.setItem(rowPosition, 4, qyItem)
-            gcpTableHeader.setSectionResizeMode(4, QHeaderView.ResizeToContents)
+            gcpTableHeader.setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents)
             # Quelle Z
             qzItem = QTableWidgetItem(str(round(pointObj["sourcePoints"][2], 3)))
-            qzItem.setFlags(Qt.ItemIsEnabled)
+            qzItem.setFlags(Qt.ItemFlag.ItemIsEnabled)
             self.setItem(rowPosition, 5, qzItem)
-            gcpTableHeader.setSectionResizeMode(5, QHeaderView.ResizeToContents)
+            gcpTableHeader.setSectionResizeMode(5, QHeaderView.ResizeMode.ResizeToContents)
 
             # Ziel X
             targetComboX = QComboBox()
@@ -367,7 +367,7 @@ class TransformationDialogTable(QTableWidget):
             targetComboX.wheelEvent = lambda event: None
             targetComboX.currentTextChanged.connect(self.onComboboxChanged)
             self.setCellWidget(rowPosition, 6, targetComboX)
-            gcpTableHeader.setSectionResizeMode(6, QHeaderView.Stretch)
+            gcpTableHeader.setSectionResizeMode(6, QHeaderView.ResizeMode.Stretch)
 
             # Ziel Y
             targetComboY = QComboBox()
@@ -379,7 +379,7 @@ class TransformationDialogTable(QTableWidget):
             targetComboY.wheelEvent = lambda event: None
             targetComboY.currentTextChanged.connect(self.onComboboxChanged)
             self.setCellWidget(rowPosition, 7, targetComboY)
-            gcpTableHeader.setSectionResizeMode(7, QHeaderView.Stretch)
+            gcpTableHeader.setSectionResizeMode(7, QHeaderView.ResizeMode.Stretch)
 
             # Ziel Z
             targetComboZ = QComboBox()
@@ -391,18 +391,18 @@ class TransformationDialogTable(QTableWidget):
             targetComboZ.wheelEvent = lambda event: None
             targetComboZ.currentTextChanged.connect(self.onComboboxChanged)
             self.setCellWidget(rowPosition, 8, targetComboZ)
-            gcpTableHeader.setSectionResizeMode(8, QHeaderView.Stretch)
+            gcpTableHeader.setSectionResizeMode(8, QHeaderView.ResizeMode.Stretch)
 
             # Error XY
             errorXyItem = QTableWidgetItem(str(round(pointObj["error_xy"], 3)))
-            errorXyItem.setFlags(Qt.ItemIsEnabled)
+            errorXyItem.setFlags(Qt.ItemFlag.ItemIsEnabled)
             self.setItem(rowPosition, 9, errorXyItem)
-            gcpTableHeader.setSectionResizeMode(9, QHeaderView.ResizeToContents)
+            gcpTableHeader.setSectionResizeMode(9, QHeaderView.ResizeMode.ResizeToContents)
             # Error Z
             errorZItem = QTableWidgetItem(str(round(pointObj["error_z"], 3)))
-            errorZItem.setFlags(Qt.ItemIsEnabled)
+            errorZItem.setFlags(Qt.ItemFlag.ItemIsEnabled)
             self.setItem(rowPosition, 10, errorZItem)
-            gcpTableHeader.setSectionResizeMode(10, QHeaderView.ResizeToContents)
+            gcpTableHeader.setSectionResizeMode(10, QHeaderView.ResizeMode.ResizeToContents)
 
             # Punkt verwenden
             usageCombo = QComboBox()
@@ -414,7 +414,7 @@ class TransformationDialogTable(QTableWidget):
             usageCombo.wheelEvent = lambda event: None
             usageCombo.currentTextChanged.connect(self.onComboboxChanged)
             self.setCellWidget(rowPosition, 11, usageCombo)
-            gcpTableHeader.setSectionResizeMode(11, QHeaderView.Stretch)
+            gcpTableHeader.setSectionResizeMode(11, QHeaderView.ResizeMode.Stretch)
 
         # hide column with ugly uuid
         self.setColumnHidden(0, True)

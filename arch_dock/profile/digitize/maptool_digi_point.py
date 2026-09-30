@@ -100,7 +100,7 @@ class MapToolDigiPoint(PointMapTool, MapToolMixin):
         self.dialogAttributes.setMode(QgsAttributeEditorContext.FixAttributeMode)
         # parentless + show(): without this flag every digitized feature leaks
         # one complete attribute form (25 widgets each, found by P3-Origin)
-        self.dialogAttributes.setAttribute(Qt.WA_DeleteOnClose)
+        self.dialogAttributes.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
         self.dialogAttributes.rejected.connect(self.closeAttributeDialog)
         self.dialogAttributes.accepted.connect(self.acceptedAttributeDialog)
         self.dialogAttributes.show()

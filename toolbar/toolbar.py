@@ -37,7 +37,7 @@ class T2GToolbar(QToolBar):
         self.autosave_manager = AutosaveManager()
 
         self.vtk_viewer = VtkViewer()
-        iface.addDockWidget(Qt.BottomDockWidgetArea, self.vtk_viewer)
+        iface.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, self.vtk_viewer)
         # addDockWidget() force-shows the dock. Start hidden instead: on a
         # regular QGIS start the saved window layout is applied AFTER plugin
         # loading and decides the final visibility anyway; on a manual plugin
@@ -50,7 +50,7 @@ class T2GToolbar(QToolBar):
         self.addAction(self.t2g_action)
 
         self.arch_dock = T2GArchDockWidget()
-        iface.addDockWidget(Qt.RightDockWidgetArea, self.arch_dock)
+        iface.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.arch_dock)
         self.arch_dock_action = self.arch_dock.toggleViewAction()
         arch_icon = QIcon(os.path.join(ICONS_DIR, "plugin_icon.png"))
         self.arch_dock_action.setIcon(arch_icon)

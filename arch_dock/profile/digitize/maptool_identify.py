@@ -18,7 +18,7 @@ class CompressorProxy(QObject):
 
     def emitCheck(self, flag):
         flag[0] = True
-        QCoreApplication.sendPostedEvents(self, QEvent.MetaCall)
+        QCoreApplication.sendPostedEvents(self, QEvent.Type.MetaCall)
         result = flag[0]
         flag[0] = False
         return result
@@ -63,7 +63,7 @@ class MapToolIdentify(QgsMapTool):
         self.lastUUID = None
         self.lastFeature = None
         proxy = CompressorProxy(self)
-        self.got_moved.connect(proxy.slot_point, Qt.QueuedConnection)  # queued is important
+        self.got_moved.connect(proxy.slot_point, Qt.ConnectionType.QueuedConnection)  # queued is important
         proxy.signal_point.connect(self.handleMove)
 
     def canvasPressEvent(self, event):
@@ -116,7 +116,7 @@ class MapToolIdentify(QgsMapTool):
         self.only_lines = False
         self.only_polygons = False
         self.do_action_select_instead = True
-        self.setCursor(Qt.PointingHandCursor)
+        self.setCursor(Qt.CursorShape.PointingHandCursor)
         if the_only_geom == "points":
             self.only_points = True
         elif the_only_geom == "lines":
@@ -130,7 +130,7 @@ class MapToolIdentify(QgsMapTool):
         self.only_lines = False
         self.only_polygons = False
         self.do_action_select_instead = False
-        self.setCursor(Qt.WhatsThisCursor)
+        self.setCursor(Qt.CursorShape.WhatsThisCursor)
         self._set_search_features()
 
     def _set_search_features(self):

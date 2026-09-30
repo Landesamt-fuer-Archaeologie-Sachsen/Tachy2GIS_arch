@@ -53,7 +53,7 @@ class GeoreferencingDialog(QMainWindow):
         self.style_button_enabled = "background-color: green; width: 200px"
         self.style_button_disabled = "background-color: lightgrey; width: 200px"
         self.t2GArchInstance = t2GArchInstance
-        self.setAttribute(Qt.WA_DeleteOnClose)
+        self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
         self.refData = None
         self.iface = iFace
         self.aarDirection = "horizontal"
@@ -571,7 +571,7 @@ class GeoreferencingDialog(QMainWindow):
                 self,
                 "Fehler bei der Profilentzerrung!",
                 "Profil konnte nicht entzerrt werden. Bitte Punkte pruefen und erneut versuchen.",
-                QMessageBox.Abort,
+                QMessageBox.StandardButton.Abort,
             )
             return
 
