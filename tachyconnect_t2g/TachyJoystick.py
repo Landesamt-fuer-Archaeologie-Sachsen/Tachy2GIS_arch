@@ -1,8 +1,10 @@
+import os
+
+from qgis.PyQt import uic
 from qgis.PyQt.QtWidgets import QDialog
 from qgis.PyQt.QtCore import Qt, pyqtSignal
 
 from . import gc_constants
-from .ui.tachy_joystick import Ui_Dialog as Ui_TachyJoystick
 from .TachyRequest import (
     MOT_StartController,
     MOT_StopController,
@@ -18,7 +20,10 @@ from .TachyRequest import (
 )
 
 
-class TachyJoystick(QDialog, Ui_TachyJoystick):
+FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "ui", "tachy_joystick.ui"))
+
+
+class TachyJoystick(QDialog, FORM_CLASS):
     MAX_SPEED = 0.42
     STEP = 0.06
 
@@ -27,7 +32,7 @@ class TachyJoystick(QDialog, Ui_TachyJoystick):
     LOCK_STATES = {"0": UNLOCKED, "1": LOCKED}
     ref_z_received = pyqtSignal(str)
 
-    def __init__(self, dispatcher, parent=None, flags=Qt.Dialog | Qt.Tool):
+    def __init__(self, dispatcher, parent=None, flags=Qt.WindowType.Dialog | Qt.WindowType.Tool):
         super().__init__(parent=parent, flags=flags)
         self.reject = self.accept
         self.dispatcher = dispatcher

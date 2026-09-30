@@ -45,7 +45,7 @@ tags[en_us]=Archäologie
 icon=Icons/plugin_icon.png
 
 ; if empty, it will be automatically set to major version + .99
-qgisMaximumVersion=3.99
+qgisMaximumVersion=4.99
 
 ; Since QGIS 3.8, a comma separated list of plugins to be installed
 ; (or upgraded) can be specified.

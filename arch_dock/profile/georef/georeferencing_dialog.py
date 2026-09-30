@@ -22,7 +22,7 @@ from qgis.PyQt.QtWidgets import (
     QPushButton,
     QLabel,
     QMessageBox,
-    QDesktopWidget,
+    QApplication,
 )
 from qgis.core import QgsGeometry
 from qgis.gui import QgsMessageBar
@@ -317,7 +317,7 @@ class GeoreferencingDialog(QMainWindow):
 
             self.adjustSize()
             self.resize(1000, 750)
-            sg = QDesktopWidget().availableGeometry()
+            sg = QApplication.primaryScreen().availableGeometry()
             x = int((sg.width() - self.width()) / 2.0 + offset)
             y = int((sg.height() - self.height()) / 2.0 + offset)
             self.setGeometry(x, y, self.width(), self.height())

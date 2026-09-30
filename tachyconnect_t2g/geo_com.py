@@ -1,6 +1,6 @@
 from . import gc_constants as gc
-from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot, QTimer, QThread
-from PyQt5.QtSerialPort import QSerialPort
+from qgis.PyQt.QtCore import QObject, pyqtSignal, pyqtSlot, QTimer, QThread
+from qgis.PyQt.QtSerialPort import QSerialPort
 from time import time
 
 

@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # This parser uses the dictionararies defined by 
 #
-from PyQt5.QtCore import QThread, pyqtSignal, QTimer
-from PyQt5.QtSerialPort import QSerialPort
+from qgis.PyQt.QtCore import QThread, pyqtSignal, QTimer
+from qgis.PyQt.QtSerialPort import QSerialPort
 
 dict_projections = {
     "WGS84": 4326,

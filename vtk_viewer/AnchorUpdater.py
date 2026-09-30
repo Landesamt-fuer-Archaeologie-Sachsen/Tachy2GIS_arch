@@ -1,6 +1,6 @@
-from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot, QMutex
+from qgis.PyQt.QtCore import QObject, pyqtSignal, pyqtSlot, QMutex
 from qgis.core import QgsSpatialIndex, QgsFeature, QgsGeometry, QgsPoint, QgsPointXY, QgsWkbTypes
-from PyQt5.QtWidgets import qApp
+from qgis.PyQt.QtWidgets import QApplication
 import vtk
 import json
 import re
@@ -64,7 +64,7 @@ class AnchorUpdater(QObject):
             self.signalGeometriesProgress.emit(i)
             # frequently forcing event processing is required to actually update
             # the progress bars and to be able to receive the abort signal
-            qApp.processEvents()
+            QApplication.processEvents()
             if self.abort:
                 self.anchorPoints = []
                 self.anchorIndex = QgsSpatialIndex()
@@ -96,7 +96,7 @@ class AnchorUpdater(QObject):
                         newAnchor.setGeometry(QgsGeometry.fromPointXY(QgsPointXY(coordinates[0], coordinates[1])))
                         self.anchorIndex.insertFeature(newAnchor)
                 self.signalAnchorCount.emit(i + 1)
-                qApp.processEvents()
+                QApplication.processEvents()
                 if self.abort:
                     self.anchorPoints = []
                     self.anchorIndex = QgsSpatialIndex()
@@ -163,7 +163,7 @@ class VtkAnchorUpdater(AnchorUpdater):
         if self.geoType == QgsWkbTypes.PolygonGeometry:
             geometries = list([feature.geometry() for feature in self.layer.getFeatures()])
             # active_layer_id = self.layer.id()
-            # qApp.processEvents()
+            # QApplication.processEvents()
             polies = vtk.vtkCellArray()
             anchors = vtk.vtkPoints()
             anchors.SetDataTypeToDouble()

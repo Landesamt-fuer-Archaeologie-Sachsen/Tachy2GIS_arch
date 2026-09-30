@@ -1,7 +1,7 @@
 from datetime import datetime as dt
 from . import gc_constants as gc
 from .ts_control import GeoCOMCommand, GSICommand, CommunicationConstants
-from PyQt5.QtCore import QObject
+from qgis.PyQt.QtCore import QObject
 
 class TachyRequest(QObject):
     gsi_command = ""

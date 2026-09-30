@@ -1,5 +1,5 @@
 import logging
-from PyQt5.QtCore import pyqtSignal, QObject, QEventLoop
+from qgis.PyQt.QtCore import pyqtSignal, QObject, QEventLoop
 
 from .ts_control import TachyReply
 

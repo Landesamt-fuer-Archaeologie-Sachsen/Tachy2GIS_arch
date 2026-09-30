@@ -1,7 +1,7 @@
 from enum import Enum
 
-from PyQt5.QtSerialPort import QSerialPort, QSerialPortInfo
-from PyQt5.QtCore import QEventLoop, QObject, QTimer, QThread, pyqtSignal
+from qgis.PyQt.QtSerialPort import QSerialPort, QSerialPortInfo
+from qgis.PyQt.QtCore import QEventLoop, QObject, QTimer, QThread, pyqtSignal
 
 from . import gc_constants, GSI_Parser
 

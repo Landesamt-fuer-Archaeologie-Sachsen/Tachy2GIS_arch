@@ -20,7 +20,7 @@ from pathlib import Path
 from qgis.PyQt.QtCore import QCoreApplication, QLocale, QRect, Qt, QUrl
 from qgis.PyQt.QtGui import QPainter, QIcon
 
-from qgis.PyQt.QtWidgets import QDesktopWidget, QDoubleSpinBox, QGridLayout, QLabel, QProgressBar, QTextBrowser, QWidget
+from qgis.PyQt.QtWidgets import QApplication, QDoubleSpinBox, QGridLayout, QLabel, QProgressBar, QTextBrowser, QWidget
 from qgis.core import (
     QgsDefaultValue,
     QgsExpressionContextUtils,
@@ -440,7 +440,7 @@ class ProgressBar(QWidget):
     def __init__(self, titel):
         super().__init__()
         self.setWindowTitle(titel)
-        self.move(QDesktopWidget().availableGeometry().center())
+        self.move(QApplication.primaryScreen().availableGeometry().center())
         self.progress = QProgressBar(self)
         self.progress.setGeometry(0, 0, 300, 25)
         self.progress.setMinimum(0)

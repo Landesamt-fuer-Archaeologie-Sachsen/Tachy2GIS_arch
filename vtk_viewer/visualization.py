@@ -4,7 +4,7 @@ from qgis.core import Qgis, QgsGeometry, QgsWkbTypes, QgsMessageLog, QgsVectorDa
 from qgis.gui import QgsAttributeDialog
 from qgis.utils import iface
 from qgis.PyQt.QtCore import QObject, pyqtSignal
-from qgis.PyQt.QtWidgets import qApp
+from qgis.PyQt.QtWidgets import QApplication
 
 from random import random
 
@@ -225,7 +225,7 @@ class VtkPointCloudLayer(VtkLayer):
 
         with open(cloud_file_name, "r", encoding="utf-8-sig") as file:
             for line in file:
-                qApp.processEvents()
+                QApplication.processEvents()
                 split = line.split()
                 pid = points.InsertNextPoint((float(split[0]), float(split[1]), float(split[2])))
                 cells.InsertNextCell(1, [pid])
