@@ -3,6 +3,7 @@ import csv
 import logging
 import os
 
+from qgis.core import Qgis
 from qgis.PyQt.QtWidgets import QMessageBox
 from qgis.core import (
     QgsProject,
@@ -450,7 +451,7 @@ class TransformationGui:
 
                 if field_index == -1:
                     iface.messageBar().pushMessage(
-                        "Error", "Im Eingabelayer fehlt die Spalte 'obj_typ'", level=1, duration=5
+                        "Error", "Im Eingabelayer fehlt die Spalte 'obj_typ'", level=Qgis.MessageLevel.Warning, duration=5
                     )
                     isValid = False
                 else:
@@ -468,7 +469,7 @@ class TransformationGui:
                         iface.messageBar().pushMessage(
                             "Error",
                             "Min. zwei Einträge 'Festpunkt' in Spalte 'obj_typ' sind notwendig",
-                            level=1,
+                            level=Qgis.MessageLevel.Warning,
                             duration=5,
                         )
                     else:
@@ -477,12 +478,12 @@ class TransformationGui:
             else:
                 isValid = False
                 iface.messageBar().pushMessage(
-                    "Error", "Sourcelayer muss PointZ, PointZM, MultiPointZ oder MultipointZM sein", level=1, duration=5
+                    "Error", "Sourcelayer muss PointZ, PointZM, MultiPointZ oder MultipointZM sein", level=Qgis.MessageLevel.Warning, duration=5
                 )
 
         else:
             isValid = False
-            iface.messageBar().pushMessage("Error", "Sourcelayer ist kein Vektorlayer", level=1, duration=5)
+            iface.messageBar().pushMessage("Error", "Sourcelayer ist kein Vektorlayer", level=Qgis.MessageLevel.Warning, duration=5)
 
         return isValid
 
@@ -518,7 +519,7 @@ class TransformationGui:
                             iface.messageBar().pushMessage(
                                 "Error",
                                 "GCP Datei ist ungültig: Anzahl Spalten ungleich " + str(checkCountColumns),
-                                level=1,
+                                level=Qgis.MessageLevel.Warning,
                                 duration=5,
                             )
 
@@ -527,14 +528,14 @@ class TransformationGui:
                     iface.messageBar().pushMessage(
                         "Error",
                         "GCP Datei ist ungültig: min. " + str(checkCountRows) + " Zeilen notwendig",
-                        level=1,
+                        level=Qgis.MessageLevel.Warning,
                         duration=5,
                     )
 
         else:
 
             isValid = False
-            iface.messageBar().pushMessage("Error", "Keine GCP Datei ausgewählt!", level=1, duration=5)
+            iface.messageBar().pushMessage("Error", "Keine GCP Datei ausgewählt!", level=Qgis.MessageLevel.Warning, duration=5)
 
         return isValid
 
@@ -660,7 +661,7 @@ class TransformationGui:
                         LOGGER.debug("Leerzeile in GCP-Datei übersprungen")
             return True, targetGCP
         except:
-            iface.messageBar().pushMessage("GCP-File", "Datei kann nicht eingelesen werden!", level=1, duration=5)
+            iface.messageBar().pushMessage("GCP-File", "Datei kann nicht eingelesen werden!", level=Qgis.MessageLevel.Warning, duration=5)
 
             return False, targetGCP
 
@@ -792,7 +793,7 @@ class TransformationGui:
 
         else:
             iface.messageBar().pushMessage(
-                "Tranformationsparameter", "Berechnen Sie zuerst die Transformationsparameter!", level=1, duration=5
+                "Tranformationsparameter", "Berechnen Sie zuerst die Transformationsparameter!", level=Qgis.MessageLevel.Warning, duration=5
             )
 
     ## \brief Starts the reverse process of the transformation of inputLayers
@@ -891,6 +892,6 @@ class TransformationGui:
             iface.messageBar().pushMessage(
                 "Tranformationsparameter",
                 "Zurücksetzen der Transformation nicht möglich - keine Transformationsparameter vorhanden!",
-                level=1,
+                level=Qgis.MessageLevel.Warning,
                 duration=5,
             )

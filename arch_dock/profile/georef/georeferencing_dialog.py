@@ -11,6 +11,7 @@ from shutil import rmtree
 import osgeo_utils.gdal_merge
 from PIL import Image, ImageDraw
 from osgeo import gdal
+from qgis.core import Qgis
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import (
@@ -323,7 +324,7 @@ class GeoreferencingDialog(QMainWindow):
             self.setGeometry(x, y, self.width(), self.height())
             self.show()
         else:
-            self.iface.messageBar().pushMessage("Error", "Rasterlayer konnte nicht gelesen werden", level=1, duration=3)
+            self.iface.messageBar().pushMessage("Error", "Rasterlayer konnte nicht gelesen werden", level=Qgis.MessageLevel.Warning, duration=3)
 
     ## \brief Export GCP-Data in a textfile
     #
@@ -486,7 +487,7 @@ class GeoreferencingDialog(QMainWindow):
                     self.iface.messageBar().pushMessage(
                         "Hinweis",
                         "Konnte Profil nicht georeferenzieren. Es müssen min. 4 GCP gesetzt sein!",
-                        level=1,
+                        level=Qgis.MessageLevel.Warning,
                         duration=5,
                     )
                     continue
@@ -498,7 +499,7 @@ class GeoreferencingDialog(QMainWindow):
                     self.iface.messageBar().pushMessage(
                         "Hinweis",
                         "Das Profil wurde unter " + str(imageFileOut) + " referenziert",
-                        level=3,
+                        level=Qgis.MessageLevel.Success,
                         duration=5,
                     )
                     continue
@@ -561,7 +562,7 @@ class GeoreferencingDialog(QMainWindow):
                 self.iface.messageBar().pushMessage(
                     "Hinweis",
                     "Das Profil wurde unter " + str(imageFileOut) + " referenziert",
-                    level=3,
+                    level=Qgis.MessageLevel.Success,
                     duration=5,
                 )
 

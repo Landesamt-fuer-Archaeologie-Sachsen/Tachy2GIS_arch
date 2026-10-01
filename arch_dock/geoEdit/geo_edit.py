@@ -1,6 +1,7 @@
 ## @package QGIS geoEdit extension..
 import logging
 
+from qgis.core import Qgis
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QMessageBox
 from qgis.core import (
@@ -128,10 +129,10 @@ class GeoEdit:
                     # Enable reverse translation
                     self.setAllowReverse(True)
             else:
-                iface.messageBar().pushMessage("Hinweis", "Keine Features ausgewählt!", level=1, duration=5)
+                iface.messageBar().pushMessage("Hinweis", "Keine Features ausgewählt!", level=Qgis.MessageLevel.Warning, duration=5)
 
         else:
-            iface.messageBar().pushMessage("Error", validationText, level=2, duration=5)
+            iface.messageBar().pushMessage("Error", validationText, level=Qgis.MessageLevel.Critical, duration=5)
 
     ## @brief Start process to move features reverse
     # - Only when self.allowReverse is True
@@ -175,7 +176,7 @@ class GeoEdit:
         iface.messageBar().pushMessage(
             "Hinweis",
             "Die relative Verschiebung des Layers " + self.sourceLayer.name() + " ist fertig!",
-            level=3,
+            level=Qgis.MessageLevel.Success,
             duration=5,
         )
 
@@ -203,7 +204,7 @@ class GeoEdit:
         iface.messageBar().pushMessage(
             "Hinweis",
             "Die absolute Verschiebung des Layers " + self.sourceLayer.name() + " ist fertig!",
-            level=3,
+            level=Qgis.MessageLevel.Success,
             duration=5,
         )
 
@@ -333,13 +334,13 @@ class GeoEdit:
                 generalValid = False
                 validationText = "Sourcelayer ist kein Geopackage"
                 detailedText = ""
-                iface.messageBar().pushMessage("Error", "Sourcelayer ist kein Geopackage", level=1, duration=5)
+                iface.messageBar().pushMessage("Error", "Sourcelayer ist kein Geopackage", level=Qgis.MessageLevel.Warning, duration=5)
 
         else:
             generalValid = False
             validationText = "Sourcelayer ist kein Vektorlayer"
             detailedText = ""
-            iface.messageBar().pushMessage("Error", "Sourcelayer ist kein Vektorlayer", level=1, duration=5)
+            iface.messageBar().pushMessage("Error", "Sourcelayer ist kein Vektorlayer", level=Qgis.MessageLevel.Warning, duration=5)
 
         return generalValid, validationText, detailedText
 

@@ -2,6 +2,7 @@
 import json
 import os
 
+from qgis.core import Qgis
 from qgis.core import QgsProject, QgsVectorLayer, QgsLayerTreeGroup, QgsLayerTreeLayer
 from qgis.gui import QgsFileWidget
 from qgis.utils import iface
@@ -53,7 +54,7 @@ class Digitize:
 
         if not layers_not_in_edit_mode(["E_Point", "E_Line", "E_Polygon", "Messpunkte"]):
             iface.messageBar().pushMessage(
-                "Error", "Bitte den Editiermodus der Eingabelayer beenden.", level=1, duration=3
+                "Error", "Bitte den Editiermodus der Eingabelayer beenden.", level=Qgis.MessageLevel.Warning, duration=3
             )
             return
 
@@ -67,7 +68,7 @@ class Digitize:
 
             except ValueError as err:
                 metaChecker = False
-                iface.messageBar().pushMessage("Error", str(err.args[0]), level=1, duration=3)
+                iface.messageBar().pushMessage("Error", str(err.args[0]), level=Qgis.MessageLevel.Warning, duration=3)
 
             if metaChecker == True:
 
@@ -139,7 +140,7 @@ class Digitize:
             if checkerGeoQuelle == False:
                 errorArray.append({"error": True, "layer": layer.name()})
                 iface.messageBar().pushMessage(
-                    "Error", "Im Layer " + layer.name() + " fehlt die Spalte 'geo_quelle'", level=1, duration=5
+                    "Error", "Im Layer " + layer.name() + " fehlt die Spalte 'geo_quelle'", level=Qgis.MessageLevel.Warning, duration=5
                 )
 
         return errorArray

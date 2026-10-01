@@ -416,7 +416,7 @@ class Georef:
 
         if validGeomCheck is False:
             errorMsg = f"Kann Geometrietyp nicht verarbeiten {orgGeomType}"
-            iface.messageBar().pushMessage("Error", errorMsg, level=1, duration=3)
+            iface.messageBar().pushMessage("Error", errorMsg, level=Qgis.MessageLevel.Warning, duration=3)
 
         if second_set:
             imagePath = self.dockwidget.profileFotosComboGeoref_2.filePath()

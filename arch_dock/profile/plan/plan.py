@@ -6,6 +6,7 @@ from glob import glob
 from shutil import rmtree
 
 import processing
+from qgis.core import Qgis
 from qgis.PyQt.QtCore import QVariant, Qt
 from osgeo import ogr
 from qgis.core import (
@@ -77,7 +78,7 @@ class Plan:
 
         if not layers_not_in_edit_mode(["E_Point", "E_Line", "E_Polygon", "Messpunkte"]):
             iface.messageBar().pushMessage(
-                "Error", "Bitte den Editiermodus der Eingabelayer beenden.", level=1, duration=3
+                "Error", "Bitte den Editiermodus der Eingabelayer beenden.", level=Qgis.MessageLevel.Warning, duration=3
             )
             return
 
@@ -91,7 +92,7 @@ class Plan:
 
         except ValueError as err:
             metaChecker = False
-            iface.messageBar().pushMessage("Error", str(err.args[0]), level=1, duration=3)
+            iface.messageBar().pushMessage("Error", str(err.args[0]), level=Qgis.MessageLevel.Warning, duration=3)
 
         if metaChecker == True:
             self.dataStorePlan.triggerAarTransformationParams(self.aar_direction)
@@ -109,7 +110,7 @@ class Plan:
             iface.messageBar().pushMessage(
                 "Hinweis",
                 "Die Daten zum Plan wurden im Geopackage des Projektes in den (unregistrierten) Tabellen profildata_* abgelegt",
-                level=3,
+                level=Qgis.MessageLevel.Success,
                 duration=5,
             )
 

@@ -158,7 +158,7 @@ class TransformationDialogCanvas(QgsMapCanvas):
         # check validation of Layers
         for layer in self.inputLayers:
             if not layer.isValid():
-                self.messageBar.pushMessage("Error", "Layer " + layer.name() + " failed to load!", level=1, duration=5)
+                self.messageBar.pushMessage("Error", "Layer " + layer.name() + " failed to load!", level=Qgis.MessageLevel.Warning, duration=5)
 
         sourceCrs = self.sourceLayer.crs()
 

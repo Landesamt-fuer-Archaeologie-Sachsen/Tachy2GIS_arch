@@ -3,6 +3,7 @@ import csv
 import logging
 import os
 
+from qgis.core import Qgis
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import (
@@ -263,7 +264,7 @@ class TransformationDialog(QMainWindow):
 
         if len(GcpData) < 3:
             conditionsValid = False
-            self.messageBar.pushMessage("Error", "Zu geringe Anzahl an Georeferenzierungspunkten!", level=1, duration=5)
+            self.messageBar.pushMessage("Error", "Zu geringe Anzahl an Georeferenzierungspunkten!", level=Qgis.MessageLevel.Warning, duration=5)
         else:
             conditionsValid = True
 
@@ -287,7 +288,7 @@ class TransformationDialog(QMainWindow):
                 self.messageBar.pushMessage(
                     "Error",
                     "Zu geringe Anzahl an XY-Georeferenzierungspunkten für eine 2D Transformation!",
-                    level=1,
+                    level=Qgis.MessageLevel.Warning,
                     duration=5,
                 )
 
@@ -297,7 +298,7 @@ class TransformationDialog(QMainWindow):
                 self.messageBar.pushMessage(
                     "Error",
                     "Zu geringe Anzahl an Z-Georeferenzierungspunkten für die 1D Höhentransformation!",
-                    level=1,
+                    level=Qgis.MessageLevel.Warning,
                     duration=5,
                 )
 

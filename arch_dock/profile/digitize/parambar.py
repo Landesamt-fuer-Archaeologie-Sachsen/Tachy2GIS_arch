@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from qgis.core import Qgis
 from qgis.PyQt.QtCore import Qt, QRect
 from qgis.PyQt.QtGui import QIcon, QPainter, QColor
 from qgis.PyQt.QtWidgets import (
@@ -149,7 +150,7 @@ class Parambar(QWidget):
 
         if not layers_not_in_edit_mode(["E_Point", "E_Line", "E_Polygon", "Messpunkte"]):
             iface.messageBar().pushMessage(
-                "Error", "Bitte den Editiermodus der Eingabelayer beenden.", level=1, duration=3
+                "Error", "Bitte den Editiermodus der Eingabelayer beenden.", level=Qgis.MessageLevel.Warning, duration=3
             )
             return
         try:

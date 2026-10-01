@@ -1,3 +1,4 @@
+from qgis.core import Qgis
 from qgis.PyQt.QtCore import Qt, QPoint, pyqtSlot, pyqtSignal, QCoreApplication, QEvent, QObject
 from qgis.core import QgsPointXY, QgsGeometry, QgsFeature
 from qgis.gui import QgsAttributeDialog, QgsAttributeEditorContext, QgsMapTool
@@ -93,7 +94,7 @@ class MapToolIdentify(QgsMapTool):
     def do_action_select_for_edit(self):
         self.pup.publish("removeHoverFeatures", {})
         if self.lastFeature[1]["geo_quelle"] != "profile_object":
-            self.__iface.messageBar().pushMessage("Error", "Dieses Feature ist nicht editierbar!", level=1, duration=5)
+            self.__iface.messageBar().pushMessage("Error", "Dieses Feature ist nicht editierbar!", level=Qgis.MessageLevel.Warning, duration=5)
             return
         if self.only_points:
             self.points_feature_selected_for_edit.emit(self.lastFeature[1])

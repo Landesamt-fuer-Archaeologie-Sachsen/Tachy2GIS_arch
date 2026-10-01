@@ -184,7 +184,7 @@ class ProfileGcpCanvas(QgsMapCanvas):
         # check validation of Layers
         if not self.gcpLayer.isValid():
             self.messageBar.pushMessage(
-                "Error", "Layer " + self.gcpLayer.name() + " failed to load!", level=1, duration=5
+                "Error", "Layer " + self.gcpLayer.name() + " failed to load!", level=Qgis.MessageLevel.Warning, duration=5
             )
 
         # gcpLayer leeren
