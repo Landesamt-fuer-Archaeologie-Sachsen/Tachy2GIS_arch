@@ -175,7 +175,7 @@ class ImageParambar(QWidget):
         self.canvasImage.setMapTool(self.canvasImage.toolZoomOut)
 
     def activateMapToolMove(self, _):
-        self.actionMove.activate(0)
+        self.actionMove.activate(QAction.ActionEvent.Trigger)
 
     def polygon_set_map_tool(self, checked):
         self.action_group_polygon.setEnabled(checked)
