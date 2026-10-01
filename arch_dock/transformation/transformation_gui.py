@@ -248,7 +248,7 @@ class TransformationGui:
         projectSettings.writeEntry("transformation_target_crs", "text", self.targetCrs)
         projectSettings.writeEntry("transformation_source_crs", "text", self.sourceCrs)
 
-    """
+    r"""
     ## \brief Enable transformation of the current project
     # \brief It enables or disables elements in the dockWidget
     # \brief currently not used, maybe to restrictive. If some errors occurs there could be a disabled and not usable GUI
