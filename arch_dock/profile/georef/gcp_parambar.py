@@ -135,7 +135,8 @@ class GcpParambar(QWidget):
     #
     def createSplitter(self):
         vSplit = QFrame()
-        vSplit.setFrameShape(QFrame.Shape.VLine | QFrame.Shadow.Sunken)
+        vSplit.setFrameShape(QFrame.Shape.VLine)
+        vSplit.setFrameShadow(QFrame.Shadow.Sunken)
 
         return vSplit
 
