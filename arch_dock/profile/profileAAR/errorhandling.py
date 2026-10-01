@@ -242,6 +242,9 @@ class ErrorHandler(object):
         for i in range(len(xw)):
             p3 = np.array([xw[i], yw[i]])
 
-            distance.append(np.linalg.norm(np.cross(p2 - p1, p1 - p3)) / np.linalg.norm(p2 - p1))
+            # 2D cross product written as determinant: np.cross() with 2D vectors is
+            # deprecated since NumPy 2.0 and removed in 2.5; the result is bit-identical.
+            d = p2 - p1
+            distance.append(abs(d[0] * (p1 - p3)[1] - d[1] * (p1 - p3)[0]) / np.linalg.norm(d))
 
         return distance
