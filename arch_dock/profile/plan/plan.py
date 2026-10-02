@@ -27,6 +27,7 @@ from qgis.utils import iface
 from .data_store_plan import DataStorePlan
 from ..rotation_coords import RotationCoords
 from ....common.utils import layers_not_in_edit_mode, set_vsi_cached, is_vsi_cached
+from ....common.profile_number import PROFILE_NUMBER_MAX_LENGTH
 
 LOGGER = logging.getLogger(__name__)
 
@@ -449,7 +450,7 @@ class Plan:
         pr.addFeatures(selFeatures)
 
         if inputLayer.name() == "gcp_points":
-            pr.addAttributes([QgsField("prof_nr", QVariant.String, len=20)])
+            pr.addAttributes([QgsField("prof_nr", QVariant.String, len=PROFILE_NUMBER_MAX_LENGTH)])
         else:
             pr.addAttributes([QgsField("aar_direction", QVariant.String, len=20)])
 

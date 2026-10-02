@@ -37,6 +37,7 @@ from .profile_georef_table import GeorefTable
 from .profile_image_canvas import ProfileImageCanvas
 from ..profileAAR.profileAAR import ProfileAAR
 from ....icons import ICON_PATHS
+from ....common.profile_number import PROFILE_NUMBER_MAX_LENGTH, shorten_profile_number
 
 LOGGER = logging.getLogger(__name__)
 
@@ -554,7 +555,20 @@ class GeoreferencingDialog(QMainWindow):
                 if not self._all_e_layers_support_string_prof_nr():
                     meta_0["profilnummer"] = ''.join(c for c in meta_0["profilnummer"] if c.isdigit())
                 else:
-                    meta_0["profilnummer"] += "_" + meta_1["profilnummer"]
+                    combined = meta_0["profilnummer"] + "_" + meta_1["profilnummer"]
+                    meta_0["profilnummer"] = shorten_profile_number(combined)
+                    if meta_0["profilnummer"] != combined:
+                        LOGGER.warning(
+                            f"Kreuzprofil-Nummer '{combined}' auf {PROFILE_NUMBER_MAX_LENGTH} Zeichen gekürzt: "
+                            f"'{meta_0['profilnummer']}'"
+                        )
+                        self.iface.messageBar().pushMessage(
+                            "Hinweis",
+                            f"Profilnummer des Kreuzprofils auf {PROFILE_NUMBER_MAX_LENGTH} Zeichen gekürzt: "
+                            f"{meta_0['profilnummer']}",
+                            level=Qgis.MessageLevel.Warning,
+                            duration=10,
+                        )
                 out_path = f"{save_path_0_original.joinpath(f'{profileTargetName}.meta')}"
                 with open(out_path, "w") as outfile:
                     json.dump(meta_0, outfile)
