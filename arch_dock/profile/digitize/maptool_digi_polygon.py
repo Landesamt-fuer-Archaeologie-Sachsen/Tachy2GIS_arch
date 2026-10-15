@@ -7,6 +7,7 @@ from qgis.gui import QgsAttributeDialog, QgsAttributeEditorContext
 from ....common.layers import T2gLayers
 from ....settings import PLUGIN_NAME
 from .map_tools import PolygonMapTool
+from .digitize_table import representThesaurusValues
 from .maptool_mixin import MapToolMixin
 from ..publisher import Publisher
 
@@ -149,6 +150,7 @@ class MapToolDigiPolygon(PolygonMapTool, MapToolMixin):
                 dataObj[item.name()] = feature[item.name()]
 
         dataObj["layer"] = self.refData["polygonLayer"].sourceName()
+        representThesaurusValues(self.refData["polygonLayer"], dataObj)
 
         self.pup.publish("polygonFeatureAttr", dataObj)
 

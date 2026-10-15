@@ -21,6 +21,7 @@ from qgis.core import (
 from qgis.gui import QgsMapCanvas, QgsMapToolPan, QgsMapToolZoom, QgsAttributeDialog
 
 from ..publisher import Publisher
+from .digitize_table import representThesaurusValues
 from ....common.utils import ArchProjectConfig
 
 LOGGER = logging.getLogger(__name__)
@@ -63,6 +64,17 @@ class DigitizeCanvas(QgsMapCanvas):
 
         self.createConnects()
 
+    ## \brief Use the attribute form of the Eingabelayer, as the memory copy loses it (thesauri shown as IDs)
+    #
+    def copyAttributeFormConfig(self, sourceLayer, targetLayer):
+        for targetIdx, field in enumerate(targetLayer.fields()):
+            sourceIdx = sourceLayer.fields().indexFromName(field.name())
+            if sourceIdx == -1:
+                continue
+            targetLayer.setEditorWidgetSetup(targetIdx, sourceLayer.editorWidgetSetup(sourceIdx))
+            targetLayer.setFieldAlias(targetIdx, sourceLayer.attributeAlias(sourceIdx))
+        targetLayer.setEditFormConfig(sourceLayer.editFormConfig())
+
     ## \brief Create a point layer from Point-Eingabelayer
     #
     # \param refData
@@ -74,6 +86,7 @@ class DigitizeCanvas(QgsMapCanvas):
             {"INPUT": refData["pointLayer"], "OUTPUT": "memory:"},
         )["OUTPUT"]
         refData["pointLayer"].removeSelection()
+        self.copyAttributeFormConfig(refData["pointLayer"], self.digiPointLayer)
 
         # Layer leeren
         pr = self.digiPointLayer.dataProvider()
@@ -222,6 +235,7 @@ class DigitizeCanvas(QgsMapCanvas):
             {"INPUT": refData["lineLayer"], "OUTPUT": "memory:"},
         )["OUTPUT"]
         refData["lineLayer"].removeSelection()
+        self.copyAttributeFormConfig(refData["lineLayer"], self.digiLineLayer)
 
         # Layer leeren
         pr = self.digiLineLayer.dataProvider()
@@ -406,6 +420,7 @@ class DigitizeCanvas(QgsMapCanvas):
             {"INPUT": refData["polygonLayer"], "OUTPUT": "memory:"},
         )["OUTPUT"]
         refData["polygonLayer"].removeSelection()
+        self.copyAttributeFormConfig(refData["polygonLayer"], self.digiPolygonLayer)
 
         # Layer leeren
         pr = self.digiPolygonLayer.dataProvider()
@@ -755,6 +770,7 @@ class DigitizeCanvas(QgsMapCanvas):
             ):
                 dataObj[item.name()] = feature[item.name()]
 
+        representThesaurusValues(self.featForm.attributeForm().layer(), dataObj)
         self.pup.publish("updateFeatureAttr", dataObj)
 
     ## \brief If the 'ok'-button of the self.featForm was clicked
