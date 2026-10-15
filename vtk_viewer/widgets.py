@@ -573,7 +573,7 @@ class VtkViewer(QDockWidget, FORM_CLASS):
             return
 
         for layer in layers:
-            if layer.type() == QgsMapLayerType.RasterLayer:
+            if layer.type() != QgsMapLayerType.VectorLayer:
                 continue
             if layer.geometryType() == QgsWkbTypes.NullGeometry:
                 continue
@@ -590,7 +590,7 @@ class VtkViewer(QDockWidget, FORM_CLASS):
     def update_renderer(self):
         self.vtkLayerCleanUp()
         for layer in QgsProject.instance().mapLayers().values():
-            if layer.type() == QgsMapLayerType.RasterLayer:
+            if layer.type() != QgsMapLayerType.VectorLayer:
                 continue
             if layer.geometryType() == QgsWkbTypes.NullGeometry:
                 continue
