@@ -5,6 +5,7 @@ import processing
 from qgis.PyQt.QtGui import QFont
 from qgis.core import (
     QgsRasterLayer,
+    QgsRasterTransparency,
     QgsRectangle,
     QgsMarkerSymbol,
     QgsPalLayerSettings,
@@ -708,6 +709,16 @@ class DigitizeCanvas(QgsMapCanvas):
         self.setExtent(combinedExtent)
         self.refresh()
 
+    ## \brief Make the white fill area from georeferencing transparent, so overlapping images stay visible
+    #
+    # The tolerance covers JPEG artifacts along the image border
+    def makeWhiteTransparent(self, imageLayer):
+        tolerance = 20
+        whitePixel = QgsRasterTransparency.TransparentThreeValuePixel(255, 255, 255, 0, tolerance, tolerance, tolerance)
+        transparency = QgsRasterTransparency()
+        transparency.setTransparentThreeValuePixelList([whitePixel])
+        imageLayer.renderer().setRasterTransparency(transparency)
+
     ## \brief Edit Attributes of a feature
     #
     def editFeatureAttributes(self, uuid):
@@ -859,7 +870,9 @@ class DigitizeCanvas(QgsMapCanvas):
         self.imageLayers = []
         for index, imageLayerPath in enumerate(imageLayerPaths, start=1):
             imageLayer = QgsRasterLayer(imageLayerPath, f"Profile image {index}")
-            if not imageLayer.isValid():
+            if imageLayer.isValid():
+                self.makeWhiteTransparent(imageLayer)
+            else:
                 LOGGER.warning("Layer failed to load!")
             self.imageLayers.append(imageLayer)
 
