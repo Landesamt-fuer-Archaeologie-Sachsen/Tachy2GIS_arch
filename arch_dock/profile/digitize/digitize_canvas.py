@@ -793,9 +793,10 @@ class DigitizeCanvas(QgsMapCanvas):
     ## \brief Close function on attribute dialog
     #
     def closeFeatForm(self, event):
-        self.digiPolygonLayer.commitChanges()
-        self.digiLineLayer.commitChanges()
-        self.digiPointLayer.commitChanges()
+        # the form can outlive the session layers, which are deleted when the dialog is cleaned up
+        for layer in (self.digiPolygonLayer, self.digiLineLayer, self.digiPointLayer):
+            if layer is not None:
+                layer.commitChanges()
 
     def removeFeatureByUuid(self, uuid):
         featuresPoly = self.digiPolygonLayer.getFeatures()
