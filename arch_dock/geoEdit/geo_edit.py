@@ -115,9 +115,9 @@ class GeoEdit:
                     self.translationY = self.getYValue()
                     self.translationX = self.getXValue()
                     # Start process translate relative and forward
-                    self.moveGeometryRelative("forward")
-                    # Enable reverse translation
-                    self.setAllowReverse(True)
+                    moved = self.moveGeometryRelative("forward")
+                    # Enable reverse translation only when the layer was moved
+                    self.setAllowReverse(moved)
 
                 # Absolute translation
                 else:
@@ -154,6 +154,8 @@ class GeoEdit:
     #
     # - Do translation only if features of the sourcelayer are selected
     # - Branch depending on wkb type - Query for Z and ZM single layer types - layerTranslationXYZ() does not output a correct Z value there (bug???).
+    #
+    #  @return True when the layer was moved, False when layerTranslationXYZ() rejected its wkb type
     def moveGeometryRelative(self, tranlationDirection):
 
         # Create spatial index
@@ -162,9 +164,12 @@ class GeoEdit:
         layerType = self.sourceLayer.wkbType()
         LOGGER.debug(f"layerType: {layerType}")
 
-        self.geoCalc.layerTranslationXYZ(
+        translated = self.geoCalc.layerTranslationXYZ(
             tranlationDirection, self.sourceLayer, self.translationX, self.translationY, self.translationZ
         )
+        if not translated:
+            # nothing was moved, the selection is still there; no success message
+            return False
 
         # Recalculate Extent
         self.recalculateLayerExtent()
@@ -179,6 +184,7 @@ class GeoEdit:
             level=Qgis.MessageLevel.Success,
             duration=5,
         )
+        return True
 
     ## @brief Start process to move features absolute
     #

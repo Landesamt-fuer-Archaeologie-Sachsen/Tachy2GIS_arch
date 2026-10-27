@@ -165,6 +165,7 @@ class GeoEditCalculations:
     # \param translationX - Value for translation in x direction
     # \param translationY - Value for translation in y direction
     # \param translationZ - Value for translation in z direction
+    # \return True when the layer was translated, False when its wkb type is not supported
     def layerTranslationXYZ(self, tranlationDirection, sourceLayer, translationX, translationY, translationZ):
 
         layerName = sourceLayer.name()
@@ -221,6 +222,8 @@ class GeoEditCalculations:
             }
 
         else:
+            # nothing was changed yet; leave edit mode before telling the user
+            sourceLayer.rollBack()
             QMessageBox.critical(
                 self.dockwidget,
                 "Invalider Layer",
@@ -228,10 +231,12 @@ class GeoEditCalculations:
                 QMessageBox.StandardButton.Abort,
             )
             LOGGER.warning(f"Kann Geometrietyp nicht verarbeiten: {layerType}")
+            return False
 
         LOGGER.debug(f"paramTranslate: {paramTranslate}")
         AlgorithmExecutor.execute_in_place(translateAlg, paramTranslate)
         sourceLayer.commitChanges()
+        return True
 
     def createMaptools(self):
         self.mapToolSel = IdentifyGeometry(iface.mapCanvas())
