@@ -165,7 +165,7 @@ class GeoEditCalculations:
     # \param translationX - Value for translation in x direction
     # \param translationY - Value for translation in y direction
     # \param translationZ - Value for translation in z direction
-    # \return True when the layer was translated, False when its wkb type is not supported
+    # \return True when the layer was translated, False when its geometries have no Z values
     def layerTranslationXYZ(self, tranlationDirection, sourceLayer, translationX, translationY, translationZ):
 
         layerName = sourceLayer.name()
@@ -187,41 +187,9 @@ class GeoEditCalculations:
         layerType = sourceLayer.wkbType()
         LOGGER.debug(f"layerType: {layerType}")
 
-        # Abfrage nach Z und ZM Multi Layertypen
-        if (
-            layerType == QgsWkbTypes.PointZ
-            or layerType == QgsWkbTypes.LineStringZ
-            or layerType == QgsWkbTypes.PolygonZ
-            or layerType == QgsWkbTypes.MultiPointZ
-            or layerType == QgsWkbTypes.MultiLineZ
-            or layerType == QgsWkbTypes.MultiPolygonZ
-        ):
-
-            paramTranslate = {
-                "DELTA_Y": tranlationYValue,
-                "DELTA_X": tranlationXValue,
-                "DELTA_Z": tranlationZValue,
-                "INPUT": sourceLayer,
-            }
-
-        elif (
-            layerType == QgsWkbTypes.PointZM
-            or layerType == QgsWkbTypes.LineStringZM
-            or layerType == QgsWkbTypes.PolygonZM
-            or layerType == QgsWkbTypes.MultiPointZM
-            or layerType == QgsWkbTypes.MultiLineZM
-            or layerType == QgsWkbTypes.MultiPolygonZM
-        ):
-
-            paramTranslate = {
-                "DELTA_Y": tranlationYValue,
-                "DELTA_X": tranlationXValue,
-                "DELTA_Z": tranlationZValue,
-                "DELTA_M": 0,
-                "INPUT": sourceLayer,
-            }
-
-        else:
+        # Only layers with Z values can take the Z shift. ZM types need no extra
+        # handling: the algorithm's DELTA_M defaults to 0, so M stays untouched.
+        if not QgsWkbTypes.hasZ(layerType):
             # nothing was changed yet; leave edit mode before telling the user
             sourceLayer.rollBack()
             QMessageBox.critical(
@@ -233,6 +201,12 @@ class GeoEditCalculations:
             LOGGER.warning(f"Kann Geometrietyp nicht verarbeiten: {layerType}")
             return False
 
+        paramTranslate = {
+            "DELTA_Y": tranlationYValue,
+            "DELTA_X": tranlationXValue,
+            "DELTA_Z": tranlationZValue,
+            "INPUT": sourceLayer,
+        }
         LOGGER.debug(f"paramTranslate: {paramTranslate}")
         AlgorithmExecutor.execute_in_place(translateAlg, paramTranslate)
         sourceLayer.commitChanges()
