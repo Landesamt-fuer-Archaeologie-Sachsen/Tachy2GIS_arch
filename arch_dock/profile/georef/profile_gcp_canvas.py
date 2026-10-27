@@ -148,7 +148,6 @@ class ProfileGcpCanvas(QgsMapCanvas):
         source_layer_settings.setFormat(textFormat)
         source_layer_settings.fieldName = "pt_nr"
         source_layer_settings.dist = 2
-        source_layer_settings.enabled = True
 
         self.gcpLayer.setLabelsEnabled(True)
         self.gcpLayer.setLabeling(QgsVectorLayerSimpleLabeling(source_layer_settings))

@@ -666,7 +666,6 @@ class DigitizeCanvas(QgsMapCanvas):
         palSettings = QgsPalLayerSettings()
         palSettings.setFormat(textFormat)
         palSettings.fieldName = label_field
-        palSettings.enabled = True
 
         return QgsVectorLayerSimpleLabeling(palSettings)
 

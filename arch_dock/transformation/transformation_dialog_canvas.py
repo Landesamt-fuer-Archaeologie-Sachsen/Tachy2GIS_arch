@@ -198,7 +198,6 @@ class TransformationDialogCanvas(QgsMapCanvas):
 
         sourcelayerSettings.fieldName = "pt_nr"
         sourcelayerSettings.placement = Qgis.LabelPlacement.AroundPoint
-        sourcelayerSettings.enabled = True
 
         sourcelayerSettings = QgsVectorLayerSimpleLabeling(sourcelayerSettings)
         self.sourceLayer.setLabelsEnabled(True)
