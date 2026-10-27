@@ -15,6 +15,7 @@ from qgis.core import (
     QgsVectorLayerSimpleLabeling,
 )
 from qgis.gui import QgsMapCanvas, QgsMapToolPan, QgsMapToolZoom
+from qgis.utils import iface
 
 from ..publisher import Publisher
 
@@ -183,7 +184,7 @@ class ProfileGcpCanvas(QgsMapCanvas):
 
         # check validation of Layers
         if not self.gcpLayer.isValid():
-            self.messageBar.pushMessage(
+            iface.messageBar().pushMessage(
                 "Error", "Layer " + self.gcpLayer.name() + " failed to load!", level=Qgis.MessageLevel.Warning, duration=5
             )
 

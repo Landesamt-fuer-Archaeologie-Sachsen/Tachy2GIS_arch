@@ -415,7 +415,7 @@ class TransformationGui:
 
     def resetTransformation(self, btn):
 
-        if btn.text() == "OK":
+        if self.transformMsgBox.standardButton(btn) == QMessageBox.StandardButton.Ok:
             self.startReverseTransformation()
             # self.enableTransformation(True)
 

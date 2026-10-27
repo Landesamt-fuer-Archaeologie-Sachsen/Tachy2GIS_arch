@@ -222,7 +222,7 @@ class GeoEditCalculations:
 
         else:
             QMessageBox.critical(
-                self.geoEditInstance,
+                self.dockwidget,
                 "Invalider Layer",
                 f"Kann Geometrietyp {layerType} nicht verarbeiten!",
                 QMessageBox.StandardButton.Abort,

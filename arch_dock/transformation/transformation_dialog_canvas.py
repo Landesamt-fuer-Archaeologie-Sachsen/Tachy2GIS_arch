@@ -14,6 +14,7 @@ from qgis.core import (
     QgsApplication,
 )
 from qgis.gui import QgsMapCanvas, QgsMapToolPan, QgsMapToolZoom
+from qgis.utils import iface
 
 
 ## @brief With the TransformationDialogCanvas class a map canvas element is realized.
@@ -158,7 +159,7 @@ class TransformationDialogCanvas(QgsMapCanvas):
         # check validation of Layers
         for layer in self.inputLayers:
             if not layer.isValid():
-                self.messageBar.pushMessage("Error", "Layer " + layer.name() + " failed to load!", level=Qgis.MessageLevel.Warning, duration=5)
+                iface.messageBar().pushMessage("Error", "Layer " + layer.name() + " failed to load!", level=Qgis.MessageLevel.Warning, duration=5)
 
         sourceCrs = self.sourceLayer.crs()
 
