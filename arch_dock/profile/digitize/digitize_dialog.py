@@ -171,7 +171,7 @@ class DigitizeDialog(QMainWindow):
         verticalLayout.addWidget(self.messageBar)
         verticalLayout.addWidget(self.parambar)
 
-        canvasTableSplitter = QSplitter(Qt.Vertical)
+        canvasTableSplitter = QSplitter(Qt.Orientation.Vertical)
         canvasTableSplitter.setChildrenCollapsible(False)
         canvasTableSplitter.addWidget(self.canvasDigitize)
         canvasTableSplitter.addWidget(self.tableDigitize)
