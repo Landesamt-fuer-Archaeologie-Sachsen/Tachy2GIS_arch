@@ -19,7 +19,8 @@ class IdentifyGeometry(QgsMapToolIdentify):
 
     def canvasReleaseEvent(self, mouseEvent):
         try:
-            results = self.identify(mouseEvent.x(), mouseEvent.y(), self.LayerSelection, self.layerType)
+            # PyQt6 has no QMouseEvent.x()/y() any more, pos() exists in both
+            results = self.identify(mouseEvent.pos().x(), mouseEvent.pos().y(), self.LayerSelection, self.layerType)
         except Exception as e:
             LOGGER.error("IdentifyGeometry: identify failed: %s", e)
             results = []

@@ -6,7 +6,7 @@ from functools import partial
 
 from qgis.PyQt.QtCore import Qt, pyqtSlot, QObject
 from qgis.PyQt.QtWidgets import QMessageBox, QComboBox, QLabel
-from qgis.core import QgsProject, QgsVectorLayer, QgsLayerTreeGroup, QgsLayerTreeLayer, QgsWkbTypes
+from qgis.core import Qgis, QgsProject, QgsVectorLayer, QgsLayerTreeGroup, QgsLayerTreeLayer, QgsWkbTypes
 from qgis.gui import QgsFileWidget
 from qgis.utils import iface
 
