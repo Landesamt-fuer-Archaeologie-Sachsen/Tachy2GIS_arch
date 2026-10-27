@@ -80,7 +80,7 @@ class TachyJoystick(QDialog, FORM_CLASS):
         if args[0] == "0":
             self.lockState.setText(TachyJoystick.LOCK_STATES[args[-1]])
         else:
-            self.lockState.setText(TachyJoystick.LOCK_STATES[0])
+            self.lockState.setText(TachyJoystick.LOCK_STATES["0"])
 
     def connectSignalsSlots(self):
         self.joystickUp.clicked.connect(self.up)

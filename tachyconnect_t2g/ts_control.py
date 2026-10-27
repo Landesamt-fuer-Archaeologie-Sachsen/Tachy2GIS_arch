@@ -108,7 +108,7 @@ class TachyReply:
         raise ValueError(f"Tachymeter reply uses unknown protocoll: {self.ascii}")
 
     def get_result(self):
-        raise NotImplemented("Has to be implemented for each subclass.")
+        raise NotImplementedError("Has to be implemented for each subclass.")
 
     def success(self):
         return False
@@ -152,7 +152,8 @@ class MessageQueue(QObject):
         super().__init__()
         self.indices = list(range(1, n_slots + 1))
         self.slots = {}
-        self.serial = QSerialPort
+        # no port until the dispatcher hands one over via set_serial(); append() returns False until then
+        self.serial = None
 
     def set_serial(self, serial):
         self.serial = serial
@@ -182,7 +183,8 @@ class MessageQueue(QObject):
             self.non_requested_data.emit(reply.ascii)
 
     def close(self):
-        self.serial.close()
+        if self.serial is not None:
+            self.serial.close()
 
     def __str__(self):
         n_slots = self.indices[-1]
@@ -285,7 +287,7 @@ class Dispatcher(QThread):
     def poll(self):
         if self.serial.error() == QSerialPort.SerialPortError.ResourceError:  # device is unexpectedly removed from the system
             self.serial.close()
-            self.serial_disconnected.emit(f"Connection {self.serial.portName} failed", self.serial.portName())
+            self.serial_disconnected.emit(f"Connection {self.serial.portName()} failed", self.serial.portName())
         while self.serial.canReadLine():
             reply = TachyReply(self.serial.readLine())
             self.register_reply(reply)
