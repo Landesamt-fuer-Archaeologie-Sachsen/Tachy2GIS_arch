@@ -75,8 +75,8 @@ class MeasurementTab(BASE, WIDGET):
     pt_nr: QLineEdit
     fund_nr: QLineEdit
     probe_nr: QLineEdit
-    grabungsschnitt: QLineEdit
-    teilplanum: QLineEdit
+    grschnitt_nr: QLineEdit
+    teilplanum_nr: QLineEdit
     gehoert_zu: QLineEdit
 
     def __init__(self):
@@ -204,8 +204,8 @@ class MeasurementTab(BASE, WIDGET):
         self.pt_nr.editingFinished.connect(self.onLineEditingFinished)
         self.fund_nr.editingFinished.connect(self.onLineEditingFinished)
         self.probe_nr.editingFinished.connect(self.onLineEditingFinished)
-        self.grabungsschnitt.editingFinished.connect(self.onLineEditingFinished)
-        self.teilplanum.editingFinished.connect(self.onLineEditingFinished)
+        self.grschnitt_nr.editingFinished.connect(self.onLineEditingFinished)
+        self.teilplanum_nr.editingFinished.connect(self.onLineEditingFinished)
         self.gehoert_zu.editingFinished.connect(self.onLineEditingFinished)
         self.btnHelp.clicked.connect(self.showHelp)
 
@@ -374,9 +374,9 @@ class MeasurementTab(BASE, WIDGET):
     def _applyAutoAttributeGdkeVisibility(self):
         config = ArchProjectConfig()
         if not config.get("Messen_grabungsschnitt_visible", False):
-            showAndHideWidgets([], [self.label_grabungsschnitt, self.grabungsschnitt])
+            showAndHideWidgets([], [self.label_grabungsschnitt, self.grschnitt_nr])
         if not config.get("Messen_teilplanum_visible", False):
-            showAndHideWidgets([], [self.label_teilplanum, self.teilplanum])
+            showAndHideWidgets([], [self.label_teilplanum, self.teilplanum_nr])
         if not config.get("Messen_gehoert_zu_visible", False):
             showAndHideWidgets([], [self.label_gehoert_zu, self.gehoert_zu])
 
@@ -583,8 +583,8 @@ class MeasurementTab(BASE, WIDGET):
         self.pt_nr.clear()
         self.fund_nr.clear()
         self.probe_nr.clear()
-        self.grabungsschnitt.clear()
-        self.teilplanum.clear()
+        self.grschnitt_nr.clear()
+        self.teilplanum_nr.clear()
         self.gehoert_zu.clear()
         self.cmbMaterial.setCurrentIndex(0)
         self.cmbMaterial2.setCurrentIndex(0)

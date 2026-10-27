@@ -604,7 +604,7 @@ class ArchProjectConfig(metaclass=SingletonMeta):
 def write_measurement_log(text):
     # a broken log path must never interrupt an ongoing measurement, so failures are only logged
     try:
-        log_dir = QgsProject.instance().readPath(ArchProjectConfig().get("Log_directory", "."))
+        log_dir = QgsProject.instance().readPath(ArchProjectConfig().get("Log_directory", "./../Jobs"))
         os.makedirs(log_dir, exist_ok=True)
 
         aktcode = re.sub(r'[\\/:*?"<>|]', "_", getCustomProjectVariable("aktcode"))

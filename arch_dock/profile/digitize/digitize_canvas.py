@@ -5,6 +5,7 @@ import processing
 from qgis.PyQt.QtGui import QFont
 from qgis.core import (
     QgsRasterLayer,
+    QgsRasterTransparency,
     QgsRectangle,
     QgsMarkerSymbol,
     QgsPalLayerSettings,
@@ -21,6 +22,7 @@ from qgis.core import (
 from qgis.gui import QgsMapCanvas, QgsMapToolPan, QgsMapToolZoom, QgsAttributeDialog
 
 from ..publisher import Publisher
+from .digitize_table import representThesaurusValues
 from ....common.utils import ArchProjectConfig
 
 LOGGER = logging.getLogger(__name__)
@@ -63,6 +65,17 @@ class DigitizeCanvas(QgsMapCanvas):
 
         self.createConnects()
 
+    ## \brief Use the attribute form of the Eingabelayer, as the memory copy loses it (thesauri shown as IDs)
+    #
+    def copyAttributeFormConfig(self, sourceLayer, targetLayer):
+        for targetIdx, field in enumerate(targetLayer.fields()):
+            sourceIdx = sourceLayer.fields().indexFromName(field.name())
+            if sourceIdx == -1:
+                continue
+            targetLayer.setEditorWidgetSetup(targetIdx, sourceLayer.editorWidgetSetup(sourceIdx))
+            targetLayer.setFieldAlias(targetIdx, sourceLayer.attributeAlias(sourceIdx))
+        targetLayer.setEditFormConfig(sourceLayer.editFormConfig())
+
     ## \brief Create a point layer from Point-Eingabelayer
     #
     # \param refData
@@ -74,6 +87,7 @@ class DigitizeCanvas(QgsMapCanvas):
             {"INPUT": refData["pointLayer"], "OUTPUT": "memory:"},
         )["OUTPUT"]
         refData["pointLayer"].removeSelection()
+        self.copyAttributeFormConfig(refData["pointLayer"], self.digiPointLayer)
 
         # Layer leeren
         pr = self.digiPointLayer.dataProvider()
@@ -222,6 +236,7 @@ class DigitizeCanvas(QgsMapCanvas):
             {"INPUT": refData["lineLayer"], "OUTPUT": "memory:"},
         )["OUTPUT"]
         refData["lineLayer"].removeSelection()
+        self.copyAttributeFormConfig(refData["lineLayer"], self.digiLineLayer)
 
         # Layer leeren
         pr = self.digiLineLayer.dataProvider()
@@ -406,6 +421,7 @@ class DigitizeCanvas(QgsMapCanvas):
             {"INPUT": refData["polygonLayer"], "OUTPUT": "memory:"},
         )["OUTPUT"]
         refData["polygonLayer"].removeSelection()
+        self.copyAttributeFormConfig(refData["polygonLayer"], self.digiPolygonLayer)
 
         # Layer leeren
         pr = self.digiPolygonLayer.dataProvider()
@@ -693,6 +709,16 @@ class DigitizeCanvas(QgsMapCanvas):
         self.setExtent(combinedExtent)
         self.refresh()
 
+    ## \brief Make the white fill area from georeferencing transparent, so overlapping images stay visible
+    #
+    # The tolerance covers JPEG artifacts along the image border
+    def makeWhiteTransparent(self, imageLayer):
+        tolerance = 20
+        whitePixel = QgsRasterTransparency.TransparentThreeValuePixel(255, 255, 255, 0, tolerance, tolerance, tolerance)
+        transparency = QgsRasterTransparency()
+        transparency.setTransparentThreeValuePixelList([whitePixel])
+        imageLayer.renderer().setRasterTransparency(transparency)
+
     ## \brief Edit Attributes of a feature
     #
     def editFeatureAttributes(self, uuid):
@@ -755,6 +781,7 @@ class DigitizeCanvas(QgsMapCanvas):
             ):
                 dataObj[item.name()] = feature[item.name()]
 
+        representThesaurusValues(self.featForm.attributeForm().layer(), dataObj)
         self.pup.publish("updateFeatureAttr", dataObj)
 
     ## \brief If the 'ok'-button of the self.featForm was clicked
@@ -766,9 +793,10 @@ class DigitizeCanvas(QgsMapCanvas):
     ## \brief Close function on attribute dialog
     #
     def closeFeatForm(self, event):
-        self.digiPolygonLayer.commitChanges()
-        self.digiLineLayer.commitChanges()
-        self.digiPointLayer.commitChanges()
+        # the form can outlive the session layers, which are deleted when the dialog is cleaned up
+        for layer in (self.digiPolygonLayer, self.digiLineLayer, self.digiPointLayer):
+            if layer is not None:
+                layer.commitChanges()
 
     def removeFeatureByUuid(self, uuid):
         featuresPoly = self.digiPolygonLayer.getFeatures()
@@ -843,7 +871,9 @@ class DigitizeCanvas(QgsMapCanvas):
         self.imageLayers = []
         for index, imageLayerPath in enumerate(imageLayerPaths, start=1):
             imageLayer = QgsRasterLayer(imageLayerPath, f"Profile image {index}")
-            if not imageLayer.isValid():
+            if imageLayer.isValid():
+                self.makeWhiteTransparent(imageLayer)
+            else:
                 LOGGER.warning("Layer failed to load!")
             self.imageLayers.append(imageLayer)
 

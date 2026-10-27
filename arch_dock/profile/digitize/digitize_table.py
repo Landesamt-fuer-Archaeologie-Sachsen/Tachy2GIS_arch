@@ -13,6 +13,18 @@ from ....common.utils import null_to_text
 
 LOGGER = logging.getLogger(__name__)
 
+THESAURUS_FIELDS = ("obj_typ", "obj_art")
+
+
+def representThesaurusValues(layer, dataObj):
+    for fieldName in THESAURUS_FIELDS:
+        fieldIdx = layer.fields().indexFromName(fieldName)
+        if fieldName not in dataObj or fieldIdx == -1:
+            continue
+        setup = layer.editorWidgetSetup(fieldIdx)
+        formatter = QgsApplication.fieldFormatterRegistry().fieldFormatter(setup.type())
+        dataObj[fieldName] = formatter.representValue(layer, fieldIdx, setup.config(), None, dataObj[fieldName])
+
 
 ## @brief With the DigitizeTable class a table based on QTableWidget is realized
 #

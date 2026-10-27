@@ -687,7 +687,7 @@
                  </widget>
                 </item>
                 <item row="3" column="2">
-                 <widget class="QLineEdit" name="grabungsschnitt"/>
+                 <widget class="QLineEdit" name="grschnitt_nr"/>
                 </item>
                 <item row="4" column="0">
                  <widget class="QLabel" name="label_12">
@@ -707,7 +707,7 @@
                  </widget>
                 </item>
                 <item row="5" column="2">
-                 <widget class="QLineEdit" name="teilplanum"/>
+                 <widget class="QLineEdit" name="teilplanum_nr"/>
                 </item>
                 <item row="6" column="0">
                  <widget class="QLabel" name="label_13">
@@ -1019,9 +1019,9 @@
   <tabstop>cmbObjectType_1</tabstop>
   <tabstop>cmbObjectType_2</tabstop>
   <tabstop>cmbObjectType_3</tabstop>
-  <tabstop>grabungsschnitt</tabstop>
+  <tabstop>grschnitt_nr</tabstop>
   <tabstop>schnitt_nr</tabstop>
-  <tabstop>teilplanum</tabstop>
+  <tabstop>teilplanum_nr</tabstop>
   <tabstop>planum_nr</tabstop>
   <tabstop>bef_nr</tabstop>
   <tabstop>prof_nr</tabstop>

@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from qgis.PyQt.QtCore import pyqtSlot
+from qgis.PyQt.QtCore import Qt, pyqtSlot
 from qgis.PyQt.QtGui import QIcon
-from qgis.PyQt.QtWidgets import QWidget, QMainWindow, QAction, QVBoxLayout
+from qgis.PyQt.QtWidgets import QWidget, QMainWindow, QAction, QVBoxLayout, QSplitter
 from qgis.core import QgsPointXY
 from qgis.gui import QgsMessageBar
 from qgis.utils import iface
@@ -170,8 +170,12 @@ class DigitizeDialog(QMainWindow):
 
         verticalLayout.addWidget(self.messageBar)
         verticalLayout.addWidget(self.parambar)
-        verticalLayout.addWidget(self.canvasDigitize)
-        verticalLayout.addWidget(self.tableDigitize)
+
+        canvasTableSplitter = QSplitter(Qt.Vertical)
+        canvasTableSplitter.setChildrenCollapsible(False)
+        canvasTableSplitter.addWidget(self.canvasDigitize)
+        canvasTableSplitter.addWidget(self.tableDigitize)
+        verticalLayout.addWidget(canvasTableSplitter)
 
     def restore(self, refData):
         self.refData = refData

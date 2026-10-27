@@ -7,6 +7,7 @@ from qgis.gui import QgsAttributeDialog, QgsAttributeEditorContext
 from ....common.layers import T2gLayers
 from ....settings import PLUGIN_NAME
 from .map_tools import PointMapTool
+from .digitize_table import representThesaurusValues
 from .maptool_mixin import MapToolMixin
 from ..publisher import Publisher
 
@@ -149,6 +150,7 @@ class MapToolDigiPoint(PointMapTool, MapToolMixin):
                 dataObj[item.name()] = feature[item.name()]
 
         dataObj["layer"] = self.refData["pointLayer"].sourceName()
+        representThesaurusValues(self.refData["pointLayer"], dataObj)
 
         self.pup.publish("pointFeatureAttr", dataObj)
 

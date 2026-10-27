@@ -7,6 +7,7 @@ from qgis.gui import QgsAttributeDialog, QgsAttributeEditorContext
 from ....common.layers import T2gLayers
 from ....settings import PLUGIN_NAME
 from .map_tools import MultilineMapTool
+from .digitize_table import representThesaurusValues
 from .maptool_mixin import MapToolMixin
 from ..publisher import Publisher
 
@@ -149,6 +150,7 @@ class MapToolDigiLine(MultilineMapTool, MapToolMixin):
                 dataObj[item.name()] = feature[item.name()]
 
         dataObj["layer"] = self.refData["lineLayer"].sourceName()
+        representThesaurusValues(self.refData["lineLayer"], dataObj)
 
         self.pup.publish("lineFeatureAttr", dataObj)
 
