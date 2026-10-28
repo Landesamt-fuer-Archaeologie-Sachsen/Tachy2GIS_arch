@@ -16,11 +16,6 @@
     <height>50000</height>
    </size>
   </property>
-  <property name="font">
-   <font>
-    <pointsize>7</pointsize>
-   </font>
-  </property>
   <property name="floating">
    <bool>true</bool>
   </property>
@@ -114,12 +109,6 @@
            </colorrole>
           </disabled>
          </palette>
-        </property>
-        <property name="font">
-         <font>
-          <family>MS Shell Dlg 2</family>
-          <pointsize>7</pointsize>
-         </font>
         </property>
         <property name="tabPosition">
          <enum>QTabWidget::East</enum>
@@ -759,7 +748,7 @@
         </widget>
         <widget class="QWidget" name="tab_tools_allgemein">
          <attribute name="title">
-          <string>Tools Alllgemein</string>
+          <string>Tools Allgemein</string>
          </attribute>
          <layout class="QVBoxLayout" name="verticalLayout_6"/>
         </widget>
