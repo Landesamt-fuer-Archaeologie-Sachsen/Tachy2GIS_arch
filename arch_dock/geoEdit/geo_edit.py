@@ -17,6 +17,7 @@ from qgis.core import (
 from qgis.utils import iface
 
 from .geo_edit_calculations import GeoEditCalculations
+from ...common.signal_tracker import SignalTracker
 from ...icons import ICON_PATHS
 
 LOGGER = logging.getLogger(__name__)
@@ -49,6 +50,12 @@ class GeoEdit:
         self.relativeCheck = True
         # Allow reverse process
         self.allowReverse = False
+        # The dock widget and its buttons outlive this instance: on every project
+        # reload T2GArchDockWidget replaces the GeoEdit, and the old instance stays
+        # alive (reference cycle with GeoEditCalculations) until the garbage
+        # collector gets to it - with its button connections still firing, so
+        # each click ran the slot twice. disconnectSignals() cuts them deterministically.
+        self._signals = SignalTracker()
 
     ## @brief Initializes the functionality for geoEdit modul
     # - Preselection of inputlayer, calls preselectionComboInputlayers()
@@ -61,31 +68,32 @@ class GeoEdit:
         # Preselection of Inputlayers (only Layer below "Eingabelayer" are available)
         self.preselectionComboInputlayers()
         # Start process moving selected features
-        self.dockwidget.btnGeometryMoveRun.clicked.connect(self.moveGeometryForward)
+        self._signals.track_connect(self.dockwidget.btnGeometryMoveRun.clicked, self.moveGeometryForward)
         # Start process moving selected features reverse
-        self.dockwidget.btnGeometryMoveReverse.clicked.connect(self.moveGeometryReverse)
+        self._signals.track_connect(self.dockwidget.btnGeometryMoveReverse.clicked, self.moveGeometryReverse)
         # Signal connection of "relativ" and "absolut" radios
-        self.dockwidget.radioGeometryMoveRelativ.toggled.connect(self.relativeAbsolutChanged)
+        self._signals.track_connect(self.dockwidget.radioGeometryMoveRelativ.toggled, self.relativeAbsolutChanged)
         # Signal connection Infobutton
-        self.dockwidget.btnGeometryMoveInfo.clicked.connect(self.openInfoMessageBox)
+        self._signals.track_connect(self.dockwidget.btnGeometryMoveInfo.clicked, self.openInfoMessageBox)
         # Get signal when active layer in layertree is changed
-        iface.layerTreeView().currentLayerChanged.connect(self.activeLayerIsChanged)
+        self._signals.track_connect(iface.layerTreeView().currentLayerChanged, self.activeLayerIsChanged)
         # Disable reverse button
         self.setAllowReverse(False)
 
         # Setup "Verschneiden"
         self.dockwidget.butContactClip.setToolTip("Polygon zuschneiden")
         self.dockwidget.butContactClip.setIcon(QIcon(ICON_PATHS["butContactClip"]))
-        self.dockwidget.butContactClip.clicked.connect(self.geoCalc.contactClip)
+        self._signals.track_connect(self.dockwidget.butContactClip.clicked, self.geoCalc.contactClip)
 
         # Setup Sonstiges
         self.dockwidget.butLineRes.setIcon(QIcon(ICON_PATHS["LineRe"]))
         self.dockwidget.butLineRes.setToolTip("Linie umdrehen")
-        self.dockwidget.butLineRes.clicked.connect(self.reverseLines)
+        self._signals.track_connect(self.dockwidget.butLineRes.clicked, self.reverseLines)
 
     def disconnectSignals(self):
-        # muss disconnected werden bei reload des Plugins
-        iface.layerTreeView().currentLayerChanged.disconnect(self.activeLayerIsChanged)
+        # called by T2GArchDockWidget before this instance is replaced (project
+        # reload) or dropped (plugin unload): every connection made in setup()
+        self._signals.disconnect_all()
 
     ## @brief Start process to move features forward
     # - Get input values
