@@ -55,11 +55,12 @@ def getComboboxModelFromLayerConfig(layer: QgsVectorLayer, fieldName: str, curre
     valueField = editorConfig["Value"]
     layerFilterExpression = editorConfig.get("FilterExpression", "")
     filterExpression = replaceCurrentValues(layerFilterExpression, currentValues)
+    orderByField = editorConfig.get("OrderByFieldName", "") if editorConfig.get("OrderByField") else ""
     relLayer = findLayerInProject(layerName)
     if not relLayer:
         LOGGER.warning(f"Related layer '{layerName}' not found in the project.")
         return {}
-    return getLookupDict(relLayer, keyField, valueField, filterExpression)
+    return getLookupDict(relLayer, keyField, valueField, filterExpression, orderByField)
 
 
 def replaceCurrentValues(expr: str, values: dict) -> str:
@@ -82,13 +83,15 @@ def replaceCurrentValues(expr: str, values: dict) -> str:
     return _PATTERN.sub(lambda m: quote(values.get(m.group("field_name"))), expr or "")
 
 
-def getLookupDict(layer, keyColumn, valueColumn, filterExpression=""):
+def getLookupDict(layer, keyColumn, valueColumn, filterExpression="", orderByField=""):
     lookupDict = {}
     if layer.fields().indexOf(keyColumn) == -1 or layer.fields().indexOf(valueColumn) == -1:
         return lookupDict
     request = QgsFeatureRequest()
     if filterExpression:
         request.setFilterExpression(filterExpression)
+    if orderByField:
+        request.addOrderBy(f'"{orderByField}"')
     for feature in layer.getFeatures(request):
         if feature.attribute(valueColumn) != QVariant():
             lookupDict[feature.attribute(keyColumn)] = feature.attribute(valueColumn)
