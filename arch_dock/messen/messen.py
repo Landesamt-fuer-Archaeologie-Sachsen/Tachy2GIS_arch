@@ -515,6 +515,9 @@ class MeasurementTab(BASE, WIDGET):
     def setAutoAttributeMode(self, state: int):
         setCustomProjectVariable("autoAttribute", bool(state))
 
+    def deactivateAutoAttributes(self):
+        self.cbActivateAutoAttributes.setChecked(False)
+
     def adjustAutoAttributes(self):
         self.fillComboObjectType()
         if not self.cmbMaterial.count():

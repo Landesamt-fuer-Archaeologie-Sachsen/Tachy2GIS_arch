@@ -54,6 +54,11 @@ class T2GArchDockWidget(QDockWidget, FORM_CLASS):
         self.setupUi(self)
         self.setupModules()
         self.tabWidget.setCurrentIndex(0)
+        self.tabWidget.currentChanged.connect(self._deactivateAutoAttributesOutsideMeasurement)
+
+    def _deactivateAutoAttributesOutsideMeasurement(self, index):
+        if self.tabWidget.widget(index) is not self.tab_measurement:
+            self.measurementTab.deactivateAutoAttributes()
 
     def setupModules(self):
         # Messen
