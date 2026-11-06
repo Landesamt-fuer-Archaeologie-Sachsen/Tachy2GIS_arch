@@ -49,6 +49,12 @@ class Digitize:
 
         self.__dockwidget.startDigitizeBtn.clicked.connect(self.__startDigitizeDialog)
 
+    def disconnectSignals(self):
+        try:
+            self.__dockwidget.startDigitizeBtn.clicked.disconnect(self.__startDigitizeDialog)
+        except TypeError:
+            pass
+
     def __startDigitizeDialog(self):
 
         if not layers_not_in_edit_mode(["E_Point", "E_Line", "E_Polygon", "Messpunkte"]):

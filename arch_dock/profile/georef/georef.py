@@ -83,6 +83,23 @@ class Georef:
         else:
             LOGGER.debug("preselectedLineLayer is kein QgsVectorLayer")
 
+    def disconnectSignals(self):
+        try:
+            self.dockwidget.profileFotosComboGeoref.fileChanged.disconnect(self.changedProfileImage)
+            self.dockwidget.startGeoreferencingBtn.clicked.disconnect(self.startGeoreferencingBtn_clicked)
+            self.dockwidget.layerGcpGeoref.currentIndexChanged.disconnect(self.calculateViewDirection)
+            self.dockwidget.layerProfileGeoref.currentIndexChanged.disconnect(self.calculateViewDirection)
+            self.dockwidget.profileIdsComboGeoref.currentIndexChanged.disconnect(self.calculateViewDirection)
+            self.dockwidget.profileInfoBtn.clicked.disconnect(self.openInfoMessageBox)
+            self.dockwidget.checkboxKreuzprofil.stateChanged.disconnect(self.handleKreuzprofil)
+        except TypeError:
+            pass
+        # the line layer may already be deleted with the previous project
+        try:
+            self.preselectedLineLayer.editingStopped.disconnect(self.onLineLayerEdited)
+        except (TypeError, RuntimeError, AttributeError):
+            pass
+
     def startGeoreferencingBtn_clicked(self):
         # reset old dialogues, windows and ref data:
         self.geo_referencing_dialogues_list = []

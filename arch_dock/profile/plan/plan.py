@@ -64,6 +64,13 @@ class Plan:
         self.__dockwidget.check_profile_buffer.stateChanged.connect(self.handle_check_profile_buffer)
         self.handle_check_profile_buffer(Qt.Unchecked)
 
+    def disconnectSignals(self):
+        try:
+            self.__dockwidget.startPlanBtn.clicked.disconnect(self.__startPlanCreation)
+            self.__dockwidget.check_profile_buffer.stateChanged.disconnect(self.handle_check_profile_buffer)
+        except TypeError:
+            pass
+
     def createConnects(self):
 
         self.dataStorePlan.pup.register("pushTransformationParams", self.rotationCoords.setAarTransformationParams)

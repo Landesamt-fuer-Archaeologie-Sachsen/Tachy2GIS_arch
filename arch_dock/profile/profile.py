@@ -33,4 +33,7 @@ class Profile:
         self.plan.setup()
 
     def teardown(self):
+        self.georef.disconnectSignals()
+        self.digitize.disconnectSignals()
+        self.plan.disconnectSignals()
         self.digitize.closeDigitizeDialog()
